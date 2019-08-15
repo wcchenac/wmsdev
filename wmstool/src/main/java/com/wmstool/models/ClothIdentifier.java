@@ -8,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -37,6 +38,12 @@ public class ClothIdentifier {
 
 	private short serialNo;
 
+	private boolean isExist;
+
+	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
+	@JsonIgnore
+	private ClothInfo clothInfo;
+
 	public ClothIdentifier(ClothIdentifierBacklog clothIdentifierBacklog) {
 		this.clothIdentifierBacklog = clothIdentifierBacklog;
 		this.productNo = clothIdentifierBacklog.getProductNo();
@@ -44,6 +51,7 @@ public class ClothIdentifier {
 		this.type = clothIdentifierBacklog.getType();
 		this.length = clothIdentifierBacklog.getLength();
 		this.serialNo = clothIdentifierBacklog.getSerialNo();
+		this.isExist = true;
 	}
 
 	public long getId() {
@@ -54,12 +62,12 @@ public class ClothIdentifier {
 		this.id = id;
 	}
 
-	public ClothIdentifierBacklog getBacklog() {
+	public ClothIdentifierBacklog getClothIdentifierBacklog() {
 		return clothIdentifierBacklog;
 	}
 
-	public void setBacklog(ClothIdentifierBacklog backlog) {
-		this.clothIdentifierBacklog = backlog;
+	public void setClothIdentifierBacklog(ClothIdentifierBacklog clothIdentifierBacklog) {
+		this.clothIdentifierBacklog = clothIdentifierBacklog;
 	}
 
 	public String getProductNo() {
@@ -100,6 +108,22 @@ public class ClothIdentifier {
 
 	public void setSerialNo(short serialNo) {
 		this.serialNo = serialNo;
+	}
+
+	public boolean isExist() {
+		return isExist;
+	}
+
+	public void setExist(boolean isExist) {
+		this.isExist = isExist;
+	}
+
+	public ClothInfo getClothInfo() {
+		return clothInfo;
+	}
+
+	public void setClothInfo(ClothInfo clothInfo) {
+		this.clothInfo = clothInfo;
 	}
 
 }

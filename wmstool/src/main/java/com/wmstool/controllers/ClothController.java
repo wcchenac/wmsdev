@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.wmstool.models.ClothIdentifier;
 import com.wmstool.models.ClothIdentifierBacklog;
 import com.wmstool.models.ClothInfo;
+import com.wmstool.models.ClothRecord;
+import com.wmstool.models.payloads.InStockRequest;
 import com.wmstool.services.ClothService;
 import com.wmstool.services.MapValidationErrorService;
 
@@ -28,7 +30,7 @@ public class ClothController {
 	private MapValidationErrorService mapErrorService;
 
 	@PostMapping("/instock/new")
-	public ResponseEntity<?> createClothInfo(@Valid @RequestBody ClothIdentifierBacklog backlog,
+	public ResponseEntity<?> createClothInfo(@Valid @RequestBody InStockRequest inStockRequest,
 			BindingResult bindingResult) {
 		ResponseEntity<?> errorMap = mapErrorService.mapValidationService(bindingResult);
 
@@ -36,8 +38,13 @@ public class ClothController {
 			return errorMap;
 		}
 
-		ClothIdentifier result = clothService.createClothIdentifier(backlog);
-		return new ResponseEntity<ClothIdentifier>(result, HttpStatus.CREATED);
+		ClothIdentifierBacklog backlog = inStockRequest.getClothIdentifierBacklog();
+		ClothInfo clothInfo = inStockRequest.getClothInfo();
+		ClothRecord[] records = inStockRequest.getRecords();
+
+		ClothIdentifier identifier = clothService.createClothIdentifier(backlog);
+		ClothInfo result = clothService.createClothInfo(identifier, clothInfo, records);
+		return new ResponseEntity<ClothInfo>(result, HttpStatus.CREATED);
 	}
 
 }
