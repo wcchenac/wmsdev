@@ -17,6 +17,7 @@ public class ClothIdentifier {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@JsonIgnore
 	private long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -43,6 +44,9 @@ public class ClothIdentifier {
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
 	@JsonIgnore
 	private ClothInfo clothInfo;
+
+	public ClothIdentifier() {
+	}
 
 	public ClothIdentifier(ClothIdentifierBacklog clothIdentifierBacklog) {
 		this.clothIdentifierBacklog = clothIdentifierBacklog;

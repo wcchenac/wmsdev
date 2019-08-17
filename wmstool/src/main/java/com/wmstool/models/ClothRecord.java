@@ -20,6 +20,7 @@ public class ClothRecord {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@JsonIgnore
 	private long id;
 
 	@ManyToOne(fetch = FetchType.EAGER)
@@ -30,8 +31,10 @@ public class ClothRecord {
 	private String record;
 
 	@Column(updatable = false)
+	@JsonIgnore
 	private Date createdAt;
 
+	@JsonIgnore
 	private Date updatedAt;
 
 	public ClothRecord() {

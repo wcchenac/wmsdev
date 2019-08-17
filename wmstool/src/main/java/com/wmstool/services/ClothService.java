@@ -57,4 +57,10 @@ public class ClothService {
 		return clothInfoRepository.save(res);
 	}
 
+	public List<ClothInfo> findClothInfoByProductNo(String productNo) {
+		List<ClothIdentifier> res = clothIdentifierRepo.findByProductNoAndIsExist(productNo, true).orElse(null);
+		List<ClothInfo> result = new ArrayList<>();
+		res.stream().forEach(identifier -> result.add(clothInfoRepository.findById(identifier.getId()).get()));
+		return result;
+	}
 }

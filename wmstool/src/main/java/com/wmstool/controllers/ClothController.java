@@ -1,11 +1,15 @@
 package com.wmstool.controllers;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +33,7 @@ public class ClothController {
 	@Autowired
 	private MapValidationErrorService mapErrorService;
 
-	@PostMapping("/instock/new")
+	@PostMapping("/inStock")
 	public ResponseEntity<?> createClothInfo(@Valid @RequestBody InStockRequest inStockRequest,
 			BindingResult bindingResult) {
 		ResponseEntity<?> errorMap = mapErrorService.mapValidationService(bindingResult);
@@ -45,6 +49,11 @@ public class ClothController {
 		ClothIdentifier identifier = clothService.createClothIdentifier(backlog);
 		ClothInfo result = clothService.createClothInfo(identifier, clothInfo, records);
 		return new ResponseEntity<ClothInfo>(result, HttpStatus.CREATED);
+	}
+
+	@GetMapping("/queryStock/{productNo}")
+	public List<ClothInfo> getClothInfos(@PathVariable String productNo) {
+		return clothService.findClothInfoByProductNo(productNo);
 	}
 
 }
