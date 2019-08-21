@@ -37,12 +37,11 @@ function ClothIdentifierBacklog(props) {
         <select
           className="custom-select custom-select-lg"
           name="type"
-          value={values.type}
+          // value={values.type}
+          defaultValue="捲"
           onChange={handleChange}
         >
-          <option selected value="捲">
-            捲
-          </option>
+          <option value="捲">捲</option>
           <option value="板">板</option>
         </select>
       </div>
@@ -65,7 +64,7 @@ export default withFormik({
     return {
       productNo: "",
       lotNo: "",
-      type: "",
+      type: "捲",
       length: ""
     };
   }

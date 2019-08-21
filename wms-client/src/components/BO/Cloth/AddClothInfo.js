@@ -38,7 +38,7 @@ function AddClothInfo(props) {
 
   function handleOnSubmit() {
     console.log(formValues);
-    createClothInfo(formValues, history);
+    // createClothInfo(formValues, history);
   }
 
   return (
@@ -52,12 +52,84 @@ function AddClothInfo(props) {
             <ClothInfo onChange={handleClothInfoChange} />
             <ClothRecord onChange={handleClothRecordChange} />
             <button
-              type="submit"
+              type="button"
               className="btn btn-primary btn-block mt-4"
-              onClick={handleOnSubmit}
+              data-toggle="modal"
+              data-target="#ModalCenter"
             >
-              送出
+              預覽
             </button>
+            <div
+              className="modal fade"
+              id="ModalCenter"
+              tabIndex="-1"
+              role="dialog"
+              aria-labelledby="ModalCenterTitle"
+              aria-hidden="true"
+            >
+              <div
+                className="modal-dialog modal-dialog-scrollable-centered"
+                role="document"
+              >
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title" id="ModalCenterTitle">
+                      預覽結果
+                    </h5>
+                    <button
+                      type="button"
+                      className="close"
+                      data-dismiss="modal"
+                      aria-label="Close"
+                    >
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div className="modal-body">
+                    <table className="table table-hover">
+                      <thead>
+                        <tr>
+                          <th scope="col">貨號</th>
+                          <th scope="col">批號</th>
+                          <th scope="col">型態</th>
+                          <th scope="col">長度</th>
+                          <th scope="col">流水號</th>
+                          <th scope="col">色碼</th>
+                          <th scope="col">缺陷</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="col">貨號</th>
+                          <th scope="col">批號</th>
+                          <th scope="col">型態</th>
+                          <th scope="col">長度</th>
+                          <th scope="col">流水號</th>
+                          <th scope="col">色碼</th>
+                          <th scope="col">缺陷</th>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      data-dismiss="modal"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleOnSubmit}
+                    >
+                      送出
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
