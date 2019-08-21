@@ -1,7 +1,7 @@
-import { GET_ClothInfo } from "../actions/types";
+import { GET_ClothInfo, GET_ClothInfoes } from "../actions/types";
 
 const initialState = {
-  clothInfos: [],
+  clothInfoes: [],
   clothInfo: {}
 };
 
@@ -11,6 +11,11 @@ export default function(state = initialState, action) {
       return {
         ...state,
         clothInfo: action.payload
+      };
+    case GET_ClothInfoes:
+      return {
+        ...state,
+        clothInfoes: action.payload
       };
     default:
       return state;
