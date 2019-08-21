@@ -46,16 +46,18 @@ function AddClothInfo(props) {
       <div className="container">
         <div className="row">
           <div className="col-md-8 m-auto">
-            <h5 className="display-4 text-center">Create Project form</h5>
+            <p className="h2 text-center">入庫基本資料</p>
             <hr />
             <ClothIdentifierBacklog onChange={handleIdentifierBacklogChange} />
             <ClothInfo onChange={handleClothInfoChange} />
             <ClothRecord onChange={handleClothRecordChange} />
-            <input
+            <button
               type="submit"
               className="btn btn-primary btn-block mt-4"
               onClick={handleOnSubmit}
-            />
+            >
+              送出
+            </button>
           </div>
         </div>
       </div>

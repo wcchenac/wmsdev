@@ -3,7 +3,7 @@ import React, { Component } from "react";
 class Header extends Component {
   render() {
     return (
-      <nav className="navbar navbar-expand-sm navbar-dark bg-primary mb-4">
+      <nav className="navbar sticky-top navbar-expand-sm navbar-dark bg-primary mb-4">
         <div className="container">
           <a className="navbar-brand" href="Dashboard.html">
             庫存管理工具
@@ -35,7 +35,7 @@ class Header extends Component {
                 </a>
                 <div className="dropdown-menu">
                   <a className="dropdown-item" href="/cloth/modify">
-                    板卷變動
+                    板捲變動
                   </a>
                   <a className="dropdown-item" href="/cloth/delete">
                     庫存註銷
@@ -53,6 +53,11 @@ class Header extends Component {
               <li className="nav-item">
                 <a className="nav-link" href="login.html">
                   登入
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="login.html">
+                  登出
                 </a>
               </li>
             </ul>

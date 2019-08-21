@@ -34,14 +34,17 @@ function ClothIdentifierBacklog(props) {
         />
       </div>
       <div className="form-group">
-        <input
-          type="text"
-          className="form-control form-control-lg"
-          placeholder="型態"
+        <select
+          className="custom-select custom-select-lg"
           name="type"
           value={values.type}
           onChange={handleChange}
-        />
+        >
+          <option selected value="捲">
+            捲
+          </option>
+          <option value="板">板</option>
+        </select>
       </div>
       <div className="form-group">
         <input
