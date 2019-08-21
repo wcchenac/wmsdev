@@ -58,9 +58,12 @@ public class ClothService {
 	}
 
 	public List<ClothInfo> findClothInfoByProductNo(String productNo) {
-		List<ClothIdentifier> res = clothIdentifierRepo.findByProductNoAndIsExist(productNo, true).orElse(null);
 		List<ClothInfo> result = new ArrayList<>();
-		res.stream().forEach(identifier -> result.add(clothInfoRepository.findById(identifier.getId()).get()));
+		List<ClothIdentifier> res = new ArrayList<>();
+		res = clothIdentifierRepo.findByProductNoAndIsExist(productNo, true).orElse(res);
+		if (!res.isEmpty()) {
+			res.stream().forEach(identifier -> result.add(clothInfoRepository.findById(identifier.getId()).get()));
+		}
 		return result;
 	}
 }
