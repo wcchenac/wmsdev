@@ -55,7 +55,7 @@ public class ClothController {
 
 	@GetMapping("/queryStock/{productNo}")
 	public List<ClothInfo> getClothInfos(@PathVariable String productNo) {
-		return clothService.findClothInfoByProductNo(productNo);
+		return clothService.findClothInfoByProductNo(productNo.toUpperCase());
 	}
 
 }

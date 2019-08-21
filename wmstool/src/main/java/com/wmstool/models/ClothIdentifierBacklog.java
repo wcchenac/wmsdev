@@ -48,7 +48,7 @@ public class ClothIdentifierBacklog {
 	}
 
 	public void setProductNo(String productNo) {
-		this.productNo = productNo;
+		this.productNo = productNo.toUpperCase();
 	}
 
 	public String getLotNo() {
@@ -56,7 +56,7 @@ public class ClothIdentifierBacklog {
 	}
 
 	public void setLotNo(String lotNo) {
-		this.lotNo = lotNo;
+		this.lotNo = lotNo.toUpperCase();
 	}
 
 	public String getType() {
