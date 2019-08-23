@@ -9,7 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
@@ -23,12 +23,14 @@ public class ClothRecord {
 	@JsonIgnore
 	private long id;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "clothInfo_id", nullable = false, updatable = false)
 	@JsonIgnore
 	private ClothInfo clothInfo;
 
 	private String record;
+
+	private String remark;
 
 	@Column(updatable = false)
 	@JsonIgnore
@@ -40,6 +42,12 @@ public class ClothRecord {
 	public ClothRecord() {
 	}
 
+	public ClothRecord(ClothRecord clothRecord, ClothInfo clothInfo) {
+		this.clothInfo = clothInfo;
+		this.record = clothRecord.getRecord();
+		this.remark = clothRecord.getRemark();
+	}
+	
 	public long getId() {
 		return id;
 	}
@@ -62,6 +70,14 @@ public class ClothRecord {
 
 	public void setRecord(String record) {
 		this.record = record;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
 	}
 
 	public Date getCreatedAt() {

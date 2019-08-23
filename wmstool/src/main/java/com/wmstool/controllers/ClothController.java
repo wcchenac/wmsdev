@@ -46,7 +46,7 @@ public class ClothController {
 
 		ClothIdentifierBacklog backlog = inStockRequest.getClothIdentifierBacklog();
 		ClothInfo clothInfo = inStockRequest.getClothInfo();
-		ClothRecord[] records = inStockRequest.getRecords();
+		ClothRecord records = inStockRequest.getRecords();
 
 		ClothIdentifier identifier = clothService.createClothIdentifier(backlog);
 		ClothInfo result = clothService.createClothInfo(identifier, clothInfo, records);

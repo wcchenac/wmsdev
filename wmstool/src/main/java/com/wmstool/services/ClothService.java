@@ -1,7 +1,6 @@
 package com.wmstool.services;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,15 +45,11 @@ public class ClothService {
 		return clothIdentifierRepo.save(clothIdentifier);
 	}
 
-	public ClothInfo createClothInfo(ClothIdentifier clothIdentifier, ClothInfo info, ClothRecord[] records) {
-		ClothInfo res = clothInfoRepository.save(new ClothInfo(clothIdentifier, info));
-		List<ClothRecord> recordList = new ArrayList<>();
-		Arrays.asList(records).stream().forEach(r -> {
-			r.setClothInfo(res);
-			recordList.add(clothRecordRepository.save(r));
-		});
-		res.setClothRecords(recordList);
-		return clothInfoRepository.save(res);
+	public ClothInfo createClothInfo(ClothIdentifier clothIdentifier, ClothInfo info, ClothRecord records) {
+		ClothInfo info_res = clothInfoRepository.save(new ClothInfo(clothIdentifier, info));
+		ClothRecord record_res = clothRecordRepository.save(new ClothRecord(records, info_res));
+		info_res.setClothRecords(record_res);
+		return clothInfoRepository.save(info_res);
 	}
 
 	public List<ClothInfo> findClothInfoByProductNo(String productNo) {

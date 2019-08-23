@@ -9,8 +9,8 @@ public class InStockRequest {
 	private ClothIdentifierBacklog clothIdentifierBacklog;
 
 	private ClothInfo clothInfo;
-	
-	private ClothRecord[] records;
+
+	private ClothRecord records;
 
 	public ClothIdentifierBacklog getClothIdentifierBacklog() {
 		return clothIdentifierBacklog;
@@ -28,12 +28,12 @@ public class InStockRequest {
 		this.clothInfo = clothInfo;
 	}
 
-	public ClothRecord[] getRecords() {
+	public ClothRecord getRecords() {
 		return records;
 	}
 
-	public void setRecords(ClothRecord[] records) {
+	public void setRecords(ClothRecord records) {
 		this.records = records;
 	}
-	
+
 }
