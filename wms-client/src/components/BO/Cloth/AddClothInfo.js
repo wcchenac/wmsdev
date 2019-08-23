@@ -10,7 +10,7 @@ function AddClothInfo(props) {
   const [formValues, setFormValues] = useState({
     clothIdentifierBacklog: {},
     clothInfo: {},
-    records: []
+    records: {}
   });
 
   const { history, createClothInfo } = props;
@@ -32,13 +32,13 @@ function AddClothInfo(props) {
   function handleClothRecordChange(values) {
     setFormValues({
       ...formValues,
-      records: [...formValues.records, values]
+      records: values
     });
   }
 
   function handleOnSubmit() {
     console.log(formValues);
-    // createClothInfo(formValues, history);
+    createClothInfo(formValues, history);
   }
 
   return (
@@ -93,20 +93,50 @@ function AddClothInfo(props) {
                           <th scope="col">批號</th>
                           <th scope="col">型態</th>
                           <th scope="col">長度</th>
-                          <th scope="col">流水號</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="col">
+                            {formValues.clothIdentifierBacklog.productNo}
+                          </th>
+                          <th scope="col">
+                            {formValues.clothIdentifierBacklog.lotNo}
+                          </th>
+                          <th scope="col">
+                            {formValues.clothIdentifierBacklog.type}
+                          </th>
+                          <th scope="col">
+                            {formValues.clothIdentifierBacklog.length}
+                          </th>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <table className="table table-hover">
+                      <thead>
+                        <tr>
                           <th scope="col">色碼</th>
                           <th scope="col">缺陷</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
-                          <th scope="col">貨號</th>
-                          <th scope="col">批號</th>
-                          <th scope="col">型態</th>
-                          <th scope="col">長度</th>
-                          <th scope="col">流水號</th>
-                          <th scope="col">色碼</th>
-                          <th scope="col">缺陷</th>
+                          <th scope="col">{formValues.clothInfo.color}</th>
+                          <th scope="col">{formValues.clothInfo.defect}</th>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <table className="table table-hover">
+                      <thead>
+                        <tr>
+                          <th scope="col">註解</th>
+                          <th scope="col">記錄</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="col">{formValues.records.remark}</th>
+                          <th scope="col">{formValues.records.record}</th>
                         </tr>
                       </tbody>
                     </table>
@@ -136,9 +166,11 @@ function AddClothInfo(props) {
     </div>
   );
 }
+
 AddClothInfo.propTypes = {
   createClothInfo: PropTypes.func.isRequired
 };
+
 export default connect(
   null,
   { createClothInfo }
