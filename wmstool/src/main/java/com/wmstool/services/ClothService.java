@@ -18,9 +18,6 @@ import com.wmstool.repositories.ClothRecordRepository;
 @Service
 public class ClothService {
 
-	// Manupilating pull request will help you to see what code you change, like this. And it is easy to track.
-	// Allow to to see what change you do on this feature branch at any time.
-
 	@Autowired
 	private ClothIdentifierRepo clothIdentifierRepo;
 
