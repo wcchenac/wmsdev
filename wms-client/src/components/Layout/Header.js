@@ -5,7 +5,7 @@ class Header extends Component {
     return (
       <nav className="navbar sticky-top navbar-expand-sm navbar-dark bg-primary mb-4">
         <div className="container">
-          <a className="navbar-brand" href="Dashboard.html">
+          <a className="navbar-brand" href="/">
             庫存管理工具
           </a>
           <button
@@ -51,12 +51,12 @@ class Header extends Component {
 
             <ul className="navbar-nav ml-auto">
               <li className="nav-item">
-                <a className="nav-link" href="login.html">
+                <a className="nav-link" href="/login.html">
                   登入
                 </a>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="login.html">
+                <a className="nav-link" href="/login.html">
                   登出
                 </a>
               </li>

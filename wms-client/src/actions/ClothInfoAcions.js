@@ -1,10 +1,10 @@
 import axios from "axios";
 import { GET_ClothInfoes, GET_Errors } from "./types";
 
-export const createClothInfo = (clothInfo, history) => async dispatch => {
+export const createClothInfo = (inStockRequest, history) => async dispatch => {
   try {
-    await axios.post("http://localhost:8080/api/cloth/inStock", clothInfo);
-    history.push("http://localhost:8080");
+    await axios.post("/api/cloth/inStock", inStockRequest);
+    history.push("/cloth/instock");
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -14,9 +14,7 @@ export const createClothInfo = (clothInfo, history) => async dispatch => {
 };
 
 export const getClothInfoes = productNo => async dispatch => {
-  const res = await axios.get(
-    `http://localhost:8080/api/cloth/queryStock/${productNo}`
-  );
+  const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
   dispatch({
     type: GET_ClothInfoes,
     payload: res.data
