@@ -42,12 +42,17 @@ public class ClothRecord {
 	public ClothRecord() {
 	}
 
+	public ClothRecord(String record, String remark) {
+		this.record = record;
+		this.remark = remark;
+	}
+
 	public ClothRecord(ClothRecord clothRecord, ClothInfo clothInfo) {
 		this.clothInfo = clothInfo;
 		this.record = clothRecord.getRecord();
 		this.remark = clothRecord.getRemark();
 	}
-	
+
 	public long getId() {
 		return id;
 	}

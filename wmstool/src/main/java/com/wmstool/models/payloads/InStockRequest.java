@@ -1,39 +1,91 @@
 package com.wmstool.models.payloads;
 
-import com.wmstool.models.ClothIdentifierBacklog;
-import com.wmstool.models.ClothInfo;
-import com.wmstool.models.ClothRecord;
+import javax.validation.constraints.NotBlank;
 
 public class InStockRequest {
 
-	private ClothIdentifierBacklog clothIdentifierBacklog;
+	@NotBlank(message = "貨號不可空白")
+	private String productNo;
 
-	private ClothInfo clothInfo;
+	@NotBlank(message = "批號不可空白")
+	private String lotNo;
 
-	private ClothRecord records;
+	@NotBlank(message = "型態不可空白")
+	private String type;
 
-	public ClothIdentifierBacklog getClothIdentifierBacklog() {
-		return clothIdentifierBacklog;
+	@NotBlank(message = "長度不可空白")
+	private String length;
+
+	private String color;
+
+	private String defect;
+
+	private String record;
+
+	private String remark;
+
+	public String getProductNo() {
+		return productNo;
 	}
 
-	public void setClothIdentifierBacklog(ClothIdentifierBacklog clothIdentifierBacklog) {
-		this.clothIdentifierBacklog = clothIdentifierBacklog;
+	public void setProductNo(String productNo) {
+		this.productNo = productNo;
 	}
 
-	public ClothInfo getClothInfo() {
-		return clothInfo;
+	public String getLotNo() {
+		return lotNo;
 	}
 
-	public void setClothInfo(ClothInfo clothInfo) {
-		this.clothInfo = clothInfo;
+	public void setLotNo(String lotNo) {
+		this.lotNo = lotNo;
 	}
 
-	public ClothRecord getRecords() {
-		return records;
+	public String getType() {
+		return type;
 	}
 
-	public void setRecords(ClothRecord records) {
-		this.records = records;
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getLength() {
+		return length;
+	}
+
+	public void setLength(String length) {
+		this.length = length;
+	}
+
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
+	}
+
+	public String getDefect() {
+		return defect;
+	}
+
+	public void setDefect(String defect) {
+		this.defect = defect;
+	}
+
+	public String getRecord() {
+		return record;
+	}
+
+	public void setRecord(String record) {
+		this.record = record;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
 	}
 
 }

@@ -44,9 +44,9 @@ public class ClothController {
 			return errorMap;
 		}
 
-		ClothIdentifierBacklog backlog = inStockRequest.getClothIdentifierBacklog();
-		ClothInfo clothInfo = inStockRequest.getClothInfo();
-		ClothRecord records = inStockRequest.getRecords();
+		ClothIdentifierBacklog backlog = new ClothIdentifierBacklog(inStockRequest.getProductNo(), inStockRequest.getLotNo(), inStockRequest.getType(), inStockRequest.getLength());
+		ClothInfo clothInfo = new ClothInfo(inStockRequest.getColor(),inStockRequest.getDefect());
+		ClothRecord records = new ClothRecord(inStockRequest.getRecord(), inStockRequest.getRemark());
 
 		ClothIdentifier identifier = clothService.createClothIdentifier(backlog);
 		ClothInfo result = clothService.createClothInfo(identifier, clothInfo, records);

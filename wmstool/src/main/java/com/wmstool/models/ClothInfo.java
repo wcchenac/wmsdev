@@ -24,7 +24,8 @@ public class ClothInfo {
 	@JoinColumn(name = "clothIdentifier_id", nullable = false)
 	private ClothIdentifier clothIdentifier;
 
-	private short color;
+	@Column(length= 20)
+	private String color;
 
 	@Column(length = 50)
 	private String defect;
@@ -33,6 +34,11 @@ public class ClothInfo {
 	private ClothRecord clothRecords;
 
 	public ClothInfo() {
+	}
+
+	public ClothInfo(String color, String defect) {
+		this.color = color;
+		this.defect = defect;
 	}
 
 	public ClothInfo(ClothIdentifier clothIdentifier, ClothInfo clothInfo) {
@@ -57,11 +63,11 @@ public class ClothInfo {
 		this.clothIdentifier = clothIdentifier;
 	}
 
-	public short getColor() {
+	public String getColor() {
 		return color;
 	}
 
-	public void setColor(short color) {
+	public void setColor(String color) {
 		this.color = color;
 	}
 

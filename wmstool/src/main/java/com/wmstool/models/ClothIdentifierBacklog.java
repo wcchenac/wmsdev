@@ -14,25 +14,32 @@ public class ClothIdentifierBacklog {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 
-	@NotBlank(message = "貨號不可空白")
+//	@NotBlank(message = "貨號不可空白")
 	@Column(nullable = false, updatable = false, length = 25)
 	private String productNo;
 
-	@NotBlank(message = "批號不可空白")
+//	@NotBlank(message = "批號不可空白")
 	@Column(nullable = false, updatable = false, length = 10)
 	private String lotNo;
 
-	@NotBlank(message = "型態不可空白")
+//	@NotBlank(message = "型態不可空白")
 	@Column(nullable = false, updatable = false, length = 6)
 	private String type;
 
-	@NotBlank(message = "長度不可空白")
+//	@NotBlank(message = "長度不可空白")
 	@Column(nullable = false, updatable = false, length = 5)
 	private String length;
 
 	private short serialNo = 1;
 
 	public ClothIdentifierBacklog() {
+	}
+
+	public ClothIdentifierBacklog(String productNo, String lotNo, String type, String length) {
+		this.productNo = productNo;
+		this.lotNo = lotNo;
+		this.type = type;
+		this.length = length;
 	}
 
 	public long getId() {
