@@ -6,7 +6,8 @@ import { BrowserRouter as Router, Route } from "react-router-dom";
 import AddClothInfo from "./components/BO/Cloth/AddClothInfo";
 import { Provider } from "react-redux";
 import store from "./store";
-import QueryBoard from "./components/BO/Cloth/QueryBoard";
+import QueryModifyBoard from "./components/BO/Cloth/QueryModifyBoard";
+import PreviewClothInfo from "./components/BO/Cloth/PreviewClothInfo";
 
 function App() {
   return (
@@ -14,8 +15,9 @@ function App() {
       <Router>
         <div className="App">
           <Header />
-          <Route exact path="/cloth/instock" component={AddClothInfo} />
-          <Route exact path="/cloth/query" component={QueryBoard} />
+          <Route exact path="/cloth/1" component={AddClothInfo} />
+          <Route exact path="/cloth/2" component={QueryModifyBoard} />
+          <Route exact path="/cloth/2/:id" component={PreviewClothInfo} />
         </div>
       </Router>
     </Provider>

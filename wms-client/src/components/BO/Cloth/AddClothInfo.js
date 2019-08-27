@@ -71,8 +71,8 @@ class AddClothInfo extends Component {
       <div className="cloth_info">
         <div className="container">
           <div className="row">
-            <div className="col-md-8 m-auto">
-              <p className="h2 text-center">入庫基本資料</p>
+            <div className="col-md-6 m-auto">
+              <p className="h3 text-center">入庫基本資料</p>
               <hr />
               <form onSubmit={this.onSubmit}>
                 <div className="clothIdentifierBacklog">
