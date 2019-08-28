@@ -2,10 +2,9 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getClothInfoes } from "../../../actions/ClothInfoAcions";
-import ShowQueryClothInfo from "./ShowQueryClothInfo";
-import { Form } from "formik";
+import ShowClothInfo from "./ShowClothInfo";
 
-class QueryBoard extends Component {
+class QueryModifyBoard extends Component {
   constructor() {
     super();
     this.state = {
@@ -32,9 +31,11 @@ class QueryBoard extends Component {
         <div className="container">
           <div className="row">
             <div className="col-md-12">
-              <Form onSubmit={this.onSubmit}>
+              <form onSubmit={this.onSubmit}>
                 <div className="form-group row">
-                  <label className="col-md-1 col-form-label">庫存查詢</label>
+                  <label className="col-1 col-form-label text-center">
+                    貨號查詢
+                  </label>
                   <div className="col-md-3">
                     <input
                       type="text"
@@ -45,13 +46,13 @@ class QueryBoard extends Component {
                       onChange={this.onChange}
                     />
                   </div>
-                  <button type="submit" className="btn btn-primary col-1">
+                  <button type="submit" className="btn btn-primary">
                     查詢
                   </button>
                 </div>
-              </Form>
+              </form>
               <hr />
-              <ShowQueryClothInfo clothInfoes={clothInfoes} />
+              <ShowClothInfo clothInfoes={clothInfoes} />
             </div>
           </div>
         </div>
@@ -60,7 +61,7 @@ class QueryBoard extends Component {
   }
 }
 
-QueryBoard.propTypes = {
+QueryModifyBoard.propTypes = {
   clothInfo: PropTypes.object.isRequired,
   getClothInfoes: PropTypes.func.isRequired
 };
@@ -72,4 +73,4 @@ const mapStateToProps = state => ({
 export default connect(
   mapStateToProps,
   { getClothInfoes }
-)(QueryBoard);
+)(QueryModifyBoard);

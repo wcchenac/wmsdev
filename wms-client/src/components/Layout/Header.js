@@ -20,31 +20,13 @@ class Header extends Component {
           <div className="collapse navbar-collapse" id="mobile-nav">
             <ul className="navbar-nav mr-auto">
               <li className="nav-item">
-                <a className="nav-link" href="/cloth/instock">
+                <a className="nav-link" href="/cloth/1">
                   入庫作業
                 </a>
               </li>
-              <li className="nav-item dropdown">
-                <a
-                  className="nav-link dropdown-toggle"
-                  href="/#"
-                  id="navbarDropdown"
-                  data-toggle="dropdown"
-                >
-                  庫存異動
-                </a>
-                <div className="dropdown-menu">
-                  <a className="dropdown-item" href="/cloth/modify">
-                    板捲變動
-                  </a>
-                  <a className="dropdown-item" href="/cloth/delete">
-                    庫存註銷
-                  </a>
-                </div>
-              </li>
               <li className="nav-item">
-                <a className="nav-link" href="/cloth/query">
-                  查詢庫存
+                <a className="nav-link" href="/cloth/2">
+                  庫存查詢/異動
                 </a>
               </li>
             </ul>

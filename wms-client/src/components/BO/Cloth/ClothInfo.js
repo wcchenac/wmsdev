@@ -1,9 +1,11 @@
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
 
-class QueryClothInfo extends Component {
+class ClothInfo extends Component {
   render() {
-    const { clothIdentifier } = this.props.clothInfo;
     const { clothInfo } = this.props;
+    const { clothIdentifier } = this.props.clothInfo;
+
     return (
       <tr>
         <th scope="col">{clothIdentifier.productNo}</th>
@@ -13,9 +15,21 @@ class QueryClothInfo extends Component {
         <th scope="col">{clothIdentifier.serialNo}</th>
         <th scope="col">{clothInfo.color}</th>
         <th scope="col">{clothInfo.defect}</th>
+        <th scope="col">
+          <Link
+            to={{
+              pathname: `/cloth/2/${clothInfo.id}`,
+              state: { clothInfo: this.props.clothInfo }
+            }}
+            className="btn btn-primary"
+            role="button"
+          >
+            查看/修改
+          </Link>
+        </th>
       </tr>
     );
   }
 }
 
-export default QueryClothInfo;
+export default ClothInfo;
