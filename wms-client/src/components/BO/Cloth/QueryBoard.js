@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import { getClothInfoes } from "../../../actions/ClothInfoAcions";
 import ShowClothInfo from "./ShowClothInfo";
 
-class QueryModifyBoard extends Component {
+class QueryBoard extends Component {
   constructor() {
     super();
     this.state = {
@@ -61,7 +61,7 @@ class QueryModifyBoard extends Component {
   }
 }
 
-QueryModifyBoard.propTypes = {
+QueryBoard.propTypes = {
   clothInfo: PropTypes.object.isRequired,
   getClothInfoes: PropTypes.func.isRequired
 };
@@ -73,4 +73,4 @@ const mapStateToProps = state => ({
 export default connect(
   mapStateToProps,
   { getClothInfoes }
-)(QueryModifyBoard);
+)(QueryBoard);

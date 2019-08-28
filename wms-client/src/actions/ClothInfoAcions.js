@@ -4,7 +4,7 @@ import { GET_ClothInfoes, GET_Errors } from "./types";
 export const createClothInfo = (inStockRequest, history) => async dispatch => {
   try {
     await axios.post("/api/cloth/inStock", inStockRequest);
-    history.push("/cloth/instock");
+    history.push("/cloth/1");
   } catch (err) {
     dispatch({
       type: GET_Errors,
