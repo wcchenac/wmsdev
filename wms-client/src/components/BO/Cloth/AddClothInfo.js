@@ -48,7 +48,7 @@ class AddClothInfo extends Component {
   }
 
   onSubmit(e) {
-    // e.preventDefault();
+    e.preventDefault();
     const inStockRequest = {
       productNo: this.state.productNo,
       lotNo: this.state.lotNo,

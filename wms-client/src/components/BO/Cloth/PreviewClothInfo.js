@@ -4,6 +4,10 @@ import { Link } from "react-router-dom";
 class PreviewClothInfo extends Component {
   constructor(props) {
     super(props);
+    const { clothInfo } = props.location.state;
+    this.state = {
+      clothInfo: clothInfo
+    };
     this.handleBackClick = this.handleBackClick.bind(this);
   }
 
@@ -12,7 +16,7 @@ class PreviewClothInfo extends Component {
   }
 
   render() {
-    const { clothInfo } = this.props.location.state;
+    const { clothInfo } = this.state;
     return (
       <div className="cloth_info">
         <div className="container">
@@ -93,15 +97,16 @@ class PreviewClothInfo extends Component {
                     {clothInfo.clothRecords.remark}
                   </label>
                 </div>
+                <hr />
                 <div className="row justify-content-between">
                   <button
                     type="button"
                     onClick={this.handleBackClick}
-                    className="btn btn-secondary col-3"
+                    className="btn btn-secondary col-4"
                   >
                     返回
                   </button>
-                  <div className="btn-group" role="group">
+                  <div className="btn-group col-4" role="group">
                     <button
                       type="botton"
                       id="btnGroupDrop1"
@@ -116,7 +121,13 @@ class PreviewClothInfo extends Component {
                       className="dropdown-menu"
                       aria-labelledby="btnGroupDrop1"
                     >
-                      <Link className="dropdown-item" to="#">
+                      <Link
+                        className="dropdown-item"
+                        to={{
+                          pathname: `/cloth/3/${clothInfo.id}`,
+                          state: { clothInfo: clothInfo }
+                        }}
+                      >
                         板捲異動
                       </Link>
                       <Link className="dropdown-item" to="#">
