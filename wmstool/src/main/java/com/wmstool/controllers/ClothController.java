@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,4 +59,8 @@ public class ClothController {
 		return clothService.findClothInfoByProductNo(productNo.toUpperCase());
 	}
 
+	@PatchMapping("/purgeStock/{clothIdentifierId}")
+	public void purgeClothIndentifier(@PathVariable long clothIdentifierId) {
+		clothService.letClothIdentifierNotExist(clothIdentifierId);
+	}
 }

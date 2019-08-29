@@ -61,4 +61,11 @@ public class ClothService {
 		}
 		return result;
 	}
+	
+	public void letClothIdentifierNotExist(long clothIdentifierId) {
+		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
+		res.setExist(false);
+		clothIdentifierRepo.save(res);
+	}
+
 }
