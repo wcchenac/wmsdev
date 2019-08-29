@@ -24,6 +24,12 @@ class QueryBoard extends Component {
     this.props.getClothInfoes(this.state.productNo);
   }
 
+  componentDidMount() {
+    if (this.props.clothInfo.clothInfoes.length !== 0) {
+      this.props.getClothInfoes("0");
+    }
+  }
+
   render() {
     const { clothInfoes } = this.props.clothInfo;
     return (

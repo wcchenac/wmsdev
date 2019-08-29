@@ -1,5 +1,11 @@
 import React, { Component } from "react";
 import ShowExchangeRequest from "./ShowExchangeRequest";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import {
+  purgeOldClothInfo,
+  typeExchangeBatchCreateClothInfo
+} from "../../../actions/ClothInfoAcions";
 
 class TypeExchangeBoard extends Component {
   constructor(props) {
@@ -13,6 +19,7 @@ class TypeExchangeBoard extends Component {
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
     this.handleDeleteDataClick = this.handleDeleteDataClick.bind(this);
     this.handleRequestChange = this.handleRequestChange.bind(this);
+    this.handleSubmitClick = this.handleSubmitClick.bind(this);
   }
 
   handleBackClick() {
@@ -20,24 +27,21 @@ class TypeExchangeBoard extends Component {
   }
 
   handleNewDataClick() {
-    const { newClothInfoes } = this.state;
     const newClothInfo = {
-      clothIdentifier: {
-        productNo: this.state.oldClothInfo.clothIdentifier.productNo,
-        lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
-        type: "板",
-        length: ""
-      },
+      productNo: this.state.oldClothInfo.clothIdentifier.productNo,
+      lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
+      type: "板",
+      length: "",
       color: "",
       defect: "",
-      clothRecords: {
-        record: "",
-        remark: ""
+      record: "",
+      remark: "",
+      errors: {
+        length: ""
       }
     };
-    newClothInfoes.push(newClothInfo);
     this.setState({
-      newClothInfoes: newClothInfoes
+      newClothInfoes: [...this.state.newClothInfoes, newClothInfo]
     });
   }
 
@@ -50,30 +54,49 @@ class TypeExchangeBoard extends Component {
   }
 
   handleRequestChange(request, i) {
-    const { newClothInfoes } = this.state;
+    let newClothInfoesCopy = JSON.parse(
+      JSON.stringify(this.state.newClothInfoes)
+    );
     const { name, value } = request.target;
+
     switch (name) {
       case "type":
-        newClothInfoes[i].clothIdentifier.type = value;
+        newClothInfoesCopy[i].type = value;
         break;
       case "length":
-        newClothInfoes[i].clothIdentifier.length = value;
+        newClothInfoesCopy[i].errors.length =
+          value.length < 1 ? "長度不可空白" : "";
+        newClothInfoesCopy[i].length = value;
         break;
       case "color":
-        newClothInfoes[i].color = value;
+        newClothInfoesCopy[i].color = value;
         break;
       case "defect":
-        newClothInfoes[i].defect = value;
+        newClothInfoesCopy[i].defect = value;
         break;
       case "record":
-        newClothInfoes[i].clothRecords.record = value;
+        newClothInfoesCopy[i].record = value;
         break;
       case "remark":
-        newClothInfoes[i].clothRecords.remark = value;
+        newClothInfoesCopy[i].remark = value;
         break;
       default:
         break;
     }
+    this.setState({ newClothInfoes: newClothInfoesCopy });
+  }
+
+  handleSubmitClick() {
+    const { oldClothInfo } = this.state;
+    let newClothInfoes = this.state.newClothInfoes;
+    for (let i = 0; i < newClothInfoes.length; i += 1) {
+      delete newClothInfoes[i]["errors"];
+    }
+    this.props.purgeOldClothInfo(oldClothInfo.clothIdentifier.id);
+    this.props.typeExchangeBatchCreateClothInfo(
+      newClothInfoes,
+      this.props.history
+    );
   }
 
   render() {
@@ -162,7 +185,11 @@ class TypeExchangeBoard extends Component {
                   </button>
                 </div>
                 <div className="col-1 offset-8">
-                  <button tyep="button" className="btn btn-primary btn-block">
+                  <button
+                    tyep="button"
+                    className="btn btn-primary btn-block"
+                    onClick={this.handleSubmitClick}
+                  >
                     送出
                   </button>
                 </div>
@@ -183,4 +210,12 @@ class TypeExchangeBoard extends Component {
   }
 }
 
-export default TypeExchangeBoard;
+TypeExchangeBoard.propsTypes = {
+  typeExchangeBatchCreateClothInfo: PropTypes.func.isRequired,
+  purgeOldClothInfo: PropTypes.func.isRequired
+};
+
+export default connect(
+  null,
+  { purgeOldClothInfo, typeExchangeBatchCreateClothInfo }
+)(TypeExchangeBoard);

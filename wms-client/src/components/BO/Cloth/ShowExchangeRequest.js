@@ -38,10 +38,11 @@ class ShowExchangeRequest extends Component {
                 </tr>
               </thead>
               <tbody>
-                {newClothInfoes.map((_clothInfo, index) => (
+                {newClothInfoes.map((clothInfo, index) => (
                   <TypeExchangeRequest
                     key={index}
                     index={index}
+                    errors={clothInfo.errors}
                     onRequestChange={this.handleRequestChange}
                   />
                 ))}

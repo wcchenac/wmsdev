@@ -20,3 +20,31 @@ export const getClothInfoes = productNo => async dispatch => {
     payload: res.data
   });
 };
+
+export const purgeOldClothInfo = clothIdentifierId => async dispatch => {
+  try {
+    await axios.patch(`/api/cloth/purgeStock/${clothIdentifierId}`);
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response.data
+    });
+  }
+};
+
+export const typeExchangeBatchCreateClothInfo = (
+  inStockRequests,
+  history
+) => async dispatch => {
+  try {
+    for (let i = 0; i < inStockRequests.length; i += 1) {
+      await axios.post("/api/cloth/inStock", inStockRequests[i]);
+    }
+    history.replace("/cloth/2");
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response.data
+    });
+  }
+};
