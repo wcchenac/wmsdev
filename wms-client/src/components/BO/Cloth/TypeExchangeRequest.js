@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import classnames from "classnames";
 
 class TypeExchangeRequest extends Component {
   constructor(props) {
@@ -11,6 +12,7 @@ class TypeExchangeRequest extends Component {
   }
 
   render() {
+    const { errors } = this.props;
     return (
       <tr>
         <th scope="col">
@@ -30,7 +32,9 @@ class TypeExchangeRequest extends Component {
           <div className="form-group">
             <input
               type="text"
-              className="form-control"
+              className={classnames("form-control", {
+                "is-invalid": errors.length
+              })}
               placeholder="長度"
               name="length"
               onChange={this.handleChange}
