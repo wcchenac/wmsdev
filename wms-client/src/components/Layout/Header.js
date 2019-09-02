@@ -19,14 +19,32 @@ class Header extends Component {
 
           <div className="collapse navbar-collapse" id="mobile-nav">
             <ul className="navbar-nav mr-auto">
-              <li className="nav-item">
-                <a className="nav-link" href="/cloth/1">
+              <li className="nav-item dropdown">
+                <a
+                  className="nav-link dropdown-toggle"
+                  href="/#"
+                  id="navbarDropdown"
+                  data-toggle="dropdown"
+                >
                   入庫作業
                 </a>
+                <div className="dropdown-menu">
+                  <a className="dropdown-item" href="/cloth/1/1">
+                    新增進貨單
+                  </a>
+                  <a className="dropdown-item" href="/cloth/1/2">
+                    修改進貨單
+                  </a>
+                </div>
               </li>
               <li className="nav-item">
                 <a className="nav-link" href="/cloth/2">
-                  庫存查詢/異動
+                  庫存查詢
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="/cloth/3">
+                  庫存異動
                 </a>
               </li>
             </ul>

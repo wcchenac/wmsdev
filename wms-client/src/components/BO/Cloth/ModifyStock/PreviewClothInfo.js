@@ -124,11 +124,20 @@ class PreviewClothInfo extends Component {
                       <Link
                         className="dropdown-item"
                         to={{
-                          pathname: `/cloth/3/${clothInfo.id}`,
+                          pathname: `/cloth/3/1/${clothInfo.id}`,
                           state: { clothInfo: clothInfo }
                         }}
                       >
-                        板捲異動
+                        板卷異動
+                      </Link>
+                      <Link
+                        className="dropdown-item"
+                        to={{
+                          pathname: `/cloth/3/2/${clothInfo.id}`,
+                          state: { clothInfo: clothInfo }
+                        }}
+                      >
+                        整支異動
                       </Link>
                       <Link className="dropdown-item" to="#">
                         更改註解

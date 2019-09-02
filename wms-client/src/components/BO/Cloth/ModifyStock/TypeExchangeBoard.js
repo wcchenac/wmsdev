@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import {
   purgeOldClothInfo,
   typeExchangeBatchCreateClothInfo
-} from "../../../actions/ClothInfoAcions";
+} from "../../../../actions/ClothInfoAcions";
 
 class TypeExchangeBoard extends Component {
   constructor(props) {
@@ -30,10 +30,10 @@ class TypeExchangeBoard extends Component {
     const newClothInfo = {
       productNo: this.state.oldClothInfo.clothIdentifier.productNo,
       lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
-      type: "板",
+      type: "板卷",
       length: "",
-      color: "",
-      defect: "",
+      color: "0",
+      defect: "無",
       record: "",
       remark: "",
       errors: {
@@ -120,6 +120,10 @@ class TypeExchangeBoard extends Component {
                   <tr>
                     <th scope="col">貨號</th>
                     <th scope="col">批號</th>
+                    <th scope="col">型態</th>
+                    <th scope="col">長度</th>
+                    <th scope="col">色號</th>
+                    <th scope="col">記錄</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -142,6 +146,50 @@ class TypeExchangeBoard extends Component {
                           className="form-control"
                           name="lotNo"
                           value={oldClothInfo.clothIdentifier.lotNo}
+                          disabled
+                        />
+                      </div>
+                    </th>
+                    <th scope="col">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="type"
+                          value={oldClothInfo.clothIdentifier.type}
+                          disabled
+                        />
+                      </div>
+                    </th>
+                    <th scope="col">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="length"
+                          value={oldClothInfo.clothIdentifier.length}
+                          disabled
+                        />
+                      </div>
+                    </th>
+                    <th scope="col">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="color"
+                          value={oldClothInfo.clothIdentifier.color}
+                          disabled
+                        />
+                      </div>
+                    </th>
+                    <th scope="col">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="record"
+                          value={oldClothInfo.clothIdentifier.record}
                           disabled
                         />
                       </div>

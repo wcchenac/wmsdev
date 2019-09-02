@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { getClothInfoes } from "../../../actions/ClothInfoAcions";
+import { getClothInfoes } from "../../../../actions/ClothInfoAcions";
 import ShowClothInfo from "./ShowClothInfo";
 
 class QueryBoard extends Component {
@@ -22,12 +22,6 @@ class QueryBoard extends Component {
   onSubmit(e) {
     e.preventDefault();
     this.props.getClothInfoes(this.state.productNo);
-  }
-
-  componentDidMount() {
-    if (this.props.clothInfo.clothInfoes.length !== 0) {
-      this.props.getClothInfoes("0");
-    }
   }
 
   render() {

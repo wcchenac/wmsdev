@@ -24,10 +24,8 @@ class ShowClothInfo extends Component {
                   <th scope="col">批號</th>
                   <th scope="col">型態</th>
                   <th scope="col">長度</th>
-                  <th scope="col">流水號</th>
-                  <th scope="col">色碼</th>
+                  <th scope="col">色號</th>
                   <th scope="col">缺陷</th>
-                  <th scope="col" />
                 </tr>
               </thead>
               <tbody>

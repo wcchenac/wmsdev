@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import classnames from "classnames";
 
-class TypeExchangeRequest extends Component {
+class SameTypeModifyRequest extends Component {
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
@@ -18,13 +18,13 @@ class TypeExchangeRequest extends Component {
         <th scope="col">
           <div className="form-group">
             <select
-              className="form-control"
+              className="custom-select"
               name="type"
-              defaultValue="板"
-              onChange={this.handleChange}
+              defaultValue="整支"
+              onChange={this.onChange}
             >
-              <option value="捲">捲</option>
-              <option value="板">板</option>
+              <option value="整支">整支</option>
+              <option value="板卷">板卷</option>
             </select>
           </div>
         </th>
@@ -43,35 +43,18 @@ class TypeExchangeRequest extends Component {
         </th>
         <th scope="col">
           <div className="form-group">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="色號"
-              name="color"
-              onChange={this.handleChange}
-            />
-          </div>
-        </th>
-        <th scope="col">
-          <div className="form-group">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="缺陷"
+            <select
+              className="custom-select"
               name="defect"
-              onChange={this.handleChange}
-            />
-          </div>
-        </th>
-        <th scope="col">
-          <div className="form-group">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="記錄"
-              name="record"
-              onChange={this.handleChange}
-            />
+              defaultValue="無"
+              onChange={this.onChange}
+            >
+              <option value="無">無</option>
+              <option value="GA">GA</option>
+              <option value="GB">GB</option>
+              <option value="GC">GC</option>
+              <option value="GD">GD</option>
+            </select>
           </div>
         </th>
         <th scope="col">
@@ -90,4 +73,4 @@ class TypeExchangeRequest extends Component {
   }
 }
 
-export default TypeExchangeRequest;
+export default SameTypeModifyRequest;
