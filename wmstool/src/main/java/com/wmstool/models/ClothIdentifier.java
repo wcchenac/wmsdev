@@ -43,7 +43,7 @@ public class ClothIdentifier {
 
 	private boolean isExist = true;
 
-	private boolean isSale = false;
+	private boolean isShip = false;
 
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
 	@JsonIgnore
@@ -135,12 +135,12 @@ public class ClothIdentifier {
 		this.isExist = isExist;
 	}
 
-	public boolean isSale() {
-		return isSale;
+	public boolean isShip() {
+		return isShip;
 	}
 
-	public void setSale(boolean isSale) {
-		this.isSale = isSale;
+	public void setShip(boolean isShip) {
+		this.isShip = isShip;
 	}
 
 	public ClothInfo getClothInfo() {

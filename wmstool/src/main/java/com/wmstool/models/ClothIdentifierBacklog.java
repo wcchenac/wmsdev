@@ -51,6 +51,15 @@ public class ClothIdentifierBacklog {
 		this.length = length;
 		this.unit = unit;
 	}
+	
+	public ClothIdentifierBacklog(ProductNoBacklog productNoBacklog, String productNo, int lotNo, String type, String length, String unit) {
+		this.productNoBacklog = productNoBacklog;
+		this.productNo = productNo;
+		this.lotNo =lotNo;
+		this.type = type;
+		this.length = length;
+		this.unit = unit;
+	}
 
 	public Long getId() {
 		return id;
