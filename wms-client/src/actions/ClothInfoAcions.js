@@ -21,9 +21,20 @@ export const getClothInfoes = productNo => async dispatch => {
   });
 };
 
-export const purgeOldClothInfo = clothIdentifierId => async dispatch => {
+export const purgeOldClothInfoNotExist = clothIdentifierId => async dispatch => {
   try {
     await axios.patch(`/api/cloth/purgeStock/${clothIdentifierId}`);
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response.data
+    });
+  }
+};
+
+export const purgeOldClothInfoIsSaled = clothIdentifierId => async dispatch => {
+  try {
+    await axios.patch(`/api/cloth/saleStock/${clothIdentifierId}`);
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -40,7 +51,12 @@ export const typeExchangeBatchCreateClothInfo = (
     for (let i = 0; i < inStockRequests.length; i += 1) {
       await axios.post("/api/cloth/inStock", inStockRequests[i]);
     }
-    history.replace("/cloth/2");
+    history.replace({
+      pathname: "/cloth/3",
+      state: {
+        productNo: history.location.state.clothInfo.clothIdentifier.productNo
+      }
+    });
   } catch (err) {
     dispatch({
       type: GET_Errors,

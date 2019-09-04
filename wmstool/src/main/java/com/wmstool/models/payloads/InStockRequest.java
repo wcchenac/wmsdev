@@ -7,8 +7,7 @@ public class InStockRequest {
 	@NotBlank(message = "貨號不可空白")
 	private String productNo;
 
-	@NotBlank(message = "批號不可空白")
-	private String lotNo;
+	private int lotNo;
 
 	@NotBlank(message = "型態不可空白")
 	private String type;
@@ -16,13 +15,17 @@ public class InStockRequest {
 	@NotBlank(message = "長度不可空白")
 	private String length;
 
-	private String color;
+	private String unit;
+
+	private int color;
 
 	private String defect;
 
 	private String record;
 
 	private String remark;
+
+	private String isNew;
 
 	public String getProductNo() {
 		return productNo;
@@ -32,11 +35,11 @@ public class InStockRequest {
 		this.productNo = productNo;
 	}
 
-	public String getLotNo() {
+	public int getLotNo() {
 		return lotNo;
 	}
 
-	public void setLotNo(String lotNo) {
+	public void setLotNo(int lotNo) {
 		this.lotNo = lotNo;
 	}
 
@@ -56,11 +59,19 @@ public class InStockRequest {
 		this.length = length;
 	}
 
-	public String getColor() {
+	public String getUnit() {
+		return unit;
+	}
+
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+
+	public int getColor() {
 		return color;
 	}
 
-	public void setColor(String color) {
+	public void setColor(int color) {
 		this.color = color;
 	}
 
@@ -88,4 +99,12 @@ public class InStockRequest {
 		this.remark = remark;
 	}
 
+	public String getIsNew() {
+		return isNew;
+	}
+
+	public void setIsNew(String isNew) {
+		this.isNew = isNew;
+	}
+	
 }

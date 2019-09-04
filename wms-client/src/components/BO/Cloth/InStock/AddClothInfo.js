@@ -10,8 +10,9 @@ class AddClothInfo extends Component {
     this.state = {
       productNo: "",
       lotNo: "",
-      type: "捲",
+      type: "整支",
       length: "",
+      unit: "碼",
       color: "0",
       defect: "無",
       record: "",
@@ -54,10 +55,12 @@ class AddClothInfo extends Component {
       lotNo: this.state.lotNo,
       type: this.state.type,
       length: this.state.length,
+      unit: this.state.unit,
       color: this.state.color,
       defect: this.state.defect,
       record: this.state.record,
-      remark: this.state.remark
+      remark: this.state.remark,
+      isNew: "new"
     };
 
     // console.log(inStockRequest);
@@ -132,6 +135,17 @@ class AddClothInfo extends Component {
                       <div className="invalid-feedback">{errors.length}</div>
                     )}
                   </div>
+                </div>
+                <div className="form-group">
+                  <select
+                    className="custom-select custom-select-lg"
+                    name="unit"
+                    defaultValue="碼"
+                    onChange={this.onChange}
+                  >
+                    <option value="碼">碼</option>
+                    <option value="尺">尺</option>
+                  </select>
                 </div>
                 <div className="clothInfo">
                   <div className="form-group">

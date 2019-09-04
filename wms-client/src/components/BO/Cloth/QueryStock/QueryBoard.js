@@ -8,7 +8,8 @@ class QueryBoard extends Component {
   constructor() {
     super();
     this.state = {
-      productNo: ""
+      productNo: "",
+      clothInfoes: []
     };
 
     this.onChange = this.onChange.bind(this);
@@ -24,8 +25,31 @@ class QueryBoard extends Component {
     this.props.getClothInfoes(this.state.productNo);
   }
 
+  static getDerivedStateFromProps(props, state) {
+    if (props.clothInfo.clothInfoes !== state.clothInfoes) {
+      return { clothInfoes: props.clothInfo.clothInfoes };
+    } else {
+      return null;
+    }
+  }
+
   render() {
-    const { clothInfoes } = this.props.clothInfo;
+    const sumTotalLength = clothInfoes => {
+      let roll = 0;
+      let board = 0;
+      for (let i = 0; i < clothInfoes.length; i += 1) {
+        let clothIdentifier = clothInfoes[i].clothIdentifier;
+        if (clothIdentifier.type === "整支") {
+          roll += parseFloat(clothIdentifier.length);
+        } else {
+          board += parseFloat(clothIdentifier.length);
+        }
+      }
+      return { rollLength: roll, boardLength: board };
+    };
+
+    const { clothInfoes } = this.state;
+    const { rollLength, boardLength } = sumTotalLength(clothInfoes);
     return (
       <div className="query_clothInfo">
         <div className="container">
@@ -51,6 +75,21 @@ class QueryBoard extends Component {
                   </button>
                 </div>
               </form>
+              <hr />
+              <div className="row">
+                <div className="col-3 text-center">
+                  <h5>卷倉總和</h5>
+                </div>
+                <div className="col-3">
+                  <h5>{rollLength}</h5>
+                </div>
+                <div className="col-3 text-center">
+                  <h5>板倉總和</h5>
+                </div>
+                <div className="col-3">
+                  <h5>{boardLength}</h5>
+                </div>
+              </div>
               <hr />
               <ShowClothInfo clothInfoes={clothInfoes} />
             </div>

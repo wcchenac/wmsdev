@@ -11,6 +11,7 @@ class ClothInfo extends Component {
         <th scope="col">{clothIdentifier.lotNo}</th>
         <th scope="col">{clothIdentifier.type}</th>
         <th scope="col">{clothIdentifier.length}</th>
+        <th scope="col">{clothIdentifier.unit}</th>
         <th scope="col">{clothInfo.color}</th>
         <th scope="col">{clothInfo.defect}</th>
       </tr>

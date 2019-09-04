@@ -9,14 +9,18 @@ import org.springframework.stereotype.Service;
 import com.wmstool.models.ClothIdentifier;
 import com.wmstool.models.ClothIdentifierBacklog;
 import com.wmstool.models.ClothInfo;
-import com.wmstool.models.ClothRecord;
+import com.wmstool.models.ProductNoBacklog;
+import com.wmstool.models.payloads.InStockRequest;
 import com.wmstool.repositories.ClothIdentifierBacklogRepo;
 import com.wmstool.repositories.ClothIdentifierRepo;
 import com.wmstool.repositories.ClothInfoRepository;
-import com.wmstool.repositories.ClothRecordRepository;
+import com.wmstool.repositories.ProductNoBacklogRepo;
 
 @Service
 public class ClothService {
+
+	@Autowired
+	private ProductNoBacklogRepo productNoBacklogRepo;
 
 	@Autowired
 	private ClothIdentifierRepo clothIdentifierRepo;
@@ -27,44 +31,69 @@ public class ClothService {
 	@Autowired
 	private ClothInfoRepository clothInfoRepository;
 
-	@Autowired
-	private ClothRecordRepository clothRecordRepository;
+	public ClothInfo createClothInfo(InStockRequest inStockRequest, String condition) {
 
-	public ClothIdentifier createClothIdentifier(ClothIdentifierBacklog clothIdentifierBacklog) {
-		ClothIdentifierBacklog res = clothIdentifierBacklogRepo
-				.findByProductNoAndLotNoAndTypeAndLength(clothIdentifierBacklog.getProductNo(),
+		// find productNo is exist or not; if not exist, create new
+		ProductNoBacklog productNoBacklog = productNoBacklogRepo.findByProductNo(inStockRequest.getProductNo())
+				.orElseGet(() -> productNoBacklogRepo.save(new ProductNoBacklog(inStockRequest.getProductNo())));
+
+		// use productNoBacklog to create clothIdentifierBacklog
+		ClothIdentifierBacklog clothIdentifierBacklog = new ClothIdentifierBacklog(productNoBacklog,
+				inStockRequest.getType(), inStockRequest.getLength(), inStockRequest.getUnit());
+
+		// increase lotNo in productNoBacklog
+		switch (condition) {
+		case "new":
+			int newLotNo = productNoBacklog.getLotNo() + 1;
+			productNoBacklog.setLotNo(newLotNo);
+			break;
+		case "old":
+			break;
+		default:
+			break;
+		}
+
+		// find clothIdentifierBacklog is exist or not; if not exist, create new
+		ClothIdentifierBacklog resClothIdentifierBacklog = clothIdentifierBacklogRepo
+				.findByProductNoAndLotNoAndTypeAndLengthAndUnit(clothIdentifierBacklog.getProductNo(),
 						clothIdentifierBacklog.getLotNo(), clothIdentifierBacklog.getType(),
-						clothIdentifierBacklog.getLength())
+						clothIdentifierBacklog.getLength(), clothIdentifierBacklog.getUnit())
 				.orElseGet(() -> clothIdentifierBacklogRepo.save(clothIdentifierBacklog));
 
-		ClothIdentifier clothIdentifier = new ClothIdentifier(res);
+		// use clothIdentifierBacklog to save clothIdentifier
+		ClothIdentifier clothIdentifier = new ClothIdentifier(resClothIdentifierBacklog);
+		clothIdentifierRepo.save(clothIdentifier);
 
-		int newSerialNo = res.getSerialNo() + 1;
-		res.setSerialNo((short) newSerialNo);
+		// increase serialotNo in clothIdentifierBacklog
+		int newSerialNo = resClothIdentifierBacklog.getSerialNo() + 1;
+		resClothIdentifierBacklog.setSerialNo(newSerialNo);
 
-		return clothIdentifierRepo.save(clothIdentifier);
-	}
+		// use clothIdentifier to create clothInfo
+		ClothInfo clothInfo = new ClothInfo(clothIdentifier, inStockRequest.getColor(), inStockRequest.getDefect(),
+				inStockRequest.getRecord());
 
-	public ClothInfo createClothInfo(ClothIdentifier clothIdentifier, ClothInfo info, ClothRecord records) {
-		ClothInfo info_res = clothInfoRepository.save(new ClothInfo(clothIdentifier, info));
-		ClothRecord record_res = clothRecordRepository.save(new ClothRecord(records, info_res));
-		info_res.setClothRecords(record_res);
-		return clothInfoRepository.save(info_res);
+		return clothInfoRepository.save(clothInfo);
 	}
 
 	public List<ClothInfo> findClothInfoByProductNo(String productNo) {
 		List<ClothInfo> result = new ArrayList<>();
-		List<ClothIdentifier> res = new ArrayList<>();
-		res = clothIdentifierRepo.findByProductNoAndIsExist(productNo, true).orElse(res);
+		List<ClothIdentifier> res = clothIdentifierRepo.findByProductNoAndIsExist(productNo, true)
+				.orElseGet(() -> new ArrayList<>());
 		if (!res.isEmpty()) {
 			res.stream().forEach(identifier -> result.add(clothInfoRepository.findById(identifier.getId()).get()));
 		}
 		return result;
 	}
-	
+
 	public void letClothIdentifierNotExist(long clothIdentifierId) {
 		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
 		res.setExist(false);
+		clothIdentifierRepo.save(res);
+	}
+	
+	public void letClothIdentifierisSaled(long clothIdentifierId) {
+		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
+		res.setSale(true);
 		clothIdentifierRepo.save(res);
 	}
 

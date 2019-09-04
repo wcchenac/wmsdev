@@ -3,7 +3,7 @@ import ShowExchangeRequest from "./ShowExchangeRequest";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
-  purgeOldClothInfo,
+  purgeOldClothInfoNotExist,
   typeExchangeBatchCreateClothInfo
 } from "../../../../actions/ClothInfoAcions";
 
@@ -32,10 +32,12 @@ class TypeExchangeBoard extends Component {
       lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
       type: "板卷",
       length: "",
+      unit: "碼",
       color: "0",
       defect: "無",
-      record: "",
+      record: this.state.oldClothInfo.record,
       remark: "",
+      isNew: "old",
       errors: {
         length: ""
       }
@@ -68,6 +70,9 @@ class TypeExchangeBoard extends Component {
           value.length < 1 ? "長度不可空白" : "";
         newClothInfoesCopy[i].length = value;
         break;
+      case "unit":
+        newClothInfoesCopy[i].unit = value;
+        break;
       case "color":
         newClothInfoesCopy[i].color = value;
         break;
@@ -92,7 +97,7 @@ class TypeExchangeBoard extends Component {
     for (let i = 0; i < newClothInfoes.length; i += 1) {
       delete newClothInfoes[i]["errors"];
     }
-    this.props.purgeOldClothInfo(oldClothInfo.clothIdentifier.id);
+    this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
     this.props.typeExchangeBatchCreateClothInfo(
       newClothInfoes,
       this.props.history
@@ -122,6 +127,7 @@ class TypeExchangeBoard extends Component {
                     <th scope="col">批號</th>
                     <th scope="col">型態</th>
                     <th scope="col">長度</th>
+                    <th scope="col">單位</th>
                     <th scope="col">色號</th>
                     <th scope="col">記錄</th>
                   </tr>
@@ -177,8 +183,19 @@ class TypeExchangeBoard extends Component {
                         <input
                           type="text"
                           className="form-control"
+                          name="unit"
+                          value={oldClothInfo.clothIdentifier.unit}
+                          disabled
+                        />
+                      </div>
+                    </th>
+                    <th scope="col">
+                      <div className="form-group">
+                        <input
+                          type="text"
+                          className="form-control"
                           name="color"
-                          value={oldClothInfo.clothIdentifier.color}
+                          value={oldClothInfo.color}
                           disabled
                         />
                       </div>
@@ -189,7 +206,7 @@ class TypeExchangeBoard extends Component {
                           type="text"
                           className="form-control"
                           name="record"
-                          value={oldClothInfo.clothIdentifier.record}
+                          value={oldClothInfo.record}
                           disabled
                         />
                       </div>
@@ -260,10 +277,10 @@ class TypeExchangeBoard extends Component {
 
 TypeExchangeBoard.propsTypes = {
   typeExchangeBatchCreateClothInfo: PropTypes.func.isRequired,
-  purgeOldClothInfo: PropTypes.func.isRequired
+  purgeOldClothInfoNotExist: PropTypes.func.isRequired
 };
 
 export default connect(
   null,
-  { purgeOldClothInfo, typeExchangeBatchCreateClothInfo }
+  { purgeOldClothInfoNotExist, typeExchangeBatchCreateClothInfo }
 )(TypeExchangeBoard);
