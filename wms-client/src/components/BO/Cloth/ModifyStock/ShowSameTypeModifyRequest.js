@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import TypeExchangeRequest from "./TypeExchangeRequest";
+import SameTypeModifyRequest from "./SameTypeModifyRequest";
 
-class ShowExchangeRequest extends Component {
+class ShowSameTypeModifyRequest extends Component {
   constructor(props) {
     super(props);
     this.handleRequestChange = this.handleRequestChange.bind(this);
@@ -31,15 +31,13 @@ class ShowExchangeRequest extends Component {
                 <tr>
                   <th scope="col">型態</th>
                   <th scope="col">長度</th>
-                  <th scope="col">色號</th>
                   <th scope="col">缺陷</th>
-                  <th scope="col">記錄</th>
                   <th scope="col">註解</th>
                 </tr>
               </thead>
               <tbody>
                 {newClothInfoes.map((clothInfo, index) => (
-                  <TypeExchangeRequest
+                  <SameTypeModifyRequest
                     key={index}
                     index={index}
                     errors={clothInfo.errors}
@@ -56,4 +54,4 @@ class ShowExchangeRequest extends Component {
     return <div>{BoardContent}</div>;
   }
 }
-export default ShowExchangeRequest;
+export default ShowSameTypeModifyRequest;

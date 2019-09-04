@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { createClothInfo } from "../../../actions/ClothInfoAcions";
+import { createClothInfo } from "../../../../actions/ClothInfoAcions";
 import classnames from "classnames";
 
 class AddClothInfo extends Component {
@@ -12,8 +12,8 @@ class AddClothInfo extends Component {
       lotNo: "",
       type: "捲",
       length: "",
-      color: "",
-      defect: "",
+      color: "0",
+      defect: "無",
       record: "",
       remark: "",
       errors: {
@@ -110,11 +110,11 @@ class AddClothInfo extends Component {
                     <select
                       className="custom-select custom-select-lg"
                       name="type"
-                      defaultValue="捲"
+                      defaultValue="整支"
                       onChange={this.onChange}
                     >
-                      <option value="捲">捲</option>
-                      <option value="板">板</option>
+                      <option value="整支">整支</option>
+                      <option value="板卷">板卷</option>
                     </select>
                   </div>
                   <div className="form-group">
@@ -135,23 +135,38 @@ class AddClothInfo extends Component {
                 </div>
                 <div className="clothInfo">
                   <div className="form-group">
-                    <input
-                      type="text"
-                      className="form-control form-control-lg"
-                      placeholder="色號"
+                    <select
+                      className="custom-select custom-select-lg"
                       name="color"
-                      value={this.state.color}
+                      defaultValue="0"
                       onChange={this.onChange}
-                    />
+                    >
+                      <option value="0">0</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                      <option value="6">6</option>
+                      <option value="7">7</option>
+                      <option value="8">8</option>
+                      <option value="9">9</option>
+                      <option value="10">10</option>
+                    </select>
                   </div>
                   <div className="form-group">
-                    <textarea
-                      className="form-control form-control-lg"
-                      placeholder="缺陷"
+                    <select
+                      className="custom-select custom-select-lg"
                       name="defect"
-                      value={this.state.defect}
+                      defaultValue="無"
                       onChange={this.onChange}
-                    />
+                    >
+                      <option value="無">無</option>
+                      <option value="GA">GA</option>
+                      <option value="GB">GB</option>
+                      <option value="GC">GC</option>
+                      <option value="GD">GD</option>
+                    </select>
                   </div>
                 </div>
                 <div className="clothRecords">
@@ -161,15 +176,6 @@ class AddClothInfo extends Component {
                       placeholder="記錄"
                       name="record"
                       value={this.state.record}
-                      onChange={this.onChange}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <textarea
-                      className="form-control form-control-lg"
-                      placeholder="註解"
-                      name="remark"
-                      value={this.state.remark}
                       onChange={this.onChange}
                     />
                   </div>
