@@ -1,4 +1,4 @@
-package com.wmstool.services;
+package com.wmstool.wmstool.services;
 
 import java.util.HashMap;
 import java.util.Map;

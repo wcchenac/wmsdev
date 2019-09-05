@@ -1,4 +1,4 @@
-package com.wmstool.exceptions;
+package com.wmstool.wmstool.exceptions;
 
 public class ClothIdentifierExceptionResponse {
 

@@ -1,4 +1,4 @@
-package com.wmstool.models.audit;
+package com.wmstool.wmstool.models.audit;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;

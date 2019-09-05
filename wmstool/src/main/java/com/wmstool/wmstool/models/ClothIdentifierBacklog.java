@@ -1,4 +1,4 @@
-package com.wmstool.models;
+package com.wmstool.wmstool.models;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

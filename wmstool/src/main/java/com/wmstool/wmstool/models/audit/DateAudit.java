@@ -1,4 +1,4 @@
-package com.wmstool.models.audit;
+package com.wmstool.wmstool.models.audit;
 
 import java.io.Serializable;
 import java.time.Instant;

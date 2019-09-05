@@ -1,11 +1,11 @@
-package com.wmstool.repositories;
+package com.wmstool.wmstool.repositories;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.wmstool.models.ClothIdentifier;
+import com.wmstool.wmstool.models.ClothIdentifier;
 
 public interface ClothIdentifierRepo extends JpaRepository<ClothIdentifier, Long> {
 

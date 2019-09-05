@@ -1,27 +1,23 @@
-package com.wmstool.models;
+package com.wmstool.ERP.models;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class ProductNoBacklog {
+public class ProductNo {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, updatable = false)
 	private String productNo;
 
-	private int lotNo = 1;
-
-	public ProductNoBacklog() {
+	public ProductNo() {
 	}
 
-	public ProductNoBacklog(String productNo) {
+	public ProductNo(String productNo) {
 		this.productNo = productNo;
 	}
 
@@ -39,14 +35,6 @@ public class ProductNoBacklog {
 
 	public void setProductNo(String productNo) {
 		this.productNo = productNo;
-	}
-
-	public int getLotNo() {
-		return lotNo;
-	}
-
-	public void setLotNo(int lotNo) {
-		this.lotNo = lotNo;
 	}
 
 }

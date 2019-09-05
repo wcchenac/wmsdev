@@ -1,4 +1,4 @@
-package com.wmstool.models.payloads;
+package com.wmstool.wmstool.models.payloads;
 
 import javax.validation.constraints.NotBlank;
 

@@ -1,4 +1,4 @@
-package com.wmstool.services;
+package com.wmstool.wmstool.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,15 +6,15 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.wmstool.models.ClothIdentifier;
-import com.wmstool.models.ClothIdentifierBacklog;
-import com.wmstool.models.ClothInfo;
-import com.wmstool.models.ProductNoBacklog;
-import com.wmstool.models.payloads.InStockRequest;
-import com.wmstool.repositories.ClothIdentifierBacklogRepo;
-import com.wmstool.repositories.ClothIdentifierRepo;
-import com.wmstool.repositories.ClothInfoRepository;
-import com.wmstool.repositories.ProductNoBacklogRepo;
+import com.wmstool.wmstool.models.ClothIdentifier;
+import com.wmstool.wmstool.models.ClothIdentifierBacklog;
+import com.wmstool.wmstool.models.ClothInfo;
+import com.wmstool.wmstool.models.ProductNoBacklog;
+import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.repositories.ClothIdentifierBacklogRepo;
+import com.wmstool.wmstool.repositories.ClothIdentifierRepo;
+import com.wmstool.wmstool.repositories.ClothInfoRepository;
+import com.wmstool.wmstool.repositories.ProductNoBacklogRepo;
 
 @Service
 public class ClothService {
@@ -107,6 +107,7 @@ public class ClothService {
 
 	public void letClothIdentifierisShiped(long clothIdentifierId) {
 		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
+		res.setExist(false);
 		res.setShip(true);
 		clothIdentifierRepo.save(res);
 	}
