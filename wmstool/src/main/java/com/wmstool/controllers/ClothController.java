@@ -56,9 +56,9 @@ public class ClothController {
 		clothService.letClothIdentifierNotExist(clothIdentifierId);
 	}
 	
-	@PatchMapping("/saleStock/{clothIdentifierId}")
-	public void purgeClothIndentifierIsSaled(@PathVariable long clothIdentifierId) {
+	@PatchMapping("/shipStock/{clothIdentifierId}")
+	public void purgeClothIndentifierIsShiped(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierNotExist(clothIdentifierId);
-		clothService.letClothIdentifierisSaled(clothIdentifierId);
+		clothService.letClothIdentifierisShiped(clothIdentifierId);
 	}
 }
