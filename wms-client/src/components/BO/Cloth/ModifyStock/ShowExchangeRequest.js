@@ -31,6 +31,7 @@ class ShowExchangeRequest extends Component {
                 <tr>
                   <th scope="col">型態</th>
                   <th scope="col">長度</th>
+                  <th scope="col">單位</th>
                   <th scope="col">缺陷</th>
                   <th scope="col">註解</th>
                 </tr>

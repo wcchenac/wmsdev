@@ -8,7 +8,7 @@ class ShowClothInfo extends Component {
     let BoardContent;
 
     const boardAlgorithm = clothInfoes => {
-      if (clothInfoes.length < 1) {
+      if (clothInfoes === null || clothInfoes.length < 1) {
         return (
           <div className="alert alert-warning text-center" role="alert">
             查無資料
@@ -24,6 +24,7 @@ class ShowClothInfo extends Component {
                   <th scope="col">批號</th>
                   <th scope="col">型態</th>
                   <th scope="col">長度</th>
+                  <th scope="col">單位</th>
                   <th scope="col">流水號</th>
                   <th scope="col">色號</th>
                   <th scope="col">缺陷</th>

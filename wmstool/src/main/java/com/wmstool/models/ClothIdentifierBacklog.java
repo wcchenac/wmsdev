@@ -2,51 +2,70 @@ package com.wmstool.models;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.validation.constraints.NotBlank;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class ClothIdentifierBacklog {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
-//	@NotBlank(message = "貨號不可空白")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "productNoBacklog_id", updatable = false, nullable = false)
+	@JsonIgnore
+	private ProductNoBacklog productNoBacklog;
+
 	@Column(nullable = false, updatable = false, length = 25)
 	private String productNo;
 
-//	@NotBlank(message = "批號不可空白")
-	@Column(nullable = false, updatable = false, length = 10)
-	private String lotNo;
+	@Column(nullable = false, updatable = false)
+	private int lotNo;
 
-//	@NotBlank(message = "型態不可空白")
-	@Column(nullable = false, updatable = false, length = 6)
+	@Column(nullable = false, updatable = false, length = 10)
 	private String type;
 
-//	@NotBlank(message = "長度不可空白")
-	@Column(nullable = false, updatable = false, length = 5)
+	@Column(nullable = false, length = 6)
 	private String length;
 
-	private short serialNo = 1;
+	@Column(nullable = false, length = 10)
+	private String unit;
+
+	private int serialNo = 1;
 
 	public ClothIdentifierBacklog() {
 	}
 
-	public ClothIdentifierBacklog(String productNo, String lotNo, String type, String length) {
-		this.productNo = productNo;
-		this.lotNo = lotNo;
+	public ClothIdentifierBacklog(ProductNoBacklog productNoBacklog, String type, String length, String unit) {
+		this.productNoBacklog = productNoBacklog;
+		this.productNo = productNoBacklog.getProductNo();
+		this.lotNo = productNoBacklog.getLotNo();
 		this.type = type;
 		this.length = length;
+		this.unit = unit;
+	}
+	
+	public ClothIdentifierBacklog(ProductNoBacklog productNoBacklog, String productNo, int lotNo, String type, String length, String unit) {
+		this.productNoBacklog = productNoBacklog;
+		this.productNo = productNo;
+		this.lotNo =lotNo;
+		this.type = type;
+		this.length = length;
+		this.unit = unit;
 	}
 
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -55,15 +74,15 @@ public class ClothIdentifierBacklog {
 	}
 
 	public void setProductNo(String productNo) {
-		this.productNo = productNo.toUpperCase();
+		this.productNo = productNo;
 	}
 
-	public String getLotNo() {
+	public int getLotNo() {
 		return lotNo;
 	}
 
-	public void setLotNo(String lotNo) {
-		this.lotNo = lotNo.toUpperCase();
+	public void setLotNo(int lotNo) {
+		this.lotNo = lotNo;
 	}
 
 	public String getType() {
@@ -82,11 +101,19 @@ public class ClothIdentifierBacklog {
 		this.length = length;
 	}
 
-	public short getSerialNo() {
+	public String getUnit() {
+		return unit;
+	}
+
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+
+	public int getSerialNo() {
 		return serialNo;
 	}
 
-	public void setSerialNo(short serialNo) {
+	public void setSerialNo(int serialNo) {
 		this.serialNo = serialNo;
 	}
 

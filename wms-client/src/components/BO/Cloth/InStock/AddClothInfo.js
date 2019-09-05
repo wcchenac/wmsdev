@@ -10,8 +10,9 @@ class AddClothInfo extends Component {
     this.state = {
       productNo: "",
       lotNo: "",
-      type: "捲",
+      type: "整支",
       length: "",
+      unit: "碼",
       color: "0",
       defect: "無",
       record: "",
@@ -47,21 +48,20 @@ class AddClothInfo extends Component {
     this.setState({ errors, [name]: value });
   }
 
-  onSubmit(e) {
-    // e.preventDefault();
+  onSubmit() {
     const inStockRequest = {
       productNo: this.state.productNo,
       lotNo: this.state.lotNo,
       type: this.state.type,
       length: this.state.length,
+      unit: this.state.unit,
       color: this.state.color,
       defect: this.state.defect,
       record: this.state.record,
-      remark: this.state.remark
+      remark: this.state.remark,
+      isNew: "new"
     };
 
-    // console.log(inStockRequest);
-    // this.props.history.replace("/cloth/instock");
     this.props.createClothInfo(inStockRequest, this.props.history);
   }
 
@@ -92,21 +92,6 @@ class AddClothInfo extends Component {
                     )}
                   </div>
                   <div className="form-group">
-                    <input
-                      type="text"
-                      className={classnames("form-control form-control-lg ", {
-                        "is-invalid": errors.lotNo
-                      })}
-                      placeholder="批號"
-                      name="lotNo"
-                      value={this.state.lotNo}
-                      onChange={this.onChange}
-                    />
-                    {errors.lotNo && (
-                      <div className="invalid-feedback">{errors.lotNo}</div>
-                    )}
-                  </div>
-                  <div className="form-group">
                     <select
                       className="custom-select custom-select-lg"
                       name="type"
@@ -132,6 +117,17 @@ class AddClothInfo extends Component {
                       <div className="invalid-feedback">{errors.length}</div>
                     )}
                   </div>
+                </div>
+                <div className="form-group">
+                  <select
+                    className="custom-select custom-select-lg"
+                    name="unit"
+                    defaultValue="碼"
+                    onChange={this.onChange}
+                  >
+                    <option value="碼">碼</option>
+                    <option value="尺">尺</option>
+                  </select>
                 </div>
                 <div className="clothInfo">
                   <div className="form-group">
@@ -183,11 +179,7 @@ class AddClothInfo extends Component {
 
                 <button
                   type="submit"
-                  disabled={
-                    !this.state.productNo ||
-                    !this.state.lotNo ||
-                    !this.state.length
-                  }
+                  disabled={!this.state.productNo || !this.state.length}
                   className="btn btn-primary btn-block mt-4"
                 >
                   送出

@@ -17,10 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wmstool.models.ClothIdentifier;
-import com.wmstool.models.ClothIdentifierBacklog;
 import com.wmstool.models.ClothInfo;
-import com.wmstool.models.ClothRecord;
 import com.wmstool.models.payloads.InStockRequest;
 import com.wmstool.services.ClothService;
 import com.wmstool.services.MapValidationErrorService;
@@ -45,12 +42,7 @@ public class ClothController {
 			return errorMap;
 		}
 
-		ClothIdentifierBacklog backlog = new ClothIdentifierBacklog(inStockRequest.getProductNo(), inStockRequest.getLotNo(), inStockRequest.getType(), inStockRequest.getLength());
-		ClothInfo clothInfo = new ClothInfo(inStockRequest.getColor(),inStockRequest.getDefect());
-		ClothRecord records = new ClothRecord(inStockRequest.getRecord(), inStockRequest.getRemark());
-
-		ClothIdentifier identifier = clothService.createClothIdentifier(backlog);
-		ClothInfo result = clothService.createClothInfo(identifier, clothInfo, records);
+		ClothInfo result = clothService.createClothInfo(inStockRequest, inStockRequest.getIsNew());
 		return new ResponseEntity<ClothInfo>(result, HttpStatus.CREATED);
 	}
 
@@ -60,7 +52,13 @@ public class ClothController {
 	}
 
 	@PatchMapping("/purgeStock/{clothIdentifierId}")
-	public void purgeClothIndentifier(@PathVariable long clothIdentifierId) {
+	public void purgeClothIndentifierNotExist(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierNotExist(clothIdentifierId);
+	}
+	
+	@PatchMapping("/shipStock/{clothIdentifierId}")
+	public void purgeClothIndentifierIsShiped(@PathVariable long clothIdentifierId) {
+		clothService.letClothIdentifierNotExist(clothIdentifierId);
+		clothService.letClothIdentifierisShiped(clothIdentifierId);
 	}
 }

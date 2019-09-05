@@ -17,13 +17,15 @@ class TypeExchangeRequest extends Component {
       <tr>
         <th scope="col">
           <div className="form-group">
-            <input
-              type="text"
-              className="form-control"
+            <select
+              className="custom-select"
               name="type"
-              value="板卷"
-              disabled
-            />
+              defaultValue="板卷"
+              onChange={this.handleChange}
+            >
+              <option value="整支">整支</option>
+              <option value="板卷">板卷</option>
+            </select>
           </div>
         </th>
         <th scope="col">
@@ -43,9 +45,22 @@ class TypeExchangeRequest extends Component {
           <div className="form-group">
             <select
               className="custom-select"
+              name="unit"
+              defaultValue="碼"
+              onChange={this.handleChange}
+            >
+              <option value="碼">碼</option>
+              <option value="尺">尺</option>
+            </select>
+          </div>
+        </th>
+        <th scope="col">
+          <div className="form-group">
+            <select
+              className="custom-select"
               name="defect"
               defaultValue="無"
-              onChange={this.onChange}
+              onChange={this.handleChange}
             >
               <option value="無">無</option>
               <option value="GA">GA</option>

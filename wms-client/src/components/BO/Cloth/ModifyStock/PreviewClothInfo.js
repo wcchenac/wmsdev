@@ -59,6 +59,14 @@ class PreviewClothInfo extends Component {
                 </div>
                 <div className="form-group row">
                   <label className="col-2 col-form-label-lg text-center">
+                    單位
+                  </label>
+                  <label className="col-10 col-form-label-lg text-center">
+                    {clothInfo.clothIdentifier.length}
+                  </label>
+                </div>
+                <div className="form-group row">
+                  <label className="col-2 col-form-label-lg text-center">
                     流水號
                   </label>
                   <label className="col-10 col-form-label-lg text-center">
@@ -86,7 +94,7 @@ class PreviewClothInfo extends Component {
                     記錄
                   </label>
                   <label className="col-10 col-form-label-lg text-center">
-                    {clothInfo.clothRecords.record}
+                    {clothInfo.record}
                   </label>
                 </div>
                 <div className="form-group row">
@@ -94,7 +102,7 @@ class PreviewClothInfo extends Component {
                     註解
                   </label>
                   <label className="col-10 col-form-label-lg text-center">
-                    {clothInfo.clothRecords.remark}
+                    {clothInfo.remark}
                   </label>
                 </div>
                 <hr />
