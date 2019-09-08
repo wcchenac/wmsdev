@@ -93,13 +93,15 @@ class TypeExchangeBoard extends Component {
 
   handleSubmitClick() {
     const { oldClothInfo } = this.state;
-    let newClothInfoes = this.state.newClothInfoes;
+    const { newClothInfoes } = this.state;
     let oldTotalLength = parseFloat(oldClothInfo.clothIdentifier.length);
-    let totalLength;
+    let totalLength = 0;
+
     for (let i = 0; i < newClothInfoes.length; i += 1) {
       delete newClothInfoes[i]["errors"];
       totalLength += parseFloat(newClothInfoes[i].length);
     }
+
     if (oldTotalLength === totalLength) {
       if (window.confirm("確認送出？")) {
         this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);

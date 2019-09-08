@@ -92,13 +92,15 @@ class SameTypeModifyBoard extends Component {
 
   handleSubmitClick() {
     const { oldClothInfo } = this.state;
-    let newClothInfoes = this.state.newClothInfoes;
+    const { newClothInfoes } = this.state;
     let oldTotalLength = parseFloat(oldClothInfo.clothIdentifier.length);
-    let totalLength;
+    let totalLength = 0;
+
     for (let i = 0; i < newClothInfoes.length; i += 1) {
       delete newClothInfoes[i]["errors"];
       totalLength += parseFloat(newClothInfoes[i].length);
     }
+
     if (oldTotalLength === totalLength) {
       if (window.confirm("確認送出？")) {
         this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
@@ -108,6 +110,8 @@ class SameTypeModifyBoard extends Component {
         );
       }
     } else {
+      // call backend create file
+      // if user still confirm to process, auto send file to user
       if (window.confirm("減肥前後總長度不符，確認送出？")) {
         this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
         this.props.typeExchangeBatchCreateClothInfo(
