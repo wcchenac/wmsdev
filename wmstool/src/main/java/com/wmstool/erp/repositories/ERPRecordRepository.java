@@ -5,10 +5,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.wmstool.ERP.models.ProductNo;
+import com.wmstool.ERP.models.ERPRecord;
 
 @Repository
-public interface ProductNoRepository extends JpaRepository<ProductNo, Long> {
+public interface ERPRecordRepository extends JpaRepository<ERPRecord, Long> {
 
-	Optional<ProductNo> findByProductNo(String productNo);
+	Optional<ERPRecord> findByInStockRequestNo(String inStockRequestNo);
+
 }
