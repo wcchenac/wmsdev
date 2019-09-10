@@ -33,7 +33,11 @@ class ShowClothInfo extends Component {
               </thead>
               <tbody>
                 {clothInfoes.map(clothInfo => (
-                  <ClothInfo key={clothInfo.id} clothInfo={clothInfo} />
+                  <ClothInfo
+                    key={clothInfo.id}
+                    clothInfo={clothInfo}
+                    handleShip={this.props.handleShip}
+                  />
                 ))}
               </tbody>
             </table>

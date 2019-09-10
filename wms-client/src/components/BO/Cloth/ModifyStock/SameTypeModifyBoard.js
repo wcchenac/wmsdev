@@ -6,6 +6,7 @@ import {
   purgeOldClothInfoNotExist,
   typeExchangeBatchCreateClothInfo
 } from "../../../../actions/ClothInfoAcions";
+import { createFile } from "../../../../actions/FileActions";
 
 class SameTypeModifyBoard extends Component {
   constructor(props) {
@@ -37,6 +38,7 @@ class SameTypeModifyBoard extends Component {
       defect: "無",
       record: this.state.oldClothInfo.record,
       remark: "",
+      isNew: "old",
       errors: {
         length: ""
       }
@@ -97,11 +99,12 @@ class SameTypeModifyBoard extends Component {
     let totalLength = 0;
 
     for (let i = 0; i < newClothInfoes.length; i += 1) {
-      delete newClothInfoes[i]["errors"];
       totalLength += parseFloat(newClothInfoes[i].length);
     }
 
-    if (oldTotalLength === totalLength) {
+    let decrement = totalLength - oldTotalLength;
+
+    if (decrement === 0) {
       if (window.confirm("確認送出？")) {
         this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
         this.props.typeExchangeBatchCreateClothInfo(
@@ -110,8 +113,11 @@ class SameTypeModifyBoard extends Component {
         );
       }
     } else {
-      // call backend create file
-      // if user still confirm to process, auto send file to user
+      let createFileRequest = {
+        productNo: oldClothInfo.clothIdentifier.productNo,
+        decrement: decrement
+      };
+      this.props.createFile(createFileRequest);
       if (window.confirm("減肥前後總長度不符，確認送出？")) {
         this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
         this.props.typeExchangeBatchCreateClothInfo(
@@ -295,10 +301,20 @@ class SameTypeModifyBoard extends Component {
 
 SameTypeModifyBoard.propsTypes = {
   typeExchangeBatchCreateClothInfo: PropTypes.func.isRequired,
-  purgeOldClothInfoNotExist: PropTypes.func.isRequired
+  purgeOldClothInfoNotExist: PropTypes.func.isRequired,
+  filename: PropTypes.object.isRequired,
+  createFile: PropTypes.func.isRequired
 };
 
+const mapStateToProps = state => ({
+  filename: state.filename
+});
+
 export default connect(
-  null,
-  { purgeOldClothInfoNotExist, typeExchangeBatchCreateClothInfo }
+  mapStateToProps,
+  {
+    purgeOldClothInfoNotExist,
+    typeExchangeBatchCreateClothInfo,
+    createFile
+  }
 )(SameTypeModifyBoard);

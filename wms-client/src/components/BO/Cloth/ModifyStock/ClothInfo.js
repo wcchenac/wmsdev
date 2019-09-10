@@ -2,6 +2,12 @@ import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
 class ClothInfo extends Component {
+  onClick() {
+    if (window.confirm("確認出貨？")) {
+      this.props.handleShip(this.props.clothInfo.clothIdentifier.id);
+    }
+  }
+
   render() {
     const { clothInfo } = this.props;
     const { clothIdentifier } = this.props.clothInfo;
@@ -39,16 +45,12 @@ class ClothInfo extends Component {
               </Link>
             </div>
             <div className="btn-group" role="group" aria-label="Second group">
-              <Link
-                to={{
-                  pathname: `/cloth/3/3/${clothInfo.id}`,
-                  state: { clothInfo: this.props.clothInfo }
-                }}
+              <button
                 className="btn btn-primary"
-                role="button"
+                onClick={this.onClick.bind(this)}
               >
                 出貨
-              </Link>
+              </button>
             </div>
           </div>
         </th>
