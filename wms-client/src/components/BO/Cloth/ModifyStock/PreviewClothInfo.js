@@ -4,9 +4,8 @@ import { Link } from "react-router-dom";
 class PreviewClothInfo extends Component {
   constructor(props) {
     super(props);
-    const { clothInfo } = props.location.state;
     this.state = {
-      clothInfo: clothInfo
+      clothInfo: props.location.state.clothInfo
     };
     this.handleBackClick = this.handleBackClick.bind(this);
   }
@@ -17,6 +16,65 @@ class PreviewClothInfo extends Component {
 
   render() {
     const { clothInfo } = this.state;
+    let btnDropContent;
+
+    const btnAlgorithm = type => {
+      if (type === "整支") {
+        return (
+          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <Link
+              className="dropdown-item"
+              to={{
+                pathname: `/cloth/3/1/${clothInfo.id}`,
+                state: { clothInfo: clothInfo }
+              }}
+            >
+              板卷異動
+            </Link>
+            <Link
+              className="dropdown-item"
+              to={{
+                pathname: `/cloth/3/2/${clothInfo.id}`,
+                state: { clothInfo: clothInfo }
+              }}
+            >
+              整支異動
+            </Link>
+            <Link className="dropdown-item" to="#">
+              更改註解
+            </Link>
+          </div>
+        );
+      } else if (type === "板卷") {
+        return (
+          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <Link
+              className="dropdown-item"
+              to={{
+                pathname: `/cloth/3/1/${clothInfo.id}`,
+                state: { clothInfo: clothInfo }
+              }}
+            >
+              板卷異動
+            </Link>
+            <Link className="dropdown-item" to="#">
+              更改註解
+            </Link>
+          </div>
+        );
+      } else {
+        return (
+          <div className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <Link className="dropdown-item" to="#">
+              更改註解
+            </Link>
+          </div>
+        );
+      }
+    };
+
+    btnDropContent = btnAlgorithm(clothInfo.clothIdentifier.type);
+
     return (
       <div className="cloth_info">
         <div className="container">
@@ -125,32 +183,7 @@ class PreviewClothInfo extends Component {
                     >
                       選擇異動方式
                     </button>
-                    <div
-                      className="dropdown-menu"
-                      aria-labelledby="btnGroupDrop1"
-                    >
-                      <Link
-                        className="dropdown-item"
-                        to={{
-                          pathname: `/cloth/3/1/${clothInfo.id}`,
-                          state: { clothInfo: clothInfo }
-                        }}
-                      >
-                        板卷異動
-                      </Link>
-                      <Link
-                        className="dropdown-item"
-                        to={{
-                          pathname: `/cloth/3/2/${clothInfo.id}`,
-                          state: { clothInfo: clothInfo }
-                        }}
-                      >
-                        整支異動
-                      </Link>
-                      <Link className="dropdown-item" to="#">
-                        更改註解
-                      </Link>
-                    </div>
+                    {btnDropContent}
                   </div>
                 </div>
               </form>
