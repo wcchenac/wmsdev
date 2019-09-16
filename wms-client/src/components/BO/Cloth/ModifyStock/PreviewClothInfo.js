@@ -62,7 +62,7 @@ class PreviewClothInfo extends Component {
                     單位
                   </label>
                   <label className="col-10 col-form-label-lg text-center">
-                    {clothInfo.clothIdentifier.length}
+                    {clothInfo.clothIdentifier.unit}
                   </label>
                 </div>
                 <div className="form-group row">

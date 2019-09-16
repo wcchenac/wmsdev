@@ -1,14 +1,18 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { getClothInfoes } from "../../../../actions/ClothInfoAcions";
+import {
+  getClothInfoes,
+  purgeOldClothInfoIsShiped
+} from "../../../../actions/ClothInfoAcions";
 import ShowClothInfo from "./ShowClothInfo";
 
 class ModifyBoard extends Component {
   constructor() {
     super();
     this.state = {
-      productNo: ""
+      productNo: "",
+      clothInfoes: []
     };
 
     this.onChange = this.onChange.bind(this);
@@ -24,8 +28,16 @@ class ModifyBoard extends Component {
     this.props.getClothInfoes(this.state.productNo);
   }
 
+  static getDerivedStateFromProps(props, state) {
+    if (props.clothInfo.clothInfoes !== state.clothInfoes) {
+      return { clothInfoes: props.clothInfo.clothInfoes };
+    } else {
+      return null;
+    }
+  }
+
   render() {
-    const { clothInfoes } = this.props.clothInfo;
+    const { clothInfoes } = this.state;
     return (
       <div className="modify_clothInfo">
         <div className="container">
@@ -52,7 +64,10 @@ class ModifyBoard extends Component {
                 </div>
               </form>
               <hr />
-              <ShowClothInfo clothInfoes={clothInfoes} />
+              <ShowClothInfo
+                clothInfoes={clothInfoes}
+                handleShip={this.props.purgeOldClothInfoIsShiped}
+              />
             </div>
           </div>
         </div>
@@ -63,7 +78,8 @@ class ModifyBoard extends Component {
 
 ModifyBoard.propTypes = {
   clothInfo: PropTypes.object.isRequired,
-  getClothInfoes: PropTypes.func.isRequired
+  getClothInfoes: PropTypes.func.isRequired,
+  purgeOldClothInfoIsShiped: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -72,5 +88,5 @@ const mapStateToProps = state => ({
 
 export default connect(
   mapStateToProps,
-  { getClothInfoes }
+  { getClothInfoes, purgeOldClothInfoIsShiped }
 )(ModifyBoard);

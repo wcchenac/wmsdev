@@ -6,6 +6,7 @@ import {
   purgeOldClothInfoNotExist,
   typeExchangeBatchCreateClothInfo
 } from "../../../../actions/ClothInfoAcions";
+import { createFile } from "../../../../actions/FileActions";
 
 class TypeExchangeBoard extends Component {
   constructor(props) {
@@ -98,11 +99,12 @@ class TypeExchangeBoard extends Component {
     let totalLength = 0;
 
     for (let i = 0; i < newClothInfoes.length; i += 1) {
-      delete newClothInfoes[i]["errors"];
       totalLength += parseFloat(newClothInfoes[i].length);
     }
 
-    if (oldTotalLength === totalLength) {
+    let decrement = totalLength - oldTotalLength;
+
+    if (decrement === 0) {
       if (window.confirm("確認送出？")) {
         this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
         this.props.typeExchangeBatchCreateClothInfo(
@@ -111,8 +113,11 @@ class TypeExchangeBoard extends Component {
         );
       }
     } else {
-      // call backend create file
-      // if user still confirm to process, auto send file to user
+      let createFileRequest = {
+        productNo: oldClothInfo.clothIdentifier.productNo,
+        decrement: decrement
+      };
+      this.props.createFile(createFileRequest);
       if (window.confirm("減肥前後總長度不符，確認送出？")) {
         this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
         this.props.typeExchangeBatchCreateClothInfo(
@@ -296,10 +301,20 @@ class TypeExchangeBoard extends Component {
 
 TypeExchangeBoard.propsTypes = {
   typeExchangeBatchCreateClothInfo: PropTypes.func.isRequired,
-  purgeOldClothInfoNotExist: PropTypes.func.isRequired
+  purgeOldClothInfoNotExist: PropTypes.func.isRequired,
+  filename: PropTypes.object.isRequired,
+  createFile: PropTypes.func.isRequired
 };
 
+const mapStateToProps = state => ({
+  filename: state.filename
+});
+
 export default connect(
-  null,
-  { purgeOldClothInfoNotExist, typeExchangeBatchCreateClothInfo }
+  mapStateToProps,
+  {
+    purgeOldClothInfoNotExist,
+    typeExchangeBatchCreateClothInfo,
+    createFile
+  }
 )(TypeExchangeBoard);
