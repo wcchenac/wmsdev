@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wmstool.wmstool.models.ClothInfo;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.services.ClothService;
 import com.wmstool.wmstool.services.MapValidationErrorService;
 
@@ -55,9 +56,9 @@ public class ClothController {
 	public void purgeClothIndentifierNotExist(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierNotExist(clothIdentifierId);
 	}
-
-	@PatchMapping("/shipStock/{clothIdentifierId}")
-	public void purgeClothIndentifierIsShiped(@PathVariable long clothIdentifierId) {
-		clothService.letClothIdentifierisShiped(clothIdentifierId);
+	
+	@PatchMapping("/shipStock")
+	public void purgeClothIndentifierIsShiped(@Valid @RequestBody ShipRequest shipRequest) {
+		clothService.letClothIdentifierisShiped(shipRequest);
 	}
 }

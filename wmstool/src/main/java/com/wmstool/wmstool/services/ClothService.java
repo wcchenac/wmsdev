@@ -11,6 +11,7 @@ import com.wmstool.wmstool.models.ClothIdentifierBacklog;
 import com.wmstool.wmstool.models.ClothInfo;
 import com.wmstool.wmstool.models.ProductNoBacklog;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.repositories.ClothIdentifierBacklogRepo;
 import com.wmstool.wmstool.repositories.ClothIdentifierRepo;
 import com.wmstool.wmstool.repositories.ClothInfoRepository;
@@ -105,10 +106,11 @@ public class ClothService {
 		clothIdentifierRepo.save(res);
 	}
 
-	public void letClothIdentifierisShiped(long clothIdentifierId) {
-		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
+	public void letClothIdentifierisShiped(ShipRequest shipRequest) {
+		ClothIdentifier res = clothIdentifierRepo.findById(shipRequest.getClothIdentifierId()).get();
 		res.setExist(false);
 		res.setShip(true);
+		res.setShipReason(shipRequest.getReason());
 		clothIdentifierRepo.save(res);
 	}
 

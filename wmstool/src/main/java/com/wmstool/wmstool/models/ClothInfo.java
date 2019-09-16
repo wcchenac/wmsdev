@@ -34,6 +34,8 @@ public class ClothInfo {
 	private String record;
 
 	private String remark;
+	
+	private String storedAt;
 
 	@Column(updatable = false)
 	@JsonIgnore
@@ -98,6 +100,14 @@ public class ClothInfo {
 
 	public void setRemark(String remark) {
 		this.remark = remark;
+	}
+	
+	public String getStoredAt() {
+		return storedAt;
+	}
+
+	public void setStoredAt(String storedAt) {
+		this.storedAt = storedAt;
 	}
 
 	public Date getCreatedAt() {

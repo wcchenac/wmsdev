@@ -45,6 +45,8 @@ public class ClothIdentifier {
 
 	private boolean isShip = false;
 
+	private String shipReason;
+
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
 	@JsonIgnore
 	private ClothInfo clothInfo;
@@ -141,6 +143,14 @@ public class ClothIdentifier {
 
 	public void setShip(boolean isShip) {
 		this.isShip = isShip;
+	}
+
+	public String getShipReason() {
+		return shipReason;
+	}
+
+	public void setShipReason(String shipReason) {
+		this.shipReason = shipReason;
 	}
 
 	public ClothInfo getClothInfo() {
