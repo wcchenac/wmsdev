@@ -39,6 +39,7 @@ class TypeExchangeBoard extends Component {
       record: this.state.oldClothInfo.record,
       remark: "",
       isNew: "old",
+      parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
       errors: {
         length: ""
       }
@@ -113,11 +114,11 @@ class TypeExchangeBoard extends Component {
         );
       }
     } else {
-      let createFileRequest = {
-        productNo: oldClothInfo.clothIdentifier.productNo,
-        decrement: decrement
-      };
-      this.props.createFile(createFileRequest);
+      // let createFileRequest = {
+      //   productNo: oldClothInfo.clothIdentifier.productNo,
+      //   decrement: decrement
+      // };
+      // this.props.createFile(createFileRequest);
       if (window.confirm("減肥前後總長度不符，確認送出？")) {
         this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
         this.props.typeExchangeBatchCreateClothInfo(

@@ -39,6 +39,7 @@ class SameTypeModifyBoard extends Component {
       record: this.state.oldClothInfo.record,
       remark: "",
       isNew: "old",
+      parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
       errors: {
         length: ""
       }
