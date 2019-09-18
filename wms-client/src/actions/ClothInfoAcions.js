@@ -36,13 +36,12 @@ export const purgeOldClothInfoNotExist = clothIdentifierId => async dispatch => 
   }
 };
 
-export const purgeOldClothInfoIsShiped = clothIdentifierId => async dispatch => {
+export const purgeOldClothInfoIsShiped = shipRequest => async dispatch => {
   try {
-    await axios.patch(`/api/cloth/shipStock/${clothIdentifierId}`);
-
+    await axios.patch("/api/cloth/shipStock", shipRequest);
     dispatch({
       type: SHIP_Cloth,
-      payload: clothIdentifierId
+      payload: shipRequest.clothIdentifierId
     });
   } catch (err) {
     dispatch({

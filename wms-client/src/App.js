@@ -12,6 +12,7 @@ import TypeExchangeBoard from "./components/BO/Cloth/ModifyStock/TypeExchangeBoa
 import ReviseInStock from "./components/BO/Cloth/InStock/ReviseInStock";
 import QueryBoard from "./components/BO/Cloth/QueryStock/QueryBoard";
 import SameTypeModifyBoard from "./components/BO/Cloth/ModifyStock/SameTypeModifyBoard";
+import BatchAddClothInfo from "./components/BO/Cloth/InStock/BatchAddClothInfo";
 
 function App() {
   return (
@@ -20,7 +21,7 @@ function App() {
         <div className="App">
           <Header />
           <Route exact path="/cloth/1/1" component={AddClothInfo} />
-          <Route exact path="/cloth/1/2" component={ReviseInStock} />
+          <Route exact path="/cloth/1/2" component={BatchAddClothInfo} />
           <Route exact path="/cloth/2" component={QueryBoard} />
           <Route exact path="/cloth/3" component={ModifyBoard} />
           <Route exact path="/cloth/3/:id" component={PreviewClothInfo} />
