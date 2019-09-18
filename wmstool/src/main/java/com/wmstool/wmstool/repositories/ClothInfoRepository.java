@@ -8,4 +8,5 @@ import com.wmstool.wmstool.models.ClothInfo;
 @Repository
 public interface ClothInfoRepository extends JpaRepository<ClothInfo, Long> {
 
+	ClothInfo findByClothIdentifierId(long id);
 }

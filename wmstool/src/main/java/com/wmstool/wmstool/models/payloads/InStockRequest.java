@@ -27,6 +27,8 @@ public class InStockRequest {
 
 	private String isNew;
 
+	private long parentId; // for history use
+
 	public String getProductNo() {
 		return productNo;
 	}
@@ -106,5 +108,13 @@ public class InStockRequest {
 	public void setIsNew(String isNew) {
 		this.isNew = isNew;
 	}
-	
+
+	public long getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(long parentId) {
+		this.parentId = parentId;
+	}
+
 }

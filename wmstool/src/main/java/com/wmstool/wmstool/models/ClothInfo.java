@@ -34,7 +34,7 @@ public class ClothInfo {
 	private String record;
 
 	private String remark;
-	
+
 	private String storedAt;
 
 	@Column(updatable = false)
@@ -101,7 +101,7 @@ public class ClothInfo {
 	public void setRemark(String remark) {
 		this.remark = remark;
 	}
-	
+
 	public String getStoredAt() {
 		return storedAt;
 	}
@@ -134,6 +134,13 @@ public class ClothInfo {
 	@PreUpdate
 	protected void onUpdate() {
 		this.updatedAt = new Date();
+	}
+
+	@Override
+	public String toString() {
+		return "ClothInfo [id=" + id + ", clothIdentifier=" + clothIdentifier + ", color=" + color + ", defect="
+				+ defect + ", record=" + record + ", remark=" + remark + ", storedAt=" + storedAt + ", createdAt="
+				+ createdAt + ", updatedAt=" + updatedAt + "]";
 	}
 
 }
