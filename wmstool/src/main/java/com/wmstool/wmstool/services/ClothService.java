@@ -1,7 +1,11 @@
 package com.wmstool.wmstool.services;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,14 +14,17 @@ import com.wmstool.wmstool.models.ClothIdentifier;
 import com.wmstool.wmstool.models.ClothIdentifierBacklog;
 import com.wmstool.wmstool.models.ClothInfo;
 import com.wmstool.wmstool.models.ProductNoBacklog;
+import com.wmstool.wmstool.models.history.History;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.repositories.ClothIdentifierBacklogRepo;
 import com.wmstool.wmstool.repositories.ClothIdentifierRepo;
 import com.wmstool.wmstool.repositories.ClothInfoRepository;
+import com.wmstool.wmstool.repositories.HistoryRepository;
 import com.wmstool.wmstool.repositories.ProductNoBacklogRepo;
 
 @Service
+@Transactional
 public class ClothService {
 
 	@Autowired
@@ -32,8 +39,11 @@ public class ClothService {
 	@Autowired
 	private ClothInfoRepository clothInfoRepository;
 
-	public ClothInfo createClothInfo(InStockRequest inStockRequest, String condition) {
+	@Autowired
+	private HistoryRepository historyRepository;
 
+	public ClothInfo createClothInfo(InStockRequest inStockRequest) {
+		String condition = inStockRequest.getIsNew();
 		ClothIdentifierBacklog resClothIdentifierBacklog = new ClothIdentifierBacklog();
 
 		// find productNo is exist or not; if not exist, create new
@@ -77,7 +87,40 @@ public class ClothService {
 
 		// use clothIdentifierBacklog to save clothIdentifier
 		ClothIdentifier clothIdentifier = new ClothIdentifier(resClothIdentifierBacklog);
-		clothIdentifierRepo.save(clothIdentifier);
+		ClothIdentifier resIdentifier = clothIdentifierRepo.save(clothIdentifier);
+
+		// history function code start
+		History newHistory = new History();
+		long resIdentifierId = resIdentifier.getId();
+
+		newHistory.setCurrentId(resIdentifierId);
+
+		switch (condition) {
+		case "new":
+			newHistory.setRootId(resIdentifierId);
+			newHistory.setRoot(true);
+			break;
+		case "old":
+			// use the data "parentId" from inStockRequest as key to find the parent
+			// TODO: wait handle exception
+			History oldHistory = historyRepository.findByCurrentId(inStockRequest.getParentId()).get();
+			// type exchange: array to list
+			List<Long> oldChildrenList = Arrays.stream(oldHistory.getChildrenId()).collect(Collectors.toList());
+			oldChildrenList.add(resIdentifierId);
+			// type exchange: list to array
+			Long[] oldHistoryArr = oldChildrenList.toArray(oldHistory.getChildrenId());
+			oldHistory.setChildrenId(oldHistoryArr);
+			// update oldHistory/rootHistory
+			historyRepository.save(oldHistory);
+
+			newHistory.setRootId(oldHistory.getRootId());
+			break;
+		default:
+			break;
+		}
+
+		historyRepository.save(newHistory);
+		// history function code end
 
 		// increase serialotNo in clothIdentifierBacklog
 		int newSerialNo = resClothIdentifierBacklog.getSerialNo() + 1;

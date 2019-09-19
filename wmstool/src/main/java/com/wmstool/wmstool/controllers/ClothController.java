@@ -43,7 +43,7 @@ public class ClothController {
 			return errorMap;
 		}
 
-		ClothInfo result = clothService.createClothInfo(inStockRequest, inStockRequest.getIsNew());
+		ClothInfo result = clothService.createClothInfo(inStockRequest);
 		return new ResponseEntity<ClothInfo>(result, HttpStatus.CREATED);
 	}
 
@@ -56,7 +56,7 @@ public class ClothController {
 	public void purgeClothIndentifierNotExist(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierNotExist(clothIdentifierId);
 	}
-	
+
 	@PatchMapping("/shipStock")
 	public void purgeClothIndentifierIsShiped(@Valid @RequestBody ShipRequest shipRequest) {
 		clothService.letClothIdentifierisShiped(shipRequest);
