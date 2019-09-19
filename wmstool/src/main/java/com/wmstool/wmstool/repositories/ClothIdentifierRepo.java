@@ -12,5 +12,7 @@ import com.wmstool.wmstool.models.ClothIdentifier;
 public interface ClothIdentifierRepo extends JpaRepository<ClothIdentifier, Long> {
 
 	Optional<List<ClothIdentifier>> findByProductNoAndIsExist(String productNo, boolean isExist);
-	
+
+	Optional<List<ClothIdentifier>> findByWaitToShrinkAndIsExist(boolean waitToShrink, boolean isExist);
+
 }

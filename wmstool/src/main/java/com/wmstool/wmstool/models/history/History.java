@@ -10,8 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 @Entity
 public class History {
 
@@ -30,11 +28,9 @@ public class History {
 	private boolean isEnd = false;
 
 	@Column(updatable = false)
-	@JsonIgnore
 	private Date createdAt;
 
-	@JsonIgnore
-	private Date updatedAt;
+	private Date shrinkedAt;
 
 	public History() {
 	}
@@ -95,12 +91,12 @@ public class History {
 		this.createdAt = createdAt;
 	}
 
-	public Date getUpdatedAt() {
-		return updatedAt;
+	public Date getShrinkedAt() {
+		return shrinkedAt;
 	}
 
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
+	public void setShrinkedAt(Date shrinkedAt) {
+		this.shrinkedAt = shrinkedAt;
 	}
 
 	@PrePersist
@@ -110,7 +106,7 @@ public class History {
 
 	@PreUpdate
 	protected void onUpdate() {
-		this.updatedAt = new Date();
+		this.shrinkedAt = new Date();
 	}
 
 }

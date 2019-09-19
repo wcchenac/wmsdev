@@ -48,17 +48,42 @@ public class ClothController {
 	}
 
 	@GetMapping("/queryStock/{productNo}")
-	public List<ClothInfo> getClothInfos(@PathVariable String productNo) {
-		return clothService.findClothInfoByProductNo(productNo.toUpperCase());
+	public List<ClothInfo> getClothInfoList(@PathVariable String productNo) {
+		return clothService.findClothInfoByProductNo(productNo);
 	}
 
 	@PatchMapping("/purgeStock/{clothIdentifierId}")
-	public void purgeClothIndentifierNotExist(@PathVariable long clothIdentifierId) {
+	public ResponseEntity<?> letClothIndentifierNotExist(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierNotExist(clothIdentifierId);
+		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 
 	@PatchMapping("/shipStock")
-	public void purgeClothIndentifierIsShiped(@Valid @RequestBody ShipRequest shipRequest) {
+	public ResponseEntity<?> letClothIndentifierIsShiped(@Valid @RequestBody ShipRequest shipRequest) {
 		clothService.letClothIdentifierisShiped(shipRequest);
+		return new ResponseEntity<>(HttpStatus.ACCEPTED);
+	}
+
+	@PatchMapping("/rollbackShipStock/{clothIdentifierId}")
+	public ResponseEntity<?> letClothIndentifierisNotShiped(@PathVariable long clothIdentifierId) {
+		clothService.letClothIdentifierisNotShiped(clothIdentifierId);
+		return new ResponseEntity<>(HttpStatus.ACCEPTED);
+	}
+
+	@GetMapping("/queryStock/shrinkList")
+	public List<ClothInfo> getShrinkList() {
+		return clothService.getWaitToShrinkList();
+	}
+
+	@PatchMapping("/waitToShrink/{clothIdentifierId}")
+	public ResponseEntity<?> letClothIdentifierWaitToShrinkIsTrue(@PathVariable long clothIdentifierId) {
+		return new ResponseEntity<String>(clothService.letClothIdentifierWaitToShrinkIsTrue(clothIdentifierId),
+				HttpStatus.ACCEPTED);
+	}
+
+	@PatchMapping("/rollbackWaitToShrink/{clothIdentifierId}")
+	public ResponseEntity<?> letClothIdentifierWaitToShrinkIsFalse(@PathVariable long clothIdentifierId) {
+		clothService.letClothIdentifierWaitToShrinkIsFalse(clothIdentifierId);
+		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 }

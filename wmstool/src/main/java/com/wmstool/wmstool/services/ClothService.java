@@ -135,7 +135,7 @@ public class ClothService {
 
 	public List<ClothInfo> findClothInfoByProductNo(String productNo) {
 		List<ClothInfo> result = new ArrayList<>();
-		List<ClothIdentifier> res = clothIdentifierRepo.findByProductNoAndIsExist(productNo, true)
+		List<ClothIdentifier> res = clothIdentifierRepo.findByProductNoAndIsExist(productNo.toUpperCase(), true)
 				.orElseGet(() -> new ArrayList<>());
 		if (!res.isEmpty()) {
 			res.stream().forEach(identifier -> result.add(clothInfoRepository.findById(identifier.getId()).get()));
@@ -149,12 +149,40 @@ public class ClothService {
 		clothIdentifierRepo.save(res);
 	}
 
+	public void letClothIdentifierisNotShiped(long clothIdentifierId) {
+		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
+		res.setExist(true);
+		res.setShip(false);
+		clothIdentifierRepo.save(res);
+	}
+
 	public void letClothIdentifierisShiped(ShipRequest shipRequest) {
 		ClothIdentifier res = clothIdentifierRepo.findById(shipRequest.getClothIdentifierId()).get();
 		res.setExist(false);
 		res.setShip(true);
 		res.setShipReason(shipRequest.getReason());
 		clothIdentifierRepo.save(res);
+	}
+
+	public List<ClothInfo> getWaitToShrinkList() {
+		List<ClothInfo> result = new ArrayList<>();
+		List<ClothIdentifier> res = clothIdentifierRepo.findByWaitToShrinkAndIsExist(true, true)
+				.orElseGet(() -> new ArrayList<>());
+		if (!res.isEmpty()) {
+			res.stream().forEach(identifier -> result.add(clothInfoRepository.findById(identifier.getId()).get()));
+		}
+		return result;
+	}
+
+	public String letClothIdentifierWaitToShrinkIsTrue(long clothIdentifierId) {
+		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
+		res.setWaitToShrink(true);
+		return clothIdentifierRepo.save(res).getProductNo();
+	}
+
+	public void letClothIdentifierWaitToShrinkIsFalse(long clothIdentifierId) {
+		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
+		res.setWaitToShrink(false);
 	}
 
 }
