@@ -1,11 +1,9 @@
 import React, { Component } from "react";
 import ClothInfo from "./ClothInfo";
 
-class ShowClothInfo extends Component {
+class ClothInfoContainer extends Component {
   render() {
     const { clothInfoes } = this.props;
-
-    let BoardContent;
 
     const boardAlgorithm = clothInfoes => {
       if (clothInfoes === null || clothInfoes.length < 1) {
@@ -25,13 +23,21 @@ class ShowClothInfo extends Component {
                   <th scope="col">型態</th>
                   <th scope="col">長度</th>
                   <th scope="col">單位</th>
+                  <th scope="col">流水號</th>
                   <th scope="col">色號</th>
                   <th scope="col">缺陷</th>
+                  <th scope="col" />
                 </tr>
               </thead>
               <tbody>
-                {clothInfoes.map(clothInfo => (
-                  <ClothInfo key={clothInfo.id} clothInfo={clothInfo} />
+                {clothInfoes.map((clothInfo, index) => (
+                  <ClothInfo
+                    key={clothInfo.id}
+                    index={index}
+                    clothInfo={clothInfo}
+                    handleShip={this.props.handleShip}
+                    handleShrink={this.props.handleShrink}
+                  />
                 ))}
               </tbody>
             </table>
@@ -39,9 +45,12 @@ class ShowClothInfo extends Component {
         );
       }
     };
+
+    let BoardContent;
     BoardContent = boardAlgorithm(clothInfoes);
+
     return <div>{BoardContent}</div>;
   }
 }
 
-export default ShowClothInfo;
+export default ClothInfoContainer;

@@ -91,26 +91,28 @@ class ClothInfoContainer extends Component {
 
   render() {
     const { productNo, clothInfoes } = this.state;
+    const { index } = this.props;
+
     return (
       <div className="card">
-        <div className="card-header" id={"heading-" + productNo}>
+        <div className="card-header" id={"heading-" + index}>
           <h6 className="mb-0">
             <button
               className="btn btn-link"
               type="button"
               data-toggle="collapse"
-              data-target={"#collapse-" + productNo}
+              data-target={"#collapse-" + index}
               aria-expanded="true"
-              aria-controls={"collapse-" + productNo}
+              aria-controls={"collapse-" + index}
             >
               貨號: {productNo}
             </button>
           </h6>
         </div>
         <div
-          id={"collapse-" + productNo}
+          id={"collapse-" + index}
           className="collapse"
-          aria-labelledby={"heading-" + productNo}
+          aria-labelledby={"heading-" + index}
           data-parent="#accordionExample"
         >
           <div className="card-body">

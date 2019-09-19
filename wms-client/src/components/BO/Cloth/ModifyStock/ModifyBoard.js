@@ -3,9 +3,10 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
   getClothInfoes,
-  purgeOldClothInfoIsShiped
+  clothIndentifierIsShiped,
+  clothIdentifierWaitToShrinkIsTrue
 } from "../../../../actions/ClothInfoAcions";
-import ShowClothInfo from "./ShowClothInfo";
+import ClothInfoContainer from "./ClothInfoContainer";
 
 class ModifyBoard extends Component {
   constructor() {
@@ -14,7 +15,6 @@ class ModifyBoard extends Component {
       productNo: "",
       clothInfoes: []
     };
-
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
   }
@@ -28,16 +28,15 @@ class ModifyBoard extends Component {
     this.props.getClothInfoes(this.state.productNo);
   }
 
-  static getDerivedStateFromProps(props, state) {
-    if (props.clothInfo.clothInfoes !== state.clothInfoes) {
-      return { clothInfoes: props.clothInfo.clothInfoes };
-    } else {
-      return null;
+  componentDidUpdate(prevProps) {
+    if (this.props.clothInfo.clothInfoes !== prevProps.clothInfo.clothInfoes) {
+      this.setState({ clothInfoes: this.props.clothInfo.clothInfoes });
     }
   }
 
   render() {
     const { clothInfoes } = this.state;
+
     return (
       <div className="modify_clothInfo">
         <div className="container">
@@ -64,9 +63,10 @@ class ModifyBoard extends Component {
                 </div>
               </form>
               <hr />
-              <ShowClothInfo
+              <ClothInfoContainer
                 clothInfoes={clothInfoes}
-                handleShip={this.props.purgeOldClothInfoIsShiped}
+                handleShip={this.props.clothIndentifierIsShiped}
+                handleShrink={this.props.clothIdentifierWaitToShrinkIsTrue}
               />
             </div>
           </div>
@@ -79,7 +79,8 @@ class ModifyBoard extends Component {
 ModifyBoard.propTypes = {
   clothInfo: PropTypes.object.isRequired,
   getClothInfoes: PropTypes.func.isRequired,
-  purgeOldClothInfoIsShiped: PropTypes.func.isRequired
+  clothIndentifierIsShiped: PropTypes.func.isRequired,
+  clothIdentifierWaitToShrinkIsTrue: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -88,5 +89,9 @@ const mapStateToProps = state => ({
 
 export default connect(
   mapStateToProps,
-  { getClothInfoes, purgeOldClothInfoIsShiped }
+  {
+    getClothInfoes,
+    clothIndentifierIsShiped,
+    clothIdentifierWaitToShrinkIsTrue
+  }
 )(ModifyBoard);

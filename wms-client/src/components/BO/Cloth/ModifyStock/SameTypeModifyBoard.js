@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import ShowSameTypeModifyRequest from "./ShowSameTypeModifyRequest";
+import SameTypeModifyRequestContainer from "./SameTypeModifyRequestContainer";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
-  purgeOldClothInfoNotExist,
+  purgeOldClothIndentifierNotExist,
   typeExchangeBatchCreateClothInfo
 } from "../../../../actions/ClothInfoAcions";
 import { createFile } from "../../../../actions/FileActions";
@@ -107,20 +107,24 @@ class SameTypeModifyBoard extends Component {
 
     if (decrement === 0) {
       if (window.confirm("確認送出？")) {
-        this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
+        this.props.purgeOldClothIndentifierNotExist(
+          oldClothInfo.clothIdentifier.id
+        );
         this.props.typeExchangeBatchCreateClothInfo(
           newClothInfoes,
           this.props.history
         );
       }
     } else {
-      let createFileRequest = {
-        productNo: oldClothInfo.clothIdentifier.productNo,
-        decrement: decrement
-      };
-      this.props.createFile(createFileRequest);
+      // let createFileRequest = {
+      //   productNo: oldClothInfo.clothIdentifier.productNo,
+      //   decrement: decrement
+      // };
+      // this.props.createFile(createFileRequest);
       if (window.confirm("減肥前後總長度不符，確認送出？")) {
-        this.props.purgeOldClothInfoNotExist(oldClothInfo.clothIdentifier.id);
+        this.props.purgeOldClothIndentifierNotExist(
+          oldClothInfo.clothIdentifier.id
+        );
         this.props.typeExchangeBatchCreateClothInfo(
           newClothInfoes,
           this.props.history
@@ -287,7 +291,7 @@ class SameTypeModifyBoard extends Component {
             </div>
             <div className="col-md-12">
               <br />
-              <ShowSameTypeModifyRequest
+              <SameTypeModifyRequestContainer
                 newClothInfoes={newClothInfoes}
                 onRequestChange={this.handleRequestChange}
               />
@@ -302,7 +306,7 @@ class SameTypeModifyBoard extends Component {
 
 SameTypeModifyBoard.propsTypes = {
   typeExchangeBatchCreateClothInfo: PropTypes.func.isRequired,
-  purgeOldClothInfoNotExist: PropTypes.func.isRequired,
+  purgeOldClothIndentifierNotExist: PropTypes.func.isRequired,
   filename: PropTypes.object.isRequired,
   createFile: PropTypes.func.isRequired
 };
@@ -314,7 +318,7 @@ const mapStateToProps = state => ({
 export default connect(
   mapStateToProps,
   {
-    purgeOldClothInfoNotExist,
+    purgeOldClothIndentifierNotExist,
     typeExchangeBatchCreateClothInfo,
     createFile
   }
