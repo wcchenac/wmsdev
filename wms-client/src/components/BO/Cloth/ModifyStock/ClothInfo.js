@@ -84,7 +84,7 @@ class ClothInfo extends Component {
                     </div>
                     <div className="modal-body">
                       <div className="form-group row">
-                        <label className="col-3 col-form-label text-center">
+                        <label className="col-md-auto col-form-label text-center">
                           出庫原因
                         </label>
                         <div className="col">
