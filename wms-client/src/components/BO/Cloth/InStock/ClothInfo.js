@@ -13,6 +13,7 @@ class ClothInfo extends Component {
 
   render() {
     const { errors } = this.props;
+
     return (
       <tr>
         <th scope="col">
@@ -111,8 +112,8 @@ class ClothInfo extends Component {
             <input
               type="text"
               className="form-control"
-              placeholder="註解"
-              name="remark"
+              placeholder="記錄"
+              name="record"
               onChange={this.onChange}
             />
           </div>

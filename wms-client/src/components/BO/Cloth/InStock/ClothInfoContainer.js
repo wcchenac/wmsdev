@@ -6,22 +6,7 @@ class ClothInfoContainer extends Component {
     super(props);
     this.state = {
       productNo: this.props.productNo,
-      clothInfoes: [
-        {
-          productNo: this.props.productNo,
-          type: "整支",
-          length: "",
-          unit: "碼",
-          color: "0",
-          defect: "無",
-          record: "",
-          remark: "",
-          isNew: "new",
-          errors: {
-            length: ""
-          }
-        }
-      ]
+      clothInfoes: []
     };
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
     this.handleDeleteDataClick = this.handleDeleteDataClick.bind(this);
@@ -95,60 +80,61 @@ class ClothInfoContainer extends Component {
 
     return (
       <div className="card">
-        <div className="card-header" id={"heading-" + index}>
-          <h6 className="mb-0">
-            <button
-              className="btn btn-link"
-              type="button"
-              data-toggle="collapse"
-              data-target={"#collapse-" + index}
-              aria-expanded="true"
-              aria-controls={"collapse-" + index}
-            >
-              貨號: {productNo}
-            </button>
-          </h6>
+        <div
+          className="card-header"
+          id={"heading-" + index}
+          data-toggle="collapse"
+          data-parent="#accordion"
+          data-target={"#collapse-" + index}
+          aria-expanded="false"
+          aria-controls={"collapse-" + index}
+        >
+          <a
+            className="header-toggle"
+            href={"#collapse-" + index}
+            data-toggle="collapse"
+            data-parent="#accordion"
+          >
+            貨號: {productNo}
+          </a>
         </div>
         <div
           id={"collapse-" + index}
           className="collapse"
           aria-labelledby={"heading-" + index}
-          data-parent="#accordionExample"
         >
           <div className="card-body">
-            <div className="row">
-              <div className="col-md-12">
+            <div className="container">
+              <div
+                className="btn-toolbar"
+                role="toolbar"
+                aria-label="Toolbar with button groups"
+              >
                 <div
-                  className="btn-toolbar"
-                  role="toolbar"
-                  aria-label="Toolbar with button groups"
+                  className="btn-group mr-2"
+                  role="group"
+                  aria-label="First group"
                 >
-                  <div
-                    className="btn-group mr-2"
-                    role="group"
-                    aria-label="First group"
+                  <button
+                    tyep="button"
+                    className="btn btn-primary"
+                    onClick={this.handleNewDataClick}
                   >
-                    <button
-                      tyep="button"
-                      className="btn btn-primary"
-                      onClick={this.handleNewDataClick}
-                    >
-                      新增資料
-                    </button>
-                  </div>
-                  <div
-                    className="btn-group"
-                    role="group"
-                    aria-label="Second group"
+                    新增資料
+                  </button>
+                </div>
+                <div
+                  className="btn-group"
+                  role="group"
+                  aria-label="Second group"
+                >
+                  <button
+                    tyep="button"
+                    className="btn btn-primary"
+                    onClick={this.handleDeleteDataClick}
                   >
-                    <button
-                      tyep="button"
-                      className="btn btn-primary"
-                      onClick={this.handleDeleteDataClick}
-                    >
-                      刪除資料
-                    </button>
-                  </div>
+                    刪除資料
+                  </button>
                 </div>
               </div>
             </div>
@@ -161,7 +147,7 @@ class ClothInfoContainer extends Component {
                   <th scope="col">單位</th>
                   <th scope="col">色號</th>
                   <th scope="col">缺陷</th>
-                  <th scope="col">註解</th>
+                  <th scope="col">記錄</th>
                 </tr>
               </thead>
               <tbody>
