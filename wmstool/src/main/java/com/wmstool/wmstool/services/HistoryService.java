@@ -35,24 +35,20 @@ public class HistoryService {
 		History root = historyRepo.findByCurrentId(rootId).get();
 		Long[] childrenId = root.getChildrenId();
 
+		HistoryTreeNode source = new HistoryTreeNode();
+		source.setClothIdentifier(clothIdentifierRepo.findById(rootId).get());
+		
 		if (childrenId.length == 0) {
-			return null;
+			return source;
 		}
 
 		List<Long> childrenIdList = Arrays.stream(childrenId).collect(Collectors.toList());
 
-		HistoryTreeNode source = new HistoryTreeNode();
-		source.setClothIdentifier(clothIdentifierRepo.findById(rootId).get());
-		;
-
 		while (!childrenIdList.isEmpty()) {
-			HistoryTreeNode child = new HistoryTreeNode();
 			long childId = childrenIdList.remove(0);
-			child.setClothIdentifier(clothIdentifierRepo.findById(childId).get());
-			;
-			source.getNodes().add(child);
-			collectDataForTree(childId);
+			source.getNodes().add(collectDataForTree(childId));
 		}
+		
 		return source;
 	}
 

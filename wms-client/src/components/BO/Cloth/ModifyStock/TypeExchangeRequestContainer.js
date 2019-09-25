@@ -31,7 +31,7 @@ class TypeExchangeRequestContainer extends Component {
                     key={index}
                     index={index}
                     errors={clothInfo.errors}
-                    onRequestChange={this.onRequestChange}
+                    onRequestChange={this.props.onRequestChange}
                   />
                 ))}
               </tbody>
