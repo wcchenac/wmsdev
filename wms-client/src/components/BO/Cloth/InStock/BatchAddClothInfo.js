@@ -116,12 +116,7 @@ class BatchAddClothInfo extends Component {
               </Nav.Item>
               <Nav.Item>
                 <Nav.Link eventKey={3} disabled={key !== 3}>
-                  Step 3 - 輸入詳細資料
-                </Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey={4} disabled={key !== 4}>
-                  Step 4 - 送出
+                  Step 3 - 輸入詳細資料及送出
                 </Nav.Link>
               </Nav.Item>
             </Nav>
@@ -170,31 +165,9 @@ class BatchAddClothInfo extends Component {
                     >
                       上一步
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={this.handleNextStep}
-                    >
-                      下一步
-                    </button>
                   </div>
                   <br />
                   <EditBoard selectedProductNoList={selectedProductNoList} />
-                </div>
-              </TabPane>
-              <TabPane eventKey={4}>
-                <div className="container">
-                  <div className="row justify-content-between">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={this.handlePrevStep}
-                    >
-                      上一步
-                    </button>
-                  </div>
-                  <br />
-                  <p>Submit by user</p>
                 </div>
               </TabPane>
             </TabContent>

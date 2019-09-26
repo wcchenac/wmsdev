@@ -6,14 +6,14 @@ class ClothInfo extends Component {
     const { clothIdentifier } = this.props.clothInfo;
 
     return (
-      <tr>
-        <th scope="col">{clothIdentifier.productNo}</th>
-        <th scope="col">{clothIdentifier.lotNo}</th>
-        <th scope="col">{clothIdentifier.type}</th>
-        <th scope="col">{clothIdentifier.length}</th>
-        <th scope="col">{clothIdentifier.unit}</th>
-        <th scope="col">{clothInfo.color}</th>
-        <th scope="col">{clothInfo.defect}</th>
+      <tr className={clothIdentifier.waitToShrink && "table-warning"}>
+        <td>{clothIdentifier.productNo}</td>
+        <td>{clothIdentifier.lotNo}</td>
+        <td>{clothIdentifier.type}</td>
+        <td>{clothIdentifier.length}</td>
+        <td>{clothIdentifier.unit}</td>
+        <td>{clothInfo.color}</td>
+        <td>{clothInfo.defect}</td>
       </tr>
     );
   }

@@ -14,9 +14,9 @@ class ClothInfoContainer extends Component {
         );
       } else {
         return (
-          <div>
+          <div className="table-wrapper-scroll-y my-custom-scrollbar">
             <table className="table table-hover">
-              <thead>
+              <thead className="thead-dark">
                 <tr>
                   <th scope="col">貨號</th>
                   <th scope="col">批號</th>

@@ -135,118 +135,115 @@ class SameTypeModifyBoard extends Component {
 
   render() {
     const { oldClothInfo, newClothInfoes } = this.state;
+
     return (
       <div className="cloth_info">
         <div className="container">
+          <button
+            type="button"
+            onClick={this.handleBackClick}
+            className="btn btn-secondary"
+          >
+            返回
+          </button>
+          <p className="h3 text-center">異動前狀態</p>
+          <hr />
+          <table className="table">
+            <thead className="thead-dark">
+              <tr>
+                <th scope="col">貨號</th>
+                <th scope="col">批號</th>
+                <th scope="col">型態</th>
+                <th scope="col">長度</th>
+                <th scope="col">單位</th>
+                <th scope="col">色號</th>
+                <th scope="col">記錄</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="productNo"
+                      value={oldClothInfo.clothIdentifier.productNo}
+                      disabled
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="lotNo"
+                      value={oldClothInfo.clothIdentifier.lotNo}
+                      disabled
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="type"
+                      value={oldClothInfo.clothIdentifier.type}
+                      disabled
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="length"
+                      value={oldClothInfo.clothIdentifier.length}
+                      disabled
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="unit"
+                      value={oldClothInfo.clothIdentifier.unit}
+                      disabled
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="color"
+                      value={oldClothInfo.color}
+                      disabled
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="record"
+                      value={oldClothInfo.record}
+                      disabled
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
           <div className="row">
-            <div className="col-md-12">
-              <button
-                type="button"
-                onClick={this.handleBackClick}
-                className="btn btn-secondary"
-              >
-                返回
-              </button>
-              <p className="h3 text-center">異動前狀態</p>
-              <hr />
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th scope="col">貨號</th>
-                    <th scope="col">批號</th>
-                    <th scope="col">型態</th>
-                    <th scope="col">長度</th>
-                    <th scope="col">單位</th>
-                    <th scope="col">色號</th>
-                    <th scope="col">記錄</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th scope="col">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="productNo"
-                          value={oldClothInfo.clothIdentifier.productNo}
-                          disabled
-                        />
-                      </div>
-                    </th>
-                    <th scope="col">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="lotNo"
-                          value={oldClothInfo.clothIdentifier.lotNo}
-                          disabled
-                        />
-                      </div>
-                    </th>
-                    <th scope="col">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="type"
-                          value={oldClothInfo.clothIdentifier.type}
-                          disabled
-                        />
-                      </div>
-                    </th>
-                    <th scope="col">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="length"
-                          value={oldClothInfo.clothIdentifier.length}
-                          disabled
-                        />
-                      </div>
-                    </th>
-                    <th scope="col">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="unit"
-                          value={oldClothInfo.clothIdentifier.unit}
-                          disabled
-                        />
-                      </div>
-                    </th>
-                    <th scope="col">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="color"
-                          value={oldClothInfo.color}
-                          disabled
-                        />
-                      </div>
-                    </th>
-                    <th scope="col">
-                      <div className="form-group">
-                        <input
-                          type="text"
-                          className="form-control"
-                          name="record"
-                          value={oldClothInfo.record}
-                          disabled
-                        />
-                      </div>
-                    </th>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col-md-12">
+            <div className="col-md-auto mr-auto">
               <div
                 className="btn-toolbar"
                 role="toolbar"
@@ -278,26 +275,24 @@ class SameTypeModifyBoard extends Component {
                     刪除資料
                   </button>
                 </div>
-                <div className="col-1 offset-8">
-                  <button
-                    tyep="button"
-                    className="btn btn-primary btn-block"
-                    onClick={this.handleSubmitClick}
-                  >
-                    送出
-                  </button>
-                </div>
               </div>
             </div>
-            <div className="col-md-12">
-              <br />
-              <SameTypeModifyRequestContainer
-                newClothInfoes={newClothInfoes}
-                onRequestChange={this.handleRequestChange}
-              />
-              <hr />
+            <div className="col-md-auto">
+              <button
+                tyep="button"
+                className="btn btn-primary btn-block"
+                onClick={this.handleSubmitClick}
+              >
+                送出
+              </button>
             </div>
           </div>
+          <br />
+          <SameTypeModifyRequestContainer
+            newClothInfoes={newClothInfoes}
+            onRequestChange={this.handleRequestChange}
+          />
+          <hr />
         </div>
       </div>
     );

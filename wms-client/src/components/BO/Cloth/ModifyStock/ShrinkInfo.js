@@ -59,11 +59,7 @@ class ShrinkInfo extends Component {
       }
       if (type === "板卷") {
         return (
-          <div
-            className="btn-group mr-2"
-            role="group"
-            aria-label="Second group"
-          >
+          <div className="btn-group mr-2" role="group" aria-label="First group">
             <button
               type="button"
               className="btn btn-primary"
@@ -81,15 +77,42 @@ class ShrinkInfo extends Component {
 
     return (
       <tr>
-        <th scope="col">{clothIdentifier.productNo}</th>
-        <th scope="col">{clothIdentifier.lotNo}</th>
-        <th scope="col">{clothIdentifier.type}</th>
-        <th scope="col">{clothIdentifier.length}</th>
-        <th scope="col">{clothIdentifier.unit}</th>
-        <th scope="col">{clothIdentifier.serialNo}</th>
-        <th scope="col">{clothInfo.color}</th>
-        <th scope="col">{clothInfo.defect}</th>
-        <th scope="col">
+        <td>
+          <button className="btn-customize" disabled>
+            {clothIdentifier.productNo}
+          </button>
+        </td>
+        <td>
+          <button className="btn-customize" disabled>
+            {clothIdentifier.lotNo}
+          </button>
+        </td>
+        <td>
+          <button className="btn-customize" disabled>
+            {clothIdentifier.type}
+          </button>
+        </td>
+        <td>
+          <button className="btn-customize" disabled>
+            {clothIdentifier.length}
+          </button>
+        </td>
+        <td>
+          <button className="btn-customize" disabled>
+            {clothIdentifier.unit}
+          </button>
+        </td>
+        <td>
+          <button className="btn-customize" disabled>
+            {clothInfo.color}
+          </button>
+        </td>
+        <td>
+          <button className="btn-customize" disabled>
+            {clothInfo.defect}
+          </button>
+        </td>
+        <td>
           <div
             className="btn-toolbar"
             role="toolbar"
@@ -110,7 +133,7 @@ class ShrinkInfo extends Component {
               </button>
             </div>
           </div>
-        </th>
+        </td>
       </tr>
     );
   }
