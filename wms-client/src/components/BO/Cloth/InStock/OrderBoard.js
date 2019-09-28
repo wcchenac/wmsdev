@@ -16,8 +16,12 @@ class OrderBoard extends Component {
       <div>
         <h3>此進貨單含有以下貨號</h3>
         <div className="accordion" id="accordionExample">
-          {productNoList.map(productNo => (
-            <ClothInfoContainer key={productNo} productNo={productNo} />
+          {productNoList.map((productNo, index) => (
+            <ClothInfoContainer
+              key={productNo}
+              index={index}
+              productNo={productNo}
+            />
           ))}
         </div>
       </div>

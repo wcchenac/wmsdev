@@ -1,20 +1,9 @@
 import React, { Component } from "react";
 import SameTypeModifyRequest from "./SameTypeModifyRequest";
 
-class ShowSameTypeModifyRequest extends Component {
-  constructor(props) {
-    super(props);
-    this.handleRequestChange = this.handleRequestChange.bind(this);
-  }
-
-  handleRequestChange(request, i) {
-    this.props.onRequestChange(request, i);
-  }
-
+class SameTypeModifyRequestContainer extends Component {
   render() {
     const { newClothInfoes } = this.props;
-
-    let BoardContent;
 
     const boardAlgorithm = newClothInfoes => {
       if (newClothInfoes.length < 1) {
@@ -42,7 +31,7 @@ class ShowSameTypeModifyRequest extends Component {
                     key={index}
                     index={index}
                     errors={clothInfo.errors}
-                    onRequestChange={this.handleRequestChange}
+                    onRequestChange={this.props.onRequestChange}
                   />
                 ))}
               </tbody>
@@ -51,8 +40,11 @@ class ShowSameTypeModifyRequest extends Component {
         );
       }
     };
+
+    let BoardContent;
     BoardContent = boardAlgorithm(newClothInfoes);
+
     return <div>{BoardContent}</div>;
   }
 }
-export default ShowSameTypeModifyRequest;
+export default SameTypeModifyRequestContainer;

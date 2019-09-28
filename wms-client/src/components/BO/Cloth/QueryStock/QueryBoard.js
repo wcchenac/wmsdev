@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getClothInfoes } from "../../../../actions/ClothInfoAcions";
-import ShowClothInfo from "./ShowClothInfo";
+import ClothInfoContainer from "./ClothInfoContainer";
 
 class QueryBoard extends Component {
   constructor() {
@@ -11,7 +11,6 @@ class QueryBoard extends Component {
       productNo: "",
       clothInfoes: []
     };
-
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
   }
@@ -25,11 +24,9 @@ class QueryBoard extends Component {
     this.props.getClothInfoes(this.state.productNo);
   }
 
-  static getDerivedStateFromProps(props, state) {
-    if (props.clothInfo.clothInfoes !== state.clothInfoes) {
-      return { clothInfoes: props.clothInfo.clothInfoes };
-    } else {
-      return null;
+  componentDidUpdate(prevProps) {
+    if (this.props.clothInfo.clothInfoes !== prevProps.clothInfo.clothInfoes) {
+      this.setState({ clothInfoes: this.props.clothInfo.clothInfoes });
     }
   }
 
@@ -41,7 +38,8 @@ class QueryBoard extends Component {
         let clothIdentifier = clothInfoes[i].clothIdentifier;
         if (clothIdentifier.type === "整支") {
           roll += parseFloat(clothIdentifier.length);
-        } else {
+        }
+        if (clothIdentifier.type === "板卷") {
           board += parseFloat(clothIdentifier.length);
         }
       }
@@ -50,6 +48,7 @@ class QueryBoard extends Component {
 
     const { clothInfoes } = this.state;
     const { rollLength, boardLength } = sumTotalLength(clothInfoes);
+
     return (
       <div className="query_clothInfo">
         <div className="container">
@@ -91,7 +90,7 @@ class QueryBoard extends Component {
                 </div>
               </div>
               <hr />
-              <ShowClothInfo clothInfoes={clothInfoes} />
+              <ClothInfoContainer clothInfoes={clothInfoes} />
             </div>
           </div>
         </div>

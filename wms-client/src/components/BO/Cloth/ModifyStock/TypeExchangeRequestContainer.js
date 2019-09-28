@@ -1,20 +1,9 @@
 import React, { Component } from "react";
 import TypeExchangeRequest from "./TypeExchangeRequest";
 
-class ShowExchangeRequest extends Component {
-  constructor(props) {
-    super(props);
-    this.handleRequestChange = this.handleRequestChange.bind(this);
-  }
-
-  handleRequestChange(request, i) {
-    this.props.onRequestChange(request, i);
-  }
-
+class TypeExchangeRequestContainer extends Component {
   render() {
     const { newClothInfoes } = this.props;
-
-    let BoardContent;
 
     const boardAlgorithm = newClothInfoes => {
       if (newClothInfoes.length < 1) {
@@ -42,7 +31,7 @@ class ShowExchangeRequest extends Component {
                     key={index}
                     index={index}
                     errors={clothInfo.errors}
-                    onRequestChange={this.handleRequestChange}
+                    onRequestChange={this.onRequestChange}
                   />
                 ))}
               </tbody>
@@ -51,8 +40,11 @@ class ShowExchangeRequest extends Component {
         );
       }
     };
+
+    let BoardContent;
     BoardContent = boardAlgorithm(newClothInfoes);
+
     return <div>{BoardContent}</div>;
   }
 }
-export default ShowExchangeRequest;
+export default TypeExchangeRequestContainer;

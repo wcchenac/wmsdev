@@ -1,5 +1,7 @@
 package com.wmstool.wmstool.models;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -9,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -43,6 +47,8 @@ public class ClothIdentifier {
 
 	private boolean isExist = true;
 
+	private boolean waitToShrink = false;
+
 	private boolean isShip = false;
 
 	private String shipReason;
@@ -50,6 +56,17 @@ public class ClothIdentifier {
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
 	@JsonIgnore
 	private ClothInfo clothInfo;
+
+	@Column(updatable = false)
+	@JsonIgnore
+	private Date createdAt;
+
+	private Date shipedAt;
+
+	private Date waitShrinkedAt;
+
+	@JsonIgnore
+	private Date updatedAt;
 
 	public ClothIdentifier() {
 	}
@@ -62,7 +79,6 @@ public class ClothIdentifier {
 		this.length = clothIdentifierBacklog.getLength();
 		this.unit = clothIdentifierBacklog.getUnit();
 		this.serialNo = clothIdentifierBacklog.getSerialNo();
-		this.isExist = true;
 	}
 
 	public Long getId() {
@@ -137,6 +153,14 @@ public class ClothIdentifier {
 		this.isExist = isExist;
 	}
 
+	public boolean isWaitToShrink() {
+		return waitToShrink;
+	}
+
+	public void setWaitToShrink(boolean waitToShrink) {
+		this.waitToShrink = waitToShrink;
+	}
+
 	public boolean isShip() {
 		return isShip;
 	}
@@ -159,6 +183,48 @@ public class ClothIdentifier {
 
 	public void setClothInfo(ClothInfo clothInfo) {
 		this.clothInfo = clothInfo;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getShipedAt() {
+		return shipedAt;
+	}
+
+	public void setShipedAt(Date shipedAt) {
+		this.shipedAt = shipedAt;
+	}
+
+	public Date getWaitShrinkedAt() {
+		return waitShrinkedAt;
+	}
+
+	public void setWaitShrinkedAt(Date waitShrinkedAt) {
+		this.waitShrinkedAt = waitShrinkedAt;
+	}
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	@PrePersist
+	protected void onCreated() {
+		this.createdAt = new Date();
+	}
+
+	@PreUpdate
+	protected void onUpdate() {
+		this.updatedAt = new Date();
 	}
 
 }

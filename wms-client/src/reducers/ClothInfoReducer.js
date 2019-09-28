@@ -1,4 +1,10 @@
-import { GET_ClothInfo, GET_ClothInfoes, SHIP_Cloth } from "../actions/types";
+import {
+  GET_ClothInfo,
+  GET_ClothInfoes,
+  SHIP_Cloth,
+  SHRINK_Cloth,
+  CANCEL_SHRINK
+} from "../actions/types";
 
 const initialState = {
   clothInfoes: [],
@@ -18,6 +24,18 @@ export default function(state = initialState, action) {
         clothInfoes: action.payload
       };
     case SHIP_Cloth:
+      return {
+        ...state,
+        clothInfoes: state.clothInfoes.filter(
+          clothInfo => clothInfo.clothIdentifier.id !== action.payload
+        )
+      };
+    case SHRINK_Cloth:
+      return {
+        ...state,
+        clothInfoes: action.payload
+      };
+    case CANCEL_SHRINK:
       return {
         ...state,
         clothInfoes: state.clothInfoes.filter(
