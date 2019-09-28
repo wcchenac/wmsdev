@@ -11,6 +11,7 @@ class ClothInfoContainer extends Component {
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
     this.handleDeleteDataClick = this.handleDeleteDataClick.bind(this);
     this.handleInfoChange = this.handleInfoChange.bind(this);
+    this.handleSubmitClick = this.handleSubmitClick.bind(this);
   }
 
   handleNewDataClick() {
@@ -48,6 +49,7 @@ class ClothInfoContainer extends Component {
         }
       };
     }
+
     this.setState({
       clothInfoes: [...this.state.clothInfoes, newClothInfo]
     });
@@ -55,15 +57,23 @@ class ClothInfoContainer extends Component {
 
   handleDeleteDataClick() {
     const { clothInfoes } = this.state;
+
     clothInfoes.splice(clothInfoes.length - 1, 1);
+
     this.setState({
       clothInfoes: clothInfoes
     });
   }
 
+  handleSubmitClick(e) {
+    const { index } = this.props;
+    this.props.handleInStockRequestSubmit(e, index, this.state.clothInfoes);
+  }
+
   handleInfoChange(event, i) {
     let clothInfoesCopy = JSON.parse(JSON.stringify(this.state.clothInfoes));
     const { name, value } = event.target;
+
     switch (name) {
       case "type":
         clothInfoesCopy[i].type = value;
@@ -91,6 +101,7 @@ class ClothInfoContainer extends Component {
       default:
         break;
     }
+
     this.setState({ clothInfoes: clothInfoesCopy });
   }
 
@@ -154,6 +165,7 @@ class ClothInfoContainer extends Component {
                         tyep="button"
                         className="btn btn-primary"
                         onClick={this.handleDeleteDataClick}
+                        disabled={clothInfoes.length === 0}
                       >
                         刪除資料
                       </button>
@@ -161,7 +173,12 @@ class ClothInfoContainer extends Component {
                   </div>
                 </div>
                 <div className="col-md-auto">
-                  <button tyep="button" className="btn btn-primary btn-block">
+                  <button
+                    tyep="button"
+                    className="btn btn-primary btn-block"
+                    onClick={this.handleSubmitClick}
+                    disabled={clothInfoes.length === 0}
+                  >
                     送出
                   </button>
                 </div>

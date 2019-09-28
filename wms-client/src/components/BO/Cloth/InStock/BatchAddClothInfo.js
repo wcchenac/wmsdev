@@ -5,6 +5,7 @@ import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./QueryOrder";
 import SelectionBoard from "./SelectionBoard";
 import EditBoard from "./EditBoard";
+import { batchCreateClothInfoes } from "../../../../actions/ClothInfoAcions";
 
 class BatchAddClothInfo extends Component {
   constructor() {
@@ -19,8 +20,25 @@ class BatchAddClothInfo extends Component {
     this.handlePrevStep = this.handlePrevStep.bind(this);
     this.handleNextStep = this.handleNextStep.bind(this);
     this.handleStockOrderNo = this.handleStockOrderNo.bind(this);
-    this.handleFormSubmit = this.handleFormSubmit.bind(this);
+    this.handleQueryOrderSubmit = this.handleQueryOrderSubmit.bind(this);
     this.handleCheckBoxSelected = this.handleCheckBoxSelected.bind(this);
+    this.handleInStockRequestSubmit = this.handleInStockRequestSubmit.bind(
+      this
+    );
+    this.getInitialize = this.getInitialize.bind(this);
+  }
+
+  getInitialize() {
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+    }
+
+    this.setState({
+      inStockOrderNo: "",
+      key: 1,
+      queryProductNoList: [],
+      selectedProductNoList: []
+    });
   }
 
   handleTabSelect(key) {
@@ -51,17 +69,22 @@ class BatchAddClothInfo extends Component {
     let selectedList = [];
 
     queryProductNoList.forEach((element, index) => {
-      selectedList.push({ productNo: element, selected: false, index: index });
+      selectedList.push({
+        productNo: element,
+        selected: false,
+        index: index,
+        isSubmitted: false
+      });
     });
 
     this.setState({ selectedProductNoList: selectedList });
   }
 
-  handleFormSubmit(e) {
+  handleQueryOrderSubmit(e) {
     e.preventDefault();
     //receive order content (productNolist) and store at props
     this.setState(
-      { queryProductNoList: ["123", "234", "345", "456"] },
+      { queryProductNoList: ["A12345", "B23456", "C34567", "D45678"] },
       function() {
         this.initialSelectedList(this.state.queryProductNoList);
       }
@@ -75,6 +98,18 @@ class BatchAddClothInfo extends Component {
     const { selectedProductNoList } = this.state;
 
     selectedProductNoList[index].selected = checked;
+
+    this.setState({
+      selectedProductNoList: selectedProductNoList
+    });
+  }
+
+  handleInStockRequestSubmit(e, index, inStockRequests) {
+    const { selectedProductNoList } = this.state;
+
+    e.preventDefault();
+    this.props.batchCreateClothInfoes(inStockRequests);
+    selectedProductNoList[index].isSubmitted = true;
 
     this.setState({
       selectedProductNoList: selectedProductNoList
@@ -126,48 +161,30 @@ class BatchAddClothInfo extends Component {
                 <div className="container">
                   <QueryOrder
                     handleStockOrderNo={this.handleStockOrderNo}
-                    handleFormSubmit={this.handleFormSubmit}
+                    handleQueryOrderSubmit={this.handleQueryOrderSubmit}
                   />
                 </div>
               </TabPane>
               <TabPane eventKey={2}>
                 <div className="container">
-                  <div className="row justify-content-between">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={this.handlePrevStep}
-                    >
-                      上一步
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={this.handleNextStep}
-                    >
-                      下一步
-                    </button>
-                  </div>
                   <SelectionBoard
+                    handlePrevStep={this.handlePrevStep}
+                    handleNextStep={this.handleNextStep}
                     inStockOrderNo={inStockOrderNo}
                     queryProductNoList={queryProductNoList}
+                    selectedProductNoList={selectedProductNoList}
                     handleCheckBoxSelected={this.handleCheckBoxSelected}
                   />
                 </div>
               </TabPane>
               <TabPane eventKey={3}>
                 <div className="container">
-                  <div className="row justify-content-between">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={this.handlePrevStep}
-                    >
-                      上一步
-                    </button>
-                  </div>
-                  <br />
-                  <EditBoard selectedProductNoList={selectedProductNoList} />
+                  <EditBoard
+                    handlePrevStep={this.handlePrevStep}
+                    selectedProductNoList={selectedProductNoList}
+                    handleInStockRequestSubmit={this.handleInStockRequestSubmit}
+                    getInitialize={this.getInitialize}
+                  />
                 </div>
               </TabPane>
             </TabContent>
@@ -179,7 +196,8 @@ class BatchAddClothInfo extends Component {
 }
 
 BatchAddClothInfo.propTypes = {
-  queryProductNoList: PropTypes.object.isRequired
+  queryProductNoList: PropTypes.object.isRequired,
+  batchCreateClothInfoes: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -188,5 +206,5 @@ const mapStateToProps = state => ({
 
 export default connect(
   mapStateToProps,
-  null
+  { batchCreateClothInfoes }
 )(BatchAddClothInfo);

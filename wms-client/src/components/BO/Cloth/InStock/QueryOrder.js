@@ -12,12 +12,12 @@ class QueryOrder extends Component {
   }
 
   onSumbit(e) {
-    this.props.handleFormSubmit(e);
+    this.props.handleQueryOrderSubmit(e);
   }
 
   render() {
     return (
-      <div className="container">
+      <div>
         <div className="col-md-12">
           <form onSubmit={this.onSumbit}>
             <div className="form-group row">

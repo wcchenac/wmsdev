@@ -100,14 +100,31 @@ export const clothIdentifierWaitToShrinkIsFalse = clothIdentifierId => async dis
   }
 };
 
-export const typeExchangeBatchCreateClothInfo = (
+export const batchCreateClothInfoes = (
   inStockRequests,
   history
 ) => async dispatch => {
   try {
-    for (let i = 0; i < inStockRequests.length; i += 1) {
-      await axios.post("/api/cloth/inStock", inStockRequests[i]);
-    }
+    await axios.post("/api/cloth/inStocks", inStockRequests);
+    // history.push("/cloth/1/2");
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
+export const batchCreateClothInfoesForShrink = (
+  inStockRequests,
+  history
+) => async dispatch => {
+  try {
+    await axios.post("/api/cloth/inStocks", inStockRequests);
+
+    // for (let i = 0; i < inStockRequests.length; i += 1) {
+    //   await axios.post("/api/cloth/inStock", inStockRequests[i]);
+    // }
     let productNo = inStockRequests[0].productNo;
     const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
 
@@ -120,7 +137,7 @@ export const typeExchangeBatchCreateClothInfo = (
   } catch (err) {
     dispatch({
       type: GET_Errors,
-      payload: err.response.data
+      payload: err.response
     });
   }
 };
