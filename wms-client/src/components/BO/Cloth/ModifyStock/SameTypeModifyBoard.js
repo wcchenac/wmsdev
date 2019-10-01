@@ -2,10 +2,7 @@ import React, { Component } from "react";
 import SameTypeModifyRequestContainer from "./SameTypeModifyRequestContainer";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import {
-  purgeOldClothIndentifierNotExist,
-  typeExchangeBatchCreateClothInfo
-} from "../../../../actions/ClothInfoAcions";
+import { batchCreateClothInfoesForShrink } from "../../../../actions/ClothInfoAcions";
 import { createFile } from "../../../../actions/FileActions";
 
 class SameTypeModifyBoard extends Component {
@@ -44,6 +41,7 @@ class SameTypeModifyBoard extends Component {
         length: ""
       }
     };
+
     this.setState({
       newClothInfoes: [...this.state.newClothInfoes, newClothInfo]
     });
@@ -51,7 +49,9 @@ class SameTypeModifyBoard extends Component {
 
   handleDeleteDataClick() {
     const { newClothInfoes } = this.state;
+
     newClothInfoes.splice(newClothInfoes.length - 1, 1);
+
     this.setState({
       newClothInfoes: newClothInfoes
     });
@@ -68,8 +68,9 @@ class SameTypeModifyBoard extends Component {
         newClothInfoesCopy[i].type = value;
         break;
       case "length":
-        newClothInfoesCopy[i].errors.length =
-          value.length < 1 ? "長度不可空白" : "";
+        newClothInfoesCopy[i].errors.length = /^\d*\.?\d+$/.test(value)
+          ? ""
+          : "請輸入純數字或長度不可空白";
         newClothInfoesCopy[i].length = value;
         break;
       case "unit":
@@ -90,6 +91,7 @@ class SameTypeModifyBoard extends Component {
       default:
         break;
     }
+
     this.setState({ newClothInfoes: newClothInfoesCopy });
   }
 
@@ -99,6 +101,11 @@ class SameTypeModifyBoard extends Component {
     let oldTotalLength = parseFloat(oldClothInfo.clothIdentifier.length);
     let totalLength = 0;
 
+    let shrinkStockRequest = {
+      oldClothIdentifierId: oldClothInfo.clothIdentifier.id,
+      inStockRequests: newClothInfoes
+    };
+
     for (let i = 0; i < newClothInfoes.length; i += 1) {
       totalLength += parseFloat(newClothInfoes[i].length);
     }
@@ -106,12 +113,22 @@ class SameTypeModifyBoard extends Component {
     let decrement = totalLength - oldTotalLength;
 
     if (decrement === 0) {
-      if (window.confirm("確認送出？")) {
-        this.props.purgeOldClothIndentifierNotExist(
-          oldClothInfo.clothIdentifier.id
+      if (window.confirm("是否確認送出？")) {
+        this.props.batchCreateClothInfoesForShrink(
+          shrinkStockRequest,
+          this.props.history
         );
-        this.props.typeExchangeBatchCreateClothInfo(
-          newClothInfoes,
+      }
+    } else if (Math.abs(decrement) > totalLength * 0.03) {
+      if (
+        window.confirm(
+          "減肥前後總長度不符，差異量大於平常值(差異量：" +
+            decrement +
+            " 碼)，是否確認送出？"
+        )
+      ) {
+        this.props.batchCreateClothInfoesForShrink(
+          shrinkStockRequest,
           this.props.history
         );
       }
@@ -121,12 +138,13 @@ class SameTypeModifyBoard extends Component {
       //   decrement: decrement
       // };
       // this.props.createFile(createFileRequest);
-      if (window.confirm("減肥前後總長度不符，確認送出？")) {
-        this.props.purgeOldClothIndentifierNotExist(
-          oldClothInfo.clothIdentifier.id
-        );
-        this.props.typeExchangeBatchCreateClothInfo(
-          newClothInfoes,
+      if (
+        window.confirm(
+          "減肥前後總長度不符，差異量：" + decrement + " 碼，是否確認送出？"
+        )
+      ) {
+        this.props.batchCreateClothInfoesForShrink(
+          shrinkStockRequest,
           this.props.history
         );
       }
@@ -135,6 +153,24 @@ class SameTypeModifyBoard extends Component {
 
   render() {
     const { oldClothInfo, newClothInfoes } = this.state;
+
+    const checkLengthAlgorithm = clothInfoes => {
+      var isLengthChecked = false;
+
+      for (let i = 0; i < clothInfoes.length; i += 1) {
+        if (clothInfoes[i].errors === "" || clothInfoes[i].length > 0) {
+          isLengthChecked = true;
+        } else {
+          isLengthChecked = false;
+          break;
+        }
+      }
+
+      return isLengthChecked;
+    };
+
+    let isLengthChecked;
+    isLengthChecked = checkLengthAlgorithm(newClothInfoes);
 
     return (
       <div className="cloth_info">
@@ -271,6 +307,7 @@ class SameTypeModifyBoard extends Component {
                     tyep="button"
                     className="btn btn-primary"
                     onClick={this.handleDeleteDataClick}
+                    disabled={newClothInfoes.length === 0}
                   >
                     刪除資料
                   </button>
@@ -282,6 +319,7 @@ class SameTypeModifyBoard extends Component {
                 tyep="button"
                 className="btn btn-primary btn-block"
                 onClick={this.handleSubmitClick}
+                disabled={!isLengthChecked}
               >
                 送出
               </button>
@@ -300,8 +338,7 @@ class SameTypeModifyBoard extends Component {
 }
 
 SameTypeModifyBoard.propsTypes = {
-  typeExchangeBatchCreateClothInfo: PropTypes.func.isRequired,
-  purgeOldClothIndentifierNotExist: PropTypes.func.isRequired,
+  batchCreateClothInfoesForShrink: PropTypes.func.isRequired,
   filename: PropTypes.object.isRequired,
   createFile: PropTypes.func.isRequired
 };
@@ -313,8 +350,7 @@ const mapStateToProps = state => ({
 export default connect(
   mapStateToProps,
   {
-    purgeOldClothIndentifierNotExist,
-    typeExchangeBatchCreateClothInfo,
+    batchCreateClothInfoesForShrink,
     createFile
   }
 )(SameTypeModifyBoard);

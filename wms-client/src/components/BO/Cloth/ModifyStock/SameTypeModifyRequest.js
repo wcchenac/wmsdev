@@ -39,6 +39,9 @@ class SameTypeModifyRequest extends Component {
               name="length"
               onChange={this.handleChange}
             />
+            {errors.length && (
+              <div className="invalid-feedback">{errors.length}</div>
+            )}
           </div>
         </td>
         <td>

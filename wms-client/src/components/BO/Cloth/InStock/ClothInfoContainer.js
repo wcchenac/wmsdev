@@ -67,6 +67,7 @@ class ClothInfoContainer extends Component {
 
   handleSubmitClick(e) {
     const { index } = this.props;
+
     this.props.handleInStockRequestSubmit(e, index, this.state.clothInfoes);
   }
 
@@ -79,8 +80,9 @@ class ClothInfoContainer extends Component {
         clothInfoesCopy[i].type = value;
         break;
       case "length":
-        clothInfoesCopy[i].errors.length =
-          value.length < 1 ? "長度不可空白" : "";
+        clothInfoesCopy[i].errors.length = /^\d*\.?\d+$/.test(value)
+          ? ""
+          : "請輸入純數字或長度不可空白";
         clothInfoesCopy[i].length = value;
         break;
       case "unit":
@@ -108,6 +110,24 @@ class ClothInfoContainer extends Component {
   render() {
     const { productNo, clothInfoes } = this.state;
     const { index } = this.props;
+
+    const checkLengthAlgorithm = clothInfoes => {
+      var isLengthChecked = false;
+
+      for (let i = 0; i < clothInfoes.length; i += 1) {
+        if (clothInfoes[i].errors === "" || clothInfoes[i].length > 0) {
+          isLengthChecked = true;
+        } else {
+          isLengthChecked = false;
+          break;
+        }
+      }
+
+      return isLengthChecked;
+    };
+
+    let isLengthChecked;
+    isLengthChecked = checkLengthAlgorithm(clothInfoes);
 
     return (
       <div className="card">
@@ -177,7 +197,7 @@ class ClothInfoContainer extends Component {
                     tyep="button"
                     className="btn btn-primary btn-block"
                     onClick={this.handleSubmitClick}
-                    disabled={clothInfoes.length === 0}
+                    disabled={!isLengthChecked}
                   >
                     送出
                   </button>
