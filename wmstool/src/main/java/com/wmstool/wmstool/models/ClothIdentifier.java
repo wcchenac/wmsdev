@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -36,7 +37,8 @@ public class ClothIdentifier {
 
 	@Column(nullable = false, updatable = false, length = 10)
 	private String type;
-
+	
+	@NotEmpty
 	@Column(nullable = false, updatable = false, length = 6)
 	private String length;
 

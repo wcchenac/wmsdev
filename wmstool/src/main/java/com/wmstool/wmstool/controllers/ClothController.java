@@ -24,6 +24,7 @@ import com.wmstool.wmstool.models.ClothIdentifier;
 import com.wmstool.wmstool.models.ClothInfo;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
+import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.services.ClothService;
 import com.wmstool.wmstool.services.MapValidationErrorService;
 
@@ -67,21 +68,34 @@ public class ClothController {
 		return clothService.findClothInfoByProductNo(productNo);
 	}
 
+	
+	// Test
+	@PostMapping("/shrinkStock")
+	public ResponseEntity<?> shrinkCloth(@RequestBody ShrinkStockRequest shrinkStockRequest){
+		clothService.shrinkCloth(shrinkStockRequest);
+		
+		return new ResponseEntity<>(HttpStatus.ACCEPTED);
+	}
+	// Test
+	
 	@PatchMapping("/purgeStock/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIndentifierNotExist(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierNotExist(clothIdentifierId);
+		
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 
 	@PatchMapping("/shipStock")
 	public ResponseEntity<?> letClothIndentifierIsShiped(@Valid @RequestBody ShipRequest shipRequest) {
 		clothService.letClothIdentifierisShiped(shipRequest);
+		
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 
 	@PatchMapping("/rollbackShipStock/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIndentifierisNotShiped(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierisNotShiped(clothIdentifierId);
+		
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 
@@ -99,6 +113,7 @@ public class ClothController {
 	@PatchMapping("/rollbackWaitToShrink/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIdentifierWaitToShrinkIsFalse(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierWaitToShrinkIsFalse(clothIdentifierId);
+		
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 

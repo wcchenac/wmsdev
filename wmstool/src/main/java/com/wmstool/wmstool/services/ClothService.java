@@ -25,6 +25,7 @@ import com.wmstool.wmstool.models.ProductNoBacklog;
 import com.wmstool.wmstool.models.history.History;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
+import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.repositories.ClothIdentifierBacklogRepo;
 import com.wmstool.wmstool.repositories.ClothIdentifierRepo;
 import com.wmstool.wmstool.repositories.ClothInfoRepository;
@@ -261,6 +262,19 @@ public class ClothService {
 		return result;
 	}
 
+	// Test
+	public void shrinkCloth(ShrinkStockRequest shrinkStockRequest) {
+		// find old clothIdentifier, and set to not exist
+		ClothIdentifier res = clothIdentifierRepo.findById(shrinkStockRequest.getOldClothIdentifierId()).get();
+
+		res.setExist(false);
+		
+		// then batch create new cloth
+		createClothInfoes(shrinkStockRequest.getInStockRequests());
+	}
+	// Test
+	
+	
 	public void letClothIdentifierNotExist(long clothIdentifierId) {
 		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
 
