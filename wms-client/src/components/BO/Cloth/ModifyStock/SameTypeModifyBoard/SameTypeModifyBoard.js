@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import SameTypeModifyRequestContainer from "./SameTypeModifyRequestContainer";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { batchCreateClothInfoesForShrink } from "../../../../actions/ClothInfoAcions";
-import { createFile } from "../../../../actions/FileActions";
+import { batchCreateClothInfoesForShrink } from "../../../../../actions/ClothInfoAcions";
+import { createFile } from "../../../../../actions/FileActions";
 
 class SameTypeModifyBoard extends Component {
   constructor(props) {
@@ -151,26 +151,24 @@ class SameTypeModifyBoard extends Component {
     }
   }
 
+  checkLengthAlgorithm (clothInfoes) {
+    var isLengthChecked = false;
+
+    for (let i = 0; i < clothInfoes.length; i += 1) {
+      if (clothInfoes[i].errors === "" || clothInfoes[i].length > 0) {
+        isLengthChecked = true;
+      } else {
+        isLengthChecked = false;
+        break;
+      }
+    }
+
+    return isLengthChecked;
+  };
+
   render() {
     const { oldClothInfo, newClothInfoes } = this.state;
-
-    const checkLengthAlgorithm = clothInfoes => {
-      var isLengthChecked = false;
-
-      for (let i = 0; i < clothInfoes.length; i += 1) {
-        if (clothInfoes[i].errors === "" || clothInfoes[i].length > 0) {
-          isLengthChecked = true;
-        } else {
-          isLengthChecked = false;
-          break;
-        }
-      }
-
-      return isLengthChecked;
-    };
-
-    let isLengthChecked;
-    isLengthChecked = checkLengthAlgorithm(newClothInfoes);
+    let isLengthChecked= this.checkLengthAlgorithm(newClothInfoes);
 
     return (
       <div className="cloth_info">

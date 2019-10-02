@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import {
   getShrinkList,
   clothIdentifierWaitToShrinkIsFalse
-} from "../../../../actions/ClothInfoAcions";
+} from "../../../../../actions/ClothInfoAcions";
 import ShrinkInfoContainer from "./ShrinkInfoContainer";
 
 class ShrinkList extends Component {
@@ -30,14 +30,14 @@ class ShrinkList extends Component {
 
   onTypeExchangeClick(clothInfo) {
     this.props.history.push({
-      pathname: `/cloth/3/2/1/${clothInfo.id}`,
+      pathname: `/cloth/4/2/1/${clothInfo.id}`,
       state: { clothInfo: clothInfo }
     });
   }
 
   onSameTypeClick(clothInfo) {
     this.props.history.push({
-      pathname: `/cloth/3/2/2/${clothInfo.id}`,
+      pathname: `/cloth/4/2/2/${clothInfo.id}`,
       state: { clothInfo: clothInfo }
     });
   }
@@ -52,18 +52,14 @@ class ShrinkList extends Component {
     return (
       <div className="shrink_list">
         <div className="container">
-          <div className="row">
-            <div className="col-md-12">
-              <p className="h3 text-center">待減肥清單</p>
-              <hr />
-              <ShrinkInfoContainer
-                shrinkList={shrinkList}
-                onTypeExchangeClick={this.onTypeExchangeClick}
-                onSameTypeClick={this.onSameTypeClick}
-                onCancelShrinkClick={this.onCancelShrinkClick}
-              />
-            </div>
-          </div>
+          <p className="h3 text-center">待減肥清單</p>
+          <hr />
+          <ShrinkInfoContainer
+            shrinkList={shrinkList}
+            onTypeExchangeClick={this.onTypeExchangeClick}
+            onSameTypeClick={this.onSameTypeClick}
+            onCancelShrinkClick={this.onCancelShrinkClick}
+          />
         </div>
       </div>
     );

@@ -13,6 +13,7 @@ class SameTypeModifyRequest extends Component {
 
   render() {
     const { errors } = this.props;
+
     return (
       <tr>
         <td>

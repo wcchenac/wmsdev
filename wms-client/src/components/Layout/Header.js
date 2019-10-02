@@ -49,17 +49,32 @@ class Header extends Component {
                   id="navbarDropdown"
                   data-toggle="dropdown"
                 >
-                  庫存異動作業
+                  拉貨作業
                 </a>
                 <div className="dropdown-menu">
                   <a className="dropdown-item" href="/cloth/3/1">
-                    庫存異動
+                    申請拉貨
                   </a>
                   <a className="dropdown-item" href="/cloth/3/2">
-                    減肥清單
-                  </a>
-                  <a className="dropdown-item" href="/cloth/3/3">
                     拉貨明細
+                  </a>
+                </div>
+              </li>
+              <li className="nav-item dropdown">
+                <a
+                  className="nav-link dropdown-toggle"
+                  href="/#"
+                  id="navbarDropdown"
+                  data-toggle="dropdown"
+                >
+                  庫存異動作業
+                </a>
+                <div className="dropdown-menu">
+                  <a className="dropdown-item" href="/cloth/4/1">
+                    庫存異動
+                  </a>
+                  <a className="dropdown-item" href="/cloth/4/2">
+                    減肥清單
                   </a>
                 </div>
               </li>

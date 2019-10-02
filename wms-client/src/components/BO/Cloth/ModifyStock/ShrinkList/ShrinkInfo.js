@@ -20,46 +20,11 @@ class ShrinkInfo extends Component {
     this.props.onCancelShrinkClick(this.props.clothInfo.clothIdentifier.id);
   }
 
-  render() {
-    const { clothInfo } = this.props;
-    const { clothIdentifier } = this.props.clothInfo;
-
-    const btnAlgorithm = type => {
-      if (type === "整支") {
-        return (
-          <div>
-            <div
-              className="btn-group mr-2"
-              role="group"
-              aria-label="First group"
-            >
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={this.onTypeExchangeClick}
-              >
-                板卷異動
-              </button>
-            </div>
-            <div
-              className="btn-group mr-2"
-              role="group"
-              aria-label="Second group"
-            >
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={this.onSameTypeClick}
-              >
-                整支異動
-              </button>
-            </div>
-          </div>
-        );
-      }
-      if (type === "板卷") {
-        return (
-          <div className="btn-group mr-2" role="group" aria-label="First group">
+  btnAlgorithm(type) {
+    if (type === "整支") {
+      return (
+        <React.Fragment>
+          <td>
             <button
               type="button"
               className="btn btn-primary"
@@ -67,13 +32,41 @@ class ShrinkInfo extends Component {
             >
               板卷異動
             </button>
-          </div>
-        );
-      }
-    };
+          </td>
+          <td>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={this.onSameTypeClick}
+            >
+              整支異動
+            </button>
+          </td>
+        </React.Fragment>
+      );
+    }
+    if (type === "板卷") {
+      return (
+        <React.Fragment>
+          <td>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={this.onTypeExchangeClick}
+            >
+              板卷異動
+            </button>
+          </td>
+          <td></td>
+        </React.Fragment>
+      );
+    }
+  }
 
-    let btnContent;
-    btnContent = btnAlgorithm(clothIdentifier.type);
+  render() {
+    const { clothInfo } = this.props;
+    const { clothIdentifier } = this.props.clothInfo;
+    let btnContent = this.btnAlgorithm(clothIdentifier.type);
 
     return (
       <tr>
@@ -112,27 +105,15 @@ class ShrinkInfo extends Component {
             {clothInfo.defect}
           </button>
         </td>
+        {btnContent}
         <td>
-          <div
-            className="btn-toolbar"
-            role="toolbar"
-            aria-label="Toolbar with button groups"
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={this.onCancelShrinkClick}
           >
-            {btnContent}
-            <div
-              className="btn-group mr-2"
-              role="group"
-              aria-label="Third group"
-            >
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={this.onCancelShrinkClick}
-              >
-                取消減肥
-              </button>
-            </div>
-          </div>
+            取消減肥
+          </button>
         </td>
       </tr>
     );

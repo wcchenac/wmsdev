@@ -5,7 +5,7 @@ import {
   getClothInfoes,
   clothIndentifierIsShiped,
   clothIdentifierWaitToShrinkIsTrue
-} from "../../../../actions/ClothInfoAcions";
+} from "../../../../../actions/ClothInfoAcions";
 import ClothInfoContainer from "./ClothInfoContainer";
 
 class ModifyBoard extends Component {

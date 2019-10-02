@@ -30,24 +30,24 @@ class QueryBoard extends Component {
     }
   }
 
-  render() {
-    const sumTotalLength = clothInfoes => {
-      let roll = 0;
-      let board = 0;
-      for (let i = 0; i < clothInfoes.length; i += 1) {
-        let clothIdentifier = clothInfoes[i].clothIdentifier;
-        if (clothIdentifier.type === "整支") {
-          roll += parseFloat(clothIdentifier.length);
-        }
-        if (clothIdentifier.type === "板卷") {
-          board += parseFloat(clothIdentifier.length);
-        }
+  sumTotalLength(clothInfoes) {
+    let roll = 0;
+    let board = 0;
+    for (let i = 0; i < clothInfoes.length; i += 1) {
+      let clothIdentifier = clothInfoes[i].clothIdentifier;
+      if (clothIdentifier.type === "整支") {
+        roll += parseFloat(clothIdentifier.length);
       }
-      return { rollLength: roll, boardLength: board };
-    };
+      if (clothIdentifier.type === "板卷") {
+        board += parseFloat(clothIdentifier.length);
+      }
+    }
+    return { rollLength: roll, boardLength: board };
+  }
 
+  render() {
     const { clothInfoes } = this.state;
-    const { rollLength, boardLength } = sumTotalLength(clothInfoes);
+    const { rollLength, boardLength } = this.sumTotalLength(clothInfoes);
 
     return (
       <div className="query_clothInfo">
