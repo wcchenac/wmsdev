@@ -6,43 +6,50 @@ class ClothInfoContainer extends Component {
     super(props);
     this.state = {
       productNo: this.props.productNo,
-      clothInfoes: [
-        {
-          productNo: this.props.productNo,
-          type: "整支",
-          length: "",
-          unit: "碼",
-          color: "0",
-          defect: "無",
-          record: "",
-          remark: "",
-          isNew: "new",
-          errors: {
-            length: ""
-          }
-        }
-      ]
+      clothInfoes: []
     };
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
     this.handleDeleteDataClick = this.handleDeleteDataClick.bind(this);
     this.handleInfoChange = this.handleInfoChange.bind(this);
+    this.handleSubmitClick = this.handleSubmitClick.bind(this);
   }
 
   handleNewDataClick() {
-    const newClothInfo = {
-      productNo: this.state.productNo,
-      type: "整支",
-      length: "",
-      unit: "碼",
-      color: "0",
-      defect: "無",
-      record: "",
-      remark: "",
-      isNew: "new",
-      errors: {
-        length: ""
-      }
-    };
+    const { clothInfoes } = this.state;
+    let newClothInfo;
+
+    if (clothInfoes.length === 0) {
+      newClothInfo = {
+        productNo: this.state.productNo,
+        type: "整支",
+        length: "",
+        unit: "碼",
+        color: "0",
+        defect: "無",
+        record: "",
+        remark: "",
+        isNew: "new",
+        errors: {
+          length: ""
+        }
+      };
+    } else {
+      newClothInfo = {
+        productNo: this.state.productNo,
+        type: clothInfoes[clothInfoes.length - 1].type,
+        length: "",
+        unit: clothInfoes[clothInfoes.length - 1].unit,
+        color: clothInfoes[clothInfoes.length - 1].color,
+        defect: clothInfoes[clothInfoes.length - 1].defect,
+        record: "",
+        remark: "",
+        isNew: "new",
+        errors: {
+          length: ""
+        }
+      };
+    }
+
     this.setState({
       clothInfoes: [...this.state.clothInfoes, newClothInfo]
     });
@@ -50,22 +57,32 @@ class ClothInfoContainer extends Component {
 
   handleDeleteDataClick() {
     const { clothInfoes } = this.state;
+
     clothInfoes.splice(clothInfoes.length - 1, 1);
+
     this.setState({
       clothInfoes: clothInfoes
     });
   }
 
+  handleSubmitClick(e) {
+    const { index } = this.props;
+
+    this.props.handleInStockRequestSubmit(e, index, this.state.clothInfoes);
+  }
+
   handleInfoChange(event, i) {
     let clothInfoesCopy = JSON.parse(JSON.stringify(this.state.clothInfoes));
     const { name, value } = event.target;
+
     switch (name) {
       case "type":
         clothInfoesCopy[i].type = value;
         break;
       case "length":
-        clothInfoesCopy[i].errors.length =
-          value.length < 1 ? "長度不可空白" : "";
+        clothInfoesCopy[i].errors.length = /^\d*\.?\d+$/.test(value)
+          ? ""
+          : "請輸入純數字或長度不可空白";
         clothInfoesCopy[i].length = value;
         break;
       case "unit":
@@ -86,6 +103,7 @@ class ClothInfoContainer extends Component {
       default:
         break;
     }
+
     this.setState({ clothInfoes: clothInfoesCopy });
   }
 
@@ -93,89 +111,123 @@ class ClothInfoContainer extends Component {
     const { productNo, clothInfoes } = this.state;
     const { index } = this.props;
 
+    const checkLengthAlgorithm = clothInfoes => {
+      var isLengthChecked = false;
+
+      for (let i = 0; i < clothInfoes.length; i += 1) {
+        if (clothInfoes[i].errors === "" || clothInfoes[i].length > 0) {
+          isLengthChecked = true;
+        } else {
+          isLengthChecked = false;
+          break;
+        }
+      }
+
+      return isLengthChecked;
+    };
+
+    let isLengthChecked;
+    isLengthChecked = checkLengthAlgorithm(clothInfoes);
+
     return (
       <div className="card">
-        <div className="card-header" id={"heading-" + index}>
-          <h6 className="mb-0">
-            <button
-              className="btn btn-link"
-              type="button"
-              data-toggle="collapse"
-              data-target={"#collapse-" + index}
-              aria-expanded="true"
-              aria-controls={"collapse-" + index}
-            >
-              貨號: {productNo}
-            </button>
-          </h6>
+        <div
+          className="card-header"
+          id={"heading-" + index}
+          data-toggle="collapse"
+          data-parent="#accordion"
+          data-target={"#collapse-" + index}
+          aria-expanded="false"
+          aria-controls={"collapse-" + index}
+        >
+          <a
+            className="header-toggle"
+            href={"#collapse-" + index}
+            data-toggle="collapse"
+            data-parent="#accordion"
+          >
+            貨號: {productNo}
+          </a>
         </div>
         <div
           id={"collapse-" + index}
           className="collapse"
           aria-labelledby={"heading-" + index}
-          data-parent="#accordionExample"
         >
           <div className="card-body">
-            <div className="row">
-              <div className="col-md-12">
-                <div
-                  className="btn-toolbar"
-                  role="toolbar"
-                  aria-label="Toolbar with button groups"
-                >
+            <div className="container">
+              <div className="row">
+                <div className="col-md-auto mr-auto">
                   <div
-                    className="btn-group mr-2"
-                    role="group"
-                    aria-label="First group"
+                    className="btn-toolbar"
+                    role="toolbar"
+                    aria-label="Toolbar with button groups"
                   >
-                    <button
-                      tyep="button"
-                      className="btn btn-primary"
-                      onClick={this.handleNewDataClick}
+                    <div
+                      className="btn-group mr-2"
+                      role="group"
+                      aria-label="First group"
                     >
-                      新增資料
-                    </button>
-                  </div>
-                  <div
-                    className="btn-group"
-                    role="group"
-                    aria-label="Second group"
-                  >
-                    <button
-                      tyep="button"
-                      className="btn btn-primary"
-                      onClick={this.handleDeleteDataClick}
+                      <button
+                        tyep="button"
+                        className="btn btn-primary"
+                        onClick={this.handleNewDataClick}
+                      >
+                        新增資料
+                      </button>
+                    </div>
+                    <div
+                      className="btn-group"
+                      role="group"
+                      aria-label="Second group"
                     >
-                      刪除資料
-                    </button>
+                      <button
+                        tyep="button"
+                        className="btn btn-primary"
+                        onClick={this.handleDeleteDataClick}
+                        disabled={clothInfoes.length === 0}
+                      >
+                        刪除資料
+                      </button>
+                    </div>
                   </div>
                 </div>
+                <div className="col-md-auto">
+                  <button
+                    tyep="button"
+                    className="btn btn-primary btn-block"
+                    onClick={this.handleSubmitClick}
+                    disabled={!isLengthChecked}
+                  >
+                    送出
+                  </button>
+                </div>
               </div>
+              <table className="table">
+                <thead className="thead-dark">
+                  <tr>
+                    <th scope="col">貨號</th>
+                    <th scope="col">型態</th>
+                    <th scope="col">長度</th>
+                    <th scope="col">單位</th>
+                    <th scope="col">色號</th>
+                    <th scope="col">缺陷</th>
+                    <th scope="col">記錄</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {clothInfoes.map((clothInfo, index) => (
+                    <ClothInfo
+                      key={index}
+                      index={index}
+                      clothInfo={clothInfo}
+                      errors={clothInfo.errors}
+                      handleInfoChange={this.handleInfoChange}
+                    />
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th scope="col">貨號</th>
-                  <th scope="col">型態</th>
-                  <th scope="col">長度</th>
-                  <th scope="col">單位</th>
-                  <th scope="col">色號</th>
-                  <th scope="col">缺陷</th>
-                  <th scope="col">註解</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clothInfoes.map((clothInfo, index) => (
-                  <ClothInfo
-                    key={index}
-                    index={index}
-                    productNo={clothInfo.productNo}
-                    errors={clothInfo.errors}
-                    handleInfoChange={this.handleInfoChange}
-                  />
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

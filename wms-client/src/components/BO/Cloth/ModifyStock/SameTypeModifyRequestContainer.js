@@ -16,7 +16,7 @@ class SameTypeModifyRequestContainer extends Component {
         return (
           <div>
             <table className="table">
-              <thead>
+              <thead className="thead-dark">
                 <tr>
                   <th scope="col">型態</th>
                   <th scope="col">長度</th>

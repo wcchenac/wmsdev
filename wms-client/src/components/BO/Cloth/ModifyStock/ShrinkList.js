@@ -53,7 +53,7 @@ class ShrinkList extends Component {
       <div className="shrink_list">
         <div className="container">
           <div className="row">
-            <div className="col-md-12 m-auto">
+            <div className="col-md-12">
               <p className="h3 text-center">待減肥清單</p>
               <hr />
               <ShrinkInfoContainer

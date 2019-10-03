@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -36,7 +37,8 @@ public class ClothIdentifier {
 
 	@Column(nullable = false, updatable = false, length = 10)
 	private String type;
-
+	
+	@NotEmpty
 	@Column(nullable = false, updatable = false, length = 6)
 	private String length;
 
@@ -53,6 +55,10 @@ public class ClothIdentifier {
 
 	private String shipReason;
 
+	private boolean isOutStock = false;
+
+	private boolean isHandled = false;
+
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
 	@JsonIgnore
 	private ClothInfo clothInfo;
@@ -64,6 +70,10 @@ public class ClothIdentifier {
 	private Date shipedAt;
 
 	private Date waitShrinkedAt;
+
+	private Date outStockAt;
+
+	private Date handledAt;
 
 	@JsonIgnore
 	private Date updatedAt;
@@ -177,6 +187,22 @@ public class ClothIdentifier {
 		this.shipReason = shipReason;
 	}
 
+	public boolean isOutStock() {
+		return isOutStock;
+	}
+
+	public void setOutStock(boolean isOutStock) {
+		this.isOutStock = isOutStock;
+	}
+
+	public boolean isHandled() {
+		return isHandled;
+	}
+
+	public void setHandled(boolean isHandled) {
+		this.isHandled = isHandled;
+	}
+
 	public ClothInfo getClothInfo() {
 		return clothInfo;
 	}
@@ -207,6 +233,22 @@ public class ClothIdentifier {
 
 	public void setWaitShrinkedAt(Date waitShrinkedAt) {
 		this.waitShrinkedAt = waitShrinkedAt;
+	}
+
+	public Date getOutStockAt() {
+		return outStockAt;
+	}
+
+	public void setOutStockAt(Date outStockAt) {
+		this.outStockAt = outStockAt;
+	}
+
+	public Date getHandledAt() {
+		return handledAt;
+	}
+
+	public void setHandledAt(Date handledAt) {
+		this.handledAt = handledAt;
 	}
 
 	public Date getUpdatedAt() {

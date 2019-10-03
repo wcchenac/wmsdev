@@ -44,10 +44,10 @@ class ModifyBoard extends Component {
             <div className="col-md-12">
               <form onSubmit={this.onSubmit}>
                 <div className="form-group row">
-                  <label className="col-1 col-form-label text-center">
+                  <label className="col-md-auto col-form-label text-center">
                     貨號查詢
                   </label>
-                  <div className="col-md-3">
+                  <div className="col-md-4">
                     <input
                       type="text"
                       name="productNo"

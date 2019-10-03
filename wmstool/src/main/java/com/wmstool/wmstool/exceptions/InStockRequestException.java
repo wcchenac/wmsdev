@@ -4,9 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class ClothIdentifierException extends RuntimeException {
+public class InStockRequestException extends RuntimeException {
 
-	public ClothIdentifierException(String message) {
+	public InStockRequestException(String message) {
 		super(message);
 	}
 

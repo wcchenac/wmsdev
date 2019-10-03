@@ -16,7 +16,7 @@ class TypeExchangeRequestContainer extends Component {
         return (
           <div>
             <table className="table">
-              <thead>
+              <thead className="thead-dark">
                 <tr>
                   <th scope="col">型態</th>
                   <th scope="col">長度</th>
@@ -31,7 +31,7 @@ class TypeExchangeRequestContainer extends Component {
                     key={index}
                     index={index}
                     errors={clothInfo.errors}
-                    onRequestChange={this.onRequestChange}
+                    onRequestChange={this.props.onRequestChange}
                   />
                 ))}
               </tbody>

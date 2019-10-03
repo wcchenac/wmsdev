@@ -15,7 +15,7 @@ class SameTypeModifyRequest extends Component {
     const { errors } = this.props;
     return (
       <tr>
-        <th scope="col">
+        <td>
           <div className="form-group">
             <select
               className="custom-select"
@@ -27,8 +27,8 @@ class SameTypeModifyRequest extends Component {
               <option value="板卷">板卷</option>
             </select>
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <input
               type="text"
@@ -39,9 +39,12 @@ class SameTypeModifyRequest extends Component {
               name="length"
               onChange={this.handleChange}
             />
+            {errors.length && (
+              <div className="invalid-feedback">{errors.length}</div>
+            )}
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <select
               className="custom-select"
@@ -53,8 +56,8 @@ class SameTypeModifyRequest extends Component {
               <option value="尺">尺</option>
             </select>
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <select
               className="custom-select"
@@ -69,8 +72,8 @@ class SameTypeModifyRequest extends Component {
               <option value="GD">GD</option>
             </select>
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <input
               type="text"
@@ -80,7 +83,7 @@ class SameTypeModifyRequest extends Component {
               onChange={this.handleChange}
             />
           </div>
-        </th>
+        </td>
       </tr>
     );
   }

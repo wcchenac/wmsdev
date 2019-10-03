@@ -13,33 +13,35 @@ class ClothInfo extends Component {
 
   render() {
     const { errors } = this.props;
+    const { clothInfo } = this.props;
+
     return (
       <tr>
-        <th scope="col">
+        <td>
           <div className="form-group">
             <input
               type="text"
               className="form-control"
               name="productNo"
-              value={this.props.productNo}
+              value={clothInfo.productNo}
               disabled
             />
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <select
               className="custom-select"
               name="type"
-              defaultValue="整支"
+              defaultValue={clothInfo.type}
               onChange={this.onChange}
             >
               <option value="整支">整支</option>
               <option value="板卷">板卷</option>
             </select>
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <input
               type="text"
@@ -54,26 +56,26 @@ class ClothInfo extends Component {
               <div className="invalid-feedback">{errors.length}</div>
             )}
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <select
               className="custom-select"
               name="unit"
-              defaultValue="碼"
+              defaultValue={clothInfo.unit}
               onChange={this.onChange}
             >
               <option value="碼">碼</option>
               <option value="尺">尺</option>
             </select>
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <select
               className="custom-select"
               name="color"
-              defaultValue="0"
+              defaultValue={clothInfo.color}
               onChange={this.onChange}
             >
               <option value="0">0</option>
@@ -89,13 +91,13 @@ class ClothInfo extends Component {
               <option value="10">10</option>
             </select>
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <select
               className="custom-select"
               name="defect"
-              defaultValue="無"
+              defaultValue={clothInfo.defect}
               onChange={this.onChange}
             >
               <option value="無">無</option>
@@ -105,18 +107,18 @@ class ClothInfo extends Component {
               <option value="GD">GD</option>
             </select>
           </div>
-        </th>
-        <th scope="col">
+        </td>
+        <td>
           <div className="form-group">
             <input
               type="text"
               className="form-control"
-              placeholder="註解"
-              name="remark"
+              placeholder="記錄"
+              name="record"
               onChange={this.onChange}
             />
           </div>
-        </th>
+        </td>
       </tr>
     );
   }

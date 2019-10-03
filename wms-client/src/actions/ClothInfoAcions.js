@@ -36,6 +36,7 @@ export const getShrinkList = () => async dispatch => {
   });
 };
 
+// To be deprecated
 export const purgeOldClothIndentifierNotExist = clothIdentifierId => async dispatch => {
   try {
     await axios.patch(`/api/cloth/purgeStock/${clothIdentifierId}`);
@@ -100,27 +101,42 @@ export const clothIdentifierWaitToShrinkIsFalse = clothIdentifierId => async dis
   }
 };
 
-export const typeExchangeBatchCreateClothInfo = (
-  inStockRequests,
+export const batchCreateClothInfoes = (
+  inStockRequests
+) => async dispatch => {
+  try {
+    await axios.post("/api/cloth/inStocks", inStockRequests);
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
+export const batchCreateClothInfoesForShrink = (
+  shrinkStockRequest,
   history
 ) => async dispatch => {
   try {
-    for (let i = 0; i < inStockRequests.length; i += 1) {
-      await axios.post("/api/cloth/inStock", inStockRequests[i]);
-    }
-    let productNo = inStockRequests[0].productNo;
-    const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
+    await axios.post("/api/cloth/shrinkStock", shrinkStockRequest);
 
-    dispatch({
-      type: GET_ClothInfoes,
-      payload: res.data
-    });
+    // for (let i = 0; i < inStockRequests.length; i += 1) {
+    //   await axios.post("/api/cloth/inStock", inStockRequests[i]);
+    // }
+    // let productNo = shrinkStockRequest.inStockRequests[0].productNo;
+    // const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
+
+    // dispatch({
+    //   type: GET_ClothInfoes,
+    //   payload: res.data
+    // });
 
     history.replace("/cloth/3/2");
   } catch (err) {
     dispatch({
       type: GET_Errors,
-      payload: err.response.data
+      payload: err.response
     });
   }
 };
