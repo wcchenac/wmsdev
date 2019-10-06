@@ -124,7 +124,7 @@ export const batchCreateClothInfoesForShrink = (
   try {
     await axios.post("/api/cloth/shrinkStock", shrinkStockRequest);
 
-    history.replace("/cloth/4/2");
+    // history.push("/cloth/3/2");
   } catch (err) {
     dispatch({
       type: GET_Errors,

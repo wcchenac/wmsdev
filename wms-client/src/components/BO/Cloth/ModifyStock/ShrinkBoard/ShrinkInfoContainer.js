@@ -28,9 +28,9 @@ class ShrinkInfoContainer extends Component {
               </tr>
             </thead>
             <tbody>
-              {shrinkList.map(clothInfo => (
+              {shrinkList.map((clothInfo, index) => (
                 <ShrinkInfo
-                  key={clothInfo.id}
+                  key={index}
                   clothInfo={clothInfo}
                   onTypeExchangeClick={this.props.onTypeExchangeClick}
                   onSameTypeClick={this.props.onSameTypeClick}

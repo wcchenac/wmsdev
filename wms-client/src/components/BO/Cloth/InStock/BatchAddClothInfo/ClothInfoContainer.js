@@ -111,7 +111,7 @@ class ClothInfoContainer extends Component {
     var isLengthChecked = false;
 
     for (let i = 0; i < clothInfoes.length; i += 1) {
-      if (clothInfoes[i].errors === "" || clothInfoes[i].length > 0) {
+      if (clothInfoes[i].errors.length === "" && clothInfoes[i].length > 0) {
         isLengthChecked = true;
       } else {
         isLengthChecked = false;

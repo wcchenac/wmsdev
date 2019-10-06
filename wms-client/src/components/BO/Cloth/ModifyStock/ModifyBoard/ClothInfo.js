@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { StoreList } from "../../../../../enums/Stores";
 
 class ClothInfo extends Component {
   constructor(props) {
@@ -9,6 +10,8 @@ class ClothInfo extends Component {
     this.onShipClick = this.onShipClick.bind(this);
     this.onShrinkClick = this.onShrinkClick.bind(this);
     this.onChange = this.onChange.bind(this);
+    this.handleStoreButton = this.handleStoreButton.bind(this);
+    this.handleResetButton = this.handleResetButton.bind(this);
   }
 
   onShipClick() {
@@ -27,7 +30,20 @@ class ClothInfo extends Component {
     this.setState({ [e.target.name]: e.target.value });
   }
 
+  handleStoreButton(e) {
+    const { value } = e.target;
+    this.setState({ outStockReason: value });
+  }
+
+  handleResetButton() {
+    this.setState({
+      outStockReason: ""
+    });
+  }
+
   btnAlgorithm(waitToShrink, index) {
+    let storeList = Object.values(StoreList);
+
     if (waitToShrink === false) {
       return (
         <React.Fragment>
@@ -83,6 +99,29 @@ class ClothInfo extends Component {
                       />
                     </div>
                   </div>
+                  <div className="row">
+                    <div className="col-md-4">
+                      <button
+                        className="btn btn-secondary"
+                        onClick={this.handleResetButton}
+                      >
+                        重置
+                      </button>
+                    </div>
+                    <div className="col-md-8">
+                      {storeList.map((store, index) => (
+                        <button
+                          type="button"
+                          className="btn btn-outline-info mr-1 mb-1"
+                          key={index}
+                          value={store}
+                          onClick={this.handleStoreButton}
+                        >
+                          {store}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="modal-footer">
                   <button
@@ -127,7 +166,7 @@ class ClothInfo extends Component {
     let btnContent = this.btnAlgorithm(clothIdentifier.waitToShrink, index);
 
     return (
-      <tr className={clothIdentifier.waitToShrink && "table-warning"}>
+      <tr className={clothIdentifier.waitToShrink ? "table-warning" : ""}>
         <td>
           <button className="btn-customize" disabled>
             {clothIdentifier.productNo}
@@ -234,14 +273,6 @@ class ClothInfo extends Component {
                     </label>
                     <label className="col-6 col-form-label">
                       {clothIdentifier.unit}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      流水號
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothIdentifier.serialNo}
                     </label>
                   </div>
                   <div className="form-group row">

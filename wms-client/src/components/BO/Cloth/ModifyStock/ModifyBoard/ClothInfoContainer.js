@@ -28,7 +28,7 @@ class ClothInfoContainer extends Component {
             <tbody>
               {clothInfoes.map((clothInfo, index) => (
                 <ClothInfo
-                  key={clothInfo.id}
+                  key={index}
                   index={index}
                   clothInfo={clothInfo}
                   handleShip={this.props.handleShip}

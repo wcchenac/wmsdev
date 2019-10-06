@@ -1,16 +1,12 @@
 import React, { Component } from "react";
 import TypeExchangeRequestContainer from "./TypeExchangeRequestContainer";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { batchCreateClothInfoesForShrink } from "../../../../../actions/ClothInfoAcions";
-import { createFile } from "../../../../../actions/FileActions";
 
 class TypeExchangeBoard extends Component {
   constructor(props) {
     super(props);
-    const { clothInfo } = props.location.state;
+    // const { clothInfo } = props.location.state;
     this.state = {
-      oldClothInfo: clothInfo,
+      oldClothInfo: this.props.clothInfo,
       newClothInfoes: []
     };
     this.handleBackClick = this.handleBackClick.bind(this);
@@ -21,7 +17,8 @@ class TypeExchangeBoard extends Component {
   }
 
   handleBackClick() {
-    this.props.history.goBack();
+    // this.props.history.push("/cloth/3/2");
+    this.props.handleGoBack();
   }
 
   handleNewDataClick() {
@@ -149,13 +146,15 @@ class TypeExchangeBoard extends Component {
         );
       }
     }
+
+    this.timer = setTimeout(this.props.initialComponent.bind(this), 1500);
   }
 
   checkLengthAlgorithm(clothInfoes) {
     var isLengthChecked = false;
 
     for (let i = 0; i < clothInfoes.length; i += 1) {
-      if (clothInfoes[i].errors === "" || clothInfoes[i].length > 0) {
+      if (clothInfoes[i].errors.length === "" && clothInfoes[i].length > 0) {
         isLengthChecked = true;
       } else {
         isLengthChecked = false;
@@ -335,20 +334,4 @@ class TypeExchangeBoard extends Component {
   }
 }
 
-TypeExchangeBoard.propsTypes = {
-  batchCreateClothInfoesForShrink: PropTypes.func.isRequired,
-  filename: PropTypes.object.isRequired,
-  createFile: PropTypes.func.isRequired
-};
-
-const mapStateToProps = state => ({
-  filename: state.filename
-});
-
-export default connect(
-  mapStateToProps,
-  {
-    batchCreateClothInfoesForShrink,
-    createFile
-  }
-)(TypeExchangeBoard);
+export default TypeExchangeBoard;

@@ -6,7 +6,7 @@ class ClothInfo extends Component {
     const { clothIdentifier } = this.props.clothInfo;
 
     return (
-      <tr className={clothIdentifier.waitToShrink && "table-warning"}>
+      <tr className={clothIdentifier.waitToShrink ? "table-warning" : ""}>
         <td>{clothIdentifier.productNo}</td>
         <td>{clothIdentifier.lotNo}</td>
         <td>{clothIdentifier.type}</td>

@@ -46,7 +46,7 @@ class QueryBoard extends Component {
   }
 
   render() {
-    const { clothInfoes } = this.state;
+    const { productNo, clothInfoes } = this.state;
     const { rollLength, boardLength } = this.sumTotalLength(clothInfoes);
 
     return (
@@ -54,12 +54,51 @@ class QueryBoard extends Component {
         <div className="container">
           <div className="row">
             <div className="col-md-12">
+              <div className="float-right">
+                <button
+                  type="submit"
+                  className="btn btn-info"
+                  disabled={
+                    clothInfoes.length === 0 ||
+                    productNo !== clothInfoes[0].clothIdentifier.productNo
+                  }
+                  data-toggle="modal"
+                  data-target="#picture"
+                >
+                  產品圖片
+                </button>
+                <div
+                  className="modal fade"
+                  id="picture"
+                  tabIndex="-1"
+                  role="dialog"
+                  aria-labelledby="content"
+                  aria-hidden="true"
+                >
+                  <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                      <div className="modal-header">
+                        <h5 className="modal-title">產品圖片</h5>
+                        <button
+                          type="button"
+                          className="close"
+                          data-dismiss="modal"
+                          aria-label="Close"
+                        >
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div className="modal-body">Picture : {productNo}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <form onSubmit={this.onSubmit}>
                 <div className="form-group row">
                   <label className="col-md-auto col-form-label text-center">
                     貨號查詢
                   </label>
-                  <div className="col-md-4">
+                  <div className="col-md-5">
                     <input
                       type="text"
                       name="productNo"
@@ -74,25 +113,25 @@ class QueryBoard extends Component {
                   </button>
                 </div>
               </form>
-              <hr />
-              <div className="row">
-                <div className="col-3 text-center">
-                  <h5>卷倉總和</h5>
-                </div>
-                <div className="col-3">
-                  <h5>{rollLength}</h5>
-                </div>
-                <div className="col-3 text-center">
-                  <h5>板倉總和</h5>
-                </div>
-                <div className="col-3">
-                  <h5>{boardLength}</h5>
-                </div>
-              </div>
-              <hr />
-              <ClothInfoContainer clothInfoes={clothInfoes} />
             </div>
           </div>
+          <hr />
+          <div className="row">
+            <div className="col-3 text-center">
+              <h5>卷倉總和</h5>
+            </div>
+            <div className="col-3">
+              <h5>{rollLength}</h5>
+            </div>
+            <div className="col-3 text-center">
+              <h5>板倉總和</h5>
+            </div>
+            <div className="col-3">
+              <h5>{boardLength}</h5>
+            </div>
+          </div>
+          <hr />
+          <ClothInfoContainer clothInfoes={clothInfoes} />
         </div>
       </div>
     );
