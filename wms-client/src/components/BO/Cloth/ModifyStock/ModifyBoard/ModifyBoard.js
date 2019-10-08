@@ -13,6 +13,7 @@ class ModifyBoard extends Component {
   constructor() {
     super();
     this.state = {
+      isQuery: false,
       productNo: "",
       clothInfoes: []
     };
@@ -45,7 +46,7 @@ class ModifyBoard extends Component {
   }
 
   render() {
-    const { productNo, clothInfoes } = this.state;
+    const { isQuery, productNo, clothInfoes } = this.state;
 
     return (
       <div className="modify_clothInfo">
@@ -119,11 +120,11 @@ class ModifyBoard extends Component {
             </div>
           </div>
           <hr />
-          <ClothInfoContainer
+          {isQuery ? <ClothInfoContainer
             clothInfoes={clothInfoes}
             handleShip={this.props.clothIndentifierIsShiped}
             handleShrink={this.props.clothIdentifierWaitToShrinkIsTrue}
-          />
+          /> : null}
         </div>
       </div>
     );

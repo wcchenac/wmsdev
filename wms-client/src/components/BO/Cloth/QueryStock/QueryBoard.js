@@ -8,6 +8,7 @@ class QueryBoard extends Component {
   constructor() {
     super();
     this.state = {
+      isQuery: false,
       productNo: "",
       clothInfoes: []
     };
@@ -46,53 +47,14 @@ class QueryBoard extends Component {
   }
 
   render() {
-    const { productNo, clothInfoes } = this.state;
+    const { isQuery, productNo, clothInfoes } = this.state;
     const { rollLength, boardLength } = this.sumTotalLength(clothInfoes);
 
     return (
       <div className="query_clothInfo">
         <div className="container">
           <div className="row">
-            <div className="col-md-12">
-              <div className="float-right">
-                <button
-                  type="submit"
-                  className="btn btn-info"
-                  disabled={
-                    clothInfoes.length === 0 ||
-                    productNo !== clothInfoes[0].clothIdentifier.productNo
-                  }
-                  data-toggle="modal"
-                  data-target="#picture"
-                >
-                  產品圖片
-                </button>
-                <div
-                  className="modal fade"
-                  id="picture"
-                  tabIndex="-1"
-                  role="dialog"
-                  aria-labelledby="content"
-                  aria-hidden="true"
-                >
-                  <div className="modal-dialog" role="document">
-                    <div className="modal-content">
-                      <div className="modal-header">
-                        <h5 className="modal-title">產品圖片</h5>
-                        <button
-                          type="button"
-                          className="close"
-                          data-dismiss="modal"
-                          aria-label="Close"
-                        >
-                          <span aria-hidden="true">&times;</span>
-                        </button>
-                      </div>
-                      <div className="modal-body">Picture : {productNo}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="col-md-10 mr-auto">
               <form onSubmit={this.onSubmit}>
                 <div className="form-group row">
                   <label className="col-md-auto col-form-label text-center">
@@ -114,24 +76,66 @@ class QueryBoard extends Component {
                 </div>
               </form>
             </div>
+            <div className="col-md-auto">
+              <button
+                className="btn btn-info"
+                disabled={
+                  clothInfoes.length === 0 ||
+                  productNo !== clothInfoes[0].clothIdentifier.productNo
+                }
+                data-toggle="modal"
+                data-target="#picture"
+              >
+                產品圖片
+              </button>
+              <div
+                className="modal fade"
+                id="picture"
+                tabIndex="-1"
+                role="dialog"
+                aria-labelledby="content"
+                aria-hidden="true"
+              >
+                <div className="modal-dialog" role="document">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title">產品圖片</h5>
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                      >
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div className="modal-body">Picture : {productNo}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <hr />
-          <div className="row">
-            <div className="col-3 text-center">
-              <h5>卷倉總和</h5>
-            </div>
-            <div className="col-3">
-              <h5>{rollLength}</h5>
-            </div>
-            <div className="col-3 text-center">
-              <h5>板倉總和</h5>
-            </div>
-            <div className="col-3">
-              <h5>{boardLength}</h5>
-            </div>
-          </div>
-          <hr />
-          <ClothInfoContainer clothInfoes={clothInfoes} />
+          {isQuery ? (
+            <React.Fragment>
+              <div className="row">
+                <div className="col-3 text-center">
+                  <h5>卷倉總和</h5>
+                </div>
+                <div className="col-3">
+                  <h5>{rollLength}</h5>
+                </div>
+                <div className="col-3 text-center">
+                  <h5>板倉總和</h5>
+                </div>
+                <div className="col-3">
+                  <h5>{boardLength}</h5>
+                </div>
+              </div>
+              <hr />
+              <ClothInfoContainer clothInfoes={clothInfoes} />
+            </React.Fragment>
+          ) : null}
         </div>
       </div>
     );

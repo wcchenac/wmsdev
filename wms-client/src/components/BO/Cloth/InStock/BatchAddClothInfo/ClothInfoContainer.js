@@ -21,6 +21,7 @@ class ClothInfoContainer extends Component {
     if (clothInfoes.length === 0) {
       newClothInfo = {
         productNo: this.state.productNo,
+        lotNo: "",
         type: "整支",
         length: "",
         unit: "碼",
@@ -30,12 +31,14 @@ class ClothInfoContainer extends Component {
         remark: "",
         isNew: "new",
         errors: {
+          lotNo: "",
           length: ""
         }
       };
     } else {
       newClothInfo = {
         productNo: this.state.productNo,
+        lotNo: clothInfoes[clothInfoes.length - 1].lotNo,
         type: clothInfoes[clothInfoes.length - 1].type,
         length: "",
         unit: clothInfoes[clothInfoes.length - 1].unit,
@@ -45,6 +48,7 @@ class ClothInfoContainer extends Component {
         remark: "",
         isNew: "new",
         errors: {
+          lotNo: "",
           length: ""
         }
       };
@@ -76,6 +80,10 @@ class ClothInfoContainer extends Component {
     const { name, value } = event.target;
 
     switch (name) {
+      case "lotNo":
+        clothInfoesCopy[i].errors.lotNo = value.length < 1 ? "請定義批號" : "";
+        clothInfoesCopy[i].lotNo = value;
+        break;
       case "type":
         clothInfoesCopy[i].type = value;
         break;
@@ -107,25 +115,30 @@ class ClothInfoContainer extends Component {
     this.setState({ clothInfoes: clothInfoesCopy });
   }
 
-  checkLengthAlgorithm(clothInfoes) {
-    var isLengthChecked = false;
+  checkFormAlgorithm(clothInfoes) {
+    var isFormValid = false;
 
     for (let i = 0; i < clothInfoes.length; i += 1) {
-      if (clothInfoes[i].errors.length === "" && clothInfoes[i].length > 0) {
-        isLengthChecked = true;
+      if (
+        clothInfoes[i].errors.length === "" &&
+        clothInfoes[i].length > 0 &&
+        clothInfoes[i].errors.lotNo === "" &&
+        clothInfoes[i].lotNo > 0
+      ) {
+        isFormValid = true;
       } else {
-        isLengthChecked = false;
+        isFormValid = false;
         break;
       }
     }
 
-    return isLengthChecked;
+    return isFormValid;
   }
 
   render() {
     const { productNo, clothInfoes } = this.state;
     const { index } = this.props;
-    let isLengthChecked = this.checkLengthAlgorithm(clothInfoes);
+    let isFormValid = this.checkFormAlgorithm(clothInfoes);
 
     return (
       <div className="card">
@@ -195,7 +208,7 @@ class ClothInfoContainer extends Component {
                     tyep="button"
                     className="btn btn-primary btn-block"
                     onClick={this.handleSubmitClick}
-                    disabled={!isLengthChecked}
+                    disabled={!isFormValid}
                   >
                     送出
                   </button>
@@ -204,13 +217,14 @@ class ClothInfoContainer extends Component {
               <table className="table">
                 <thead className="thead-dark">
                   <tr>
-                    <th style={{ width: "199px" }}>貨號</th>
+                    <th style={{ width: "225px" }}>貨號</th>
+                    <th style={{ width: "90px" }}>批號</th>
                     <th style={{ width: "100px" }}>型態</th>
-                    <th style={{ width: "223px" }}>長度</th>
+                    <th style={{ width: "150px" }}>長度</th>
                     <th style={{ width: "84px" }}>單位</th>
                     <th style={{ width: "85px" }}>色號</th>
-                    <th style={{ width: "91px" }}>缺陷</th>
-                    <th style={{ width: "226px" }}>記錄</th>
+                    <th style={{ width: "90px" }}>缺陷</th>
+                    <th style={{ width: "184px" }}>記錄</th>
                   </tr>
                 </thead>
                 <tbody>
