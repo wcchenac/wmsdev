@@ -39,7 +39,7 @@ class AssembleClothBoard extends Component {
 
   handleQuerySubmit(e) {
     e.preventDefault();
-    console.log(this.state.assembleOrderNo);
+    //receive order content and store at props
     this.setState({
       isQuery: true,
       assembleOrderContent: {
@@ -52,8 +52,7 @@ class AssembleClothBoard extends Component {
   }
 
   handleAssembleRequestSubmit(inStockRequests) {
-    // this.props.batchCreateClothInfoes(inStockRequests);
-    console.log(inStockRequests);
+    this.props.batchCreateClothInfoes(inStockRequests);
   }
 
   componentDidUpdate(prevProps) {
@@ -63,7 +62,7 @@ class AssembleClothBoard extends Component {
   }
 
   render() {
-    const { isQuery, assembleOrderContent } = this.state;
+    const { isQuery, assembleOrderNo, assembleOrderContent } = this.state;
 
     return (
       <div className="assemble_clothInfo">
@@ -75,6 +74,7 @@ class AssembleClothBoard extends Component {
           <hr />
           {isQuery ? (
             <ClothInfoContainer
+              assembleOrderNo={assembleOrderNo}
               assembleOrderContent={assembleOrderContent}
               handleAssembleRequestSubmit={this.handleAssembleRequestSubmit}
               getInitialize={this.getInitialize}

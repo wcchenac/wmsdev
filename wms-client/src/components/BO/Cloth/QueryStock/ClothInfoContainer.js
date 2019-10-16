@@ -15,13 +15,13 @@ class ClothInfoContainer extends Component {
           <table className="table table-hover">
             <thead className="thead-dark">
               <tr>
-                <th scope="col">貨號</th>
-                <th scope="col">批號</th>
-                <th scope="col">型態</th>
-                <th scope="col">長度</th>
-                <th scope="col">單位</th>
-                <th scope="col">色號</th>
-                <th scope="col">缺陷</th>
+                <th style={{ width: "225px" }}>貨號</th>
+                <th style={{ width: "150px" }}>批號</th>
+                <th style={{ width: "150px" }}>型態</th>
+                <th style={{ width: "150px" }}>長度</th>
+                <th style={{ width: "145px" }}>單位</th>
+                <th style={{ width: "145px" }}>色號</th>
+                <th style={{ width: "145px" }}>缺陷</th>
               </tr>
             </thead>
             <tbody>

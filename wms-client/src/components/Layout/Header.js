@@ -58,10 +58,12 @@ class Header extends Component {
                   <a className="dropdown-item" href="/cloth/3/2">
                     減肥清單
                   </a>
-                  <a className="dropdown-item" href="/cloth/3/3">
-                    拉貨明細
-                  </a>
                 </div>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="/cloth/4">
+                  拉貨明細
+                </a>
               </li>
             </ul>
             <ul className="navbar-nav ml-auto">

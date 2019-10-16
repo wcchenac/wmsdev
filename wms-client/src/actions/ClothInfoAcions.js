@@ -5,9 +5,11 @@ import {
   SHIP_Cloth,
   DELETE_Cloth,
   SHRINK_Cloth,
-  CANCEL_SHRINK
+  CANCEL_SHRINK,
+  GET_OutStockRequests
 } from "./types";
 
+// To be deprecated
 export const createClothInfo = (inStockRequest, history) => async dispatch => {
   try {
     await axios.post("/api/cloth/inStock", inStockRequest);
@@ -92,7 +94,7 @@ export const clothIdentifierWaitToShrinkIsTrue = clothIdentifierId => async disp
 
 export const clothIdentifierWaitToShrinkIsFalse = clothIdentifierId => async dispatch => {
   try {
-    await axios.patch(`/api/cloth/rollbackWaitToShrink/${clothIdentifierId}`);
+    await axios.patch(`/api/cloth/rollback/waitToShrink/${clothIdentifierId}`);
 
     dispatch({
       type: CANCEL_SHRINK,
@@ -117,18 +119,47 @@ export const batchCreateClothInfoes = inStockRequests => async dispatch => {
   }
 };
 
-export const batchCreateClothInfoesForShrink = (
-  shrinkStockRequest,
-  history
-) => async dispatch => {
+export const batchCreateClothInfoesForShrink = shrinkStockRequest => async dispatch => {
   try {
     await axios.post("/api/cloth/shrinkStock", shrinkStockRequest);
-
-    // history.push("/cloth/3/2");
   } catch (err) {
     dispatch({
       type: GET_Errors,
       payload: err.response
     });
   }
+};
+
+export const createOutStockRequest = outStockRequest => async dispatch => {
+  try {
+    await axios.post("/api/cloth/outStock", outStockRequest);
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
+export const getWaitHandleList = () => async dispatch => {
+  const res = await axios.get("/api/cloth/queryStock/waitHandleList/basic");
+
+  dispatch({
+    type: GET_OutStockRequests,
+    payload: res.data
+  });
+};
+
+export const getWaitHandleListWithInterval = (
+  startDate,
+  endDate
+) => async dispatch => {
+  const res = await axios.get(
+    `/api/cloth/queryStock/waitHandleList/interval/${startDate}&${endDate}`
+  );
+
+  dispatch({
+    type: GET_OutStockRequests,
+    payload: res.data
+  });
 };

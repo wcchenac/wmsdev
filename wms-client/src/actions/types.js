@@ -6,3 +6,4 @@ export const SHIP_Cloth = "SHIP_Cloth";
 export const CREATE_FILE = "CREATE_FILE";
 export const SHRINK_Cloth = "SHRINK_Cloth";
 export const CANCEL_SHRINK = "CANCEL_SHRINK";
+export const GET_OutStockRequests = "GET_OutStockRequests";
