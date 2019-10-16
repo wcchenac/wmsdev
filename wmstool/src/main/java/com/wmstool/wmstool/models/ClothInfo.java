@@ -1,6 +1,6 @@
 package com.wmstool.wmstool.models;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,10 +39,10 @@ public class ClothInfo {
 
 	@Column(updatable = false)
 	@JsonIgnore
-	private Date createdAt;
+	private LocalDateTime createdAt;
 
 	@JsonIgnore
-	private Date updatedAt;
+	private LocalDateTime updatedAt;
 
 	public ClothInfo() {
 	}
@@ -110,30 +110,30 @@ public class ClothInfo {
 		this.storedAt = storedAt;
 	}
 
-	public Date getCreatedAt() {
+	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(Date createdAt) {
+	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
 
-	public Date getUpdatedAt() {
+	public LocalDateTime getUpdatedAt() {
 		return updatedAt;
 	}
 
-	public void setUpdatedAt(Date updatedAt) {
+	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
 
 	@PrePersist
 	protected void onCreated() {
-		this.createdAt = new Date();
+		this.createdAt = LocalDateTime.now();
 	}
 
 	@PreUpdate
 	protected void onUpdate() {
-		this.updatedAt = new Date();
+		this.updatedAt = LocalDateTime.now();
 	}
 
 	@Override

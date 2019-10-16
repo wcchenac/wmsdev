@@ -10,6 +10,9 @@ import com.wmstool.wmstool.models.ClothIdentifierBacklog;
 @Repository
 public interface ClothIdentifierBacklogRepo extends JpaRepository<ClothIdentifierBacklog, Long> {
 
-	Optional<ClothIdentifierBacklog> findByProductNoAndLotNoAndTypeAndLengthAndUnit(String productNo, int lotNo,
+//	Optional<ClothIdentifierBacklog> findByProductNoAndLotNoAndTypeAndLengthAndUnit(String productNo, int lotNo,
+//			String type, String length, String unit);
+	
+	Optional<ClothIdentifierBacklog> findByProductNoAndLotNoAndTypeAndLengthAndUnit(String productNo, String lotNo,
 			String type, String length, String unit);
 }
