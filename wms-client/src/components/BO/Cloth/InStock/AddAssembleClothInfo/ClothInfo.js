@@ -30,6 +30,23 @@ class ClothInfo extends Component {
         </td>
         <td>
           <div className="form-group">
+            <input
+              type="text"
+              className={classnames("form-control", {
+                "is-invalid": errors.lotNo
+              })}
+              name="lotNo"
+              placeholder="批號"
+              value={clothInfo.lotNo}
+              onChange={this.onChange}
+            />
+            {errors.lotNo && (
+              <div className="invalid-feedback">{errors.lotNo}</div>
+            )}
+          </div>
+        </td>
+        <td>
+          <div className="form-group">
             <select
               className="custom-select"
               name="type"

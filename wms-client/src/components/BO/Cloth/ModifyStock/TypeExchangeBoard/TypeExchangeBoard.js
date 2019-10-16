@@ -1,16 +1,12 @@
 import React, { Component } from "react";
-import SameTypeModifyRequestContainer from "./SameTypeModifyRequestContainer";
-import PropTypes from "prop-types";
-import { connect } from "react-redux";
-import { batchCreateClothInfoesForShrink } from "../../../../actions/ClothInfoAcions";
-import { createFile } from "../../../../actions/FileActions";
+import TypeExchangeRequestContainer from "./TypeExchangeRequestContainer";
 
-class SameTypeModifyBoard extends Component {
+class TypeExchangeBoard extends Component {
   constructor(props) {
     super(props);
-    const { clothInfo } = props.location.state;
+    // const { clothInfo } = props.location.state;
     this.state = {
-      oldClothInfo: clothInfo,
+      oldClothInfo: this.props.clothInfo,
       newClothInfoes: []
     };
     this.handleBackClick = this.handleBackClick.bind(this);
@@ -21,14 +17,15 @@ class SameTypeModifyBoard extends Component {
   }
 
   handleBackClick() {
-    this.props.history.goBack();
+    // this.props.history.push("/cloth/3/2");
+    this.props.handleGoBack();
   }
 
   handleNewDataClick() {
     const newClothInfo = {
       productNo: this.state.oldClothInfo.clothIdentifier.productNo,
       lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
-      type: "整支",
+      type: "板卷",
       length: "",
       unit: "碼",
       color: "0",
@@ -149,28 +146,28 @@ class SameTypeModifyBoard extends Component {
         );
       }
     }
+
+    this.timer = setTimeout(this.props.initialComponent.bind(this), 1500);
+  }
+
+  checkLengthAlgorithm(clothInfoes) {
+    var isLengthChecked = false;
+
+    for (let i = 0; i < clothInfoes.length; i += 1) {
+      if (clothInfoes[i].errors.length === "" && clothInfoes[i].length > 0) {
+        isLengthChecked = true;
+      } else {
+        isLengthChecked = false;
+        break;
+      }
+    }
+
+    return isLengthChecked;
   }
 
   render() {
     const { oldClothInfo, newClothInfoes } = this.state;
-
-    const checkLengthAlgorithm = clothInfoes => {
-      var isLengthChecked = false;
-
-      for (let i = 0; i < clothInfoes.length; i += 1) {
-        if (clothInfoes[i].errors === "" || clothInfoes[i].length > 0) {
-          isLengthChecked = true;
-        } else {
-          isLengthChecked = false;
-          break;
-        }
-      }
-
-      return isLengthChecked;
-    };
-
-    let isLengthChecked;
-    isLengthChecked = checkLengthAlgorithm(newClothInfoes);
+    let isLengthChecked = this.checkLengthAlgorithm(newClothInfoes);
 
     return (
       <div className="cloth_info">
@@ -326,7 +323,7 @@ class SameTypeModifyBoard extends Component {
             </div>
           </div>
           <br />
-          <SameTypeModifyRequestContainer
+          <TypeExchangeRequestContainer
             newClothInfoes={newClothInfoes}
             onRequestChange={this.handleRequestChange}
           />
@@ -337,20 +334,4 @@ class SameTypeModifyBoard extends Component {
   }
 }
 
-SameTypeModifyBoard.propsTypes = {
-  batchCreateClothInfoesForShrink: PropTypes.func.isRequired,
-  filename: PropTypes.object.isRequired,
-  createFile: PropTypes.func.isRequired
-};
-
-const mapStateToProps = state => ({
-  filename: state.filename
-});
-
-export default connect(
-  mapStateToProps,
-  {
-    batchCreateClothInfoesForShrink,
-    createFile
-  }
-)(SameTypeModifyBoard);
+export default TypeExchangeBoard;

@@ -5,7 +5,7 @@ import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./QueryOrder";
 import SelectionBoard from "./SelectionBoard";
 import EditBoard from "./EditBoard";
-import { batchCreateClothInfoes } from "../../../../actions/ClothInfoAcions";
+import { batchCreateClothInfoes } from "../../../../../actions/ClothInfoAcions";
 
 class BatchAddClothInfo extends Component {
   constructor() {

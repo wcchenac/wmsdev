@@ -15,18 +15,25 @@ class ClothInfoContainer extends Component {
           <table className="table table-hover">
             <thead className="thead-dark">
               <tr>
-                <th scope="col">貨號</th>
-                <th scope="col">批號</th>
-                <th scope="col">型態</th>
-                <th scope="col">長度</th>
-                <th scope="col">單位</th>
-                <th scope="col">色號</th>
-                <th scope="col">缺陷</th>
+                <th style={{ width: "220px" }}>貨號</th>
+                <th style={{ width: "90px" }}>批號</th>
+                <th style={{ width: "112px" }}>型態</th>
+                <th style={{ width: "105px" }}>長度</th>
+                <th style={{ width: "90px" }}>單位</th>
+                <th style={{ width: "83px" }}>色號</th>
+                <th style={{ width: "90px" }}>缺陷</th>
+                <th style={{ width: "320px" }} />
               </tr>
             </thead>
             <tbody>
-              {clothInfoes.map(clothInfo => (
-                <ClothInfo key={clothInfo.id} clothInfo={clothInfo} />
+              {clothInfoes.map((clothInfo, index) => (
+                <ClothInfo
+                  key={index}
+                  index={index}
+                  clothInfo={clothInfo}
+                  handleShip={this.props.handleShip}
+                  handleShrink={this.props.handleShrink}
+                />
               ))}
             </tbody>
           </table>

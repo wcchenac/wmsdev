@@ -30,10 +30,10 @@ class Header extends Component {
                 </a>
                 <div className="dropdown-menu">
                   <a className="dropdown-item" href="/cloth/1/1">
-                    新增進貨單
+                    進貨單入庫
                   </a>
                   <a className="dropdown-item" href="/cloth/1/2">
-                    修改進貨單
+                    組裝單入庫
                   </a>
                 </div>
               </li>

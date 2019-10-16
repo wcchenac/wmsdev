@@ -22,6 +22,7 @@ export const createClothInfo = (inStockRequest, history) => async dispatch => {
 
 export const getClothInfoes = productNo => async dispatch => {
   const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
+
   dispatch({
     type: GET_ClothInfoes,
     payload: res.data
@@ -30,6 +31,7 @@ export const getClothInfoes = productNo => async dispatch => {
 
 export const getShrinkList = () => async dispatch => {
   const res = await axios.get("/api/cloth/queryStock/shrinkList");
+
   dispatch({
     type: GET_ClothInfoes,
     payload: res.data
@@ -55,6 +57,7 @@ export const purgeOldClothIndentifierNotExist = clothIdentifierId => async dispa
 export const clothIndentifierIsShiped = shipRequest => async dispatch => {
   try {
     await axios.patch("/api/cloth/shipStock", shipRequest);
+
     dispatch({
       type: SHIP_Cloth,
       payload: shipRequest.clothIdentifierId
@@ -74,6 +77,7 @@ export const clothIdentifierWaitToShrinkIsTrue = clothIdentifierId => async disp
     );
     let productNo = result.data;
     const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
+
     dispatch({
       type: SHRINK_Cloth,
       payload: res.data
@@ -89,6 +93,7 @@ export const clothIdentifierWaitToShrinkIsTrue = clothIdentifierId => async disp
 export const clothIdentifierWaitToShrinkIsFalse = clothIdentifierId => async dispatch => {
   try {
     await axios.patch(`/api/cloth/rollbackWaitToShrink/${clothIdentifierId}`);
+
     dispatch({
       type: CANCEL_SHRINK,
       payload: clothIdentifierId
@@ -101,9 +106,7 @@ export const clothIdentifierWaitToShrinkIsFalse = clothIdentifierId => async dis
   }
 };
 
-export const batchCreateClothInfoes = (
-  inStockRequests
-) => async dispatch => {
+export const batchCreateClothInfoes = inStockRequests => async dispatch => {
   try {
     await axios.post("/api/cloth/inStocks", inStockRequests);
   } catch (err) {
@@ -121,18 +124,7 @@ export const batchCreateClothInfoesForShrink = (
   try {
     await axios.post("/api/cloth/shrinkStock", shrinkStockRequest);
 
-    // for (let i = 0; i < inStockRequests.length; i += 1) {
-    //   await axios.post("/api/cloth/inStock", inStockRequests[i]);
-    // }
-    // let productNo = shrinkStockRequest.inStockRequests[0].productNo;
-    // const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
-
-    // dispatch({
-    //   type: GET_ClothInfoes,
-    //   payload: res.data
-    // });
-
-    history.replace("/cloth/3/2");
+    // history.push("/cloth/3/2");
   } catch (err) {
     dispatch({
       type: GET_Errors,
