@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getClothInfoes } from "../../../../actions/ClothInfoAcions";
 import ClothInfoContainer from "./ClothInfoContainer";
+import { trackPromise } from "react-promise-tracker";
 
 class QueryBoard extends Component {
   constructor() {
@@ -22,7 +23,8 @@ class QueryBoard extends Component {
 
   onSubmit(e) {
     e.preventDefault();
-    this.props.getClothInfoes(this.state.productNo);
+    trackPromise(this.props.getClothInfoes(this.state.productNo));
+    this.setState({ isQuery: true });
   }
 
   componentDidUpdate(prevProps) {

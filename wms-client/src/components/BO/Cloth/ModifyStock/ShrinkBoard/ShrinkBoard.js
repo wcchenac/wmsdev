@@ -9,6 +9,7 @@ import {
 import ShrinkList from "./ShrinkList";
 import SameTypeModifyBoard from "../SameTypeModifyBoard/SameTypeModifyBoard";
 import TypeExchangeBoard from "../TypeExchangeBoard/TypeExchangeBoard";
+import { trackPromise } from "react-promise-tracker";
 
 class ShrinkBoard extends Component {
   constructor() {
@@ -43,6 +44,8 @@ class ShrinkBoard extends Component {
       typeExchange: false,
       sameTypeModify: false
     });
+
+    trackPromise(this.props.getShrinkList());
   }
 
   handleGoBack() {
@@ -83,6 +86,7 @@ class ShrinkBoard extends Component {
           batchCreateClothInfoesForShrink={
             this.props.batchCreateClothInfoesForShrink
           }
+          initialComponent={this.initialComponent}
         />
       );
     } else {

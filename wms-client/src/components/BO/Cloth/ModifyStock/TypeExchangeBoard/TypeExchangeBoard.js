@@ -111,10 +111,7 @@ class TypeExchangeBoard extends Component {
 
     if (decrement === 0) {
       if (window.confirm("是否確認送出？")) {
-        this.props.batchCreateClothInfoesForShrink(
-          shrinkStockRequest,
-          this.props.history
-        );
+        this.props.batchCreateClothInfoesForShrink(shrinkStockRequest);
       }
     } else if (Math.abs(decrement) > totalLength * 0.03) {
       if (
@@ -124,10 +121,7 @@ class TypeExchangeBoard extends Component {
             " 碼)，是否確認送出？"
         )
       ) {
-        this.props.batchCreateClothInfoesForShrink(
-          shrinkStockRequest,
-          this.props.history
-        );
+        this.props.batchCreateClothInfoesForShrink(shrinkStockRequest);
       }
     } else {
       // let createFileRequest = {
@@ -140,10 +134,7 @@ class TypeExchangeBoard extends Component {
           "減肥前後總長度不符，差異量：" + decrement + " 碼，是否確認送出？"
         )
       ) {
-        this.props.batchCreateClothInfoesForShrink(
-          shrinkStockRequest,
-          this.props.history
-        );
+        this.props.batchCreateClothInfoesForShrink(shrinkStockRequest);
       }
     }
 

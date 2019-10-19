@@ -9,7 +9,7 @@ import BatchAddClothInfo from "./components/BO/Cloth/InStock/BatchAddClothInfo/B
 import QueryBoard from "./components/BO/Cloth/QueryStock/QueryBoard";
 import ModifyBoard from "./components/BO/Cloth/ModifyStock/ModifyBoard/ModifyBoard";
 import ShrinkBoard from "./components/BO/Cloth/ModifyStock/ShrinkBoard/ShrinkBoard";
-import OutStockRequestList from "./components/BO/Cloth/ModifyStock/OutStockList/OutStockRequestList";
+import OutStockRequestList from "./components/BO/Cloth/OutStockList/OutStockRequestList";
 import AssembleClothBoard from "./components/BO/Cloth/InStock/AddAssembleClothInfo/AssembleClothBoard";
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
           <Route exact path="/cloth/2" component={QueryBoard} />
           <Route exact path="/cloth/3/1" component={ModifyBoard} />
           <Route exact path="/cloth/3/2" component={ShrinkBoard} />
-          <Route exact path="/cloth/3/3" component={OutStockRequestList} />
+          <Route exact path="/cloth/4" component={OutStockRequestList} />
         </div>
       </Router>
     </Provider>

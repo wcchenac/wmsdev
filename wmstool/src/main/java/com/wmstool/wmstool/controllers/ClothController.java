@@ -1,15 +1,12 @@
 package com.wmstool.wmstool.controllers;
 
-import java.util.Calendar;
 import java.util.List;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wmstool.wmstool.models.ClothIdentifier;
 import com.wmstool.wmstool.models.ClothInfo;
+import com.wmstool.wmstool.models.OutStockRequest;
+import com.wmstool.wmstool.models.payloads.HandleListResponse;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
@@ -37,9 +35,12 @@ public class ClothController {
 	@Autowired
 	private ClothService clothService;
 
+	/*
 	@Autowired
 	private MapValidationErrorService mapErrorService;
-
+	 */
+	// To be deprecated
+	/*
 	@PostMapping("/inStock")
 	public ResponseEntity<?> createClothInfo(@Valid @RequestBody InStockRequest inStockRequest,
 			BindingResult bindingResult) {
@@ -53,13 +54,15 @@ public class ClothController {
 
 		return new ResponseEntity<ClothInfo>(result, HttpStatus.CREATED);
 	}
+	*/
 
 	// Test
 	@PostMapping("/inStocks")
 	public ResponseEntity<?> createClothInfoes(@RequestBody List<@Valid InStockRequest> inStockRequests) {
-		List<ClothInfo> result = clothService.createClothInfoes(inStockRequests);
-
-		return new ResponseEntity<List<ClothInfo>>(result, HttpStatus.CREATED);
+//		List<ClothInfo> result = clothService.createClothInfoes(inStockRequests);
+		clothService.createClothInfoes(inStockRequests);
+//		return new ResponseEntity<List<ClothInfo>>(result, HttpStatus.CREATED);
+		return new ResponseEntity<>(HttpStatus.CREATED);
 	}
 	// Test
 
@@ -78,6 +81,7 @@ public class ClothController {
 	}
 	// Test
 	
+	//To be deprecated
 	@PatchMapping("/purgeStock/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIndentifierNotExist(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierNotExist(clothIdentifierId);
@@ -92,7 +96,7 @@ public class ClothController {
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 
-	@PatchMapping("/rollbackShipStock/{clothIdentifierId}")
+	@PatchMapping("/rollback/shipStock/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIndentifierisNotShiped(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierisNotShiped(clothIdentifierId);
 		
@@ -110,19 +114,37 @@ public class ClothController {
 				HttpStatus.ACCEPTED);
 	}
 
-	@PatchMapping("/rollbackWaitToShrink/{clothIdentifierId}")
+	@PatchMapping("/rollback/waitToShrink/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIdentifierWaitToShrinkIsFalse(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierWaitToShrinkIsFalse(clothIdentifierId);
 		
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 
+	/*
 	@GetMapping("/queryStock/waitHandleList")
 	public ResponseEntity<?> getOutStockWaitHandleList() {
 		Calendar cal = Calendar.getInstance();
-		cal.set(2019, 8, 20);
+		cal.clear();
+		cal.set(2019, 8, 26);
 
-		return new ResponseEntity<Page<ClothIdentifier>>(clothService.getOutStockWaitHandleList(true, cal.getTime()),
+		return new ResponseEntity<List<ClothIdentifier>>(clothService.getOutStockWaitHandleList(true, cal.getTime()),
 				HttpStatus.OK);
+	}
+	*/
+	
+	@GetMapping("/queryStock/waitHandleList/basic")
+	public ResponseEntity<?> getOutStockWaitHandleList() {
+		return new ResponseEntity<HandleListResponse>(clothService.getOutStockWaitHandleList(),HttpStatus.OK);
+	}
+	
+	@GetMapping("/queryStock/waitHandleList/interval/{start}&{end}")
+	public ResponseEntity<?> getOutStockWaitHandleListwithInterval(@PathVariable String start, @PathVariable String end) {
+		return new ResponseEntity<HandleListResponse>(clothService.getOutStockWaitHandleListWithTimeInterval(start, end),HttpStatus.OK);
+	}
+	
+	@PostMapping("/outStock")
+	public ResponseEntity<?> requestForOutStock(@RequestBody OutStockRequest outStockRequest) {
+		return new ResponseEntity<OutStockRequest>(clothService.createOutStockRequest(outStockRequest), HttpStatus.OK);
 	}
 }

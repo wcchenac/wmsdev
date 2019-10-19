@@ -60,7 +60,7 @@ class UserSelection extends Component {
     return (
       <div className="row">
         <button className="btn-customize" disabled>
-          開單者篩選功能:
+          開單者篩選:
         </button>
         <button
           tyep="button"

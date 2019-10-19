@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { StoreList } from "../../../../../enums/Stores";
+import { trackPromise } from "react-promise-tracker";
 
 class ClothInfo extends Component {
   constructor(props) {
@@ -19,11 +20,14 @@ class ClothInfo extends Component {
       clothIdentifierId: this.props.clothInfo.clothIdentifier.id,
       reason: this.state.outStockReason
     };
+
     this.props.handleShip(shipRequest);
   }
 
   onShrinkClick() {
-    this.props.handleShrink(this.props.clothInfo.clothIdentifier.id);
+    trackPromise(
+      this.props.handleShrink(this.props.clothInfo.clothIdentifier.id)
+    );
   }
 
   onChange(e) {

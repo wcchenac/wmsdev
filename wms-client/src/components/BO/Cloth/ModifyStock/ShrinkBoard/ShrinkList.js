@@ -1,9 +1,10 @@
 import React, { Component } from "react";
 import ShrinkInfoContainer from "./ShrinkInfoContainer";
+import { trackPromise } from "react-promise-tracker";
 
 class ShrinkList extends Component {
   componentDidMount() {
-    this.props.getShrinkList();
+    trackPromise(this.props.getShrinkList());
   }
 
   render() {

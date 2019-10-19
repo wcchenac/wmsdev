@@ -7,7 +7,8 @@ public class InStockRequest {
 	@NotBlank(message = "貨號不可空白")
 	private String productNo;
 
-	private int lotNo;
+//	private int lotNo;
+	private String lotNo;
 
 	@NotBlank(message = "型態不可空白")
 	private String type;
@@ -37,6 +38,7 @@ public class InStockRequest {
 		this.productNo = productNo;
 	}
 
+	/*
 	public int getLotNo() {
 		return lotNo;
 	}
@@ -44,9 +46,18 @@ public class InStockRequest {
 	public void setLotNo(int lotNo) {
 		this.lotNo = lotNo;
 	}
+	*/
 
 	public String getType() {
 		return type;
+	}
+
+	public String getLotNo() {
+		return lotNo;
+	}
+
+	public void setLotNo(String lotNo) {
+		this.lotNo = lotNo;
 	}
 
 	public void setType(String type) {

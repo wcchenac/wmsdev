@@ -1,6 +1,6 @@
 package com.wmstool.wmstool.models;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,8 +32,13 @@ public class ClothIdentifier {
 	@Column(nullable = false, updatable = false, length = 25)
 	private String productNo;
 
+	/*
 	@Column(nullable = false, updatable = false)
 	private int lotNo;
+	*/
+	
+	@Column(nullable = false, updatable = false)
+	private String lotNo;
 
 	@Column(nullable = false, updatable = false, length = 10)
 	private String type;
@@ -57,7 +62,7 @@ public class ClothIdentifier {
 
 	private boolean isOutStock = false;
 
-	private boolean isHandled = false;
+//	private boolean isHandled = false;
 
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
 	@JsonIgnore
@@ -65,18 +70,18 @@ public class ClothIdentifier {
 
 	@Column(updatable = false)
 	@JsonIgnore
-	private Date createdAt;
+	private LocalDateTime createdAt;
 
-	private Date shipedAt;
+//	private Date shipedAt;
 
-	private Date waitShrinkedAt;
+//	private Date waitShrinkedAt;
 
-	private Date outStockAt;
+	private LocalDateTime outStockAt;
 
-	private Date handledAt;
+//	private Date handledAt;
 
 	@JsonIgnore
-	private Date updatedAt;
+	private LocalDateTime updatedAt;
 
 	public ClothIdentifier() {
 	}
@@ -115,11 +120,21 @@ public class ClothIdentifier {
 		this.productNo = productNo;
 	}
 
+	/*
 	public int getLotNo() {
 		return lotNo;
 	}
 
 	public void setLotNo(int lotNo) {
+		this.lotNo = lotNo;
+	}
+	*/
+	
+	public String getLotNo() {
+		return lotNo;
+	}
+
+	public void setLotNo(String lotNo) {
 		this.lotNo = lotNo;
 	}
 
@@ -195,6 +210,7 @@ public class ClothIdentifier {
 		this.isOutStock = isOutStock;
 	}
 
+	/*
 	public boolean isHandled() {
 		return isHandled;
 	}
@@ -202,6 +218,7 @@ public class ClothIdentifier {
 	public void setHandled(boolean isHandled) {
 		this.isHandled = isHandled;
 	}
+	*/
 
 	public ClothInfo getClothInfo() {
 		return clothInfo;
@@ -211,14 +228,15 @@ public class ClothIdentifier {
 		this.clothInfo = clothInfo;
 	}
 
-	public Date getCreatedAt() {
+	public LocalDateTime getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(Date createdAt) {
+	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
 
+	/*
 	public Date getShipedAt() {
 		return shipedAt;
 	}
@@ -234,15 +252,17 @@ public class ClothIdentifier {
 	public void setWaitShrinkedAt(Date waitShrinkedAt) {
 		this.waitShrinkedAt = waitShrinkedAt;
 	}
+	*/
 
-	public Date getOutStockAt() {
+	public LocalDateTime getOutStockAt() {
 		return outStockAt;
 	}
 
-	public void setOutStockAt(Date outStockAt) {
+	public void setOutStockAt(LocalDateTime outStockAt) {
 		this.outStockAt = outStockAt;
 	}
 
+	/*
 	public Date getHandledAt() {
 		return handledAt;
 	}
@@ -250,23 +270,24 @@ public class ClothIdentifier {
 	public void setHandledAt(Date handledAt) {
 		this.handledAt = handledAt;
 	}
+	*/
 
-	public Date getUpdatedAt() {
+	public LocalDateTime getUpdatedAt() {
 		return updatedAt;
 	}
 
-	public void setUpdatedAt(Date updatedAt) {
+	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
 
 	@PrePersist
 	protected void onCreated() {
-		this.createdAt = new Date();
+		this.createdAt =LocalDateTime.now();
 	}
 
 	@PreUpdate
 	protected void onUpdate() {
-		this.updatedAt = new Date();
+		this.updatedAt = LocalDateTime.now();
 	}
 
 }

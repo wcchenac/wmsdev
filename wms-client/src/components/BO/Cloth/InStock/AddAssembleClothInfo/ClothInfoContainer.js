@@ -137,7 +137,7 @@ class ClothInfoContainer extends Component {
   }
 
   render() {
-    const { assembleOrderContent } = this.props;
+    const { assembleOrderNo,assembleOrderContent } = this.props;
     const { isSubmited, clothInfoes } = this.state;
     let isFormValid = this.checkFormAlgorithm(clothInfoes);
 
@@ -164,7 +164,7 @@ class ClothInfoContainer extends Component {
       } else {
         return (
           <React.Fragment>
-            <p className="h4 text-center">組裝單資訊</p>
+            <p className="h4 text-center">{"組裝單("+assembleOrderNo+")資訊"}</p>
             <table className="table">
               <thead className="thead-dark">
                 <tr>
