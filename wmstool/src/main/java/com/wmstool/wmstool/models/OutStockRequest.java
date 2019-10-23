@@ -30,6 +30,8 @@ public class OutStockRequest {
 
 	private boolean isHandled = false;
 
+	private String requestFrom;
+
 	private LocalDateTime createdAt;
 
 	private LocalDateTime updatedAt;
@@ -121,6 +123,14 @@ public class OutStockRequest {
 
 	public void setHandled(boolean isHandled) {
 		this.isHandled = isHandled;
+	}
+
+	public String getRequestFrom() {
+		return requestFrom;
+	}
+
+	public void setRequestFrom(String requestFrom) {
+		this.requestFrom = requestFrom;
 	}
 
 	public LocalDateTime getCreatedAt() {
