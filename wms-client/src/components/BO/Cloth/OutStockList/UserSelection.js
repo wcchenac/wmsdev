@@ -2,20 +2,6 @@ import React, { Component } from "react";
 import UserButton from "./UserButton";
 
 class UserSelection extends Component {
-  constructor(props) {
-    super(props);
-    this.handleSelectAll = this.handleSelectAll.bind(this);
-    this.handleUnselectAll = this.handleUnselectAll.bind(this);
-  }
-
-  handleSelectAll() {
-    this.props.handleSelectAll();
-  }
-
-  handleUnselectAll() {
-    this.props.handleUnselectAll();
-  }
-
   buttonAllAlgorithm = selectedUserList => {
     var isSelecteded = true;
 
@@ -68,7 +54,7 @@ class UserSelection extends Component {
           data-toggle="button"
           aria-pressed="false"
           autoComplete="off"
-          onClick={this.handleSelectAll}
+          onClick={this.props.handleSelectAll}
         >
           全選
         </button>
@@ -78,7 +64,7 @@ class UserSelection extends Component {
           data-toggle="button"
           aria-pressed="false"
           autoComplete="off"
-          onClick={this.handleUnselectAll}
+          onClick={this.props.handleUnselectAll}
         >
           全不選
         </button>

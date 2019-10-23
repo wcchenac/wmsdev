@@ -7,9 +7,7 @@ import {
   batchCreateClothInfoesForShrink
 } from "../../../../../actions/ClothInfoAcions";
 import ShrinkList from "./ShrinkList";
-import SameTypeModifyBoard from "../SameTypeModifyBoard/SameTypeModifyBoard";
-import TypeExchangeBoard from "../TypeExchangeBoard/TypeExchangeBoard";
-import { trackPromise } from "react-promise-tracker";
+import ModifyRequestBoard from "./ModifyRequestBoard";
 
 class ShrinkBoard extends Component {
   constructor() {
@@ -28,8 +26,8 @@ class ShrinkBoard extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.clothInfo.clothInfoes !== prevProps.clothInfo.clothInfoes) {
-      this.setState({ shrinkList: this.props.clothInfo.clothInfoes });
+    if (this.props.shrinkList !== prevProps.shrinkList) {
+      this.setState({ shrinkList: this.props.shrinkList });
     }
   }
 
@@ -44,8 +42,6 @@ class ShrinkBoard extends Component {
       typeExchange: false,
       sameTypeModify: false
     });
-
-    trackPromise(this.props.getShrinkList());
   }
 
   handleGoBack() {
@@ -67,21 +63,12 @@ class ShrinkBoard extends Component {
   render() {
     const { shrinkList, clothInfo, typeExchange, sameTypeModify } = this.state;
 
-    if (typeExchange) {
+    if (typeExchange || sameTypeModify) {
       return (
-        <TypeExchangeBoard
+        <ModifyRequestBoard
           clothInfo={clothInfo}
-          handleGoBack={this.handleGoBack}
-          batchCreateClothInfoesForShrink={
-            this.props.batchCreateClothInfoesForShrink
-          }
-          initialComponent={this.initialComponent}
-        />
-      );
-    } else if (sameTypeModify) {
-      return (
-        <SameTypeModifyBoard
-          clothInfo={clothInfo}
+          typeExchange={typeExchange}
+          sameTypeModify={sameTypeModify}
           handleGoBack={this.handleGoBack}
           batchCreateClothInfoesForShrink={
             this.props.batchCreateClothInfoesForShrink
@@ -104,14 +91,14 @@ class ShrinkBoard extends Component {
 }
 
 ShrinkBoard.propTypes = {
-  clothInfo: PropTypes.object.isRequired,
+  shrinkList: PropTypes.object.isRequired,
   getShrinkList: PropTypes.func.isRequired,
   clothIdentifierWaitToShrinkIsFalse: PropTypes.func.isRequired,
   batchCreateClothInfoesForShrink: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
-  clothInfo: state.clothInfo
+  shrinkList: state.clothInfo.clothInfoes
 });
 
 export default connect(

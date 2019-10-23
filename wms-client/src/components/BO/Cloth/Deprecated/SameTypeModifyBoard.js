@@ -1,10 +1,9 @@
 import React, { Component } from "react";
-import TypeExchangeRequestContainer from "./TypeExchangeRequestContainer";
+import ModifyRequestContainer from "../ModifyStock/ShrinkBoard/ModifyRequestContainer";
 
-class TypeExchangeBoard extends Component {
+class SameTypeModifyBoard extends Component {
   constructor(props) {
     super(props);
-    // const { clothInfo } = props.location.state;
     this.state = {
       oldClothInfo: this.props.clothInfo,
       newClothInfoes: []
@@ -13,31 +12,54 @@ class TypeExchangeBoard extends Component {
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
     this.handleDeleteDataClick = this.handleDeleteDataClick.bind(this);
     this.handleRequestChange = this.handleRequestChange.bind(this);
+    this.handleDefectChange = this.handleDefectChange.bind(this);
     this.handleSubmitClick = this.handleSubmitClick.bind(this);
   }
 
   handleBackClick() {
-    // this.props.history.push("/cloth/3/2");
     this.props.handleGoBack();
   }
 
   handleNewDataClick() {
-    const newClothInfo = {
-      productNo: this.state.oldClothInfo.clothIdentifier.productNo,
-      lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
-      type: "板卷",
-      length: "",
-      unit: "碼",
-      color: "0",
-      defect: "無",
-      record: this.state.oldClothInfo.record,
-      remark: "",
-      isNew: "old",
-      parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
-      errors: {
-        length: ""
-      }
-    };
+    const { newClothInfoes } = this.state;
+    let newClothInfo;
+
+    if (newClothInfoes.length === 0) {
+      newClothInfo = {
+        productNo: this.state.oldClothInfo.clothIdentifier.productNo,
+        lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
+        type: "整支",
+        length: "",
+        unit: "碼",
+        color: "0",
+        defect: [{ label: "無", value: "無" }],
+        record: this.state.oldClothInfo.record,
+        remark: "",
+        isNew: "old",
+        parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
+        errors: {
+          length: ""
+        }
+      };
+    } else {
+      newClothInfo = {
+        productNo: this.state.oldClothInfo.clothIdentifier.productNo,
+        lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
+        type: newClothInfoes[newClothInfoes.length - 1].type,
+        length: "",
+        unit: newClothInfoes[newClothInfoes.length - 1].unit,
+        color: newClothInfoes[newClothInfoes.length - 1].color,
+        defect: newClothInfoes[newClothInfoes.length - 1].defect,
+        record: this.state.oldClothInfo.record,
+        remark: "",
+        isNew: "old",
+        parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
+        errors: {
+          lotNo: "",
+          length: ""
+        }
+      };
+    }
 
     this.setState({
       newClothInfoes: [...this.state.newClothInfoes, newClothInfo]
@@ -45,12 +67,12 @@ class TypeExchangeBoard extends Component {
   }
 
   handleDeleteDataClick() {
-    const { newClothInfoes } = this.state;
+    let clothInfoesCopy = [...this.state.newClothInfoes];
 
-    newClothInfoes.splice(newClothInfoes.length - 1, 1);
+    clothInfoesCopy.splice(clothInfoesCopy.length - 1, 1);
 
     this.setState({
-      newClothInfoes: newClothInfoes
+      newClothInfoes: clothInfoesCopy
     });
   }
 
@@ -76,9 +98,6 @@ class TypeExchangeBoard extends Component {
       case "color":
         newClothInfoesCopy[i].color = value;
         break;
-      case "defect":
-        newClothInfoesCopy[i].defect = value;
-        break;
       case "record":
         newClothInfoesCopy[i].record = value;
         break;
@@ -92,15 +111,40 @@ class TypeExchangeBoard extends Component {
     this.setState({ newClothInfoes: newClothInfoesCopy });
   }
 
+  handleDefectChange(selectedOptions, i) {
+    const copyList = [...this.state.newClothInfoes];
+
+    copyList[i].defect = selectedOptions;
+
+    this.setState({
+      newClothInfoes: copyList
+    });
+  }
+
   handleSubmitClick() {
     const { oldClothInfo } = this.state;
     const { newClothInfoes } = this.state;
+    let clothInfoesCopy = JSON.parse(JSON.stringify(newClothInfoes));
     let oldTotalLength = parseFloat(oldClothInfo.clothIdentifier.length);
     let totalLength = 0;
 
+    clothInfoesCopy.forEach((clothInfo, index) => {
+      let newDefectContent = "";
+
+      clothInfo.defect.forEach((object, index) => {
+        if (index === clothInfo.defect.length - 1) {
+          newDefectContent = newDefectContent + object.value;
+        } else {
+          newDefectContent = newDefectContent + object.value + "/";
+        }
+      });
+
+      clothInfoesCopy[index].defect = newDefectContent;
+    });
+
     let shrinkStockRequest = {
       oldClothIdentifierId: oldClothInfo.clothIdentifier.id,
-      inStockRequests: newClothInfoes
+      inStockRequests: clothInfoesCopy
     };
 
     for (let i = 0; i < newClothInfoes.length; i += 1) {
@@ -314,9 +358,10 @@ class TypeExchangeBoard extends Component {
             </div>
           </div>
           <br />
-          <TypeExchangeRequestContainer
+          <ModifyRequestContainer
             newClothInfoes={newClothInfoes}
             onRequestChange={this.handleRequestChange}
+            handleDefectChange={this.handleDefectChange}
           />
           <hr />
         </div>
@@ -325,4 +370,4 @@ class TypeExchangeBoard extends Component {
   }
 }
 
-export default TypeExchangeBoard;
+export default SameTypeModifyBoard;

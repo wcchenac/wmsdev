@@ -39,7 +39,7 @@ class AssembleClothBoard extends Component {
 
   handleQuerySubmit(e) {
     e.preventDefault();
-    //receive order content and store at props
+    // TODO: receive order content (productNolist) and store at props
     this.setState({
       isQuery: true,
       assembleOrderContent: {

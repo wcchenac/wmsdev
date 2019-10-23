@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-import SameTypeModifyRequestContainer from "./SameTypeModifyRequestContainer";
+import ModifyRequestContainer from "./ModifyRequestContainer";
+import { copy } from "../../../../../utilities/DeepCopy";
 
-class SameTypeModifyBoard extends Component {
+class ModifyRequestBoard extends Component {
   constructor(props) {
     super(props);
-    // const { clothInfo } = props.location.state;
     this.state = {
       oldClothInfo: this.props.clothInfo,
       newClothInfoes: []
@@ -13,31 +13,82 @@ class SameTypeModifyBoard extends Component {
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
     this.handleDeleteDataClick = this.handleDeleteDataClick.bind(this);
     this.handleRequestChange = this.handleRequestChange.bind(this);
+    this.handleDefectChange = this.handleDefectChange.bind(this);
     this.handleSubmitClick = this.handleSubmitClick.bind(this);
   }
 
   handleBackClick() {
-    // this.props.history.push("/cloth/3/2");
     this.props.handleGoBack();
   }
 
+  modifyRequestInitialContent(typeExchange, sameTypeModify) {
+    if (typeExchange) {
+      return {
+        productNo: this.state.oldClothInfo.clothIdentifier.productNo,
+        lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
+        type: "板卷",
+        length: "",
+        unit: "碼",
+        color: "0",
+        defect: [{ label: "無", value: "無" }],
+        record: this.state.oldClothInfo.record,
+        remark: "",
+        isNew: "old",
+        parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
+        errors: {
+          length: ""
+        }
+      };
+    }
+    if (sameTypeModify) {
+      return {
+        productNo: this.state.oldClothInfo.clothIdentifier.productNo,
+        lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
+        type: "整支",
+        length: "",
+        unit: "碼",
+        color: "0",
+        defect: [{ label: "無", value: "無" }],
+        record: this.state.oldClothInfo.record,
+        remark: "",
+        isNew: "old",
+        parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
+        errors: {
+          length: ""
+        }
+      };
+    }
+  }
+
   handleNewDataClick() {
-    const newClothInfo = {
-      productNo: this.state.oldClothInfo.clothIdentifier.productNo,
-      lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
-      type: "整支",
-      length: "",
-      unit: "碼",
-      color: "0",
-      defect: "無",
-      record: this.state.oldClothInfo.record,
-      remark: "",
-      isNew: "old",
-      parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
-      errors: {
-        length: ""
-      }
-    };
+    const { typeExchange, sameTypeModify } = this.props;
+    const { newClothInfoes } = this.state;
+    let newClothInfo;
+
+    if (newClothInfoes.length === 0) {
+      newClothInfo = this.modifyRequestInitialContent(
+        typeExchange,
+        sameTypeModify
+      );
+    } else {
+      newClothInfo = {
+        productNo: this.state.oldClothInfo.clothIdentifier.productNo,
+        lotNo: this.state.oldClothInfo.clothIdentifier.lotNo,
+        type: newClothInfoes[newClothInfoes.length - 1].type,
+        length: "",
+        unit: newClothInfoes[newClothInfoes.length - 1].unit,
+        color: newClothInfoes[newClothInfoes.length - 1].color,
+        defect: newClothInfoes[newClothInfoes.length - 1].defect,
+        record: this.state.oldClothInfo.record,
+        remark: "",
+        isNew: "old",
+        parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
+        errors: {
+          lotNo: "",
+          length: ""
+        }
+      };
+    }
 
     this.setState({
       newClothInfoes: [...this.state.newClothInfoes, newClothInfo]
@@ -45,19 +96,17 @@ class SameTypeModifyBoard extends Component {
   }
 
   handleDeleteDataClick() {
-    const { newClothInfoes } = this.state;
+    let clothInfoesCopy = [...this.state.newClothInfoes];
 
-    newClothInfoes.splice(newClothInfoes.length - 1, 1);
+    clothInfoesCopy.splice(clothInfoesCopy.length - 1, 1);
 
     this.setState({
-      newClothInfoes: newClothInfoes
+      newClothInfoes: clothInfoesCopy
     });
   }
 
   handleRequestChange(request, i) {
-    let newClothInfoesCopy = JSON.parse(
-      JSON.stringify(this.state.newClothInfoes)
-    );
+    let newClothInfoesCopy = copy(this.state.newClothInfoes);
     const { name, value } = request.target;
 
     switch (name) {
@@ -76,9 +125,6 @@ class SameTypeModifyBoard extends Component {
       case "color":
         newClothInfoesCopy[i].color = value;
         break;
-      case "defect":
-        newClothInfoesCopy[i].defect = value;
-        break;
       case "record":
         newClothInfoesCopy[i].record = value;
         break;
@@ -92,15 +138,40 @@ class SameTypeModifyBoard extends Component {
     this.setState({ newClothInfoes: newClothInfoesCopy });
   }
 
+  handleDefectChange(selectedOptions, i) {
+    const copyList = [...this.state.newClothInfoes];
+
+    copyList[i].defect = selectedOptions;
+
+    this.setState({
+      newClothInfoes: copyList
+    });
+  }
+
   handleSubmitClick() {
     const { oldClothInfo } = this.state;
     const { newClothInfoes } = this.state;
+    let clothInfoesCopy = JSON.parse(JSON.stringify(newClothInfoes));
     let oldTotalLength = parseFloat(oldClothInfo.clothIdentifier.length);
     let totalLength = 0;
 
+    clothInfoesCopy.forEach((clothInfo, index) => {
+      let newDefectContent = "";
+
+      clothInfo.defect.forEach((object, index) => {
+        if (index === clothInfo.defect.length - 1) {
+          newDefectContent = newDefectContent + object.value;
+        } else {
+          newDefectContent = newDefectContent + object.value + "/";
+        }
+      });
+
+      clothInfoesCopy[index].defect = newDefectContent;
+    });
+
     let shrinkStockRequest = {
       oldClothIdentifierId: oldClothInfo.clothIdentifier.id,
-      inStockRequests: newClothInfoes
+      inStockRequests: clothInfoesCopy
     };
 
     for (let i = 0; i < newClothInfoes.length; i += 1) {
@@ -138,7 +209,7 @@ class SameTypeModifyBoard extends Component {
       }
     }
 
-    this.timer = setTimeout(this.props.initialComponent.bind(this), 1500);
+    this.timer = setTimeout(this.props.initialComponent, 1500);
   }
 
   checkLengthAlgorithm(clothInfoes) {
@@ -314,9 +385,10 @@ class SameTypeModifyBoard extends Component {
             </div>
           </div>
           <br />
-          <SameTypeModifyRequestContainer
+          <ModifyRequestContainer
             newClothInfoes={newClothInfoes}
             onRequestChange={this.handleRequestChange}
+            handleDefectChange={this.handleDefectChange}
           />
           <hr />
         </div>
@@ -325,4 +397,4 @@ class SameTypeModifyBoard extends Component {
   }
 }
 
-export default SameTypeModifyBoard;
+export default ModifyRequestBoard;

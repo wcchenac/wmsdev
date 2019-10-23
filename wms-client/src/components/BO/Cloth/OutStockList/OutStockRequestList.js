@@ -5,11 +5,15 @@ import UserSelection from "./UserSelection";
 import SearchBoard from "./SearchBoard";
 import {
   getWaitHandleList,
-  getWaitHandleListWithInterval
+  getWaitHandleListWithInterval,
+  updateOutStockRequests
 } from "../../../../actions/ClothInfoAcions";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { trackPromise } from "react-promise-tracker";
+import { copy } from "../../../../utilities/DeepCopy";
+
+const equal = require("fast-deep-equal");
 
 class OutStockRequestList extends Component {
   constructor() {
@@ -30,8 +34,8 @@ class OutStockRequestList extends Component {
     );
     this.handleSubmitClick = this.handleSubmitClick.bind(this);
     this.handleUserSelection = this.handleUserSelection.bind(this);
-    this.handleSelectAll = this.handleSelectAll.bind(this);
-    this.handleUnselectAll = this.handleUnselectAll.bind(this);
+    this.handleUserSelectAll = this.handleUserSelectAll.bind(this);
+    this.handleUserUnselectAll = this.handleUserUnselectAll.bind(this);
   }
 
   getInitialState() {
@@ -58,25 +62,46 @@ class OutStockRequestList extends Component {
       });
     });
 
-    this.setState({ selectedUserList: selectedList });
+    return selectedList;
   }
 
   componentDidMount() {
     trackPromise(this.props.getWaitHandleList());
-    this.initialSelectedUserList(this.state.userList);
   }
 
-  componentDidUpdate(prevProps) {
-    if (this.props.queryResult !== prevProps.queryResult) {
-      this.setState(
-        {
-          queryResult: this.props.queryResult.outStockRequests.queryResult,
-          userList: this.props.queryResult.outStockRequests.userList
-        },
-        this.initialSelectedUserList(
-          this.props.queryResult.outStockRequests.userList
-        )
-      );
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps === undefined) {
+      return null;
+    }
+
+    if (
+      !equal(
+        prevState.queryResult,
+        nextProps.queryResult.outStockRequests.queryResult
+      )
+    ) {
+      let selectedList = [];
+
+      if (nextProps.queryResult.outStockRequests.userList !== undefined) {
+        nextProps.queryResult.outStockRequests.userList
+          .sort()
+          .forEach((element, index) => {
+            selectedList.push({
+              user: element,
+              selected: true,
+              index: index
+            });
+          });
+      }
+
+      return {
+        ...prevState,
+        queryResult: nextProps.queryResult.outStockRequests.queryResult,
+        userList: nextProps.queryResult.outStockRequests.userList,
+        selectedUserList: selectedList
+      };
+    } else {
+      return null;
     }
   }
 
@@ -110,33 +135,38 @@ class OutStockRequestList extends Component {
     trackPromise(this.props.getWaitHandleListWithInterval(startDate, endDate));
   }
 
-  handleSubmitClick() {
+  handleSubmitClick(outStockUpdateRequest) {
     // TODO: update selected items and download file
+    this.props.updateOutStockRequests(outStockUpdateRequest);
+    console.log(outStockUpdateRequest);
   }
 
-  handleSelectAll() {
-    const { selectedUserList } = this.state;
+  handleUserSelectAll() {
+    let listCopy = copy(this.state.selectedUserList);
 
-    selectedUserList.forEach(user => (user.selected = true));
+    listCopy.forEach(user => (user.selected = true));
 
-    this.setState({ selectedUserList: selectedUserList });
+    this.setState({ selectedUserList: listCopy });
   }
 
-  handleUnselectAll() {
-    const { selectedUserList } = this.state;
+  handleUserUnselectAll() {
+    let listCopy = copy(this.state.selectedUserList);
 
-    selectedUserList.forEach(user => (user.selected = false));
+    listCopy.forEach(user => (user.selected = false));
 
-    this.setState({ selectedUserList: selectedUserList });
+    this.setState({ selectedUserList: listCopy });
   }
 
   handleUserSelection(index) {
-    const { selectedUserList } = this.state;
-    let selected = selectedUserList[index].selected;
+    let originCopy = [...this.state.selectedUserList];
+    let objectCopy = Object.assign({}, originCopy[index]);
 
-    selectedUserList[index].selected = !selected;
+    objectCopy.selected = !objectCopy.selected;
+    originCopy[index] = objectCopy;
 
-    this.setState({ selectedUserList: selectedUserList });
+    this.setState({
+      selectedUserList: originCopy
+    });
   }
 
   dateSettingAlgorithm(startDate, endDate) {
@@ -252,18 +282,15 @@ class OutStockRequestList extends Component {
           <hr />
           <UserSelection
             selectedUserList={selectedUserList}
-            handleSelectAll={this.handleSelectAll}
-            handleUnselectAll={this.handleUnselectAll}
+            handleSelectAll={this.handleUserSelectAll}
+            handleUnselectAll={this.handleUserUnselectAll}
             handleUserSelection={this.handleUserSelection}
           />
-          <div className="float-right">
-            <button className="btn btn-primary">匯出檔案</button>
-          </div>
-          <br />
           <hr />
           <SearchBoard
             queryResult={queryResult}
             selectedUserList={selectedUserList}
+            handleSubmitClick={this.handleSubmitClick}
           />
         </div>
       </div>
@@ -274,12 +301,13 @@ class OutStockRequestList extends Component {
 OutStockRequestList.propTypes = {
   queryResult: PropTypes.object.isRequired,
   getWaitHandleList: PropTypes.func.isRequired,
-  getWaitHandleListWithInterval: PropTypes.func.isRequired
+  getWaitHandleListWithInterval: PropTypes.func.isRequired,
+  updateOutStockRequests: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({ queryResult: state.outStockRequests });
 
 export default connect(
   mapStateToProps,
-  { getWaitHandleList, getWaitHandleListWithInterval }
+  { getWaitHandleList, getWaitHandleListWithInterval, updateOutStockRequests }
 )(OutStockRequestList);

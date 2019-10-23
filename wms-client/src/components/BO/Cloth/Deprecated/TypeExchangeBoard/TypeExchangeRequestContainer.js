@@ -15,11 +15,11 @@ class TypeExchangeRequestContainer extends Component {
           <table className="table">
             <thead className="thead-dark">
               <tr>
-                <th style={{ width: "20%" }}>型態</th>
+                <th style={{ width: "25%" }}>型態</th>
                 <th style={{ width: "20%" }}>長度</th>
                 <th style={{ width: "15%" }}>單位</th>
-                <th style={{ width: "15%" }}>缺陷</th>
-                <th style={{ width: "30%" }}>註解</th>
+                <th style={{ width: "25%" }}>瑕疵</th>
+                <th style={{ width: "25%" }}>註解</th>
               </tr>
             </thead>
             <tbody>
@@ -27,8 +27,9 @@ class TypeExchangeRequestContainer extends Component {
                 <TypeExchangeRequest
                   key={index}
                   index={index}
-                  errors={clothInfo.errors}
+                  clothInfo={clothInfo}
                   onRequestChange={this.props.onRequestChange}
+                  handleDefectChange={this.props.handleDefectChange}
                 />
               ))}
             </tbody>
@@ -39,8 +40,7 @@ class TypeExchangeRequestContainer extends Component {
   }
 
   render() {
-    const { newClothInfoes } = this.props;
-    let BoardContent = this.boardAlgorithm(newClothInfoes);
+    let BoardContent = this.boardAlgorithm(this.props.newClothInfoes);
 
     return <div>{BoardContent}</div>;
   }

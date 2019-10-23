@@ -163,3 +163,14 @@ export const getWaitHandleListWithInterval = (
     payload: res.data
   });
 };
+
+export const updateOutStockRequests = outStockUpdateRequest => async dispatch => {
+  try {
+    await axios.patch("/api/cloth/outStock/update", outStockUpdateRequest);
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};

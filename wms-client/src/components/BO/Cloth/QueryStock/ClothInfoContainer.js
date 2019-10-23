@@ -21,7 +21,7 @@ class ClothInfoContainer extends Component {
                 <th style={{ width: "150px" }}>長度</th>
                 <th style={{ width: "145px" }}>單位</th>
                 <th style={{ width: "145px" }}>色號</th>
-                <th style={{ width: "145px" }}>缺陷</th>
+                <th style={{ width: "145px" }}>瑕疵</th>
               </tr>
             </thead>
             <tbody>
