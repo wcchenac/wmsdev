@@ -1,25 +1,11 @@
 import React, { Component } from "react";
 
 class QueryOrder extends Component {
-  constructor(props) {
-    super(props);
-    this.onChange = this.onChange.bind(this);
-    this.onSumbit = this.onSumbit.bind(this);
-  }
-
-  onChange(e) {
-    this.props.handleStockOrderNo(e);
-  }
-
-  onSumbit(e) {
-    this.props.handleQueryOrderSubmit(e);
-  }
-
   render() {
     return (
       <div>
         <div className="col-md-12">
-          <form onSubmit={this.onSumbit}>
+          <form onSubmit={this.props.handleQueryOrderSubmit}>
             <div className="form-group row">
               <label className="col-md-auto col-form-label text-center">
                 進貨單單號查詢
@@ -30,7 +16,7 @@ class QueryOrder extends Component {
                   name="inStockOrderNo"
                   placeholder="請輸入進貨單單號"
                   className="form-control"
-                  onChange={this.onChange}
+                  onChange={this.props.handleStockOrderNo}
                 />
               </div>
               <button type="submit" className="btn btn-primary">

@@ -1,61 +1,58 @@
 import React, { Component } from "react";
 import classnames from "classnames";
+import { copy } from "../../../../../utilities/DeepCopy";
 
 class OutStockBoard extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      outStockRequest: {
-        productNo: this.props.productNo,
-        type: "整支",
-        length: "",
-        unit: "碼",
-        user: "",
-        reason: "",
-        errors: {
-          length: ""
-        }
-      }
-    };
+    this.state = this.initialState();
     this.handleRequestChange = this.handleRequestChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  componentDidUpdate(prevProps) {
-    if (this.props.productNo !== prevProps.productNo) {
-      this.initialize();
-    }
-  }
-
-  initialize() {
-    this.setState({
+  initialState() {
+    return {
       outStockRequest: {
         productNo: this.props.productNo,
         type: "整支",
-        length: "",
+        length1: "",
+        length2: "",
         unit: "碼",
         user: "",
         reason: "",
         errors: {
-          length: ""
+          length1: "",
+          length2: ""
         }
       }
-    });
+    };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.productNo !== prevProps.productNo) {
+      this.setState(this.initialState());
+    }
   }
 
   handleRequestChange(request) {
-    let outStockRequestsCopy = this.state.outStockRequest;
+    let outStockRequestsCopy = copy(this.state.outStockRequest);
     const { name, value } = request.target;
 
     switch (name) {
       case "type":
         outStockRequestsCopy.type = value;
         break;
-      case "length":
-        outStockRequestsCopy.errors.length = /^\d*\.?\d+$/.test(value)
+      case "length1":
+        outStockRequestsCopy.errors.length1 = /^\d*\.?\d+$/.test(value)
           ? ""
           : "請輸入純數字或長度不可空白";
-        outStockRequestsCopy.length = "約" + value;
+        outStockRequestsCopy.length1 = value;
+        break;
+      case "length2":
+        outStockRequestsCopy.errors.length2 = /^\d*\.?\d+$/.test(value)
+          ? ""
+          : "請輸入純數字或長度不可空白";
+        outStockRequestsCopy.length2 = value;
         break;
       case "unit":
         outStockRequestsCopy.unit = value;
@@ -75,7 +72,7 @@ class OutStockBoard extends Component {
     const newOutStockRequest = {
       productNo: outStockRequest.productNo,
       type: outStockRequest.type,
-      length: outStockRequest.length,
+      length: "約" + outStockRequest.length1 + "~" + outStockRequest.length2,
       unit: outStockRequest.unit,
       user: outStockRequest.user,
       reason: outStockRequest.reason
@@ -88,8 +85,10 @@ class OutStockBoard extends Component {
     var isFormValid = false;
 
     if (
-      outStockRequest.errors.length === "" &&
-      outStockRequest.length.length > 0 &&
+      outStockRequest.errors.length1 === "" &&
+      outStockRequest.length1 > 0 &&
+      outStockRequest.errors.length2 === "" &&
+      outStockRequest.length2 > 0 &&
       outStockRequest.reason !== ""
     ) {
       isFormValid = true;
@@ -158,7 +157,7 @@ class OutStockBoard extends Component {
                   </div>
                   <div className="form-group row">
                     <label className="col-4 col-form-label">長度</label>
-                    <div className="col-8">
+                    <div className="col-4">
                       <div className="input-group">
                         <div className="input-group-prepend">
                           <div className="input-group-text">約</div>
@@ -166,18 +165,33 @@ class OutStockBoard extends Component {
                         <input
                           type="text"
                           className={classnames("form-control", {
-                            "is-invalid": errors.length
+                            "is-invalid": errors.length1
                           })}
                           placeholder="長度"
-                          name="length"
+                          name="length1"
                           onChange={this.handleRequestChange}
                         />
-                        {errors.length && (
+                        {errors.length1 && (
                           <div className="invalid-feedback">
-                            {errors.length}
+                            {errors.length1}
                           </div>
                         )}
                       </div>
+                    </div>
+                    <label className="col-1 col-form-label">~</label>
+                    <div className="col-3">
+                      <input
+                        type="text"
+                        className={classnames("form-control", {
+                          "is-invalid": errors.length2
+                        })}
+                        placeholder="長度"
+                        name="length2"
+                        onChange={this.handleRequestChange}
+                      />
+                      {errors.length2 && (
+                        <div className="invalid-feedback">{errors.length2}</div>
+                      )}
                     </div>
                   </div>
                   <div className="form-group row">
@@ -220,6 +234,7 @@ class OutStockBoard extends Component {
               <button
                 type="button"
                 class="btn btn-primary"
+                data-dismiss="modal"
                 onClick={this.handleSubmit}
                 disabled={!isFormValid}
               >

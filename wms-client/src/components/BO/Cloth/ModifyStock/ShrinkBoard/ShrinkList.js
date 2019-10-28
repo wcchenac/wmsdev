@@ -1,8 +1,8 @@
-import React, { Component } from "react";
+import React, { PureComponent } from "react";
 import ShrinkInfoContainer from "./ShrinkInfoContainer";
 import { trackPromise } from "react-promise-tracker";
 
-class ShrinkList extends Component {
+class ShrinkList extends PureComponent {
   componentDidMount() {
     trackPromise(this.props.getShrinkList());
   }

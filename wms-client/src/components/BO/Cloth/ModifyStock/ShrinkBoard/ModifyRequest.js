@@ -1,18 +1,27 @@
 import React, { Component } from "react";
 import classnames from "classnames";
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
+import { DefectOptions } from "../../../../../enums/Enums";
 
-class TypeExchangeRequest extends Component {
+class ModifyRequest extends Component {
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
+    this.onDefectChange = this.onDefectChange.bind(this);
   }
 
   handleChange(e) {
     this.props.onRequestChange(e, this.props.index);
   }
 
+  onDefectChange(selectedOptions) {
+    this.props.handleDefectChange(selectedOptions, this.props.index);
+  }
+
   render() {
-    const { errors } = this.props;
+    const { clothInfo } = this.props;
+    const animatedComponents = makeAnimated();
 
     return (
       <tr>
@@ -21,7 +30,7 @@ class TypeExchangeRequest extends Component {
             <select
               className="custom-select"
               name="type"
-              defaultValue="板卷"
+              defaultValue={clothInfo.type}
               onChange={this.handleChange}
             >
               <option value="整支">整支</option>
@@ -34,14 +43,14 @@ class TypeExchangeRequest extends Component {
             <input
               type="text"
               className={classnames("form-control", {
-                "is-invalid": errors.length
+                "is-invalid": clothInfo.errors.length
               })}
               placeholder="長度"
               name="length"
               onChange={this.handleChange}
             />
-            {errors.length && (
-              <div className="invalid-feedback">{errors.length}</div>
+            {clothInfo.errors.length && (
+              <div className="invalid-feedback">{clothInfo.errors.length}</div>
             )}
           </div>
         </td>
@@ -50,7 +59,7 @@ class TypeExchangeRequest extends Component {
             <select
               className="custom-select"
               name="unit"
-              defaultValue="碼"
+              defaultValue={clothInfo.unit}
               onChange={this.handleChange}
             >
               <option value="碼">碼</option>
@@ -59,20 +68,15 @@ class TypeExchangeRequest extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
-            <select
-              className="custom-select"
-              name="defect"
-              defaultValue="無"
-              onChange={this.handleChange}
-            >
-              <option value="無">無</option>
-              <option value="GA">GA</option>
-              <option value="GB">GB</option>
-              <option value="GC">GC</option>
-              <option value="GD">GD</option>
-            </select>
-          </div>
+          <Select
+            closeMenuOnSelect={false}
+            components={animatedComponents}
+            defaultValue={clothInfo.defect}
+            isMulti
+            name="defect"
+            options={DefectOptions}
+            onChange={this.onDefectChange}
+          />
         </td>
         <td>
           <div className="form-group">
@@ -90,4 +94,4 @@ class TypeExchangeRequest extends Component {
   }
 }
 
-export default TypeExchangeRequest;
+export default ModifyRequest;

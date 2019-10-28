@@ -16,6 +16,7 @@ class BatchAddClothInfo extends Component {
       queryProductNoList: [],
       selectedProductNoList: []
     };
+    this.getInitialize = this.getInitialize.bind(this);
     this.handleTabSelect = this.handleTabSelect.bind(this);
     this.handlePrevStep = this.handlePrevStep.bind(this);
     this.handleNextStep = this.handleNextStep.bind(this);
@@ -25,7 +26,6 @@ class BatchAddClothInfo extends Component {
     this.handleInStockRequestSubmit = this.handleInStockRequestSubmit.bind(
       this
     );
-    this.getInitialize = this.getInitialize.bind(this);
   }
 
   getInitialize() {
@@ -46,18 +46,14 @@ class BatchAddClothInfo extends Component {
   }
 
   handlePrevStep() {
-    const { key } = this.state;
-
     this.setState({
-      key: key - 1
+      key: this.state.key - 1
     });
   }
 
   handleNextStep() {
-    const { key } = this.state;
-
     this.setState({
-      key: key + 1
+      key: this.state.key + 1
     });
   }
 
@@ -82,7 +78,7 @@ class BatchAddClothInfo extends Component {
 
   handleQueryOrderSubmit(e) {
     e.preventDefault();
-    //receive order content (productNolist) and store at props
+    // TODO: receive order content (productNolist) and store at props
     this.setState(
       { queryProductNoList: ["A12345", "B23456", "C34567", "D45678"] },
       function() {
@@ -95,24 +91,31 @@ class BatchAddClothInfo extends Component {
 
   handleCheckBoxSelected(e, index) {
     const { checked } = e.target;
-    const { selectedProductNoList } = this.state;
+    const copyList = [...this.state.selectedProductNoList];
 
-    selectedProductNoList[index].selected = checked;
+    copyList[index] = {
+      ...this.state.selectedProductNoList[index],
+      selected: checked
+    };
 
     this.setState({
-      selectedProductNoList: selectedProductNoList
+      selectedProductNoList: copyList
     });
   }
 
   handleInStockRequestSubmit(e, index, inStockRequests) {
-    const { selectedProductNoList } = this.state;
+    const copyList = [...this.state.selectedProductNoList];
 
     e.preventDefault();
     this.props.batchCreateClothInfoes(inStockRequests);
-    selectedProductNoList[index].isSubmitted = true;
+
+    copyList[index] = {
+      ...this.state.selectedProductNoList[index],
+      isSubmitted: true
+    };
 
     this.setState({
-      selectedProductNoList: selectedProductNoList
+      selectedProductNoList: copyList
     });
   }
 

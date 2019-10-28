@@ -1,19 +1,29 @@
 import React, { Component } from "react";
 import classnames from "classnames";
+import Select from "react-select";
+import makeAnimated from "react-select/animated";
+import { ColorOptions, DefectOptions } from "../../../../../enums/Enums";
 
 class ClothInfo extends Component {
   constructor(props) {
     super(props);
     this.onChange = this.onChange.bind(this);
+    this.onDefectChange = this.onDefectChange.bind(this);
   }
 
   onChange(e) {
     this.props.handleInfoChange(e, this.props.index);
   }
 
+  onDefectChange(selectedOptions) {
+    this.props.handleDefectChange(selectedOptions, this.props.index);
+  }
+
   render() {
     const { errors } = this.props;
     const { clothInfo } = this.props;
+    const animatedComponents = makeAnimated();
+    let colorOptions = Object.values(ColorOptions);
 
     return (
       <tr>
@@ -50,7 +60,7 @@ class ClothInfo extends Component {
             <select
               className="custom-select"
               name="type"
-              defaultValue={clothInfo.type}
+              value={clothInfo.type}
               onChange={this.onChange}
             >
               <option value="整支">整支</option>
@@ -79,7 +89,7 @@ class ClothInfo extends Component {
             <select
               className="custom-select"
               name="unit"
-              defaultValue={clothInfo.unit}
+              value={clothInfo.unit}
               onChange={this.onChange}
             >
               <option value="碼">碼</option>
@@ -92,38 +102,27 @@ class ClothInfo extends Component {
             <select
               className="custom-select"
               name="color"
-              defaultValue={clothInfo.color}
+              value={clothInfo.color}
               onChange={this.onChange}
             >
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="9">9</option>
-              <option value="10">10</option>
+              {colorOptions.map((color, index) => (
+                <option key={index} value={color}>
+                  {color}
+                </option>
+              ))}
             </select>
           </div>
         </td>
         <td>
-          <div className="form-group">
-            <select
-              className="custom-select"
-              name="defect"
-              defaultValue={clothInfo.defect}
-              onChange={this.onChange}
-            >
-              <option value="無">無</option>
-              <option value="GA">GA</option>
-              <option value="GB">GB</option>
-              <option value="GC">GC</option>
-              <option value="GD">GD</option>
-            </select>
-          </div>
+          <Select
+            closeMenuOnSelect={false}
+            components={animatedComponents}
+            defaultValue={clothInfo.defect}
+            isMulti
+            name="defect"
+            options={DefectOptions}
+            onChange={this.onDefectChange}
+          />
         </td>
         <td>
           <div className="form-group">

@@ -30,6 +30,7 @@ import com.wmstool.wmstool.models.OutStockRequest;
 import com.wmstool.wmstool.models.history.History;
 import com.wmstool.wmstool.models.payloads.HandleListResponse;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.models.payloads.OutStockUpdateRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.repositories.ClothIdentifierBacklogRepo;
@@ -551,6 +552,16 @@ public class ClothService {
 		HandleListResponse res = new HandleListResponse(userSet.stream().collect(Collectors.toList()), resultMap);
 		
 		return res;
+	}
+	
+	public void updateOutStockRequest(OutStockUpdateRequest outStockUpdateRequest) {
+		Map<Long, String> updateRequest = outStockUpdateRequest.getOutStockUpdate();
+		
+		updateRequest.keySet().forEach(id -> {
+			OutStockRequest res = outStockRequestRepo.findById(id).get();
+			res.setRequestFrom(updateRequest.get(id));
+			res.setHandled(true);
+		});
 	}
 	
 }

@@ -2,7 +2,9 @@ import React, { Component } from "react";
 import ShrinkInfo from "./ShrinkInfo";
 
 class ShrinkInfoContainer extends Component {
-  boardAlgorithm(shrinkList) {
+  render() {
+    const { shrinkList } = this.props;
+
     if (shrinkList === null || shrinkList.length < 1) {
       return (
         <div className="alert alert-warning text-center" role="alert">
@@ -15,16 +17,16 @@ class ShrinkInfoContainer extends Component {
           <table className="table table-hover">
             <thead className="thead-dark">
               <tr>
-                <th style={{ width: "220px" }}>貨號</th>
-                <th style={{ width: "90px" }}>批號</th>
-                <th style={{ width: "100px" }}>型態</th>
-                <th style={{ width: "100px" }}>長度</th>
-                <th style={{ width: "82px" }}>單位</th>
-                <th style={{ width: "82px" }}>色號</th>
-                <th style={{ width: "82px" }}>缺陷</th>
-                <th style={{ width: "115px" }} />
-                <th style={{ width: "115px" }} />
-                <th style={{ width: "115px" }} />
+                <th style={{ width: "18%" }}>貨號</th>
+                <th style={{ width: "8%" }}>批號</th>
+                <th style={{ width: "8%" }}>型態</th>
+                <th style={{ width: "9%" }}>長度</th>
+                <th style={{ width: "8%" }}>單位</th>
+                <th style={{ width: "7.5%" }}>色號</th>
+                <th style={{ width: "9%" }}>瑕疵</th>
+                <th style={{ width: "10.5%" }} />
+                <th style={{ width: "10.5%" }} />
+                <th style={{ width: "10.5%" }} />
               </tr>
             </thead>
             <tbody>
@@ -42,13 +44,6 @@ class ShrinkInfoContainer extends Component {
         </div>
       );
     }
-  }
-
-  render() {
-    const { shrinkList } = this.props;
-    let BoardContent = this.boardAlgorithm(shrinkList);
-
-    return <div>{BoardContent}</div>;
   }
 }
 

@@ -42,8 +42,8 @@ class ModifyBoard extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.clothInfo.clothInfoes !== prevProps.clothInfo.clothInfoes) {
-      this.setState({ clothInfoes: this.props.clothInfo.clothInfoes });
+    if (this.props.clothInfoes !== prevProps.clothInfoes) {
+      this.setState({ clothInfoes: this.props.clothInfoes });
     }
   }
 
@@ -79,7 +79,11 @@ class ModifyBoard extends Component {
             <div className="col-md-auto">
               <button
                 className="btn btn-primary"
-                disabled={clothInfoes.length === 0}
+                disabled={
+                  clothInfoes.length === 0 ||
+                  productNo.toUpperCase() !==
+                    clothInfoes[0].clothIdentifier.productNo
+                }
                 data-toggle="modal"
                 data-target="#outStockRequest"
               >
@@ -108,7 +112,7 @@ class ModifyBoard extends Component {
 }
 
 ModifyBoard.propTypes = {
-  clothInfo: PropTypes.object.isRequired,
+  clothInfoes: PropTypes.object.isRequired,
   getClothInfoes: PropTypes.func.isRequired,
   clothIndentifierIsShiped: PropTypes.func.isRequired,
   clothIdentifierWaitToShrinkIsTrue: PropTypes.func.isRequired,
@@ -116,7 +120,7 @@ ModifyBoard.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  clothInfo: state.clothInfo
+  clothInfoes: state.clothInfo.clothInfoes
 });
 
 export default connect(

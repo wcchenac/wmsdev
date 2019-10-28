@@ -1,11 +1,12 @@
-import React, { Component } from "react";
+import React, { PureComponent } from "react";
 import ClothInfoContainer from "./ClothInfoContainer";
 
-class EditBoard extends Component {
+class EditBoard extends PureComponent {
   contentAlgorithm(
     filterSelectedListLength,
-    filterSubmittedListLength,filterSelectedList
-  ){
+    filterSubmittedListLength,
+    filterSelectedList
+  ) {
     if (filterSelectedListLength === 0 && filterSubmittedListLength === 0) {
       return;
     } else if (
@@ -26,22 +27,54 @@ class EditBoard extends Component {
       );
     } else {
       return (
-        <div className="accordion" id="accordion">
-          {filterSelectedList.map(object => (
-            <ClothInfoContainer
-              key={object.index}
-              index={object.index}
-              productNo={object.productNo}
-              handleInStockRequestSubmit={
-                this.props.handleInStockRequestSubmit
-              }
-            />
-          ))}
+        <div>
+          <nav>
+            <div
+              className="nav nav-tabs nav-justified"
+              id="nav-tab"
+              role="tablist"
+            >
+              {filterSelectedList.map((object, index) => {
+                return (
+                  <a
+                    className={
+                      index === 0
+                        ? "nav-item nav-link active"
+                        : "nav-item nav-link"
+                    }
+                    id={"nav-tab" + object.index}
+                    key={index}
+                    data-toggle="tab"
+                    href={"#nav-" + object.index}
+                    role="tab"
+                    aria-controls={"nav-" + object.index}
+                    aria-selected={index === 0}
+                  >
+                    {object.productNo}
+                  </a>
+                );
+              })}
+            </div>
+          </nav>
+          <div className="tab-content" id="nav-tabContent">
+            <br />
+            {filterSelectedList.map((object, index) => (
+              <ClothInfoContainer
+                key={object.index}
+                sequence={index}
+                index={object.index}
+                productNo={object.productNo}
+                handleInStockRequestSubmit={
+                  this.props.handleInStockRequestSubmit
+                }
+              />
+            ))}
+          </div>
         </div>
       );
     }
   }
-  
+
   render() {
     const { selectedProductNoList } = this.props;
     const filterSelectedList = selectedProductNoList.filter(
@@ -50,9 +83,10 @@ class EditBoard extends Component {
     const filterSubmittedList = selectedProductNoList.filter(
       object => object.isSubmitted === true
     );
-    let content= this.contentAlgorithm(
+    let content = this.contentAlgorithm(
       filterSelectedList.length,
-      filterSubmittedList.length,filterSelectedList
+      filterSubmittedList.length,
+      filterSelectedList
     );
 
     return (

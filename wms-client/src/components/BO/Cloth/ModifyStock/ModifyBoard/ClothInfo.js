@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StoreList } from "../../../../../enums/Stores";
+import { StoreList } from "../../../../../enums/Enums";
 import { trackPromise } from "react-promise-tracker";
 
 class ClothInfo extends Component {
@@ -11,8 +11,7 @@ class ClothInfo extends Component {
     this.onShipClick = this.onShipClick.bind(this);
     this.onShrinkClick = this.onShrinkClick.bind(this);
     this.onChange = this.onChange.bind(this);
-    this.handleStoreButton = this.handleStoreButton.bind(this);
-    this.handleResetButton = this.handleResetButton.bind(this);
+    this.handleReasonButton = this.handleReasonButton.bind(this);
   }
 
   onShipClick() {
@@ -34,15 +33,8 @@ class ClothInfo extends Component {
     this.setState({ [e.target.name]: e.target.value });
   }
 
-  handleStoreButton(e) {
-    const { value } = e.target;
-    this.setState({ outStockReason: value });
-  }
-
-  handleResetButton() {
-    this.setState({
-      outStockReason: ""
-    });
+  handleReasonButton(e) {
+    this.setState({ outStockReason: e.target.value });
   }
 
   btnAlgorithm(waitToShrink, index) {
@@ -107,7 +99,8 @@ class ClothInfo extends Component {
                     <div className="col-md-4">
                       <button
                         className="btn btn-secondary"
-                        onClick={this.handleResetButton}
+                        value=""
+                        onClick={this.handleReasonButton}
                       >
                         重置
                       </button>
@@ -119,7 +112,7 @@ class ClothInfo extends Component {
                           className="btn btn-outline-info mr-1 mb-1"
                           key={index}
                           value={store}
-                          onClick={this.handleStoreButton}
+                          onClick={this.handleReasonButton}
                         >
                           {store}
                         </button>

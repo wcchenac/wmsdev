@@ -1,9 +1,11 @@
 import React, { Component } from "react";
-import SameTypeModifyRequest from "./SameTypeModifyRequest";
+import ModifyRequest from "./ModifyRequest";
 
-class SameTypeModifyRequestContainer extends Component {
-  boardAlgorithm(newClothInfoes) {
-    if (newClothInfoes.length < 1) {
+class ModifyRequestContainer extends Component {
+  render() {
+    const { newClothInfoes } = this.props;
+
+    if (newClothInfoes === null || newClothInfoes.length < 1) {
       return (
         <div className="alert alert-warning text-center" role="alert">
           請新增資料
@@ -16,19 +18,20 @@ class SameTypeModifyRequestContainer extends Component {
             <thead className="thead-dark">
               <tr>
                 <th style={{ width: "20%" }}>型態</th>
-                <th style={{ width: "20%" }}>長度</th>
+                <th style={{ width: "15%" }}>長度</th>
                 <th style={{ width: "15%" }}>單位</th>
-                <th style={{ width: "15%" }}>缺陷</th>
-                <th style={{ width: "30%" }}>註解</th>
+                <th style={{ width: "25%" }}>瑕疵</th>
+                <th style={{ width: "25%" }}>註解</th>
               </tr>
             </thead>
             <tbody>
               {newClothInfoes.map((clothInfo, index) => (
-                <SameTypeModifyRequest
+                <ModifyRequest
                   key={index}
                   index={index}
-                  errors={clothInfo.errors}
+                  clothInfo={clothInfo}
                   onRequestChange={this.props.onRequestChange}
+                  handleDefectChange={this.props.handleDefectChange}
                 />
               ))}
             </tbody>
@@ -37,12 +40,6 @@ class SameTypeModifyRequestContainer extends Component {
       );
     }
   }
-
-  render() {
-    const { newClothInfoes } = this.props;
-    let BoardContent = this.boardAlgorithm(newClothInfoes);
-
-    return <div>{BoardContent}</div>;
-  }
 }
-export default SameTypeModifyRequestContainer;
+
+export default ModifyRequestContainer;

@@ -21,6 +21,7 @@ import com.wmstool.wmstool.models.ClothInfo;
 import com.wmstool.wmstool.models.OutStockRequest;
 import com.wmstool.wmstool.models.payloads.HandleListResponse;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.models.payloads.OutStockUpdateRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.services.ClothService;
@@ -146,5 +147,12 @@ public class ClothController {
 	@PostMapping("/outStock")
 	public ResponseEntity<?> requestForOutStock(@RequestBody OutStockRequest outStockRequest) {
 		return new ResponseEntity<OutStockRequest>(clothService.createOutStockRequest(outStockRequest), HttpStatus.OK);
+	}
+	
+	@PatchMapping("/outStock/update")
+	public ResponseEntity<?> updateOutStockRequest(@RequestBody OutStockUpdateRequest outStockUpdateRequest) {
+		clothService.updateOutStockRequest(outStockUpdateRequest);
+		
+		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
 }

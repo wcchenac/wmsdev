@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import ClothInfo from "./ClothInfo";
+import { copy } from "../../../../../utilities/DeepCopy";
 
 class ClothInfoContainer extends Component {
   constructor(props) {
@@ -12,6 +13,7 @@ class ClothInfoContainer extends Component {
     this.handleDeleteDataClick = this.handleDeleteDataClick.bind(this);
     this.handleInfoChange = this.handleInfoChange.bind(this);
     this.handleSubmitClick = this.handleSubmitClick.bind(this);
+    this.handleDefectChange = this.handleDefectChange.bind(this);
   }
 
   handleNewDataClick() {
@@ -25,8 +27,8 @@ class ClothInfoContainer extends Component {
         type: "整支",
         length: "",
         unit: "碼",
-        color: "0",
-        defect: "無",
+        color: "1",
+        defect: [{ label: "無", value: "無" }],
         record: "",
         remark: "",
         isNew: "new",
@@ -60,17 +62,27 @@ class ClothInfoContainer extends Component {
   }
 
   handleDeleteDataClick() {
-    const { clothInfoes } = this.state;
+    let clothInfoesCopy = [...this.state.clothInfoes];
 
-    clothInfoes.splice(clothInfoes.length - 1, 1);
+    clothInfoesCopy.splice(clothInfoesCopy.length - 1, 1);
 
     this.setState({
-      clothInfoes: clothInfoes
+      clothInfoes: clothInfoesCopy
+    });
+  }
+
+  handleDefectChange(selectedOptions, i) {
+    const copyList = [...this.state.clothInfoes];
+
+    copyList[i].defect = selectedOptions;
+
+    this.setState({
+      clothInfoes: copyList
     });
   }
 
   handleInfoChange(event, i) {
-    let clothInfoesCopy = JSON.parse(JSON.stringify(this.state.clothInfoes));
+    let clothInfoesCopy = copy(this.state.clothInfoes);
     const { name, value } = event.target;
 
     switch (name) {
@@ -93,9 +105,6 @@ class ClothInfoContainer extends Component {
       case "color":
         clothInfoesCopy[i].color = value;
         break;
-      case "defect":
-        clothInfoesCopy[i].defect = value;
-        break;
       case "record":
         clothInfoesCopy[i].record = value;
         break;
@@ -110,7 +119,23 @@ class ClothInfoContainer extends Component {
   }
 
   handleSubmitClick() {
-    this.props.handleAssembleRequestSubmit(this.state.clothInfoes);
+    let clothInfoesCopy = JSON.parse(JSON.stringify(this.state.clothInfoes));
+
+    clothInfoesCopy.forEach((clothInfo, index) => {
+      let newDefectContent = "";
+
+      clothInfo.defect.forEach((object, index) => {
+        if (index === clothInfo.defect.length - 1) {
+          newDefectContent = newDefectContent + object.value;
+        } else {
+          newDefectContent = newDefectContent + object.value + "/";
+        }
+      });
+
+      clothInfoesCopy[index].defect = newDefectContent;
+    });
+
+    this.props.handleAssembleRequestSubmit(clothInfoesCopy);
     this.setState({
       isSubmited: true
     });
@@ -137,7 +162,7 @@ class ClothInfoContainer extends Component {
   }
 
   render() {
-    const { assembleOrderNo,assembleOrderContent } = this.props;
+    const { assembleOrderNo, assembleOrderContent } = this.props;
     const { isSubmited, clothInfoes } = this.state;
     let isFormValid = this.checkFormAlgorithm(clothInfoes);
 
@@ -164,8 +189,10 @@ class ClothInfoContainer extends Component {
       } else {
         return (
           <React.Fragment>
-            <p className="h4 text-center">{"組裝單("+assembleOrderNo+")資訊"}</p>
-            <table className="table">
+            <p className="h4 text-center">
+              {"組裝單(" + assembleOrderNo + ")資訊"}
+            </p>
+            <table className="table table-sm">
               <thead className="thead-dark">
                 <tr>
                   <th scope="col">貨號</th>
@@ -271,17 +298,17 @@ class ClothInfoContainer extends Component {
                 </button>
               </div>
             </div>
-            <table className="table">
+            <table className="table table-sm">
               <thead className="thead-dark">
                 <tr>
-                  <th style={{ width: "225px" }}>貨號</th>
-                  <th style={{ width: "90px" }}>批號</th>
-                  <th style={{ width: "100px" }}>型態</th>
-                  <th style={{ width: "150px" }}>長度</th>
-                  <th style={{ width: "84px" }}>單位</th>
-                  <th style={{ width: "85px" }}>色號</th>
-                  <th style={{ width: "90px" }}>缺陷</th>
-                  <th style={{ width: "184px" }}>記錄</th>
+                  <th style={{ width: "20%" }}>貨號</th>
+                  <th style={{ width: "8%" }}>批號</th>
+                  <th style={{ width: "8%" }}>型態</th>
+                  <th style={{ width: "15%" }}>長度</th>
+                  <th style={{ width: "8%" }}>單位</th>
+                  <th style={{ width: "8%" }}>色號</th>
+                  <th style={{ width: "15%" }}>瑕疵</th>
+                  <th style={{ width: "18%" }}>記錄</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,6 +319,7 @@ class ClothInfoContainer extends Component {
                     clothInfo={clothInfo}
                     errors={clothInfo.errors}
                     handleInfoChange={this.handleInfoChange}
+                    handleDefectChange={this.handleDefectChange}
                   />
                 ))}
               </tbody>

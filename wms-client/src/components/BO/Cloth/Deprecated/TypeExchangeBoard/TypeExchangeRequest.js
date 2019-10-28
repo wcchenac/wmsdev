@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import classnames from "classnames";
+import { DefectList } from "../../../../../enums/Enums";
 
-class SameTypeModifyRequest extends Component {
+class TypeExchangeRequest extends Component {
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
@@ -13,6 +14,7 @@ class SameTypeModifyRequest extends Component {
 
   render() {
     const { errors } = this.props;
+    let defectList = Object.values(DefectList);
 
     return (
       <tr>
@@ -21,7 +23,7 @@ class SameTypeModifyRequest extends Component {
             <select
               className="custom-select"
               name="type"
-              defaultValue="整支"
+              defaultValue="板卷"
               onChange={this.handleChange}
             >
               <option value="整支">整支</option>
@@ -63,14 +65,15 @@ class SameTypeModifyRequest extends Component {
             <select
               className="custom-select"
               name="defect"
-              defaultValue="無"
+              // defaultValue={["無"]}
               onChange={this.handleChange}
+              multiple
             >
-              <option value="無">無</option>
-              <option value="GA">GA</option>
-              <option value="GB">GB</option>
-              <option value="GC">GC</option>
-              <option value="GD">GD</option>
+              {defectList.map((defect, index) => (
+                <option key={index} value={defect}>
+                  {defect}
+                </option>
+              ))}
             </select>
           </div>
         </td>
@@ -90,4 +93,4 @@ class SameTypeModifyRequest extends Component {
   }
 }
 
-export default SameTypeModifyRequest;
+export default TypeExchangeRequest;

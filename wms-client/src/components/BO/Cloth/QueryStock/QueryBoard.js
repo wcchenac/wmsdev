@@ -83,7 +83,7 @@ class QueryBoard extends Component {
                 className="btn btn-info"
                 disabled={
                   clothInfoes.length === 0 ||
-                  productNo !== clothInfoes[0].clothIdentifier.productNo
+                  productNo.toUpperCase() !== clothInfoes[0].clothIdentifier.productNo
                 }
                 data-toggle="modal"
                 data-target="#picture"
