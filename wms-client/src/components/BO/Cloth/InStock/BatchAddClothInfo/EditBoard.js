@@ -2,11 +2,16 @@ import React, { PureComponent } from "react";
 import ClothInfoContainer from "./ClothInfoContainer";
 
 class EditBoard extends PureComponent {
-  contentAlgorithm(
-    filterSelectedListLength,
-    filterSubmittedListLength,
-    filterSelectedList
-  ) {
+  contentAlgorithm(selectedProductNoList, inStockOrderNo) {
+    const filterSelectedList = selectedProductNoList.filter(
+      object => object.selected === true && object.isSubmitted === false
+    );
+    const filterSubmittedList = selectedProductNoList.filter(
+      object => object.isSubmitted === true
+    );
+    let filterSelectedListLength = filterSelectedList.length;
+    let filterSubmittedListLength = filterSubmittedList.length;
+
     if (filterSelectedListLength === 0 && filterSubmittedListLength === 0) {
       return;
     } else if (
@@ -30,7 +35,7 @@ class EditBoard extends PureComponent {
         <div>
           <nav>
             <div
-              className="nav nav-tabs nav-justified"
+              className="nav nav-tabs"
               id="nav-tab"
               role="tablist"
             >
@@ -63,6 +68,7 @@ class EditBoard extends PureComponent {
                 key={object.index}
                 sequence={index}
                 index={object.index}
+                inStockOrderNo={inStockOrderNo}
                 productNo={object.productNo}
                 handleInStockRequestSubmit={
                   this.props.handleInStockRequestSubmit
@@ -76,17 +82,11 @@ class EditBoard extends PureComponent {
   }
 
   render() {
-    const { selectedProductNoList } = this.props;
-    const filterSelectedList = selectedProductNoList.filter(
-      object => object.selected === true && object.isSubmitted === false
-    );
-    const filterSubmittedList = selectedProductNoList.filter(
+    const filterSubmittedList = this.props.selectedProductNoList.filter(
       object => object.isSubmitted === true
     );
     let content = this.contentAlgorithm(
-      filterSelectedList.length,
-      filterSubmittedList.length,
-      filterSelectedList
+      this.props.selectedProductNoList, this.props.inStockOrderNo
     );
 
     return (

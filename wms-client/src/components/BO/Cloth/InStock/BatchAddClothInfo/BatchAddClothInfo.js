@@ -1,11 +1,15 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import { trackPromise } from "react-promise-tracker";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./QueryOrder";
 import SelectionBoard from "./SelectionBoard";
 import EditBoard from "./EditBoard";
-import { batchCreateClothInfoes } from "../../../../../actions/ClothInfoAcions";
+import {
+  getInStockOrder,
+  batchCreateClothInfoes
+} from "../../../../../actions/ClothInfoAcions";
 
 class BatchAddClothInfo extends Component {
   constructor() {
@@ -13,7 +17,9 @@ class BatchAddClothInfo extends Component {
     this.state = {
       inStockOrderNo: "",
       key: 1,
-      queryProductNoList: [],
+      currentOrderStatus: {},
+      prevOrderStatus: {},
+      waitHandleStatus: {},
       selectedProductNoList: []
     };
     this.getInitialize = this.getInitialize.bind(this);
@@ -34,11 +40,27 @@ class BatchAddClothInfo extends Component {
     }
 
     this.setState({
-      inStockOrderNo: "",
       key: 1,
-      queryProductNoList: [],
+      currentOrderStatus: {},
+      prevOrderStatus: {},
+      waitHandleStatus: {},
       selectedProductNoList: []
     });
+  }
+
+  initialSelectedList(currentOrderStatus) {
+    let selectedList = [];
+
+    Object.keys(currentOrderStatus).forEach((element, index) => {
+      selectedList.push({
+        productNo: element.toString(),
+        selected: false,
+        index: index,
+        isSubmitted: false
+      });
+    });
+
+    this.setState({ selectedProductNoList: selectedList });
   }
 
   handleTabSelect(key) {
@@ -61,31 +83,9 @@ class BatchAddClothInfo extends Component {
     this.setState({ [e.target.name]: e.target.value });
   }
 
-  initialSelectedList(queryProductNoList) {
-    let selectedList = [];
-
-    queryProductNoList.forEach((element, index) => {
-      selectedList.push({
-        productNo: element,
-        selected: false,
-        index: index,
-        isSubmitted: false
-      });
-    });
-
-    this.setState({ selectedProductNoList: selectedList });
-  }
-
   handleQueryOrderSubmit(e) {
     e.preventDefault();
-    // TODO: receive order content (productNolist) and store at props
-    this.setState(
-      { queryProductNoList: ["A12345", "B23456", "C34567", "D45678"] },
-      function() {
-        this.initialSelectedList(this.state.queryProductNoList);
-      }
-    );
-
+    trackPromise(this.props.getInStockOrder(this.state.inStockOrderNo));
     this.handleTabSelect(2);
   }
 
@@ -120,15 +120,31 @@ class BatchAddClothInfo extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.queryProductNoList !== prevProps.queryProductNoList) {
-      this.setState({ queryProductNoList: this.props.queryProductNoList });
+    if (
+      this.props.queryInStockOrderResult !== prevProps.queryInStockOrderResult
+    ) {
+      this.setState(
+        {
+          currentOrderStatus: this.props.queryInStockOrderResult.clothInfoes
+            .currentStatus,
+          prevOrderStatus: this.props.queryInStockOrderResult.clothInfoes
+            .prevStatus,
+          waitHandleStatus: this.props.queryInStockOrderResult.clothInfoes
+            .waitHandleStatus
+        },
+        function() {
+          this.initialSelectedList(this.state.currentOrderStatus);
+        }
+      );
     }
   }
 
   render() {
     const {
       inStockOrderNo,
-      queryProductNoList,
+      currentOrderStatus,
+      prevOrderStatus,
+      waitHandleStatus,
       selectedProductNoList,
       key
     } = this.state;
@@ -174,7 +190,7 @@ class BatchAddClothInfo extends Component {
                     handlePrevStep={this.handlePrevStep}
                     handleNextStep={this.handleNextStep}
                     inStockOrderNo={inStockOrderNo}
-                    queryProductNoList={queryProductNoList}
+                    waitHandleStatus={waitHandleStatus}
                     selectedProductNoList={selectedProductNoList}
                     handleCheckBoxSelected={this.handleCheckBoxSelected}
                   />
@@ -184,7 +200,11 @@ class BatchAddClothInfo extends Component {
                 <div className="container">
                   <EditBoard
                     handlePrevStep={this.handlePrevStep}
+                    inStockOrderNo={inStockOrderNo}
                     selectedProductNoList={selectedProductNoList}
+                    currentOrderStatus={currentOrderStatus}
+                    prevOrderStatus={prevOrderStatus}
+                    waitHandleStatus={waitHandleStatus}
                     handleInStockRequestSubmit={this.handleInStockRequestSubmit}
                     getInitialize={this.getInitialize}
                   />
@@ -199,15 +219,15 @@ class BatchAddClothInfo extends Component {
 }
 
 BatchAddClothInfo.propTypes = {
-  queryProductNoList: PropTypes.object.isRequired,
+  queryInStockOrderResult: PropTypes.object.isRequired,
   batchCreateClothInfoes: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
-  queryProductNoList: state.productNoList
+  queryInStockOrderResult: state.clothInfo
 });
 
 export default connect(
   mapStateToProps,
-  { batchCreateClothInfoes }
+  { getInStockOrder, batchCreateClothInfoes }
 )(BatchAddClothInfo);

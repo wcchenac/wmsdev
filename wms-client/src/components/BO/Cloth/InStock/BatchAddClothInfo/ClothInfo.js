@@ -20,8 +20,7 @@ class ClothInfo extends Component {
   }
 
   render() {
-    const { errors } = this.props;
-    const { clothInfo } = this.props;
+    const { errors, clothInfo } = this.props;
     const animatedComponents = makeAnimated();
     let colorOptions = Object.values(ColorOptions);
 
@@ -65,6 +64,7 @@ class ClothInfo extends Component {
             >
               <option value="整支">整支</option>
               <option value="板卷">板卷</option>
+              <option value="雜項">雜項</option>
             </select>
           </div>
         </td>

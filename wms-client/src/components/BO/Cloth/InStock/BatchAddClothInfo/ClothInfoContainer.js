@@ -6,7 +6,6 @@ class ClothInfoContainer extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      productNo: this.props.productNo,
       clothInfoes: []
     };
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
@@ -22,7 +21,7 @@ class ClothInfoContainer extends PureComponent {
 
     if (clothInfoes.length === 0) {
       newClothInfo = {
-        productNo: this.state.productNo,
+        productNo: this.props.productNo,
         lotNo: "",
         type: "整支",
         length: "",
@@ -32,6 +31,7 @@ class ClothInfoContainer extends PureComponent {
         record: "",
         remark: "",
         isNew: "new",
+        orderNo: this.props.inStockOrderNo,
         errors: {
           lotNo: "",
           length: ""
@@ -39,7 +39,7 @@ class ClothInfoContainer extends PureComponent {
       };
     } else {
       newClothInfo = {
-        productNo: this.state.productNo,
+        productNo: this.props.productNo,
         lotNo: clothInfoes[clothInfoes.length - 1].lotNo,
         type: clothInfoes[clothInfoes.length - 1].type,
         length: "",
@@ -49,6 +49,7 @@ class ClothInfoContainer extends PureComponent {
         record: "",
         remark: "",
         isNew: "new",
+        orderNo: this.props.inStockOrderNo,
         errors: {
           lotNo: "",
           length: ""
