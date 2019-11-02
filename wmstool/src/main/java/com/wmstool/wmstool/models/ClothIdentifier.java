@@ -32,11 +32,6 @@ public class ClothIdentifier {
 	@Column(nullable = false, updatable = false, length = 25)
 	private String productNo;
 
-	/*
-	@Column(nullable = false, updatable = false)
-	private int lotNo;
-	*/
-	
 	@Column(nullable = false, updatable = false)
 	private String lotNo;
 
@@ -61,8 +56,8 @@ public class ClothIdentifier {
 	private String shipReason;
 
 	private boolean isOutStock = false;
-
-//	private boolean isHandled = false;
+	
+	private String firstInStockAt;
 
 	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
 	@JsonIgnore
@@ -72,13 +67,8 @@ public class ClothIdentifier {
 	@JsonIgnore
 	private LocalDateTime createdAt;
 
-//	private Date shipedAt;
-
-//	private Date waitShrinkedAt;
-
+	@JsonIgnore
 	private LocalDateTime outStockAt;
-
-//	private Date handledAt;
 
 	@JsonIgnore
 	private LocalDateTime updatedAt;
@@ -119,16 +109,6 @@ public class ClothIdentifier {
 	public void setProductNo(String productNo) {
 		this.productNo = productNo;
 	}
-
-	/*
-	public int getLotNo() {
-		return lotNo;
-	}
-
-	public void setLotNo(int lotNo) {
-		this.lotNo = lotNo;
-	}
-	*/
 	
 	public String getLotNo() {
 		return lotNo;
@@ -209,16 +189,14 @@ public class ClothIdentifier {
 	public void setOutStock(boolean isOutStock) {
 		this.isOutStock = isOutStock;
 	}
-
-	/*
-	public boolean isHandled() {
-		return isHandled;
+	
+	public String getFirstInStockAt() {
+		return firstInStockAt;
 	}
 
-	public void setHandled(boolean isHandled) {
-		this.isHandled = isHandled;
+	public void setFirstInStockAt(String firstInStockAt) {
+		this.firstInStockAt = firstInStockAt;
 	}
-	*/
 
 	public ClothInfo getClothInfo() {
 		return clothInfo;
@@ -236,24 +214,6 @@ public class ClothIdentifier {
 		this.createdAt = createdAt;
 	}
 
-	/*
-	public Date getShipedAt() {
-		return shipedAt;
-	}
-
-	public void setShipedAt(Date shipedAt) {
-		this.shipedAt = shipedAt;
-	}
-
-	public Date getWaitShrinkedAt() {
-		return waitShrinkedAt;
-	}
-
-	public void setWaitShrinkedAt(Date waitShrinkedAt) {
-		this.waitShrinkedAt = waitShrinkedAt;
-	}
-	*/
-
 	public LocalDateTime getOutStockAt() {
 		return outStockAt;
 	}
@@ -261,16 +221,6 @@ public class ClothIdentifier {
 	public void setOutStockAt(LocalDateTime outStockAt) {
 		this.outStockAt = outStockAt;
 	}
-
-	/*
-	public Date getHandledAt() {
-		return handledAt;
-	}
-
-	public void setHandledAt(Date handledAt) {
-		this.handledAt = handledAt;
-	}
-	*/
 
 	public LocalDateTime getUpdatedAt() {
 		return updatedAt;
