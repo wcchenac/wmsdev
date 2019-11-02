@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  GET_Order,
   GET_ClothInfoes,
   GET_Errors,
   SHIP_Cloth,
@@ -20,6 +21,24 @@ export const createClothInfo = (inStockRequest, history) => async dispatch => {
       payload: err.response.data
     });
   }
+};
+
+export const getInStockOrder = inStockOrderNo => async dispatch => {
+  const res = await axios.get(`/api/cloth/queryInStockOrder/${inStockOrderNo}`);
+  console.log(res);
+  dispatch({
+    type: GET_Order,
+    payload: res.data
+  });
+};
+
+export const getClothInfoesBasic = productNo => async dispatch => {
+  const res = await axios.get(`/api/cloth/queryStock/${productNo}/basic`);
+
+  dispatch({
+    type: GET_ClothInfoes,
+    payload: res.data
+  });
 };
 
 export const getClothInfoes = productNo => async dispatch => {
@@ -67,7 +86,7 @@ export const clothIndentifierIsShiped = shipRequest => async dispatch => {
   } catch (err) {
     dispatch({
       type: GET_Errors,
-      payload: err.response.data
+      payload: err.response
     });
   }
 };
@@ -87,7 +106,7 @@ export const clothIdentifierWaitToShrinkIsTrue = clothIdentifierId => async disp
   } catch (err) {
     dispatch({
       type: GET_Errors,
-      payload: err.response.data
+      payload: err.response
     });
   }
 };
@@ -103,7 +122,7 @@ export const clothIdentifierWaitToShrinkIsFalse = clothIdentifierId => async dis
   } catch (err) {
     dispatch({
       type: GET_Errors,
-      payload: err.response.data
+      payload: err.response
     });
   }
 };

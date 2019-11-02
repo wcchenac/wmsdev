@@ -1,4 +1,5 @@
 import {
+  GET_Order,
   GET_ClothInfo,
   GET_ClothInfoes,
   SHIP_Cloth,
@@ -13,6 +14,11 @@ const initialState = {
 
 export default function(state = initialState, action) {
   switch (action.type) {
+    case GET_Order:
+      return {
+        ...state,
+        clothInfoes: action.payload
+      };
     case GET_ClothInfo:
       return {
         ...state,
