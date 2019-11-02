@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { getClothInfoes } from "../../../../actions/ClothInfoAcions";
+import { getClothInfoesBasic } from "../../../../actions/ClothInfoAcions";
 import ClothInfoContainer from "./ClothInfoContainer";
 import { trackPromise } from "react-promise-tracker";
 
@@ -11,6 +11,7 @@ class QueryBoard extends Component {
     this.state = {
       isQuery: false,
       productNo: "",
+      productInfo: {},
       clothInfoes: []
     };
     this.onChange = this.onChange.bind(this);
@@ -23,13 +24,16 @@ class QueryBoard extends Component {
 
   onSubmit(e) {
     e.preventDefault();
-    trackPromise(this.props.getClothInfoes(this.state.productNo));
+    trackPromise(this.props.getClothInfoesBasic(this.state.productNo));
     this.setState({ isQuery: true });
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.clothInfo.clothInfoes !== prevProps.clothInfo.clothInfoes) {
-      this.setState({ clothInfoes: this.props.clothInfo.clothInfoes });
+      this.setState({
+        productInfo: this.props.clothInfo.clothInfoes.information,
+        clothInfoes: this.props.clothInfo.clothInfoes.result
+      });
     }
   }
 
@@ -49,20 +53,20 @@ class QueryBoard extends Component {
   }
 
   render() {
-    const { isQuery, productNo, clothInfoes } = this.state;
+    const { isQuery, productNo, productInfo, clothInfoes } = this.state;
     const { rollLength, boardLength } = this.sumTotalLength(clothInfoes);
 
     return (
       <div className="query_clothInfo">
         <div className="container">
           <div className="row">
-            <div className="col-md-10 mr-auto">
+            <div className="col-md-6">
               <form onSubmit={this.onSubmit}>
                 <div className="form-group row">
                   <label className="col-md-auto col-form-label text-center">
                     貨號查詢
                   </label>
-                  <div className="col-md-5">
+                  <div className="col-md-8">
                     <input
                       type="text"
                       name="productNo"
@@ -72,9 +76,11 @@ class QueryBoard extends Component {
                       onChange={this.onChange}
                     />
                   </div>
-                  <button type="submit" className="btn btn-primary">
-                    查詢
-                  </button>
+                  <div className="col-md-auto">
+                    <button type="submit" className="btn btn-primary">
+                      查詢
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -82,13 +88,12 @@ class QueryBoard extends Component {
               <button
                 className="btn btn-info"
                 disabled={
-                  clothInfoes.length === 0 ||
-                  productNo.toUpperCase() !== clothInfoes[0].clothIdentifier.productNo
+                  !isQuery || productNo.toUpperCase() !== productInfo.productNo
                 }
                 data-toggle="modal"
                 data-target="#picture"
               >
-                產品圖片
+                詳細資料
               </button>
               <div
                 className="modal fade"
@@ -98,10 +103,10 @@ class QueryBoard extends Component {
                 aria-labelledby="content"
                 aria-hidden="true"
               >
-                <div className="modal-dialog" role="document">
+                <div className="modal-dialog modal-lg" role="document">
                   <div className="modal-content">
                     <div className="modal-header">
-                      <h5 className="modal-title">產品圖片</h5>
+                      <h5 className="modal-title">詳細資料</h5>
                       <button
                         type="button"
                         className="close"
@@ -111,7 +116,59 @@ class QueryBoard extends Component {
                         <span aria-hidden="true">&times;</span>
                       </button>
                     </div>
-                    <div className="modal-body">Picture : {productNo}</div>
+                    <div className="modal-body">
+                      <div className="card">
+                        <div className="row no-gutters">
+                          <div className="col-md-6">
+                            {productInfo.picture === "" ? (
+                              "No image"
+                            ) : (
+                              <img
+                                src={productInfo.picture}
+                                className="img-fluid"
+                                alt="Responsive image"
+                              ></img>
+                            )}
+                          </div>
+                          <div className="col-md-6">
+                            <div className="card-body">
+                              <div className="form-group row">
+                                <label className="col-5 col-form-label text-right">
+                                  品名: 
+                                </label>
+                                <label className="col-7 col-form-label">
+                                  {productInfo.cName}
+                                </label>
+                              </div>
+                              <div className="form-group row">
+                                <label className="col-5 col-form-label text-right">
+                                  規格: 
+                                </label>
+                                <label className="col-7 col-form-label">
+                                  {productInfo.spec}
+                                </label>
+                              </div>
+                              <div className="form-group row">
+                                <label className="col-5 col-form-label text-right">
+                                  基重: 
+                                </label>
+                                <label className="col-7 col-form-label">
+                                  {productInfo.packDesc}
+                                </label>
+                              </div>
+                              <div className="form-group row">
+                                <label className="col-5 col-form-label text-right">
+                                  追加狀態: 
+                                </label>
+                                <label className="col-7 col-form-label">
+                                  {productInfo.addType}
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -146,7 +203,7 @@ class QueryBoard extends Component {
 
 QueryBoard.propTypes = {
   clothInfo: PropTypes.object.isRequired,
-  getClothInfoes: PropTypes.func.isRequired
+  getClothInfoesBasic: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -155,5 +212,5 @@ const mapStateToProps = state => ({
 
 export default connect(
   mapStateToProps,
-  { getClothInfoes }
+  { getClothInfoesBasic }
 )(QueryBoard);

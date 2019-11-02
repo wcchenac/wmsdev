@@ -12,16 +12,17 @@ class ClothInfoContainer extends Component {
     } else {
       return (
         <div className="table-wrapper-scroll-y my-custom-scrollbar">
-          <table className="table table-hover">
+          <table className="table table-sm table-hover">
             <thead className="thead-dark">
               <tr>
-                <th style={{ width: "225px" }}>貨號</th>
-                <th style={{ width: "150px" }}>批號</th>
-                <th style={{ width: "150px" }}>型態</th>
-                <th style={{ width: "150px" }}>長度</th>
-                <th style={{ width: "145px" }}>單位</th>
-                <th style={{ width: "145px" }}>色號</th>
-                <th style={{ width: "145px" }}>瑕疵</th>
+                <th style={{ width: "20%" }}>貨號</th>
+                <th style={{ width: "10%" }}>批號</th>
+                <th style={{ width: "10%" }}>型態</th>
+                <th style={{ width: "10%" }}>長度</th>
+                <th style={{ width: "10%" }}>單位</th>
+                <th style={{ width: "10%" }}>色號</th>
+                <th style={{ width: "15%" }}>瑕疵</th>
+                <th style={{ width: "15%" }}>進貨日期</th>
               </tr>
             </thead>
             <tbody>

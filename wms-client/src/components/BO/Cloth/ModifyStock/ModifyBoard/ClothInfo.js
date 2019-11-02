@@ -147,7 +147,7 @@ class ClothInfo extends Component {
       return (
         <button
           type="button"
-          className="btn btn-primary mr-2"
+          className="btn btn-secondary mr-2"
           onClick={this.onShrinkClick}
           disabled
         >
@@ -197,6 +197,11 @@ class ClothInfo extends Component {
         <td>
           <button className="btn-customize" disabled>
             {clothInfo.defect}
+          </button>
+        </td>
+        <td>
+          <button className="btn-customize" disabled>
+            {clothIdentifier.firstInStockAt}
           </button>
         </td>
         <td>
