@@ -6,7 +6,9 @@ import SearchBoard from "./SearchBoard";
 import {
   getWaitHandleList,
   getWaitHandleListWithInterval,
-  updateOutStockRequests
+  updateOutStockRequests,
+  clothIndentifierIsNotShiped,
+  deleteOutStockRequest
 } from "../../../../actions/ClothInfoAcions";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -14,6 +16,7 @@ import { trackPromise } from "react-promise-tracker";
 import { copy } from "../../../../utilities/DeepCopy";
 
 const equal = require("fast-deep-equal");
+const refreshTime = 1000 * 60 * 10;
 
 class OutStockRequestList extends Component {
   constructor() {
@@ -36,9 +39,17 @@ class OutStockRequestList extends Component {
     this.handleUserSelection = this.handleUserSelection.bind(this);
     this.handleUserSelectAll = this.handleUserSelectAll.bind(this);
     this.handleUserUnselectAll = this.handleUserUnselectAll.bind(this);
+    this.handleRollBackShipStatus = this.handleRollBackShipStatus.bind(this);
+    this.handleDeleteOutStockRequest = this.handleDeleteOutStockRequest.bind(
+      this
+    );
   }
 
   getInitialState() {
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+    }
+
     this.setState({
       queryResult: {},
       userList: [],
@@ -66,7 +77,13 @@ class OutStockRequestList extends Component {
   }
 
   componentDidMount() {
-    trackPromise(this.props.getWaitHandleList());
+    this.apiCall = setInterval(() => {
+      trackPromise(this.props.getWaitHandleList());
+    }, refreshTime);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.apiCall);
   }
 
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -136,9 +153,9 @@ class OutStockRequestList extends Component {
   }
 
   handleSubmitClick(outStockUpdateRequest) {
-    // TODO: update selected items and download file
     this.props.updateOutStockRequests(outStockUpdateRequest);
-    console.log(outStockUpdateRequest);
+
+    this.timer = setTimeout(this.getInitialState, 1000);
   }
 
   handleUserSelectAll() {
@@ -179,6 +196,14 @@ class OutStockRequestList extends Component {
     }
 
     return false;
+  }
+
+  handleRollBackShipStatus(id) {
+    this.props.clothIndentifierIsNotShiped(id);
+  }
+
+  handleDeleteOutStockRequest(id) {
+    this.props.deleteOutStockRequest(id);
   }
 
   render() {
@@ -291,6 +316,9 @@ class OutStockRequestList extends Component {
             queryResult={queryResult}
             selectedUserList={selectedUserList}
             handleSubmitClick={this.handleSubmitClick}
+            cancelShip={this.handleRollBackShipStatus}
+            deleteOutStock={this.handleDeleteOutStockRequest}
+            initialize={this.getInitialState}
           />
         </div>
       </div>
@@ -302,12 +330,22 @@ OutStockRequestList.propTypes = {
   queryResult: PropTypes.object.isRequired,
   getWaitHandleList: PropTypes.func.isRequired,
   getWaitHandleListWithInterval: PropTypes.func.isRequired,
-  updateOutStockRequests: PropTypes.func.isRequired
+  updateOutStockRequests: PropTypes.func.isRequired,
+  clothIndentifierIsNotShiped: PropTypes.func.isRequired,
+  deleteOutStockRequest: PropTypes.func.isRequired
 };
 
-const mapStateToProps = state => ({ queryResult: state.outStockRequests });
+const mapStateToProps = state => ({
+  queryResult: state.outStockRequests
+});
 
 export default connect(
   mapStateToProps,
-  { getWaitHandleList, getWaitHandleListWithInterval, updateOutStockRequests }
+  {
+    getWaitHandleList,
+    getWaitHandleListWithInterval,
+    updateOutStockRequests,
+    clothIndentifierIsNotShiped,
+    deleteOutStockRequest
+  }
 )(OutStockRequestList);

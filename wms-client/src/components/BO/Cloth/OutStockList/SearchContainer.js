@@ -86,7 +86,7 @@ class SearchContainer extends PureComponent {
         headerCheckBoxChecked: defaultCheckedAlgorithm(toBeSubmit)
       };
     }
-    
+
     if (nextProps.toBeSubmit === undefined) {
       return null;
     } else if (!equal(prevState.toBeSubmit, nextProps.toBeSubmit)) {
@@ -143,9 +143,10 @@ class SearchContainer extends PureComponent {
                   <th style={{ width: "8%" }}>型態</th>
                   <th style={{ width: "13%" }}>長度</th>
                   <th style={{ width: "8%" }}>單位</th>
-                  <th style={{ width: "18%" }}>出庫原因</th>
-                  <th style={{ width: "18%" }}>開單人員</th>
+                  <th style={{ width: "17%" }}>出庫原因</th>
+                  <th style={{ width: "13%" }}>開單人員</th>
                   <th style={{ width: "15%" }}>倉別</th>
+                  <th style={{ width: "6%" }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -158,6 +159,9 @@ class SearchContainer extends PureComponent {
                     }
                     onInfoCheckBoxChange={this.onInfoCheckBoxChange}
                     onInfoWHChange={this.onInfoWHChange}
+                    cancelShip={this.props.cancelShip}
+                    deleteOutStock={this.props.deleteOutStock}
+                    initialize={this.props.initialize}
                   />
                 ))}
               </tbody>
