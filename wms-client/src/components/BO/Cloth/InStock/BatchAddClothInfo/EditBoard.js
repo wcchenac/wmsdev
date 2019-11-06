@@ -18,7 +18,7 @@ class EditBoard extends PureComponent {
       filterSelectedListLength === 0 &&
       filterSubmittedListLength !== 0
     ) {
-      this.timer = setTimeout(this.props.getInitialize.bind(this), 3000);
+      this.timer = setTimeout(this.props.getInitialize, 3000);
 
       return (
         <div className="row justify-content-md-center">
@@ -34,11 +34,7 @@ class EditBoard extends PureComponent {
       return (
         <div>
           <nav>
-            <div
-              className="nav nav-tabs"
-              id="nav-tab"
-              role="tablist"
-            >
+            <div className="nav nav-tabs" id="nav-tab" role="tablist">
               {filterSelectedList.map((object, index) => {
                 return (
                   <a
@@ -70,6 +66,7 @@ class EditBoard extends PureComponent {
                 index={object.index}
                 inStockOrderNo={inStockOrderNo}
                 productNo={object.productNo}
+                waitHandleStatus={this.props.waitHandleStatus[object.productNo]}
                 handleInStockRequestSubmit={
                   this.props.handleInStockRequestSubmit
                 }
@@ -86,12 +83,13 @@ class EditBoard extends PureComponent {
       object => object.isSubmitted === true
     );
     let content = this.contentAlgorithm(
-      this.props.selectedProductNoList, this.props.inStockOrderNo
+      this.props.selectedProductNoList,
+      this.props.inStockOrderNo
     );
 
     return (
       <div>
-        <div className="row justify-content-between">
+        <div className="row">
           <button
             type="button"
             className="btn btn-primary"

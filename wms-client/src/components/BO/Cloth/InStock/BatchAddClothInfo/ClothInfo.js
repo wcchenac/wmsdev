@@ -2,7 +2,11 @@ import React, { Component } from "react";
 import classnames from "classnames";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
-import { ColorOptions, DefectOptions } from "../../../../../enums/Enums";
+import {
+  ColorOptions,
+  DefectOptions,
+  unitLlist
+} from "../../../../../enums/Enums";
 
 class ClothInfo extends Component {
   constructor(props) {
@@ -22,12 +26,11 @@ class ClothInfo extends Component {
   render() {
     const { errors, clothInfo } = this.props;
     const animatedComponents = makeAnimated();
-    let colorOptions = Object.values(ColorOptions);
 
     return (
       <tr>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className="form-control"
@@ -38,7 +41,7 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className={classnames("form-control", {
@@ -55,13 +58,14 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <select
               className="custom-select"
               name="type"
               value={clothInfo.type}
               onChange={this.onChange}
             >
+              <option value="">請選擇...</option>
               <option value="整支">整支</option>
               <option value="板卷">板卷</option>
               <option value="雜項">雜項</option>
@@ -69,7 +73,7 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className={classnames("form-control", {
@@ -85,27 +89,30 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <select
               className="custom-select"
               name="unit"
               value={clothInfo.unit}
               onChange={this.onChange}
             >
-              <option value="碼">碼</option>
-              <option value="尺">尺</option>
+              {unitLlist.map((unit, index) => (
+                <option key={index} value={unit}>
+                  {unit}
+                </option>
+              ))}
             </select>
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <select
               className="custom-select"
               name="color"
               value={clothInfo.color}
               onChange={this.onChange}
             >
-              {colorOptions.map((color, index) => (
+              {ColorOptions.map((color, index) => (
                 <option key={index} value={color}>
                   {color}
                 </option>
@@ -125,7 +132,7 @@ class ClothInfo extends Component {
           />
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className="form-control"
