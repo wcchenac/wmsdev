@@ -8,8 +8,10 @@ import {
   createOutStockRequest
 } from "../../../../../actions/ClothInfoAcions";
 import ClothInfoContainer from "./ClothInfoContainer";
-import OutStockBoard from "./OutStockBoard";
+import OutStockModal from "./OutStockModal";
 import { trackPromise } from "react-promise-tracker";
+
+const equal = require("fast-deep-equal");
 
 class ModifyBoard extends Component {
   constructor() {
@@ -43,7 +45,7 @@ class ModifyBoard extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.queryResult !== prevProps.queryResult) {
+    if (!equal(this.props.queryResult, prevProps.queryResult)) {
       this.setState({
         productInfo: this.props.queryResult.clothInfoes.information,
         clothInfoes: this.props.queryResult.clothInfoes.result
@@ -191,20 +193,22 @@ class ModifyBoard extends Component {
                               </div>
                               <div className="form-group row">
                                 <label className="col-5 col-form-label text-right">
-                                  成本:
-                                </label>
-                                <label className="col-7 col-form-label">
-                                  成本
-                                </label>
-                              </div>
-                              <div className="form-group row">
-                                <label className="col-5 col-form-label text-right">
                                   價格異動:
                                 </label>
                                 <label className="col-7 col-form-label">
                                   {productInfo.descrip}
                                 </label>
                               </div>
+                              {/* TODO: investigate original working function
+                              <div className="form-group row">
+                                <label className="col-5 col-form-label text-right">
+                                  成本:
+                                </label>
+                                <label className="col-7 col-form-label">
+                                  成本
+                                </label>
+                              </div>
+                                */}
                             </div>
                           </div>
                         </div>
@@ -226,7 +230,7 @@ class ModifyBoard extends Component {
                 拉貨要求
               </button>
               {productNo.toUpperCase() !== productInfo.productNo ? null : (
-                <OutStockBoard
+                <OutStockModal
                   productNo={productNo.toUpperCase()}
                   handleOutStockRequestSubmit={this.handleOutStockRequestSubmit}
                 />

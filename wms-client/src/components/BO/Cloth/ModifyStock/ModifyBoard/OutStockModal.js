@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import classnames from "classnames";
 import { copy } from "../../../../../utilities/DeepCopy";
 
-class OutStockBoard extends Component {
+class OutStockModal extends Component {
   constructor(props) {
     super(props);
     this.state = this.initialState();
@@ -248,4 +248,4 @@ class OutStockBoard extends Component {
   }
 }
 
-export default OutStockBoard;
+export default OutStockModal;

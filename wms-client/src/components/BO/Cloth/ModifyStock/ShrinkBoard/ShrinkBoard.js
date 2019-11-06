@@ -8,6 +8,7 @@ import {
 } from "../../../../../actions/ClothInfoAcions";
 import ShrinkList from "./ShrinkList";
 import ModifyRequestBoard from "./ModifyRequestBoard";
+import { trackPromise } from "react-promise-tracker";
 
 class ShrinkBoard extends Component {
   constructor() {
@@ -42,6 +43,8 @@ class ShrinkBoard extends Component {
       typeExchange: false,
       sameTypeModify: false
     });
+
+    trackPromise(this.props.getShrinkList());
   }
 
   handleGoBack() {
