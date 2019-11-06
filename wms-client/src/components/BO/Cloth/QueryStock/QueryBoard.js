@@ -126,7 +126,7 @@ class QueryBoard extends Component {
                               <img
                                 src={productInfo.picture}
                                 className="img-fluid"
-                                alt="Responsive image"
+                                alt=""
                               ></img>
                             )}
                           </div>
@@ -134,7 +134,7 @@ class QueryBoard extends Component {
                             <div className="card-body">
                               <div className="form-group row">
                                 <label className="col-5 col-form-label text-right">
-                                  品名: 
+                                  品名:
                                 </label>
                                 <label className="col-7 col-form-label">
                                   {productInfo.cName}
@@ -142,7 +142,7 @@ class QueryBoard extends Component {
                               </div>
                               <div className="form-group row">
                                 <label className="col-5 col-form-label text-right">
-                                  規格: 
+                                  規格:
                                 </label>
                                 <label className="col-7 col-form-label">
                                   {productInfo.spec}
@@ -150,7 +150,7 @@ class QueryBoard extends Component {
                               </div>
                               <div className="form-group row">
                                 <label className="col-5 col-form-label text-right">
-                                  基重: 
+                                  基重:
                                 </label>
                                 <label className="col-7 col-form-label">
                                   {productInfo.packDesc}
@@ -158,7 +158,7 @@ class QueryBoard extends Component {
                               </div>
                               <div className="form-group row">
                                 <label className="col-5 col-form-label text-right">
-                                  追加狀態: 
+                                  追加狀態:
                                 </label>
                                 <label className="col-7 col-form-label">
                                   {productInfo.addType}
@@ -181,14 +181,28 @@ class QueryBoard extends Component {
                 <div className="col-3 text-center">
                   <h5>卷倉總和</h5>
                 </div>
-                <div className="col-3">
+                <div className="col-2">
                   <h5>{rollLength}</h5>
+                </div>
+                <div className="col-1">
+                  <h5>
+                    {clothInfoes.length === 0
+                      ? "unit"
+                      : clothInfoes[0].clothIdentifier.unit}
+                  </h5>
                 </div>
                 <div className="col-3 text-center">
                   <h5>板倉總和</h5>
                 </div>
-                <div className="col-3">
+                <div className="col-2">
                   <h5>{boardLength}</h5>
+                </div>
+                <div className="col-1">
+                  <h5>
+                    {clothInfoes.length === 0
+                      ? "unit"
+                      : clothInfoes[0].clothIdentifier.unit}
+                  </h5>
                 </div>
               </div>
               <hr />
