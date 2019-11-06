@@ -13,4 +13,6 @@ public interface OutStockRequestRepo extends JpaRepository<OutStockRequest, Long
 
 	public Optional<OutStockRequest> deleteByClothIdentifierId(Long clothIdentifierId);
 	
+	public Optional<OutStockRequest> findByClothIdentifierIdAndIsDeleted(Long clothIdentifierId, boolean deleted);
+	
 }

@@ -1,6 +1,5 @@
 package com.wmstool.wmstool.controllers;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,12 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wmstool.wmstool.models.payloads.CreateFileRequest;
 import com.wmstool.wmstool.services.FileService;
 
 @RestController
@@ -29,31 +25,43 @@ public class FileDownloadController {
 
 	private static final String EXTERNAL_FILE_PATH = "/Users/weichihchen/Desktop/Temp/";
 
+	private static final String SubFolder_OutStockList = "OutStockList/";
+
 	@Autowired
 	private ServletContext servletContext;
 
 	@Autowired
 	private FileService fileService;
 
-	@GetMapping("/downloadFile/{filename}")
-	public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable("filename") String filename)
-			throws IOException {
-		MediaType mediaType = getMediaTypeByFilename(this.servletContext, filename);
+	// TODO: Wait modify for shortage
+//	@PostMapping("/createFile")
+//	public ResponseEntity<String> createFile(@RequestBody CreateFileRequest request) throws IOException {
+//		return new ResponseEntity<String>(fileService.createFile(request), HttpStatus.CREATED);
+//	}
 
-		Path path = Paths.get(EXTERNAL_FILE_PATH + filename);
-		byte[] data = Files.readAllBytes(path);
-		ByteArrayResource resource = new ByteArrayResource(data);
+	
+	@GetMapping("/outStockList/{fileName}")
+	public ResponseEntity<?> downloadOutStockList(@PathVariable String fileName) {
+		try {
+			MediaType mediaType = getMediaTypeByFilename(this.servletContext, fileName);
+			Path path = Paths.get(EXTERNAL_FILE_PATH + SubFolder_OutStockList + fileName);
+			byte[] data = Files.readAllBytes(path);
+			ByteArrayResource resource = new ByteArrayResource(data);
 
-		return ResponseEntity.ok()
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + path.getFileName().toString())
-				.contentType(mediaType).contentLength(data.length).body(resource);
+			return ResponseEntity.ok()
+					.header(HttpHeaders.CONTENT_DISPOSITION,
+							String.format("attachment; filename=\"%s\"", path.getFileName().toString()))
+					.contentType(mediaType).contentLength(data.length).body(resource);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
 	}
 
-	@PostMapping("/createFile")
-	public ResponseEntity<String> createFile(@RequestBody CreateFileRequest request) throws IOException {
-		return new ResponseEntity<String>(fileService.createFile(request), HttpStatus.CREATED);
-	}
-
+	/**
+	 * Helper method to specify media type
+	 */
 	private static MediaType getMediaTypeByFilename(ServletContext servletContext, String filename) {
 		String mimeType = servletContext.getMimeType(filename);
 		try {

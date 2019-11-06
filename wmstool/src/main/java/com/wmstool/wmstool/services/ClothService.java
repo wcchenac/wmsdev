@@ -1,5 +1,6 @@
 package com.wmstool.wmstool.services;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,6 +51,7 @@ import com.wmstool.wmstool.repositories.ClothInfoRepository;
 import com.wmstool.wmstool.repositories.HistoryRepository;
 import com.wmstool.wmstool.repositories.InStockOrderRepo;
 import com.wmstool.wmstool.repositories.OutStockRequestRepo;
+import com.wmstool.wmstool.utilities.OutStockRequestExcelHelper;
 
 @Service
 @Transactional
@@ -95,7 +97,7 @@ public class ClothService {
 	 */
 	private Map<String, Map<String, Map<String, String>>> getInStockOrderContent(String orderNo) {
 		EntityManager em = emf.createEntityManager();
-		String inStockSQLStatement = "SELECT PROD, QTY, UNIT, GWN FROM dbo.STKPRHS2 where CODE= ?1";
+		String inStockSQLStatement = "SELECT PROD, QTY, UNIT, GWN, BANQTY FROM dbo.STKPRHS2 where CODE= ?1";
 
 		Query q = em.createNativeQuery(inStockSQLStatement);
 		q.setParameter(1, orderNo);
@@ -103,14 +105,16 @@ public class ClothService {
 		List<InStockOrderRecord> orderRecordList = new ArrayList<>();
 
 		// The format of q.getResultList() is as below:
-		// Row n : PROD, QTY, UNIT, GWN
+		// Row n : PROD, QTY, UNIT, GWN, BANQTY
 		for (Object row : q.getResultList()) {
 			Object[] cell = (Object[]) row;
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
 			orderRecord.setProductNo(cell[0].toString());
-			orderRecord.setLength(cell[1].toString());
+			Double sum = Double.valueOf(cell[1].toString()) + Double.valueOf(cell[4].toString());
+			orderRecord.setLength(String.format("%.1f", sum));
 			orderRecord.setUnit(unitMappingHelper(cell[2].toString()));
 			orderRecord.setType(typeMappingHelper(cell[3].toString()));
+
 			orderRecordList.add(orderRecord);
 		}
 
@@ -128,34 +132,37 @@ public class ClothService {
 		if (orderRecordList.isEmpty()) {
 			return productNo_type_properties;
 		}
-		// TODO: filter type = ""
-		for (InStockOrderRecord content : orderRecordList) {
-			// if product is not exist, create sub Map Objects
-			if (!productNo_type_properties.containsKey(content.getProductNo())) {
-				Map<String, Map<String, String>> type_properties = new HashMap<>();
-				Map<String, String> properties = new HashMap<>();
 
-				properties.put("length", content.getLength());
-				properties.put("unit", content.getUnit());
-				type_properties.put(content.getType(), properties);
-				productNo_type_properties.put(content.getProductNo(), type_properties);
-			} else {
-				Map<String, Map<String, String>> temp_type_properties = productNo_type_properties
-						.get(content.getProductNo());
-				// if productNo exist but type no exist, create sub Map object
-				if (!temp_type_properties.containsKey(content.getType())) {
+		for (InStockOrderRecord content : orderRecordList) {
+			// filter type = "" which is not necessary
+			if (!content.getType().equals("")) {
+				// if product is not exist, create sub Map Objects
+				if (!productNo_type_properties.containsKey(content.getProductNo())) {
+					Map<String, Map<String, String>> type_properties = new HashMap<>();
 					Map<String, String> properties = new HashMap<>();
 
 					properties.put("length", content.getLength());
 					properties.put("unit", content.getUnit());
-
-					temp_type_properties.put(content.getType(), properties);
+					type_properties.put(content.getType(), properties);
+					productNo_type_properties.put(content.getProductNo(), type_properties);
 				} else {
-					// if productNo exist and type exist, sum
-					Map<String, String> tempProperties = productNo_type_properties.get(content.getProductNo())
-							.get(content.getType());
-					Double sum = Double.valueOf(tempProperties.get("length")) + Double.valueOf(content.getLength());
-					tempProperties.put("length", sum.toString());
+					Map<String, Map<String, String>> temp_type_properties = productNo_type_properties
+							.get(content.getProductNo());
+					// if productNo exist but type no exist, create sub Map object
+					if (!temp_type_properties.containsKey(content.getType())) {
+						Map<String, String> properties = new HashMap<>();
+
+						properties.put("length", content.getLength());
+						properties.put("unit", content.getUnit());
+
+						temp_type_properties.put(content.getType(), properties);
+					} else {
+						// if productNo exist and type exist, sum
+						Map<String, String> tempProperties = productNo_type_properties.get(content.getProductNo())
+								.get(content.getType());
+						Double sum = Double.valueOf(tempProperties.get("length")) + Double.valueOf(content.getLength());
+						tempProperties.put("length", String.format("%.1f", sum));
+					}
 				}
 			}
 		}
@@ -226,7 +233,8 @@ public class ClothService {
 		}.getType();
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = gson.fromJson(mapString, typeOfMap);
 
-		// when prevStatus map has same productNo and type as waitHandleStatus map, the calculation arises 
+		// when prevStatus map has same productNo and type as waitHandleStatus map, the
+		// calculation arises
 		waitHandleStatus.keySet().stream().forEach(productNo -> {
 			waitHandleStatus.get(productNo).keySet().stream().forEach(type -> {
 				if (prevStatus.get(productNo) != null && prevStatus.get(productNo).get(type) != null) {
@@ -284,7 +292,6 @@ public class ClothService {
 	/**
 	 * Save inStockRequest in List as ClothInfo/InStockOrderRecord to first db
 	 */
-	// re-factor for LotNo
 	// TODO: 1) lotNo can be null
 	public List<ClothInfo> createClothInfoes(List<InStockRequest> inStockRequests) {
 		List<ClothInfo> resultList = new ArrayList<>();
@@ -325,8 +332,10 @@ public class ClothService {
 
 			ClothIdentifier resIdentifier = clothIdentifierRepo.save(clothIdentifier);
 
-			// save to orderRecord repository
-			inStockOrderRepo.save(new InStockOrderRecord(resIdentifier, inStockRequest.getOrderNo()));
+			// only new cloth need to save to orderRecord repository
+			if (condition.equals("new")) {
+				inStockOrderRepo.save(new InStockOrderRecord(resIdentifier, inStockRequest.getOrderNo()));
+			}
 
 			// history function code start
 			History newHistory = new History();
@@ -372,9 +381,9 @@ public class ClothService {
 	}
 
 	/**
-	 * Return a response containing 'less' information for certain productNo fetching
-	 * from second db and a list of ClothInfoes with certain productNo fetching from
-	 * first db
+	 * Return a response containing 'less' information for certain productNo
+	 * fetching from second db and a list of ClothInfoes with certain productNo
+	 * fetching from first db
 	 */
 	public QueryProductNoResponse findBasicClothInfoByProductNo(String productNo) {
 		return new QueryProductNoResponse(getClothInfoByProductNo(productNo), getBasicProductNoInfo(productNo));
@@ -511,32 +520,39 @@ public class ClothService {
 		return addType;
 	}
 
-	// Test
-	public void shrinkCloth(ShrinkStockRequest shrinkStockRequest) {
-		// find old clothIdentifier, and set to not exist
-		ClothIdentifier res = clothIdentifierRepo.findById(shrinkStockRequest.getOldClothIdentifierId()).get();
+	/**
+	 * Using given information containing in ShipRequest to mark certain
+	 * clothIdentifier ship status is true and save a record to
+	 * outStockReqeust repository
+	 */
+	public void letClothIdentifierisShiped(ShipRequest shipRequest) {
+		ClothIdentifier res = clothIdentifierRepo.findById(shipRequest.getClothIdentifierId()).get();
+		ClothInfo resInfo = clothInfoRepository.findByClothIdentifierId(res.getId()).get();
+		OutStockRequest outStockRequest = new OutStockRequest(res.getProductNo(), res.getLotNo(), res.getType(),
+				res.getLength(), res.getUnit(), shipRequest.getReason(), res.getId());
 
 		res.setExist(false);
+		res.setShip(true);
+		res.setShipReason(shipRequest.getReason());
+		res.setOutStock(true);
+		res.setOutStockAt(LocalDateTime.now());
 
-		// then batch create new cloth
-		createClothInfoes(shrinkStockRequest.getInStockRequests());
-	}
-	// Test
-
-	// To be deprecated
-	public void letClothIdentifierNotExist(long clothIdentifierId) {
-		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
-
-		res.setExist(false);
-
+		outStockRequest.setColor(resInfo.getColor());
+		outStockRequest.setDefect(resInfo.getDefect());
+		outStockRequest.setOutStockType(0);
+		outStockRequestRepo.save(outStockRequest);
 //		clothIdentifierRepo.save(res);
 	}
-
+	
+	/**
+	 * Cancel certain clothIdentifier ship process and update the corresponding
+	 * outStockRequest record as deleted
+	 */
 	public void letClothIdentifierisNotShiped(long clothIdentifierId) {
 		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
 
-		// TODO: if rollback, delete data in OutStockRequest
-		outStockRequestRepo.deleteByClothIdentifierId(clothIdentifierId);
+		// if roll-back, set delete status in OutStockRequest
+		outStockRequestRepo.findByClothIdentifierIdAndIsDeleted(clothIdentifierId, false).get().setDeleted(true);
 
 		res.setExist(true);
 		res.setShip(false);
@@ -547,21 +563,9 @@ public class ClothService {
 //		clothIdentifierRepo.save(res);
 	}
 
-	public void letClothIdentifierisShiped(ShipRequest shipRequest) {
-		ClothIdentifier res = clothIdentifierRepo.findById(shipRequest.getClothIdentifierId()).get();
-		OutStockRequest outStockRequest = new OutStockRequest(res.getProductNo(), res.getType(), res.getLength(),
-				res.getUnit(), shipRequest.getReason(), res.getId());
-
-		res.setExist(false);
-		res.setShip(true);
-		res.setShipReason(shipRequest.getReason());
-		res.setOutStock(true);
-		res.setOutStockAt(LocalDateTime.now());
-
-		outStockRequestRepo.save(outStockRequest);
-//		clothIdentifierRepo.save(res);
-	}
-
+	/**
+	 * Fetch a list of ClothInfo assigned to shrinking process
+	 */
 	public List<ClothInfo> getWaitToShrinkList() {
 		List<ClothInfo> result = new ArrayList<>();
 		List<ClothIdentifier> res = clothIdentifierRepo.findByWaitToShrinkAndIsExist(true, true)
@@ -575,26 +579,38 @@ public class ClothService {
 		return result;
 	}
 
+	/**
+	 * Mark certain clothIdentifier waiting for shrinking process and save a record
+	 * to outStockReqeust repository
+	 */
 	public String letClothIdentifierWaitToShrinkIsTrue(long clothIdentifierId) {
 		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
-		OutStockRequest outStockRequest = new OutStockRequest(res.getProductNo(), res.getType(), res.getLength(),
-				res.getUnit(), "減肥", res.getId());
+		ClothInfo resInfo = clothInfoRepository.findByClothIdentifierId(res.getId()).get();
+		OutStockRequest outStockRequest = new OutStockRequest(res.getProductNo(), res.getLotNo(), res.getType(),
+				res.getLength(), res.getUnit(), "減肥", res.getId());
 
 		res.setWaitToShrink(true);
 		res.setOutStock(true);
 		res.setOutStockAt(LocalDateTime.now());
 
+		outStockRequest.setColor(resInfo.getColor());
+		outStockRequest.setDefect(resInfo.getDefect());
+		outStockRequest.setOutStockType(1);
 		outStockRequestRepo.save(outStockRequest);
 
 		return res.getProductNo();
 //		return clothIdentifierRepo.save(res).getProductNo();
 	}
 
+	/**
+	 * Cancel certain clothIdentifier shrinking process and update the corresponding
+	 * outStockRequest record as deleted
+	 */
 	public void letClothIdentifierWaitToShrinkIsFalse(long clothIdentifierId) {
 		ClothIdentifier res = clothIdentifierRepo.findById(clothIdentifierId).get();
 
-		// if rollback, delete data in OutStockRequest
-		outStockRequestRepo.deleteByClothIdentifierId(clothIdentifierId);
+		// if roll-back, set delete status in OutStockRequest
+		outStockRequestRepo.findByClothIdentifierIdAndIsDeleted(clothIdentifierId, false).get().setDeleted(true);
 
 		res.setWaitToShrink(false);
 		res.setOutStock(false);
@@ -603,10 +619,39 @@ public class ClothService {
 //		clothIdentifierRepo.save(res);
 	}
 
-	public OutStockRequest createOutStockRequest(OutStockRequest outStockRequest) {
-		return outStockRequestRepo.save(outStockRequest);
+	/**
+	 * Using given information containing in ShrinkStockRequest to update old
+	 * ClothIdentifier and create new ClothIdentifier/ClothInfo
+	 */
+	public void shrinkCloth(ShrinkStockRequest shrinkStockRequest) {
+		// find old clothIdentifier, and set to not exist
+		ClothIdentifier res = clothIdentifierRepo.findById(shrinkStockRequest.getOldClothIdentifierId()).get();
+
+		res.setExist(false);
+
+		// then batch create new cloth
+		createClothInfoes(shrinkStockRequest.getInStockRequests());
 	}
 
+	/**
+	 * Save a special outStockRequest to repository
+	 */
+	public OutStockRequest createOutStockRequest(OutStockRequest outStockRequest) {
+		outStockRequest.setOutStockType(2);
+
+		return outStockRequestRepo.save(outStockRequest);
+	}
+	
+	// TODO: special outStockRequest delete method
+	public void deleteOutStockRequest (long outStockRequestId) {
+		outStockRequestRepo.findById(outStockRequestId).get().setDeleted(true);
+	}
+	
+	/**
+	 * Return a response containing a list of waitHandle records created at 'today'
+	 * in outStockRequest repository and a list of create users collected in
+	 * previous list
+	 */
 	public HandleListResponse getOutStockWaitHandleList() {
 		LocalDateTime today = LocalDate.now().atStartOfDay();
 
@@ -616,6 +661,9 @@ public class ClothService {
 			public Predicate toPredicate(Root<OutStockRequest> root, CriteriaQuery<?> query,
 					CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicatesList = new ArrayList<>();
+
+				Predicate deletePredicate = criteriaBuilder.isFalse(root.get("isDeleted"));
+				predicatesList.add(deletePredicate);
 
 				if (today != null) {
 					Predicate startFromPredicate = criteriaBuilder.greaterThan(root.get("createdAt"), today);
@@ -654,6 +702,11 @@ public class ClothService {
 		return res;
 	}
 
+	/**
+	 * Return a response containing a list of waitHandle records created between
+	 * 'start' and 'end' in outStockRequest repository and a list of create users
+	 * collected in previous list
+	 */
 	public HandleListResponse getOutStockWaitHandleListWithTimeInterval(String start, String end) {
 		LocalDateTime startDateTime = LocalDateTime.parse(start, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
 		LocalDateTime endDateTime = LocalDateTime.parse(end, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
@@ -664,6 +717,9 @@ public class ClothService {
 			public Predicate toPredicate(Root<OutStockRequest> root, CriteriaQuery<?> query,
 					CriteriaBuilder criteriaBuilder) {
 				List<Predicate> predicatesList = new ArrayList<>();
+
+				Predicate deletePredicate = criteriaBuilder.isFalse(root.get("isDeleted"));
+				predicatesList.add(deletePredicate);
 
 				if (startDateTime != null && endDateTime != null) {
 					Predicate startFromPredicate = criteriaBuilder.between(root.get("createdAt"), startDateTime,
@@ -719,14 +775,33 @@ public class ClothService {
 		return res;
 	}
 
-	public void updateOutStockRequest(OutStockUpdateRequest outStockUpdateRequest) {
+	/**
+	 * Update outStockRequest using given outStockUpdateRequest, and create excel at
+	 * server for user download
+	 */
+	public void updateOutStockRequest(OutStockUpdateRequest outStockUpdateRequest) throws IOException {
 		Map<Long, String> updateRequest = outStockUpdateRequest.getOutStockUpdate();
+		List<OutStockRequest> tempList = new ArrayList<>();
 
+		// Create a excel for this updateRequest for later modification
+		String fileName = OutStockRequestExcelHelper.createNewFile();
+
+		// Use id stored in update request as key to update database
 		updateRequest.keySet().forEach(id -> {
 			OutStockRequest res = outStockRequestRepo.findById(id).get();
 			res.setRequestFrom(updateRequest.get(id));
 			res.setHandled(true);
+			res.setFileName(fileName);
+			tempList.add(res);
 		});
+
+		// write res information into excel
+		try {
+			OutStockRequestExcelHelper.modifyExisting(tempList, fileName);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 }
