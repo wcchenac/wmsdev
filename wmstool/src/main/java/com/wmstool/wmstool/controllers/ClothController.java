@@ -22,6 +22,8 @@ import com.wmstool.wmstool.models.OutStockRequest;
 import com.wmstool.wmstool.models.payloads.HandleListResponse;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
 import com.wmstool.wmstool.models.payloads.OutStockUpdateRequest;
+import com.wmstool.wmstool.models.payloads.QueryOrderResponse;
+import com.wmstool.wmstool.models.payloads.QueryProductNoResponse;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.services.ClothService;
@@ -58,6 +60,20 @@ public class ClothController {
 	*/
 
 	// Test
+	@GetMapping("/queryInStockOrder/{inStockOrderNo}")
+	public ResponseEntity<?> getInStockOrder(@PathVariable String inStockOrderNo) {
+		return new ResponseEntity<QueryOrderResponse> (clothService.queryInStockOrder(inStockOrderNo), HttpStatus.OK);
+	}
+	// Test
+	
+	// Test
+//	@GetMapping("/queryAssembleStockOrder/{assembleOrderNo}")
+//	public ResponseEntity<?> getAssembleOrderContents(@PathVariable String assembleOrderNo) {
+//		return clothService.getAssembleOrderContent(assembleOrderNo);
+//	}
+	// Test
+	
+	// Test
 	@PostMapping("/inStocks")
 	public ResponseEntity<?> createClothInfoes(@RequestBody List<@Valid InStockRequest> inStockRequests) {
 //		List<ClothInfo> result = clothService.createClothInfoes(inStockRequests);
@@ -67,11 +83,26 @@ public class ClothController {
 	}
 	// Test
 
-	@GetMapping("/queryStock/{productNo}")
-	public List<ClothInfo> getClothInfoList(@PathVariable String productNo) {
-		return clothService.findClothInfoByProductNo(productNo);
-	}
+	
+//	@GetMapping("/queryStock/{productNo}")
+//	public List<ClothInfo> getClothInfoList(@PathVariable String productNo) {
+//		return clothService.findClothInfoByProductNo(productNo);
+//	}
 
+	// Test
+	@GetMapping("/queryStock/{productNo}/basic")
+	public ResponseEntity<?> getClothInfoListBasic(@PathVariable String productNo) {
+		return new ResponseEntity<QueryProductNoResponse>(clothService.findBasicClothInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
+	}
+	// Test
+	
+	// Test
+	@GetMapping("/queryStock/{productNo}")
+	public ResponseEntity<?> getClothInfoList(@PathVariable String productNo) {
+		return new ResponseEntity<QueryProductNoResponse>(clothService.findClothInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
+	}
+	// Test
+	
 	
 	// Test
 	@PostMapping("/shrinkStock")
@@ -121,18 +152,6 @@ public class ClothController {
 		
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
-
-	/*
-	@GetMapping("/queryStock/waitHandleList")
-	public ResponseEntity<?> getOutStockWaitHandleList() {
-		Calendar cal = Calendar.getInstance();
-		cal.clear();
-		cal.set(2019, 8, 26);
-
-		return new ResponseEntity<List<ClothIdentifier>>(clothService.getOutStockWaitHandleList(true, cal.getTime()),
-				HttpStatus.OK);
-	}
-	*/
 	
 	@GetMapping("/queryStock/waitHandleList/basic")
 	public ResponseEntity<?> getOutStockWaitHandleList() {
@@ -155,4 +174,5 @@ public class ClothController {
 		
 		return new ResponseEntity<>(HttpStatus.ACCEPTED);
 	}
+	
 }

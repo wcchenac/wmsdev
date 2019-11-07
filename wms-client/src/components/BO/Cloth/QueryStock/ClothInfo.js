@@ -14,6 +14,7 @@ class ClothInfo extends Component {
         <td>{clothIdentifier.unit}</td>
         <td>{clothInfo.color}</td>
         <td>{clothInfo.defect}</td>
+        <td>{clothIdentifier.firstInStockAt}</td>
       </tr>
     );
   }

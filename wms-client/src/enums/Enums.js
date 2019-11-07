@@ -44,3 +44,34 @@ export const DefectOptions = [
   { label: "B", value: "B" },
   { label: "C", value: "C" }
 ];
+
+// the index is same as db
+export const unitLlist = [
+  "台",
+  "支",
+  "碼",
+  "尺",
+  "公斤",
+  "公尺",
+  "個",
+  "打",
+  "包",
+  "箱",
+  "件",
+  "對",
+  "本",
+  "張",
+  "才",
+  "幅",
+  "盒",
+  "瓶",
+  "磅",
+  "批",
+  "條",
+  "筆",
+  "雙",
+  "公克",
+  "次",
+  "疊",
+  "組"
+];

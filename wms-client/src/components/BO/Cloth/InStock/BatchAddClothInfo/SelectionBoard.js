@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import CheckBox from "./CheckBox";
+import { isEmpty } from "../../../../../utilities/IsEmpty";
 
 class SelectionBoard extends Component {
   render() {
     const {
       inStockOrderNo,
-      queryProductNoList,
+      waitHandleStatus,
       selectedProductNoList
     } = this.props;
     const filterSelectedList = selectedProductNoList.filter(
@@ -31,21 +32,31 @@ class SelectionBoard extends Component {
             下一步
           </button>
         </div>
-        <p className="h5 text-center">進貨單單號: {inStockOrderNo}</p>
-        <p className="h5 text-center">含有以下貨號，請選擇此次欲入庫貨號</p>
-        <hr />
-        <div className="col-md-12">
-          <div className="row">
-            {queryProductNoList.map((productNo, index) => (
-              <CheckBox
-                key={index}
-                index={index}
-                productNo={productNo}
-                handleCheckBoxSelected={this.props.handleCheckBoxSelected}
-              />
-            ))}
+        {isEmpty(waitHandleStatus) ? (
+          <div className="alert alert-warning text-center" role="alert">
+            查無進貨單({inStockOrderNo})資料 或 進貨單內沒有需要入庫的貨號
           </div>
-        </div>
+        ) : (
+          <React.Fragment>
+            <p className="h5 text-center">進貨單單號: {inStockOrderNo}</p>
+            <p className="h5 text-center">含有以下貨號，請選擇此次欲入庫貨號</p>
+            <hr />
+            <div className="col-md-12">
+              <div className="row">
+                {selectedProductNoList.map((object, index) => (
+                  <CheckBox
+                    key={index}
+                    index={object.index}
+                    productNo={object.productNo}
+                    checked={object.selected}
+                    waitHandleStatus={waitHandleStatus[object.productNo]}
+                    handleCheckBoxSelected={this.props.handleCheckBoxSelected}
+                  />
+                ))}
+              </div>
+            </div>
+          </React.Fragment>
+        )}
       </div>
     );
   }

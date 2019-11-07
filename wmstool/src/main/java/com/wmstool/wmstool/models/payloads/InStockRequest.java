@@ -7,7 +7,6 @@ public class InStockRequest {
 	@NotBlank(message = "貨號不可空白")
 	private String productNo;
 
-//	private int lotNo;
 	private String lotNo;
 
 	@NotBlank(message = "型態不可空白")
@@ -28,6 +27,8 @@ public class InStockRequest {
 
 	private String isNew;
 
+	private String orderNo;
+
 	private long parentId; // for history use
 
 	public String getProductNo() {
@@ -37,16 +38,6 @@ public class InStockRequest {
 	public void setProductNo(String productNo) {
 		this.productNo = productNo;
 	}
-
-	/*
-	public int getLotNo() {
-		return lotNo;
-	}
-
-	public void setLotNo(int lotNo) {
-		this.lotNo = lotNo;
-	}
-	*/
 
 	public String getType() {
 		return type;
@@ -118,6 +109,14 @@ public class InStockRequest {
 
 	public void setIsNew(String isNew) {
 		this.isNew = isNew;
+	}
+
+	public String getOrderNo() {
+		return orderNo;
+	}
+
+	public void setOrderNo(String orderNo) {
+		this.orderNo = orderNo;
 	}
 
 	public long getParentId() {

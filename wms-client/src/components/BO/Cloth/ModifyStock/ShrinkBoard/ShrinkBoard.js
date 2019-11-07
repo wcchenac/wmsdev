@@ -27,7 +27,7 @@ class ShrinkBoard extends Component {
 
   componentDidUpdate(prevProps) {
     if (this.props.shrinkList !== prevProps.shrinkList) {
-      this.setState({ shrinkList: this.props.shrinkList });
+      this.setState({ shrinkList: this.props.shrinkList.clothInfoes });
     }
   }
 
@@ -98,7 +98,7 @@ ShrinkBoard.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  shrinkList: state.clothInfo.clothInfoes
+  shrinkList: state.clothInfo
 });
 
 export default connect(

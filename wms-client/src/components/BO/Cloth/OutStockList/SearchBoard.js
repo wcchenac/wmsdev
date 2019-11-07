@@ -17,9 +17,7 @@ class SearchBoard extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.queryResult === undefined) {
-      return;
-    } else if (!equal(prevProps.queryResult, this.props.queryResult)) {
+    if (!equal(prevProps.queryResult, this.props.queryResult)) {
       this.setState({
         toBeSubmit: this.initialToBeSubmit(
           this.props.queryResult,
