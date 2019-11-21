@@ -12,7 +12,6 @@ import {
 } from "../../../../actions/ClothInfoAcions";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { trackPromise } from "react-promise-tracker";
 import { copy } from "../../../../utilities/DeepCopy";
 
 const equal = require("fast-deep-equal");
@@ -59,7 +58,7 @@ class OutStockRequestList extends Component {
       selectedOutStockRequest: []
     });
 
-    trackPromise(this.props.getWaitHandleList());
+    this.props.getWaitHandleList();
   }
 
   initialSelectedUserList(userList) {
@@ -77,8 +76,9 @@ class OutStockRequestList extends Component {
   }
 
   componentDidMount() {
+    this.props.getWaitHandleList();
     this.apiCall = setInterval(() => {
-      trackPromise(this.props.getWaitHandleList());
+      this.props.getWaitHandleList();
     }, refreshTime);
   }
 
@@ -134,6 +134,7 @@ class OutStockRequestList extends Component {
     date.setHours(23);
     date.setMinutes(59);
     date.setSeconds(59);
+
     return date;
   }
 
@@ -149,13 +150,15 @@ class OutStockRequestList extends Component {
     let startDate = this.state.startDate.toJSON().substring(0, 19);
     let endDate = this.state.endDate.toJSON().substring(0, 19);
 
-    trackPromise(this.props.getWaitHandleListWithInterval(startDate, endDate));
+    this.props.getWaitHandleListWithInterval(startDate, endDate);
   }
 
   handleSubmitClick(outStockUpdateRequest) {
-    this.props.updateOutStockRequests(outStockUpdateRequest);
-
-    this.timer = setTimeout(this.getInitialState, 1000);
+    this.props.updateOutStockRequests(outStockUpdateRequest).then(res => {
+      if (res.status === 200) {
+        this.getInitialState();
+      }
+    });
   }
 
   handleUserSelectAll() {
@@ -199,11 +202,19 @@ class OutStockRequestList extends Component {
   }
 
   handleRollBackShipStatus(id) {
-    this.props.clothIndentifierIsNotShiped(id);
+    this.props.clothIndentifierIsNotShiped(id).then(res => {
+      if (res.status === 200) {
+        this.getInitialState();
+      }
+    });
   }
 
   handleDeleteOutStockRequest(id) {
-    this.props.deleteOutStockRequest(id);
+    this.props.deleteOutStockRequest(id).then(res => {
+      if (res.status === 200) {
+        this.getInitialState();
+      }
+    });
   }
 
   render() {

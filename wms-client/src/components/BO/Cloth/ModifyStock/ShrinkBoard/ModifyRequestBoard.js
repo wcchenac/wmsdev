@@ -33,7 +33,7 @@ class ModifyRequestBoard extends Component {
         defect: [{ label: "無", value: "無" }],
         record: this.state.oldClothInfo.record,
         remark: "",
-        isNew: "old",
+        inStockType: "shrink",
         parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
         errors: {
           length: ""
@@ -51,7 +51,7 @@ class ModifyRequestBoard extends Component {
         defect: [{ label: "無", value: "無" }],
         record: this.state.oldClothInfo.record,
         remark: "",
-        isNew: "old",
+        inStockType: "shrink",
         parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
         errors: {
           length: ""
@@ -81,7 +81,7 @@ class ModifyRequestBoard extends Component {
         defect: newClothInfoes[newClothInfoes.length - 1].defect,
         record: this.state.oldClothInfo.record,
         remark: "",
-        isNew: "old",
+        inStockType: "shrink",
         parentId: this.state.oldClothInfo.clothIdentifier.id, // for history use
         errors: {
           lotNo: "",
@@ -151,10 +151,9 @@ class ModifyRequestBoard extends Component {
   handleSubmitClick() {
     const { oldClothInfo } = this.state;
     const { newClothInfoes } = this.state;
-    let clothInfoesCopy = JSON.parse(JSON.stringify(newClothInfoes));
-    let oldTotalLength = parseFloat(oldClothInfo.clothIdentifier.length);
-    let totalLength = 0;
+    let clothInfoesCopy = copy(newClothInfoes);
 
+    // join clothInfo.defect array contents
     clothInfoesCopy.forEach((clothInfo, index) => {
       let newDefectContent = "";
 
@@ -174,6 +173,19 @@ class ModifyRequestBoard extends Component {
       inStockRequests: clothInfoesCopy
     };
 
+    this.props.batchCreateClothInfoesForShrink(shrinkStockRequest).then(res => {
+      if (res.status === 200) {
+        this.props.initialComponent();
+      }
+    });
+  }
+
+  modalContent() {
+    const { oldClothInfo } = this.state;
+    const { newClothInfoes } = this.state;
+    let oldTotalLength = parseFloat(oldClothInfo.clothIdentifier.length);
+    let totalLength = 0;
+
     for (let i = 0; i < newClothInfoes.length; i += 1) {
       totalLength += parseFloat(newClothInfoes[i].length);
     }
@@ -181,35 +193,27 @@ class ModifyRequestBoard extends Component {
     let decrement = totalLength - oldTotalLength;
 
     if (decrement === 0) {
-      if (window.confirm("是否確認送出？")) {
-        this.props.batchCreateClothInfoesForShrink(shrinkStockRequest);
-      }
+      return (
+        <React.Fragment>
+          <p>減肥前後總長度相符，是否確認送出？</p>
+        </React.Fragment>
+      );
     } else if (Math.abs(decrement) > totalLength * 0.03) {
-      if (
-        window.confirm(
-          "減肥前後總長度不符，差異量大於平常值(差異量：" +
-            decrement +
-            " 碼)，是否確認送出？"
-        )
-      ) {
-        this.props.batchCreateClothInfoesForShrink(shrinkStockRequest);
-      }
+      return (
+        <React.Fragment>
+          <p>
+            減肥前後總長度不符，且差異量大於平常值(差異量：
+            {decrement} 碼)，是否確認送出？
+          </p>
+        </React.Fragment>
+      );
     } else {
-      // let createFileRequest = {
-      //   productNo: oldClothInfo.clothIdentifier.productNo,
-      //   decrement: decrement
-      // };
-      // this.props.createFile(createFileRequest);
-      if (
-        window.confirm(
-          "減肥前後總長度不符，差異量：" + decrement + " 碼，是否確認送出？"
-        )
-      ) {
-        this.props.batchCreateClothInfoesForShrink(shrinkStockRequest);
-      }
+      return (
+        <React.Fragment>
+          <p>減肥前後總長度不符，差異量： {decrement} 碼，是否確認送出？</p>
+        </React.Fragment>
+      );
     }
-
-    this.timer = setTimeout(this.props.initialComponent, 1500);
   }
 
   checkLengthAlgorithm(clothInfoes) {
@@ -230,6 +234,7 @@ class ModifyRequestBoard extends Component {
   render() {
     const { oldClothInfo, newClothInfoes } = this.state;
     let isLengthChecked = this.checkLengthAlgorithm(newClothInfoes);
+    let modalContent = this.modalContent();
 
     return (
       <div className="cloth_info">
@@ -377,11 +382,57 @@ class ModifyRequestBoard extends Component {
               <button
                 tyep="button"
                 className="btn btn-primary btn-block"
-                onClick={this.handleSubmitClick}
                 disabled={!isLengthChecked}
+                data-toggle="modal"
+                data-target="#warn_info"
               >
                 送出
               </button>
+              <div
+                className="modal fade"
+                id="warn_info"
+                tabIndex="-1"
+                role="dialog"
+                aria-labelledby="content"
+                aria-hidden="true"
+              >
+                <div
+                  className="modal-dialog modal-dialog-centered"
+                  role="document"
+                >
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title">減肥確認</h5>
+                      <button
+                        type="button"
+                        className="close"
+                        data-dismiss="modal"
+                        aria-label="Close"
+                      >
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div className="modal-body">{modalContent}</div>
+                    <div className="modal-footer">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        data-dismiss="modal"
+                      >
+                        取消
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        data-dismiss="modal"
+                        onClick={this.handleSubmitClick}
+                      >
+                        送出
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <br />
