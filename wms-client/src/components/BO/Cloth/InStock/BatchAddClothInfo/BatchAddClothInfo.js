@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { trackPromise } from "react-promise-tracker";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./QueryOrder";
 import SelectionBoard from "./SelectionBoard";
@@ -17,9 +16,9 @@ class BatchAddClothInfo extends Component {
     super();
     this.state = {
       inStockOrderNo: "",
+      isOrderValid: undefined,
       key: 1,
       currentOrderStatus: {},
-      prevOrderStatus: {},
       waitHandleStatus: {},
       selectedProductNoList: []
     };
@@ -41,9 +40,9 @@ class BatchAddClothInfo extends Component {
     }
 
     this.setState({
+      isOrderValid: undefined,
       key: 1,
       currentOrderStatus: {},
-      prevOrderStatus: {},
       waitHandleStatus: {},
       selectedProductNoList: []
     });
@@ -53,14 +52,16 @@ class BatchAddClothInfo extends Component {
     if (!isEmpty(currentOrderStatus)) {
       let selectedList = [];
 
-      Object.keys(currentOrderStatus).forEach((element, index) => {
-        selectedList.push({
-          productNo: element.toString(),
-          selected: false,
-          index: index,
-          isSubmitted: false
+      Object.keys(currentOrderStatus)
+        .sort()
+        .forEach((element, index) => {
+          selectedList.push({
+            productNo: element.toString(),
+            selected: false,
+            index: index,
+            isSubmitted: false
+          });
         });
-      });
 
       this.setState({ selectedProductNoList: selectedList });
     }
@@ -88,8 +89,7 @@ class BatchAddClothInfo extends Component {
 
   handleQueryOrderSubmit(e) {
     e.preventDefault();
-    trackPromise(this.props.getInStockOrder(this.state.inStockOrderNo));
-    this.handleTabSelect(2);
+    this.props.getInStockOrder(this.state.inStockOrderNo);
   }
 
   handleCheckBoxSelected(e, index) {
@@ -110,16 +110,36 @@ class BatchAddClothInfo extends Component {
     const copyList = [...this.state.selectedProductNoList];
 
     e.preventDefault();
-    this.props.batchCreateClothInfoes(inStockRequests);
+    this.props.batchCreateClothInfoes(inStockRequests).then(res => {
+      if (res.status === 200) {
+        copyList[index] = {
+          ...this.state.selectedProductNoList[index],
+          isSubmitted: true
+        };
 
-    copyList[index] = {
-      ...this.state.selectedProductNoList[index],
-      isSubmitted: true
-    };
-
-    this.setState({
-      selectedProductNoList: copyList
+        this.setState({
+          selectedProductNoList: copyList
+        });
+      }
     });
+  }
+
+  checkWaitHandleStatus(waitHandleStatus) {
+    let quantityValid = true;
+
+    // check there is any length equals 0 in waitHandleStatus
+    // if there is a productNo/type which is not equal 0, return false; otherwise, return true
+    Object.keys(waitHandleStatus).forEach(productNo => {
+      Object.keys(waitHandleStatus[productNo]).forEach(type => {
+        if (parseFloat(waitHandleStatus[productNo][type].length) !== 0.0) {
+          quantityValid = false;
+
+          return quantityValid;
+        }
+      });
+    });
+
+    return quantityValid;
   }
 
   componentDidUpdate(prevProps) {
@@ -130,13 +150,20 @@ class BatchAddClothInfo extends Component {
         {
           currentOrderStatus: this.props.queryInStockOrderResult.clothInfoes
             .currentStatus,
-          prevOrderStatus: this.props.queryInStockOrderResult.clothInfoes
-            .prevStatus,
           waitHandleStatus: this.props.queryInStockOrderResult.clothInfoes
             .waitHandleStatus
         },
         function() {
-          this.initialSelectedList(this.state.currentOrderStatus);
+          if (
+            isEmpty(this.state.currentOrderStatus) ||
+            this.checkWaitHandleStatus(this.state.waitHandleStatus)
+          ) {
+            this.setState({ isOrderValid: false });
+          } else {
+            this.initialSelectedList(this.state.currentOrderStatus);
+            this.setState({ isOrderValid: true });
+            this.handleTabSelect(2);
+          }
         }
       );
     }
@@ -145,6 +172,7 @@ class BatchAddClothInfo extends Component {
   render() {
     const {
       inStockOrderNo,
+      isOrderValid,
       waitHandleStatus,
       selectedProductNoList,
       key
@@ -182,6 +210,7 @@ class BatchAddClothInfo extends Component {
                   <QueryOrder
                     handleStockOrderNo={this.handleStockOrderNo}
                     handleQueryOrderSubmit={this.handleQueryOrderSubmit}
+                    isOrderValid={isOrderValid}
                   />
                 </div>
               </TabPane>
@@ -219,11 +248,13 @@ class BatchAddClothInfo extends Component {
 
 BatchAddClothInfo.propTypes = {
   queryInStockOrderResult: PropTypes.object.isRequired,
-  batchCreateClothInfoes: PropTypes.func.isRequired
+  batchCreateClothInfoes: PropTypes.func.isRequired,
+  errors: PropTypes.object.isRequired
 };
 
 const mapStateToProps = state => ({
-  queryInStockOrderResult: state.clothInfo
+  queryInStockOrderResult: state.clothInfo,
+  errors: state.errors
 });
 
 export default connect(

@@ -44,17 +44,12 @@ class ClothInfo extends Component {
           <div className="form-group mb-0">
             <input
               type="text"
-              className={classnames("form-control", {
-                "is-invalid": errors.lotNo
-              })}
+              className="form-control"
               name="lotNo"
               placeholder="批號"
               value={clothInfo.lotNo}
               onChange={this.onChange}
             />
-            {errors.lotNo && (
-              <div className="invalid-feedback">{errors.lotNo}</div>
-            )}
           </div>
         </td>
         <td>

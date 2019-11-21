@@ -23,12 +23,11 @@ class ClothInfo extends Component {
     const { errors } = this.props;
     const { clothInfo } = this.props;
     const animatedComponents = makeAnimated();
-    let colorOptions = Object.values(ColorOptions);
 
     return (
       <tr>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className="form-control"
@@ -39,7 +38,7 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className={classnames("form-control", {
@@ -56,7 +55,7 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <select
               className="custom-select"
               name="type"
@@ -69,7 +68,7 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className={classnames("form-control", {
@@ -85,7 +84,7 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <select
               className="custom-select"
               name="unit"
@@ -98,14 +97,14 @@ class ClothInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <select
               className="custom-select"
               name="color"
               value={clothInfo.color}
               onChange={this.onChange}
             >
-              {colorOptions.map((color, index) => (
+              {ColorOptions.map((color, index) => (
                 <option key={index} value={color}>
                   {color}
                 </option>
@@ -125,7 +124,7 @@ class ClothInfo extends Component {
           />
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className="form-control"
