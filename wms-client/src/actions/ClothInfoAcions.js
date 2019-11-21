@@ -1,8 +1,11 @@
 import axios from "axios";
+import { trackPromise } from "react-promise-tracker";
 import {
   GET_Order,
   GET_ClothInfoes,
   GET_Errors,
+  CREATE_Errors,
+  SHRINK_Errors,
   SHIP_Cloth,
   SHRINK_Cloth,
   CANCEL_SHRINK,
@@ -11,8 +14,21 @@ import {
 } from "./types";
 
 export const getInStockOrder = inStockOrderNo => async dispatch => {
-  const res = await axios.get(`/api/cloth/queryInStockOrder/${inStockOrderNo}`);
-  console.log(res);
+  const res = await trackPromise(
+    axios.get(`/api/cloth//queryOrder/inStock/${inStockOrderNo}`)
+  );
+
+  dispatch({
+    type: GET_Order,
+    payload: res.data
+  });
+};
+
+export const getAssembleOrder = assembleOrderNo => async dispatch => {
+  const res = await trackPromise(
+    axios.get(`/api/cloth/queryOrder/assemble/${assembleOrderNo}`)
+  );
+
   dispatch({
     type: GET_Order,
     payload: res.data
@@ -20,25 +36,33 @@ export const getInStockOrder = inStockOrderNo => async dispatch => {
 };
 
 export const getClothInfoesBasic = productNo => async dispatch => {
-  const res = await axios.get(`/api/cloth/queryStock/${productNo}/basic`);
+  const res = await trackPromise(
+    axios.get(`/api/cloth/queryStock/query/${productNo}/basic`)
+  );
 
   dispatch({
     type: GET_ClothInfoes,
     payload: res.data
   });
+
+  return res;
 };
 
 export const getClothInfoes = productNo => async dispatch => {
-  const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
+  const res = await trackPromise(
+    axios.get(`/api/cloth/queryStock/query/${productNo}`)
+  );
 
   dispatch({
     type: GET_ClothInfoes,
     payload: res.data
   });
+
+  return res;
 };
 
 export const getShrinkList = () => async dispatch => {
-  const res = await axios.get("/api/cloth/queryStock/shrinkList");
+  const res = await trackPromise(axios.get("/api/cloth/queryStock/shrinkList"));
 
   dispatch({
     type: GET_ClothInfoes,
@@ -48,7 +72,7 @@ export const getShrinkList = () => async dispatch => {
 
 export const clothIndentifierIsShiped = shipRequest => async dispatch => {
   try {
-    await axios.patch("/api/cloth/shipStock", shipRequest);
+    await trackPromise(axios.patch("/api/cloth/shipStock", shipRequest));
 
     dispatch({
       type: SHIP_Cloth,
@@ -64,7 +88,11 @@ export const clothIndentifierIsShiped = shipRequest => async dispatch => {
 
 export const clothIndentifierIsNotShiped = clothIdentifierId => async dispatch => {
   try {
-    await axios.patch(`/api/cloth/rollback/shipStock/${clothIdentifierId}`);
+    const res = await trackPromise(
+      axios.patch(`/api/cloth/shipStock/rollback/${clothIdentifierId}`)
+    );
+
+    return res;
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -75,11 +103,13 @@ export const clothIndentifierIsNotShiped = clothIdentifierId => async dispatch =
 
 export const clothIdentifierWaitToShrinkIsTrue = clothIdentifierId => async dispatch => {
   try {
-    let result = await axios.patch(
-      `/api/cloth/waitToShrink/${clothIdentifierId}`
+    let result = await trackPromise(
+      axios.patch(`/api/cloth/waitToShrink/${clothIdentifierId}`)
     );
     let productNo = result.data;
-    const res = await axios.get(`/api/cloth/queryStock/${productNo}`);
+    const res = await trackPromise(
+      axios.get(`/api/cloth/queryStock/query/${productNo}`)
+    );
 
     dispatch({
       type: SHRINK_Cloth,
@@ -95,7 +125,9 @@ export const clothIdentifierWaitToShrinkIsTrue = clothIdentifierId => async disp
 
 export const clothIdentifierWaitToShrinkIsFalse = clothIdentifierId => async dispatch => {
   try {
-    await axios.patch(`/api/cloth/rollback/waitToShrink/${clothIdentifierId}`);
+    await trackPromise(
+      axios.patch(`/api/cloth/waitToShrink/rollback/${clothIdentifierId}`)
+    );
 
     dispatch({
       type: CANCEL_SHRINK,
@@ -111,10 +143,14 @@ export const clothIdentifierWaitToShrinkIsFalse = clothIdentifierId => async dis
 
 export const batchCreateClothInfoes = inStockRequests => async dispatch => {
   try {
-    await axios.post("/api/cloth/inStocks", inStockRequests);
+    const res = await trackPromise(
+      axios.post("/api/cloth/inStocks", inStockRequests)
+    );
+
+    return res;
   } catch (err) {
     dispatch({
-      type: GET_Errors,
+      type: CREATE_Errors,
       payload: err.response
     });
   }
@@ -122,10 +158,14 @@ export const batchCreateClothInfoes = inStockRequests => async dispatch => {
 
 export const batchCreateClothInfoesForShrink = shrinkStockRequest => async dispatch => {
   try {
-    await axios.post("/api/cloth/shrinkStock", shrinkStockRequest);
+    const res = await trackPromise(
+      axios.post("/api/cloth/shrinkStock", shrinkStockRequest)
+    );
+
+    return res;
   } catch (err) {
     dispatch({
-      type: GET_Errors,
+      type: SHRINK_Errors,
       payload: err.response
     });
   }
@@ -133,7 +173,7 @@ export const batchCreateClothInfoesForShrink = shrinkStockRequest => async dispa
 
 export const createOutStockRequest = outStockRequest => async dispatch => {
   try {
-    await axios.post("/api/cloth/outStock", outStockRequest);
+    await trackPromise(axios.post("/api/cloth/outStock", outStockRequest));
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -144,7 +184,11 @@ export const createOutStockRequest = outStockRequest => async dispatch => {
 
 export const deleteOutStockRequest = outStockRequestId => async dispatch => {
   try {
-    await axios.patch(`/api/cloth/rollback/outStock/${outStockRequestId}`);
+    const res = await trackPromise(
+      axios.patch(`/api/cloth/outStock/rollback/${outStockRequestId}`)
+    );
+
+    return res;
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -154,7 +198,9 @@ export const deleteOutStockRequest = outStockRequestId => async dispatch => {
 };
 
 export const getWaitHandleList = () => async dispatch => {
-  const res = await axios.get("/api/cloth/outStock/waitHandleList/basic");
+  const res = await trackPromise(
+    axios.get("/api/cloth/outStock/waitHandleList/basic")
+  );
 
   dispatch({
     type: GET_OutStockRequests,
@@ -166,8 +212,10 @@ export const getWaitHandleListWithInterval = (
   startDate,
   endDate
 ) => async dispatch => {
-  const res = await axios.get(
-    `/api/cloth/outStock/waitHandleList/interval/${startDate}&${endDate}`
+  const res = await trackPromise(
+    axios.get(
+      `/api/cloth/outStock/waitHandleList/interval/${startDate}&${endDate}`
+    )
   );
 
   dispatch({
@@ -178,11 +226,15 @@ export const getWaitHandleListWithInterval = (
 
 export const updateOutStockRequests = outStockUpdateRequest => async dispatch => {
   try {
-    await axios.patch("/api/cloth/outStock/update", outStockUpdateRequest);
+    const res = await trackPromise(
+      axios.patch("/api/cloth/outStock/update", outStockUpdateRequest)
+    );
 
     dispatch({
       type: CREATE_FILE
     });
+
+    return res;
   } catch (err) {
     dispatch({
       type: GET_Errors,
