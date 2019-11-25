@@ -27,7 +27,9 @@ import com.wmstool.wmstool.models.payloads.QueryOrderResponse;
 import com.wmstool.wmstool.models.payloads.QueryProductNoResponse;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
+import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
 import com.wmstool.wmstool.services.ClothService;
+import com.wmstool.wmstool.services.HistoryService;
 
 @Validated
 @RestController
@@ -38,32 +40,40 @@ public class ClothController {
 	@Autowired
 	private ClothService clothService;
 
-	@GetMapping("/queryInStockOrder/{inStockOrderNo}")
+	@Autowired
+	private HistoryService historyService;
+
+	@GetMapping("/queryOrder/inStock/{inStockOrderNo}")
 	public ResponseEntity<?> getInStockOrder(@PathVariable String inStockOrderNo) {
 		return new ResponseEntity<QueryOrderResponse>(clothService.queryInStockOrder(inStockOrderNo), HttpStatus.OK);
 	}
 
-	// Test
-//	@GetMapping("/queryAssembleStockOrder/{assembleOrderNo}")
-//	public ResponseEntity<?> getAssembleOrderContents(@PathVariable String assembleOrderNo) {
-//		return clothService.getAssembleOrderContent(assembleOrderNo);
-//	}
-	// Test
+	@GetMapping("/queryOrder/assemble/{assembleOrderNo}")
+	public ResponseEntity<?> getAssembleOrder(@PathVariable String assembleOrderNo) {
+		return new ResponseEntity<QueryOrderResponse>(clothService.queryAssembleOrder(assembleOrderNo), HttpStatus.OK);
+	}
 
 	@PostMapping("/inStocks")
 	public ResponseEntity<?> createClothInfoes(@RequestBody List<@Valid InStockRequest> inStockRequests) {
 		clothService.createClothInfoes(inStockRequests);
 
-		return new ResponseEntity<>(HttpStatus.CREATED);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@GetMapping("/queryStock/{productNo}/basic")
+	// Test
+	@PatchMapping("/updateStock")
+	public ResponseEntity<?> updateClothInfo(@RequestBody UpdateInfoRequest updateInfoRequest) {
+		return new ResponseEntity<String>(clothService.updateClothInfo(updateInfoRequest), HttpStatus.OK);
+	}
+	// Test
+
+	@GetMapping("/queryStock/query/{productNo}/basic")
 	public ResponseEntity<?> getClothInfoListBasic(@PathVariable String productNo) {
 		return new ResponseEntity<QueryProductNoResponse>(
 				clothService.findBasicClothInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
 	}
-	
-	@GetMapping("/queryStock/{productNo}")
+
+	@GetMapping("/queryStock/query/{productNo}")
 	public ResponseEntity<?> getClothInfoList(@PathVariable String productNo) {
 		return new ResponseEntity<QueryProductNoResponse>(
 				clothService.findClothInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
@@ -73,21 +83,21 @@ public class ClothController {
 	public ResponseEntity<?> shrinkCloth(@RequestBody ShrinkStockRequest shrinkStockRequest) {
 		clothService.shrinkCloth(shrinkStockRequest);
 
-		return new ResponseEntity<>(HttpStatus.ACCEPTED);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@PatchMapping("/shipStock")
 	public ResponseEntity<?> letClothIndentifierIsShiped(@Valid @RequestBody ShipRequest shipRequest) {
 		clothService.letClothIdentifierisShiped(shipRequest);
 
-		return new ResponseEntity<>(HttpStatus.ACCEPTED);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@PatchMapping("/rollback/shipStock/{clothIdentifierId}")
+	@PatchMapping("/shipStock/rollback/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIndentifierisNotShiped(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierisNotShiped(clothIdentifierId);
 
-		return new ResponseEntity<>(HttpStatus.ACCEPTED);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@GetMapping("/queryStock/shrinkList")
@@ -98,14 +108,14 @@ public class ClothController {
 	@PatchMapping("/waitToShrink/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIdentifierWaitToShrinkIsTrue(@PathVariable long clothIdentifierId) {
 		return new ResponseEntity<String>(clothService.letClothIdentifierWaitToShrinkIsTrue(clothIdentifierId),
-				HttpStatus.ACCEPTED);
+				HttpStatus.OK);
 	}
 
-	@PatchMapping("/rollback/waitToShrink/{clothIdentifierId}")
+	@PatchMapping("/waitToShrink/rollback/{clothIdentifierId}")
 	public ResponseEntity<?> letClothIdentifierWaitToShrinkIsFalse(@PathVariable long clothIdentifierId) {
 		clothService.letClothIdentifierWaitToShrinkIsFalse(clothIdentifierId);
 
-		return new ResponseEntity<>(HttpStatus.ACCEPTED);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@GetMapping("/outStock/waitHandleList/basic")
@@ -113,7 +123,7 @@ public class ClothController {
 		return new ResponseEntity<HandleListResponse>(clothService.getOutStockWaitHandleList(), HttpStatus.OK);
 	}
 
-	@GetMapping("/outStock/waitHandleList/interval/{start}&{end}")
+	@GetMapping("/outStock/waitHandleList/interval/?date={start}&{end}")
 	public ResponseEntity<?> getOutStockWaitHandleListwithInterval(@PathVariable String start,
 			@PathVariable String end) {
 		return new ResponseEntity<HandleListResponse>(
@@ -125,13 +135,13 @@ public class ClothController {
 		return new ResponseEntity<OutStockRequest>(clothService.createOutStockRequest(outStockRequest), HttpStatus.OK);
 	}
 
-	@PatchMapping("/rollback/outStock/{outStockRequestId}")
+	@PatchMapping("/outStock/rollback/{outStockRequestId}")
 	public ResponseEntity<?> deleteOutStockRequest(@PathVariable long outStockRequestId) {
 		clothService.deleteOutStockRequest(outStockRequestId);
 
-		return new ResponseEntity<>(HttpStatus.ACCEPTED);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
-	
+
 	@PatchMapping("/outStock/update")
 	public ResponseEntity<?> updateOutStockRequest(@RequestBody OutStockUpdateRequest outStockUpdateRequest)
 			throws IOException {
@@ -144,6 +154,11 @@ public class ClothController {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	@GetMapping("/queryStock/history/{id}")
+	public ResponseEntity<?> getHistory(@PathVariable Long id) {
+		return historyService.createHistoryTree(id);
 	}
 
 }

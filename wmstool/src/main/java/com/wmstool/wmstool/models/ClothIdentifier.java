@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,22 +25,23 @@ public class ClothIdentifier {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "clothIdentifierBacklog_id", updatable = false, nullable = false)
-	@JsonIgnore
-	private ClothIdentifierBacklog clothIdentifierBacklog;
+//	@ManyToOne(fetch = FetchType.LAZY)
+//	@JoinColumn(name = "clothIdentifierBacklog_id", updatable = false, nullable = false)
+//	@JsonIgnore
+//	@Transient
+//	private ClothIdentifierBacklog clothIdentifierBacklog;
 
 	@Column(nullable = false, updatable = false, length = 25)
 	private String productNo;
 
-	@Column(nullable = false, updatable = false)
+	@Column(updatable = false)
 	private String lotNo;
 
 	@Column(nullable = false, updatable = false, length = 10)
 	private String type;
 	
 	@NotEmpty
-	@Column(nullable = false, updatable = false, length = 6)
+	@Column(nullable = false, updatable = false, length = 10)
 	private String length;
 
 	@Column(nullable = false, length = 10)
@@ -59,9 +61,9 @@ public class ClothIdentifier {
 	
 	private String firstInStockAt;
 
-	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
-	@JsonIgnore
-	private ClothInfo clothInfo;
+//	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
+//	@JsonIgnore
+//	private ClothInfo clothInfo;
 
 	@Column(updatable = false)
 	@JsonIgnore
@@ -77,7 +79,7 @@ public class ClothIdentifier {
 	}
 
 	public ClothIdentifier(ClothIdentifierBacklog clothIdentifierBacklog) {
-		this.clothIdentifierBacklog = clothIdentifierBacklog;
+//		this.clothIdentifierBacklog = clothIdentifierBacklog;
 		this.productNo = clothIdentifierBacklog.getProductNo();
 		this.lotNo = clothIdentifierBacklog.getLotNo();
 		this.type = clothIdentifierBacklog.getType();
@@ -94,13 +96,13 @@ public class ClothIdentifier {
 		this.id = id;
 	}
 
-	public ClothIdentifierBacklog getClothIdentifierBacklog() {
-		return clothIdentifierBacklog;
-	}
-
-	public void setClothIdentifierBacklog(ClothIdentifierBacklog clothIdentifierBacklog) {
-		this.clothIdentifierBacklog = clothIdentifierBacklog;
-	}
+//	public ClothIdentifierBacklog getClothIdentifierBacklog() {
+//		return clothIdentifierBacklog;
+//	}
+//
+//	public void setClothIdentifierBacklog(ClothIdentifierBacklog clothIdentifierBacklog) {
+//		this.clothIdentifierBacklog = clothIdentifierBacklog;
+//	}
 
 	public String getProductNo() {
 		return productNo;
@@ -198,13 +200,13 @@ public class ClothIdentifier {
 		this.firstInStockAt = firstInStockAt;
 	}
 
-	public ClothInfo getClothInfo() {
-		return clothInfo;
-	}
-
-	public void setClothInfo(ClothInfo clothInfo) {
-		this.clothInfo = clothInfo;
-	}
+//	public ClothInfo getClothInfo() {
+//		return clothInfo;
+//	}
+//
+//	public void setClothInfo(ClothInfo clothInfo) {
+//		this.clothInfo = clothInfo;
+//	}
 
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
