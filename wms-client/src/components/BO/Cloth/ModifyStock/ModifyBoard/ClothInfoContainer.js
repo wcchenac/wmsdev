@@ -48,6 +48,7 @@ class ClothInfoContainer extends Component {
                   clothInfo={clothInfo}
                   handleShip={this.props.handleShip}
                   handleShrink={this.props.handleShrink}
+                  handleClothInfoUpdate={this.props.handleClothInfoUpdate}
                 />
               ))}
             </tbody>

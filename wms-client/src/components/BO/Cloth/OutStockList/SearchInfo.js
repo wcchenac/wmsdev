@@ -27,13 +27,11 @@ class SearchInfo extends Component {
       default:
         break;
     }
-
-    this.props.initialize();
   }
 
   render() {
     const { searchInfo } = this.props;
-    const { handled } = this.props.searchInfo;
+    const { handled, outStockType } = this.props.searchInfo;
 
     return (
       <React.Fragment>
@@ -107,7 +105,7 @@ class SearchInfo extends Component {
             )}
           </td>
           <td>
-            {handled ? null : (
+            {handled || outStockType === 1 ? null : (
               <i
                 className="fa fa-trash fa-lg pt-2"
                 aria-hidden="true"

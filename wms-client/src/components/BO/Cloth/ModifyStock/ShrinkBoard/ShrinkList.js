@@ -1,13 +1,13 @@
 import React, { PureComponent } from "react";
 import ShrinkInfoContainer from "./ShrinkInfoContainer";
-import { trackPromise } from "react-promise-tracker";
 
 const refreshTime = 1000 * 60 * 10;
 
 class ShrinkList extends PureComponent {
   componentDidMount() {
+    this.props.getShrinkList();
     this.apiCall = setInterval(() => {
-      trackPromise(this.props.getShrinkList());
+      this.props.getShrinkList();
     }, refreshTime);
   }
 

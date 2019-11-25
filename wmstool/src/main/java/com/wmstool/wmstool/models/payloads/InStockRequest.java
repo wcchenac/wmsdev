@@ -25,7 +25,7 @@ public class InStockRequest {
 
 	private String remark;
 
-	private String isNew;
+	private String inStockType;
 
 	private String orderNo;
 
@@ -103,12 +103,12 @@ public class InStockRequest {
 		this.remark = remark;
 	}
 
-	public String getIsNew() {
-		return isNew;
+	public String getInStockType() {
+		return inStockType;
 	}
 
-	public void setIsNew(String isNew) {
-		this.isNew = isNew;
+	public void setInStockType(String inStockType) {
+		this.inStockType = inStockType;
 	}
 
 	public String getOrderNo() {

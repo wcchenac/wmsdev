@@ -1,7 +1,11 @@
 export const GET_Errors = "GET_Errors";
+export const CREATE_Errors = "CREATE_Errors";
+export const SHRINK_Errors = "SHRINK_Errors";
+export const UPDATE_Errors = "UPDATE_Errors";
 export const GET_Order = "GET_Order";
 export const GET_ClothInfo = "GET_ClothInfo";
 export const GET_ClothInfoes = "GET_ClothInfoes";
+export const UPDATE_ClothInfo = "UPDATE_ClothInfo";
 export const DELETE_Cloth = "DELETE_Cloth";
 export const SHIP_Cloth = "SHIP_Cloth";
 export const CREATE_FILE = "CREATE_FILE";

@@ -10,6 +10,6 @@ import com.wmstool.wmstool.models.InStockOrderRecord;
 @Repository
 public interface InStockOrderRepo extends JpaRepository<InStockOrderRecord, Long>{
 
-	List<InStockOrderRecord> findByInStockOrderNo(String inStockOrderNo);
+	List<InStockOrderRecord> findByInStockTypeAndInStockOrderNo(String inStockType, String inStockOrderNo);
 	
 }

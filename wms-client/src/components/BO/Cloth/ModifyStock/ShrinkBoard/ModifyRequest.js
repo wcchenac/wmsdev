@@ -26,7 +26,7 @@ class ModifyRequest extends Component {
     return (
       <tr>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <select
               className="custom-select"
               name="type"
@@ -39,7 +39,7 @@ class ModifyRequest extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className={classnames("form-control", {
@@ -55,7 +55,7 @@ class ModifyRequest extends Component {
           </div>
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <select
               className="custom-select"
               name="unit"
@@ -79,7 +79,7 @@ class ModifyRequest extends Component {
           />
         </td>
         <td>
-          <div className="form-group">
+          <div className="form-group mb-0">
             <input
               type="text"
               className="form-control"

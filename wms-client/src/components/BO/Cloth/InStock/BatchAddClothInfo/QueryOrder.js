@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import classnames from "classnames";
 
 class QueryOrder extends Component {
   render() {
@@ -15,13 +16,22 @@ class QueryOrder extends Component {
                   type="text"
                   name="inStockOrderNo"
                   placeholder="請輸入進貨單單號"
-                  className="form-control"
+                  className={classnames("form-control", {
+                    "is-invalid": this.props.isOrderValid === false
+                  })}
                   onChange={this.props.handleStockOrderNo}
                 />
+                {this.props.isOrderValid === false && (
+                  <div className="invalid-feedback">
+                    查無進貨單 或 進貨單內沒有需要入庫的貨號
+                  </div>
+                )}
               </div>
-              <button type="submit" className="btn btn-primary">
-                查詢
-              </button>
+              <div className="col-md-auto">
+                <button type="submit" className="btn btn-primary">
+                  查詢
+                </button>
+              </div>
             </div>
           </form>
         </div>

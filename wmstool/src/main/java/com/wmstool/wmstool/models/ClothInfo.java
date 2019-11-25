@@ -14,6 +14,8 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
 
 @Entity
 public class ClothInfo {
@@ -23,7 +25,7 @@ public class ClothInfo {
 	private Long id;
 
 	@OneToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "clothIdentifier_id", nullable = false)
+	@JoinColumn(name = "clothIdentifier_id", nullable = false, updatable = false)
 	private ClothIdentifier clothIdentifier;
 
 	private int color;
@@ -47,11 +49,20 @@ public class ClothInfo {
 	public ClothInfo() {
 	}
 
-	public ClothInfo(ClothIdentifier clothIdentifier, int color, String defect, String record) {
+	public ClothInfo(ClothIdentifier clothIdentifier, InStockRequest inStockRequest) {
 		this.clothIdentifier = clothIdentifier;
-		this.color = color;
-		this.defect = defect;
-		this.record = record;
+		this.color = inStockRequest.getColor();
+		this.defect = inStockRequest.getDefect();
+		this.record = inStockRequest.getRecord();
+		this.remark = inStockRequest.getRemark();
+	}
+
+	public ClothInfo(UpdateInfoRequest updateInfoRequest) {
+		this.id = updateInfoRequest.getId();
+		this.color = updateInfoRequest.getColor();
+		this.defect = updateInfoRequest.getDefect();
+		this.record = updateInfoRequest.getRecord();
+		this.remark = updateInfoRequest.getRemark();
 	}
 
 	public Long getId() {
@@ -134,13 +145,6 @@ public class ClothInfo {
 	@PreUpdate
 	protected void onUpdate() {
 		this.updatedAt = LocalDateTime.now();
-	}
-
-	@Override
-	public String toString() {
-		return "ClothInfo [id=" + id + ", clothIdentifier=" + clothIdentifier + ", color=" + color + ", defect="
-				+ defect + ", record=" + record + ", remark=" + remark + ", storedAt=" + storedAt + ", createdAt="
-				+ createdAt + ", updatedAt=" + updatedAt + "]";
 	}
 
 }

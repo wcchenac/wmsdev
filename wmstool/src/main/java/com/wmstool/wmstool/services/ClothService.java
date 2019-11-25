@@ -34,9 +34,9 @@ import com.google.gson.reflect.TypeToken;
 import com.wmstool.wmstool.models.ClothIdentifier;
 import com.wmstool.wmstool.models.ClothIdentifierBacklog;
 import com.wmstool.wmstool.models.ClothInfo;
+import com.wmstool.wmstool.models.History;
 import com.wmstool.wmstool.models.InStockOrderRecord;
 import com.wmstool.wmstool.models.OutStockRequest;
-import com.wmstool.wmstool.models.history.History;
 import com.wmstool.wmstool.models.payloads.HandleListResponse;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
 import com.wmstool.wmstool.models.payloads.OutStockUpdateRequest;
@@ -45,6 +45,7 @@ import com.wmstool.wmstool.models.payloads.QueryOrderResponse;
 import com.wmstool.wmstool.models.payloads.QueryProductNoResponse;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
+import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
 import com.wmstool.wmstool.repositories.ClothIdentifierBacklogRepo;
 import com.wmstool.wmstool.repositories.ClothIdentifierRepo;
 import com.wmstool.wmstool.repositories.ClothInfoRepository;
@@ -88,7 +89,7 @@ public class ClothService {
 		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getInStockOrderRecord(inStockOrderNo);
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = deriveWaitHandleStatus(currentOrderStatus,
 				prevOrderStatus);
-		return new QueryOrderResponse(currentOrderStatus, prevOrderStatus, waitHandleStatus);
+		return new QueryOrderResponse(currentOrderStatus, waitHandleStatus);
 	}
 
 	/**
@@ -96,16 +97,15 @@ public class ClothService {
 	 * amount of same type based on productNo
 	 */
 	private Map<String, Map<String, Map<String, String>>> getInStockOrderContent(String orderNo) {
-		EntityManager em = emf.createEntityManager();
-		String inStockSQLStatement = "SELECT PROD, QTY, UNIT, GWN, BANQTY FROM dbo.STKPRHS2 where CODE= ?1";
+		String inStockSQLStatement = "SELECT PROD, QTY, UNIT, GWN, BANQTY FROM dbo.STKPRHS2 WHERE CODE= ?1";
+		List<InStockOrderRecord> orderRecordList = new ArrayList<>();
 
+		EntityManager em = emf.createEntityManager();
 		Query q = em.createNativeQuery(inStockSQLStatement);
 		q.setParameter(1, orderNo);
 
-		List<InStockOrderRecord> orderRecordList = new ArrayList<>();
-
 		// The format of q.getResultList() is as below:
-		// Row n : PROD, QTY, UNIT, GWN, BANQTY
+		// Row n : [PROD, QTY, UNIT, GWN, BANQTY]
 		for (Object row : q.getResultList()) {
 			Object[] cell = (Object[]) row;
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
@@ -213,7 +213,7 @@ public class ClothService {
 	 * Fetch previous process records of certain orderNo from first db
 	 */
 	private Map<String, Map<String, Map<String, String>>> getInStockOrderRecord(String inStockOrderNo) {
-		return orderContentCollector(inStockOrderRepo.findByInStockOrderNo(inStockOrderNo));
+		return orderContentCollector(inStockOrderRepo.findByInStockTypeAndInStockOrderNo("normal", inStockOrderNo));
 	}
 
 	/**
@@ -226,7 +226,7 @@ public class ClothService {
 			return currentStatus;
 		}
 
-		// deep copy a map object by Gson
+		// deep copy currentStatus object by Gson
 		Gson gson = new Gson();
 		String mapString = gson.toJson(currentStatus);
 		Type typeOfMap = new TypeToken<Map<String, Map<String, Map<String, String>>>>() {
@@ -248,45 +248,74 @@ public class ClothService {
 		return waitHandleStatus;
 	}
 
-	// TODO: query assemble order content
 	/**
 	 * Return a response containing current 'assemble' order content fetching from
-	 * second db and previous process records fetching from first db
+	 * second db
 	 */
+	// Check waitHandleStatus/prevOrderStatus
 	public QueryOrderResponse queryAssembleOrder(String assembleOrderNo) {
 		Map<String, Map<String, Map<String, String>>> currentOrderStatus = getAssembleOrderContent(assembleOrderNo);
-		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getInStockOrderRecord(assembleOrderNo);
+		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getAssembleOrderRecord(assembleOrderNo);
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = deriveWaitHandleStatus(currentOrderStatus,
 				prevOrderStatus);
-		return new QueryOrderResponse(currentOrderStatus, prevOrderStatus, waitHandleStatus);
+		return new QueryOrderResponse(currentOrderStatus, waitHandleStatus);
 	}
 
 	/**
 	 * Fetch necessary 'assemble' order content from second db
 	 */
 	private Map<String, Map<String, Map<String, String>>> getAssembleOrderContent(String orderNo) {
-		EntityManager em = emf.createEntityManager();
-		// TODO: Modify SQL statement for assembleOrder
-		String assembleSQLStatement = "SELECT MPROD, MQTY, GWN FROM dbo.BOMMIS1 where CODE= ?1 ";
-
-		Query q = em.createNativeQuery(assembleSQLStatement);
-		q.setParameter(1, orderNo);
-
+		String assembleSQLStatement = "SELECT MPROD, MQTY, GWN FROM dbo.BOMMIS1 WHERE CODE= ?1 ";
+		String queryProductInfoSQLStatement = "SELECT UNIT FROM dbo.PRODUCT WHERE CODE=?1";
 		List<InStockOrderRecord> orderRecordList = new ArrayList<>();
 
-		// The format of q.getResultList() is as below:
-		// Row n : PROD, QTY, UNIT, GWN
-		for (Object row : q.getResultList()) {
+		EntityManager em = emf.createEntityManager();
+		Query q1 = em.createNativeQuery(assembleSQLStatement);
+		q1.setParameter(1, orderNo);
+		Query q2 = em.createNativeQuery(queryProductInfoSQLStatement);
+
+		// The format of q1.getResultList() is as below:
+		// Row n : [MPROD, MQT, GWN]
+		// The format of q2.getResultList() is as below:
+		// Row n : [UNIT]
+		for (Object row : q1.getResultList()) {
 			Object[] cell = (Object[]) row;
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
-			orderRecord.setProductNo(cell[0].toString());
-			orderRecord.setLength(cell[1].toString());
-			orderRecord.setUnit(unitMappingHelper(cell[2].toString()));
-			orderRecord.setType(typeMappingHelper(cell[3].toString()));
+			String productNo = cell[0].toString();
+			q2.setParameter(1, productNo);
+			Integer unit = Integer.valueOf(q2.getResultList().get(0).toString()); // receive product unit
+			String length = "";
+
+			// calculate length for unit conversion
+			switch (unit) {
+			case 2:
+				length = cell[1].toString();
+				break;
+			case 3:
+				Double convert = Double.valueOf(cell[1].toString()) / 3.0;
+				length = String.format("%.1f", convert);
+				unit = 2;
+				break;
+			default:
+				break;
+			}
+
+			orderRecord.setProductNo(productNo);
+			orderRecord.setLength(length);
+			orderRecord.setUnit(unitMappingHelper(unit.toString()));
+			orderRecord.setType(typeMappingHelper(cell[2].toString()));
+
 			orderRecordList.add(orderRecord);
 		}
 
 		return orderContentCollector(orderRecordList);
+	}
+
+	/**
+	 * Fetch previous process records of certain orderNo from first db
+	 */
+	private Map<String, Map<String, Map<String, String>>> getAssembleOrderRecord(String assembleOrderNo) {
+		return orderContentCollector(inStockOrderRepo.findByInStockTypeAndInStockOrderNo("assemble", assembleOrderNo));
 	}
 
 	/**
@@ -298,16 +327,14 @@ public class ClothService {
 
 		for (int i = 0; i < inStockRequests.size(); i += 1) {
 			InStockRequest inStockRequest = inStockRequests.get(i);
-			String condition = inStockRequest.getIsNew();
+			String condition = inStockRequest.getInStockType();
 
 			// find clothIdentifierBacklog is exist or not; if not exist, create new
 			ClothIdentifierBacklog resClothIdentifierBacklog = clothIdentifierBacklogRepo
 					.findByProductNoAndLotNoAndTypeAndLengthAndUnit(inStockRequest.getProductNo(),
 							inStockRequest.getLotNo(), inStockRequest.getType(), inStockRequest.getLength(),
 							inStockRequest.getUnit())
-					.orElseGet(() -> clothIdentifierBacklogRepo
-							.save(new ClothIdentifierBacklog(inStockRequest.getProductNo(), inStockRequest.getLotNo(),
-									inStockRequest.getType(), inStockRequest.getLength(), inStockRequest.getUnit())));
+					.orElseGet(() -> clothIdentifierBacklogRepo.save(new ClothIdentifierBacklog(inStockRequest)));
 
 			// use clothIdentifierBacklog to save clothIdentifier
 			ClothIdentifier clothIdentifier = new ClothIdentifier(resClothIdentifierBacklog);
@@ -316,15 +343,18 @@ public class ClothService {
 
 			// identify newInStock and shrink process, to set firstInStockAt
 			switch (condition) {
-			case "new":
+			case "normal":
 				clothIdentifier.setFirstInStockAt(LocalDate.now().toString());
 				break;
-			case "old":
+			case "shrink":
 				// use the data "parentId" from inStockRequest as key to find the parent
 				// TODO: wait handle exception
-				oldHistory = historyRepository.findByCurrentId(inStockRequest.getParentId()).get();
+				oldHistory = historyRepository.findByCurrentIdentifierId(inStockRequest.getParentId()).get();
 				clothIdentifier.setFirstInStockAt(
-						clothIdentifierRepo.findById(oldHistory.getRootId()).get().getFirstInStockAt());
+						clothIdentifierRepo.findById(oldHistory.getRootIdentifierId()).get().getFirstInStockAt());
+				break;
+			case "assemble":
+				clothIdentifier.setFirstInStockAt(LocalDate.now().toString());
 				break;
 			default:
 				break;
@@ -332,33 +362,33 @@ public class ClothService {
 
 			ClothIdentifier resIdentifier = clothIdentifierRepo.save(clothIdentifier);
 
-			// only new cloth need to save to orderRecord repository
-			if (condition.equals("new")) {
-				inStockOrderRepo.save(new InStockOrderRecord(resIdentifier, inStockRequest.getOrderNo()));
-			}
-
 			// history function code start
 			History newHistory = new History();
 			long resIdentifierId = resIdentifier.getId();
 
-			newHistory.setCurrentId(resIdentifierId);
+			newHistory.setCurrentIdentifierId(resIdentifierId);
 
 			switch (condition) {
-			case "new":
-				newHistory.setRootId(resIdentifierId);
+			case "normal":
+				newHistory.setRootIdentifierId(resIdentifierId);
 				newHistory.setRoot(true);
 				break;
-			case "old":
+			case "shrink":
 				// type exchange: array to list
-				List<Long> oldChildrenList = Arrays.stream(oldHistory.getChildrenId()).collect(Collectors.toList());
+				List<Long> oldChildrenList = Arrays.stream(oldHistory.getChildrenIdentifierId())
+						.collect(Collectors.toList());
 				oldChildrenList.add(resIdentifierId);
 				// type exchange: list to array
-				Long[] oldHistoryArr = oldChildrenList.toArray(oldHistory.getChildrenId());
-				oldHistory.setChildrenId(oldHistoryArr);
+				Long[] oldHistoryArr = oldChildrenList.toArray(oldHistory.getChildrenIdentifierId());
+				oldHistory.setChildrenIdentifierId(oldHistoryArr);
 				// update oldHistory/rootHistory
 				historyRepository.save(oldHistory); // could be ignored?
 
-				newHistory.setRootId(oldHistory.getRootId());
+				newHistory.setRootIdentifierId(oldHistory.getRootIdentifierId());
+				break;
+			case "assemble":
+				newHistory.setRootIdentifierId(resIdentifierId);
+				newHistory.setRoot(true);
 				break;
 			default:
 				break;
@@ -371,13 +401,41 @@ public class ClothService {
 			int newSerialNo = resClothIdentifierBacklog.getSerialNo() + 1;
 			resClothIdentifierBacklog.setSerialNo(newSerialNo);
 
-			// use clothIdentifier to create clothInfo, and add into list
-			resultList.add(new ClothInfo(clothIdentifier, inStockRequest.getColor(), inStockRequest.getDefect(),
-					inStockRequest.getRecord()));
+			// use clothIdentifier & inStockRequest to create clothInfo, then add into list
+			ClothInfo result = new ClothInfo(clothIdentifier, inStockRequest);
+
+			// only new cloth from InStockOrder & AssembleOrder need to be saved
+			if (condition.equals("normal") || condition.equals("assemble")) {
+				inStockOrderRepo.save(new InStockOrderRecord(clothIdentifier, inStockRequest));
+			}
+
+			resultList.add(result);
 
 		}
 
 		return clothInfoRepository.saveAll(resultList);
+	}
+
+	/**
+	 * Update certain ClothInfo contents
+	 */
+	public String updateClothInfo(UpdateInfoRequest updateInfoRequest) {
+		ClothInfo res = clothInfoRepository.findById(updateInfoRequest.getId()).get();
+
+		if (res.getColor() != updateInfoRequest.getColor()) {
+			res.setColor(updateInfoRequest.getColor());
+		}
+		if (!res.getDefect().equals(updateInfoRequest.getDefect())) {
+			res.setDefect(updateInfoRequest.getDefect());
+		}
+		if (!res.getRecord().equals(updateInfoRequest.getRecord())) {
+			res.setRecord(updateInfoRequest.getRecord());
+		}
+		if (!res.getRemark().equals(updateInfoRequest.getRemark())) {
+			res.setRemark(updateInfoRequest.getRemark());
+		}
+
+		return res.getClothIdentifier().getProductNo();
 	}
 
 	/**
@@ -425,10 +483,11 @@ public class ClothService {
 		String SQLStatement1 = "SELECT CODE, CNAME, SPEC, PACKDESC, ADDTYPE, PICTURE FROM dbo.PRODUCT WHERE CODE= ?1";
 		Query q1 = em.createNativeQuery(SQLStatement1);
 		q1.setParameter(1, productNo);
+		List<?> resultList = q1.getResultList();
 
-		if (!q1.getResultList().isEmpty()) {
+		if (!resultList.isEmpty()) {
 			// directly use get(0), because productNo is unique in db
-			Object[] cells = (Object[]) q1.getResultList().get(0);
+			Object[] cells = (Object[]) resultList.get(0);
 
 			productInformation.setProductNo(nullValueHelper(cells[0].toString()));
 			productInformation.setcName(nullValueHelper(cells[1].toString()));
@@ -451,10 +510,11 @@ public class ClothService {
 		String SQLStatement1 = "SELECT CODE, CNAME, SPEC, SUPP, PRODDESC, USERFLD1, DESCRIP, PACKDESC, ADDTYPE, PICTURE FROM dbo.PRODUCT WHERE CODE= ?1";
 		Query q1 = em.createNativeQuery(SQLStatement1);
 		q1.setParameter(1, productNo);
+		List<?> resultList = q1.getResultList();
 
-		if (!q1.getResultList().isEmpty()) {
+		if (!resultList.isEmpty()) {
 			// directly use get(0), because productNo is unique in db
-			Object[] cells = (Object[]) q1.getResultList().get(0);
+			Object[] cells = (Object[]) resultList.get(0);
 
 			productInformation.setProductNo(nullValueHelper(cells[0].toString()));
 			productInformation.setcName(nullValueHelper(cells[1].toString()));
@@ -522,8 +582,8 @@ public class ClothService {
 
 	/**
 	 * Using given information containing in ShipRequest to mark certain
-	 * clothIdentifier ship status is true and save a record to
-	 * outStockReqeust repository
+	 * clothIdentifier ship status is true and save a record to outStockReqeust
+	 * repository
 	 */
 	public void letClothIdentifierisShiped(ShipRequest shipRequest) {
 		ClothIdentifier res = clothIdentifierRepo.findById(shipRequest.getClothIdentifierId()).get();
@@ -543,7 +603,7 @@ public class ClothService {
 		outStockRequestRepo.save(outStockRequest);
 //		clothIdentifierRepo.save(res);
 	}
-	
+
 	/**
 	 * Cancel certain clothIdentifier ship process and update the corresponding
 	 * outStockRequest record as deleted
@@ -592,7 +652,7 @@ public class ClothService {
 		res.setWaitToShrink(true);
 		res.setOutStock(true);
 		res.setOutStockAt(LocalDateTime.now());
-
+// TODO: avoid multiple click
 		outStockRequest.setColor(resInfo.getColor());
 		outStockRequest.setDefect(resInfo.getDefect());
 		outStockRequest.setOutStockType(1);
@@ -641,12 +701,14 @@ public class ClothService {
 
 		return outStockRequestRepo.save(outStockRequest);
 	}
-	
-	// TODO: special outStockRequest delete method
-	public void deleteOutStockRequest (long outStockRequestId) {
+
+	/**
+	 * Delete method for special outStockRequest
+	 */
+	public void deleteOutStockRequest(long outStockRequestId) {
 		outStockRequestRepo.findById(outStockRequestId).get().setDeleted(true);
 	}
-	
+
 	/**
 	 * Return a response containing a list of waitHandle records created at 'today'
 	 * in outStockRequest repository and a list of create users collected in
@@ -697,9 +759,7 @@ public class ClothService {
 			}
 		});
 
-		HandleListResponse res = new HandleListResponse(userSet.stream().collect(Collectors.toList()), resultMap);
-
-		return res;
+		return new HandleListResponse(userSet.stream().collect(Collectors.toList()), resultMap);
 	}
 
 	/**
@@ -770,9 +830,7 @@ public class ClothService {
 			}
 		});
 
-		HandleListResponse res = new HandleListResponse(userSet.stream().collect(Collectors.toList()), resultMap);
-
-		return res;
+		return new HandleListResponse(userSet.stream().collect(Collectors.toList()), resultMap);
 	}
 
 	/**

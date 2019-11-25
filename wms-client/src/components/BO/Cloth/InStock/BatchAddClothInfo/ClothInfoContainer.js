@@ -18,7 +18,7 @@ class ClothInfoContainer extends PureComponent {
   handleNewDataClick() {
     const { waitHandleStatus } = this.props;
     const { clothInfoes } = this.state;
-    const type = Object.keys(this.props.waitHandleStatus)[0];
+    const type = Object.keys(waitHandleStatus)[0];
     let newClothInfo;
 
     if (clothInfoes.length === 0) {
@@ -32,10 +32,9 @@ class ClothInfoContainer extends PureComponent {
         defect: [{ label: "無", value: "無" }],
         record: "",
         remark: "",
-        isNew: "new",
+        inStockType: "normal",
         orderNo: this.props.inStockOrderNo,
         errors: {
-          // lotNo: "",
           length: ""
         }
       };
@@ -50,10 +49,9 @@ class ClothInfoContainer extends PureComponent {
         defect: clothInfoes[clothInfoes.length - 1].defect,
         record: "",
         remark: "",
-        isNew: "new",
+        inStockType: "normal",
         orderNo: this.props.inStockOrderNo,
         errors: {
-          // lotNo: "",
           length: ""
         }
       };
@@ -75,8 +73,9 @@ class ClothInfoContainer extends PureComponent {
   }
 
   handleSubmitClick(e) {
-    let clothInfoesCopy = JSON.parse(JSON.stringify(this.state.clothInfoes));
+    let clothInfoesCopy = copy(this.state.clothInfoes);
 
+    // join clothInfo.defect array contents
     clothInfoesCopy.forEach((clothInfo, index) => {
       let newDefectContent = "";
 
@@ -100,7 +99,6 @@ class ClothInfoContainer extends PureComponent {
 
     switch (name) {
       case "lotNo":
-        // clothInfoesCopy[i].errors.lotNo = value.length < 1 ? "請定義批號" : "";
         clothInfoesCopy[i].lotNo = value;
         break;
       case "type":
@@ -146,12 +144,7 @@ class ClothInfoContainer extends PureComponent {
 
     // check form has errors ro invalid value
     for (let i = 0; i < clothInfoes.length; i += 1) {
-      if (
-        clothInfoes[i].errors.length === "" &&
-        clothInfoes[i].length > 0
-        // clothInfoes[i].errors.lotNo === "" &&
-        // clothInfoes[i].lotNo > 0
-      ) {
+      if (clothInfoes[i].errors.length === "" && clothInfoes[i].length > 0) {
         isFormValid = true;
       } else {
         isFormValid = false;
@@ -196,6 +189,7 @@ class ClothInfoContainer extends PureComponent {
         item += parseFloat(clothInfoes[i].length);
       }
     }
+
     return { 整支: roll, 板卷: board, 雜項: item };
   }
 
@@ -223,11 +217,11 @@ class ClothInfoContainer extends PureComponent {
           <table className="table table-sm">
             <thead className="thead-dark">
               <tr>
-                <th scope="col">貨號</th>
-                <th scope="col">型態</th>
-                <th scope="col">總數量</th>
-                <th scope="col">目前數量</th>
-                <th scope="col">單位</th>
+                <th style={{ width: "20%" }}>貨號</th>
+                <th style={{ width: "20%" }}>型態</th>
+                <th style={{ width: "20%" }}>總數量</th>
+                <th style={{ width: "20%" }}>目前數量</th>
+                <th style={{ width: "20%" }}>單位</th>
               </tr>
             </thead>
             <tbody>

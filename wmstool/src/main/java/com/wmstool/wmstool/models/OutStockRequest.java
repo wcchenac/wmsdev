@@ -32,7 +32,7 @@ public class OutStockRequest {
 
 	private String reason;
 
-	private int outStockType; // 0: 出貨, 1: 減肥, 2: 概略拉貨
+	private int outStockType; // 0: 出貨, 1: 減肥, 2: 無指定拉貨
 
 	private long clothIdentifierId;
 
