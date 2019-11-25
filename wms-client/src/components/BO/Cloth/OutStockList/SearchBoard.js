@@ -160,14 +160,16 @@ class SearchBoard extends Component {
 
       return (
         <React.Fragment>
-          <div className="float-right">
-            <button
-              className="btn btn-primary"
-              disabled={this.submitValidation()}
-              onClick={this.onSubmitClick}
-            >
-              匯出檔案
-            </button>
+          <div className="row justify-content-end">
+            <div className="col-md-auto">
+              <button
+                className="btn btn-primary mr-2"
+                disabled={this.submitValidation()}
+                onClick={this.onSubmitClick}
+              >
+                儲存
+              </button>
+            </div>
           </div>
           <br />
           <nav>
@@ -212,6 +214,9 @@ class SearchBoard extends Component {
                   allSelectMethod={this.allSelectMethod}
                   handleToBeSubmitChange={this.handleToBeSubmitChange}
                   handleToBeSubmitWHChange={this.handleToBeSubmitWHChange}
+                  cancelShip={this.props.cancelShip}
+                  deleteOutStock={this.props.deleteOutStock}
+                  initialize={this.props.initialize}
                 />
               );
             })}

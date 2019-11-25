@@ -66,9 +66,9 @@ class CheckBox extends Component {
               {Object.keys(waitHandleStatus).map((type, index) => {
                 return (
                   <div key={index}>
-                    <div className="row mb-1">
-                      <label className="col-auto">{type.toString()}</label>
-                      <label className="col-auto">
+                    <div className="row mb-0">
+                      <label className="col-auto mb-0">{type.toString()}</label>
+                      <label className="col-auto mb-0">
                         {waitHandleStatus[type].length}{" "}
                         {waitHandleStatus[type].unit}
                       </label>

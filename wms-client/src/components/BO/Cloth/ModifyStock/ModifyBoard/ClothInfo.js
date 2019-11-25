@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import { StoreList } from "../../../../../enums/Enums";
+import { StoreList, OutStockOtherReason } from "../../../../../enums/Enums";
 import { trackPromise } from "react-promise-tracker";
+import InformationModal from "./InformationModal";
 
 class ClothInfo extends Component {
   constructor(props) {
@@ -38,8 +39,6 @@ class ClothInfo extends Component {
   }
 
   btnAlgorithm(waitToShrink, index) {
-    let storeList = Object.values(StoreList);
-
     if (waitToShrink === false) {
       return (
         <React.Fragment>
@@ -95,6 +94,21 @@ class ClothInfo extends Component {
                       />
                     </div>
                   </div>
+                  <div className="row  justify-content-end">
+                    <div className="col-md-8">
+                      {StoreList.map((store, index) => (
+                        <button
+                          type="button"
+                          className="btn btn-outline-info mr-1 mb-1"
+                          key={index}
+                          value={store}
+                          onClick={this.handleReasonButton}
+                        >
+                          {store}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="row">
                     <div className="col-md-4">
                       <button
@@ -106,15 +120,15 @@ class ClothInfo extends Component {
                       </button>
                     </div>
                     <div className="col-md-8">
-                      {storeList.map((store, index) => (
+                      {OutStockOtherReason.map((reason, index) => (
                         <button
                           type="button"
                           className="btn btn-outline-info mr-1 mb-1"
                           key={index}
-                          value={store}
+                          value={reason}
                           onClick={this.handleReasonButton}
                         >
-                          {store}
+                          {reason}
                         </button>
                       ))}
                     </div>
@@ -212,107 +226,11 @@ class ClothInfo extends Component {
           >
             詳細資料
           </button>
-          <div
-            className="modal fade"
-            id={"detailInfo-" + index}
-            tabIndex="-1"
-            role="dialog"
-            aria-labelledby="content"
-            aria-hidden="true"
-          >
-            <div
-              className="modal-dialog modal-dialog-scrollable modal-dialog-centered"
-              role="document"
-            >
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">詳細資料</h5>
-                  <button
-                    type="button"
-                    className="close"
-                    data-dismiss="modal"
-                    aria-label="Close"
-                  >
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      貨號
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothIdentifier.productNo}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      批號
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothIdentifier.lotNo}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      型態
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothIdentifier.type}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      長度
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothIdentifier.length}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      單位
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothIdentifier.unit}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      色號
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothInfo.color}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      缺陷
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothInfo.defect}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      註解
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothInfo.remark}
-                    </label>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-6 col-form-label text-center">
-                      記錄
-                    </label>
-                    <label className="col-6 col-form-label">
-                      {clothInfo.record}
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <InformationModal
+            index={index}
+            clothInfo={clothInfo}
+            outStockReason={this.state.outStockReason}
+          />
           {btnContent}
         </td>
       </tr>

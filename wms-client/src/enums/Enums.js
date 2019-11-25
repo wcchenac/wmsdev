@@ -1,39 +1,26 @@
-export const StoreList = {
-  Taoyuan: "中壢門市",
-  Hsinchu: "新竹門市",
-  Taichung: "台中門市",
-  Chiayi: "嘉義門市",
-  Tainan1: "台南門市",
-  Tainan2: "西門門市",
-  Kaohsiung1: "鼎山門市",
-  Kaohsiung2: "中山門市",
-  Pingtung: "屏東門市"
-};
+// Used at ModifyBoard-ClothInfo-OutStockModal
+export const StoreList = [
+  "中壢門市",
+  "新竹門市",
+  "台中門市",
+  "嘉義門市",
+  "台南門市",
+  "西門門市",
+  "鼎山門市",
+  "中山門市",
+  "屏東門市"
+];
 
-export const ColorOptions = {
-  1: "1",
-  2: "2",
-  3: "3",
-  4: "4",
-  5: "5",
-  6: "6",
-  7: "7",
-  8: "8",
-  9: "9",
-  10: "10"
-};
+// Used at ModifyBoard-ClothInfo-OutStockModal
+export const OutStockOtherReason = ["上貨櫃", "轉零碼", "晶品倉"];
 
-export const DefectList = {
-  none: "無",
-  GA: "GA",
-  GB: "GB",
-  GC: "GC",
-  GD: "GD",
-  AMinus: "A-",
-  B: "B",
-  C: "C"
-};
+// Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo/
+//         AssembleClothBoard-ClothContainer-ClothInfo
+export const ColorOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
+// Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo/
+//         AssembleClothBoard-ClothContainer-ClothInfo/
+//         ShrinkBoard-ModifyRequestBoard-ModifyRequestContainer-ModifyRequestInfo
 export const DefectOptions = [
   { label: "無", value: "無" },
   { label: "GA", value: "GA" },
@@ -42,9 +29,11 @@ export const DefectOptions = [
   { label: "GD", value: "GD" },
   { label: "A-", value: "A-" },
   { label: "B", value: "B" },
-  { label: "C", value: "C" }
+  { label: "C", value: "C" },
+  { label: "保留", value: "保留" }
 ];
 
+// Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo
 // the index is same as db
 export const unitLlist = [
   "台",

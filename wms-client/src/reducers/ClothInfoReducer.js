@@ -32,9 +32,12 @@ export default function(state = initialState, action) {
     case SHIP_Cloth:
       return {
         ...state,
-        clothInfoes: state.clothInfoes.filter(
-          clothInfo => clothInfo.clothIdentifier.id !== action.payload
-        )
+        clothInfoes: {
+          ...state.clothInfoes,
+          result: state.clothInfoes.result.filter(
+            clothInfo => clothInfo.clothIdentifier.id !== action.payload
+          )
+        }
       };
     case SHRINK_Cloth:
       return {

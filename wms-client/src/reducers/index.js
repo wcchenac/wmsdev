@@ -7,6 +7,6 @@ import OutStockRequestReducer from "./OutStockRequestReducer";
 export default combineReducers({
   errors: errorReducer,
   clothInfo: ClothInfoReducer,
-  filename: FileReducer,
+  fileName: FileReducer,
   outStockRequests: OutStockRequestReducer
 });

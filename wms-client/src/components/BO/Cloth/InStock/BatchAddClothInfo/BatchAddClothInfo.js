@@ -10,6 +10,7 @@ import {
   getInStockOrder,
   batchCreateClothInfoes
 } from "../../../../../actions/ClothInfoAcions";
+import { isEmpty } from "../../../../../utilities/IsEmpty";
 
 class BatchAddClothInfo extends Component {
   constructor() {
@@ -49,18 +50,20 @@ class BatchAddClothInfo extends Component {
   }
 
   initialSelectedList(currentOrderStatus) {
-    let selectedList = [];
+    if (!isEmpty(currentOrderStatus)) {
+      let selectedList = [];
 
-    Object.keys(currentOrderStatus).forEach((element, index) => {
-      selectedList.push({
-        productNo: element.toString(),
-        selected: false,
-        index: index,
-        isSubmitted: false
+      Object.keys(currentOrderStatus).forEach((element, index) => {
+        selectedList.push({
+          productNo: element.toString(),
+          selected: false,
+          index: index,
+          isSubmitted: false
+        });
       });
-    });
 
-    this.setState({ selectedProductNoList: selectedList });
+      this.setState({ selectedProductNoList: selectedList });
+    }
   }
 
   handleTabSelect(key) {
@@ -142,8 +145,6 @@ class BatchAddClothInfo extends Component {
   render() {
     const {
       inStockOrderNo,
-      currentOrderStatus,
-      prevOrderStatus,
       waitHandleStatus,
       selectedProductNoList,
       key
@@ -165,7 +166,7 @@ class BatchAddClothInfo extends Component {
               </Nav.Item>
               <Nav.Item>
                 <Nav.Link eventKey={2} disabled={key !== 2}>
-                  Step 2 - 選擇進貨貨號
+                  Step 2 - 選擇入庫貨號
                 </Nav.Link>
               </Nav.Item>
               <Nav.Item>
@@ -187,7 +188,7 @@ class BatchAddClothInfo extends Component {
               <TabPane eventKey={2}>
                 <div className="container">
                   <SelectionBoard
-                    handlePrevStep={this.handlePrevStep}
+                    handlePrevStep={this.getInitialize}
                     handleNextStep={this.handleNextStep}
                     inStockOrderNo={inStockOrderNo}
                     waitHandleStatus={waitHandleStatus}
@@ -202,8 +203,6 @@ class BatchAddClothInfo extends Component {
                     handlePrevStep={this.handlePrevStep}
                     inStockOrderNo={inStockOrderNo}
                     selectedProductNoList={selectedProductNoList}
-                    currentOrderStatus={currentOrderStatus}
-                    prevOrderStatus={prevOrderStatus}
                     waitHandleStatus={waitHandleStatus}
                     handleInStockRequestSubmit={this.handleInStockRequestSubmit}
                     getInitialize={this.getInitialize}

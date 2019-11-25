@@ -4,24 +4,11 @@ import {
   GET_ClothInfoes,
   GET_Errors,
   SHIP_Cloth,
-  DELETE_Cloth,
   SHRINK_Cloth,
   CANCEL_SHRINK,
-  GET_OutStockRequests
+  GET_OutStockRequests,
+  CREATE_FILE
 } from "./types";
-
-// To be deprecated
-export const createClothInfo = (inStockRequest, history) => async dispatch => {
-  try {
-    await axios.post("/api/cloth/inStock", inStockRequest);
-    history.push("/cloth/1/1");
-  } catch (err) {
-    dispatch({
-      type: GET_Errors,
-      payload: err.response.data
-    });
-  }
-};
 
 export const getInStockOrder = inStockOrderNo => async dispatch => {
   const res = await axios.get(`/api/cloth/queryInStockOrder/${inStockOrderNo}`);
@@ -59,22 +46,6 @@ export const getShrinkList = () => async dispatch => {
   });
 };
 
-// To be deprecated
-export const purgeOldClothIndentifierNotExist = clothIdentifierId => async dispatch => {
-  try {
-    await axios.patch(`/api/cloth/purgeStock/${clothIdentifierId}`);
-    dispatch({
-      type: DELETE_Cloth,
-      payload: null
-    });
-  } catch (err) {
-    dispatch({
-      type: GET_Errors,
-      payload: err.response.data
-    });
-  }
-};
-
 export const clothIndentifierIsShiped = shipRequest => async dispatch => {
   try {
     await axios.patch("/api/cloth/shipStock", shipRequest);
@@ -83,6 +54,17 @@ export const clothIndentifierIsShiped = shipRequest => async dispatch => {
       type: SHIP_Cloth,
       payload: shipRequest.clothIdentifierId
     });
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
+export const clothIndentifierIsNotShiped = clothIdentifierId => async dispatch => {
+  try {
+    await axios.patch(`/api/cloth/rollback/shipStock/${clothIdentifierId}`);
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -160,8 +142,19 @@ export const createOutStockRequest = outStockRequest => async dispatch => {
   }
 };
 
+export const deleteOutStockRequest = outStockRequestId => async dispatch => {
+  try {
+    await axios.patch(`/api/cloth/rollback/outStock/${outStockRequestId}`);
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
 export const getWaitHandleList = () => async dispatch => {
-  const res = await axios.get("/api/cloth/queryStock/waitHandleList/basic");
+  const res = await axios.get("/api/cloth/outStock/waitHandleList/basic");
 
   dispatch({
     type: GET_OutStockRequests,
@@ -174,7 +167,7 @@ export const getWaitHandleListWithInterval = (
   endDate
 ) => async dispatch => {
   const res = await axios.get(
-    `/api/cloth/queryStock/waitHandleList/interval/${startDate}&${endDate}`
+    `/api/cloth/outStock/waitHandleList/interval/${startDate}&${endDate}`
   );
 
   dispatch({
@@ -186,6 +179,10 @@ export const getWaitHandleListWithInterval = (
 export const updateOutStockRequests = outStockUpdateRequest => async dispatch => {
   try {
     await axios.patch("/api/cloth/outStock/update", outStockUpdateRequest);
+
+    dispatch({
+      type: CREATE_FILE
+    });
   } catch (err) {
     dispatch({
       type: GET_Errors,

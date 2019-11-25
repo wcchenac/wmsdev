@@ -18,17 +18,29 @@ public class OutStockRequest {
 
 	private String productNo;
 
+	private String lotNo;
+
 	private String type;
 
 	private String length;
 
 	private String unit;
 
+	private int color;
+
+	private String defect;
+
 	private String reason;
+
+	private int outStockType; // 0: 出貨, 1: 減肥, 2: 概略拉貨
 
 	private long clothIdentifierId;
 
+	private String fileName;
+
 	private boolean isHandled = false;
+
+	private boolean isDeleted = false;
 
 	private String requestFrom;
 
@@ -43,17 +55,19 @@ public class OutStockRequest {
 	public OutStockRequest() {
 	}
 
-	public OutStockRequest(String productNo, String type, String length, String unit, String reason) {
+	public OutStockRequest(String productNo, String lotNo, String type, String length, String unit, String reason) {
 		this.productNo = productNo;
+		this.lotNo = lotNo;
 		this.type = type;
 		this.length = length;
 		this.unit = unit;
 		this.reason = reason;
 	}
 
-	public OutStockRequest(String productNo, String type, String length, String unit, String reason,
+	public OutStockRequest(String productNo, String lotNo, String type, String length, String unit, String reason,
 			long clothIdentifierId) {
 		this.productNo = productNo;
+		this.lotNo = lotNo;
 		this.type = type;
 		this.length = length;
 		this.unit = unit;
@@ -75,6 +89,14 @@ public class OutStockRequest {
 
 	public void setProductNo(String productNo) {
 		this.productNo = productNo;
+	}
+
+	public String getLotNo() {
+		return lotNo;
+	}
+
+	public void setLotNo(String lotNo) {
+		this.lotNo = lotNo;
 	}
 
 	public String getType() {
@@ -101,12 +123,36 @@ public class OutStockRequest {
 		this.unit = unit;
 	}
 
+	public int getColor() {
+		return color;
+	}
+
+	public void setColor(int color) {
+		this.color = color;
+	}
+
+	public String getDefect() {
+		return defect;
+	}
+
+	public void setDefect(String defect) {
+		this.defect = defect;
+	}
+
 	public String getReason() {
 		return reason;
 	}
 
 	public void setReason(String reason) {
 		this.reason = reason;
+	}
+
+	public int getOutStockType() {
+		return outStockType;
+	}
+
+	public void setOutStockType(int outStockType) {
+		this.outStockType = outStockType;
 	}
 
 	public long getClothIdentifierId() {
@@ -117,12 +163,28 @@ public class OutStockRequest {
 		this.clothIdentifierId = clothIdentifierId;
 	}
 
+	public String getFileName() {
+		return fileName;
+	}
+
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
 	public boolean isHandled() {
 		return isHandled;
 	}
 
 	public void setHandled(boolean isHandled) {
 		this.isHandled = isHandled;
+	}
+
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
 	}
 
 	public String getRequestFrom() {

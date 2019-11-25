@@ -16,16 +16,18 @@ class ClothInfoContainer extends PureComponent {
   }
 
   handleNewDataClick() {
+    const { waitHandleStatus } = this.props;
     const { clothInfoes } = this.state;
+    const type = Object.keys(this.props.waitHandleStatus)[0];
     let newClothInfo;
 
     if (clothInfoes.length === 0) {
       newClothInfo = {
         productNo: this.props.productNo,
         lotNo: "",
-        type: "整支",
+        type: type.toString(),
         length: "",
-        unit: "碼",
+        unit: waitHandleStatus[type].unit,
         color: "1",
         defect: [{ label: "無", value: "無" }],
         record: "",
@@ -33,7 +35,7 @@ class ClothInfoContainer extends PureComponent {
         isNew: "new",
         orderNo: this.props.inStockOrderNo,
         errors: {
-          lotNo: "",
+          // lotNo: "",
           length: ""
         }
       };
@@ -51,7 +53,7 @@ class ClothInfoContainer extends PureComponent {
         isNew: "new",
         orderNo: this.props.inStockOrderNo,
         errors: {
-          lotNo: "",
+          // lotNo: "",
           length: ""
         }
       };
@@ -98,7 +100,7 @@ class ClothInfoContainer extends PureComponent {
 
     switch (name) {
       case "lotNo":
-        clothInfoesCopy[i].errors.lotNo = value.length < 1 ? "請定義批號" : "";
+        // clothInfoesCopy[i].errors.lotNo = value.length < 1 ? "請定義批號" : "";
         clothInfoesCopy[i].lotNo = value;
         break;
       case "type":
@@ -107,7 +109,7 @@ class ClothInfoContainer extends PureComponent {
       case "length":
         clothInfoesCopy[i].errors.length = /^\d*\.?\d+$/.test(value)
           ? ""
-          : "請輸入純數字或長度不可空白";
+          : "請輸入純數字或數量不可空白";
         clothInfoesCopy[i].length = value;
         break;
       case "unit":
@@ -139,30 +141,73 @@ class ClothInfoContainer extends PureComponent {
     });
   }
 
-  checkFormAlgorithm(clothInfoes) {
+  checkFormAlgorithm(clothInfoes, quantitySum, waitHandleStatus) {
     var isFormValid = false;
 
+    // check form has errors ro invalid value
     for (let i = 0; i < clothInfoes.length; i += 1) {
       if (
         clothInfoes[i].errors.length === "" &&
-        clothInfoes[i].length > 0 &&
-        clothInfoes[i].errors.lotNo === "" &&
-        clothInfoes[i].lotNo > 0
+        clothInfoes[i].length > 0
+        // clothInfoes[i].errors.lotNo === "" &&
+        // clothInfoes[i].lotNo > 0
       ) {
         isFormValid = true;
       } else {
         isFormValid = false;
-        break;
+        return isFormValid;
       }
     }
 
-    return isFormValid;
+    // there are at most two types for one productNo
+    let quantityValid = [false, false];
+
+    // check input total quantity is same as waitHandleStatus
+    Object.keys(waitHandleStatus).forEach((type, index) => {
+      if (
+        parseFloat(waitHandleStatus[type].length) ===
+        parseFloat(quantitySum[type])
+      ) {
+        quantityValid[index] = true;
+      } else {
+        quantityValid[index] = false;
+      }
+    });
+
+    // isFormValid is absoulutely true, as comparing waitHandleStatus/quantitySum
+    // if there is no type satisify the criteria, return false
+    // if there is a type which has the same quantity in both waitHandleStatus and quantitySum return true
+    return quantityValid[0] || quantityValid[1];
+  }
+
+  quantitySum(clothInfoes) {
+    let roll = 0.0;
+    let board = 0.0;
+    let item = 0.0;
+
+    for (let i = 0; i < clothInfoes.length; i += 1) {
+      if (clothInfoes[i].type === "整支") {
+        roll += parseFloat(clothInfoes[i].length);
+      }
+      if (clothInfoes[i].type === "板卷") {
+        board += parseFloat(clothInfoes[i].length);
+      }
+      if (clothInfoes[i].type === "雜項") {
+        item += parseFloat(clothInfoes[i].length);
+      }
+    }
+    return { 整支: roll, 板卷: board, 雜項: item };
   }
 
   render() {
     const { clothInfoes } = this.state;
-    const { sequence, index } = this.props;
-    let isFormValid = this.checkFormAlgorithm(clothInfoes);
+    const { sequence, index, productNo, waitHandleStatus } = this.props;
+    const quantitySum = this.quantitySum(clothInfoes);
+    const isFormValid = this.checkFormAlgorithm(
+      clothInfoes,
+      quantitySum,
+      waitHandleStatus
+    );
 
     return (
       <div
@@ -173,37 +218,99 @@ class ClothInfoContainer extends PureComponent {
         role="tabpanel"
         aria-labelledby={"nav-tab" + index}
       >
+        <p className="h4 text-center">待入庫總量</p>
+        <div>
+          <table className="table table-sm">
+            <thead className="thead-dark">
+              <tr>
+                <th scope="col">貨號</th>
+                <th scope="col">型態</th>
+                <th scope="col">總數量</th>
+                <th scope="col">目前數量</th>
+                <th scope="col">單位</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(waitHandleStatus).map((type, index) => (
+                <tr key={index}>
+                  <td>
+                    <div className="form-group mb-0">
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="productNo"
+                        value={productNo}
+                        readOnly
+                      />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="form-group mb-0">
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="type"
+                        value={type}
+                        readOnly
+                      />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="form-group mb-0">
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="length_waitHandle"
+                        value={waitHandleStatus[type].length}
+                        readOnly
+                      />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="form-group mb-0">
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="length_handled"
+                        value={quantitySum[type].toString()}
+                        readOnly
+                      />
+                    </div>
+                  </td>
+                  <td>
+                    <div className="form-group mb-0">
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="unit"
+                        value={waitHandleStatus[type].unit}
+                        readOnly
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <hr />
         <div className="row">
           <div className="col-md-auto mr-auto">
-            <div
-              className="btn-toolbar"
-              role="toolbar"
-              aria-label="Toolbar with button groups"
+            <button
+              tyep="button"
+              className="btn btn-primary mr-2"
+              onClick={this.handleNewDataClick}
             >
-              <div
-                className="btn-group mr-2"
-                role="group"
-                aria-label="First group"
-              >
-                <button
-                  tyep="button"
-                  className="btn btn-primary"
-                  onClick={this.handleNewDataClick}
-                >
-                  新增資料
-                </button>
-              </div>
-              <div className="btn-group" role="group" aria-label="Second group">
-                <button
-                  tyep="button"
-                  className="btn btn-primary"
-                  onClick={this.handleDeleteDataClick}
-                  disabled={clothInfoes.length === 0}
-                >
-                  刪除資料
-                </button>
-              </div>
-            </div>
+              新增資料
+            </button>
+            <button
+              tyep="button"
+              className="btn btn-primary"
+              onClick={this.handleDeleteDataClick}
+              disabled={clothInfoes.length === 0}
+            >
+              刪除資料
+            </button>
           </div>
           <div className="col-md-auto">
             <button
@@ -222,7 +329,7 @@ class ClothInfoContainer extends PureComponent {
               <th style={{ width: "20%" }}>貨號</th>
               <th style={{ width: "8%" }}>批號</th>
               <th style={{ width: "8%" }}>型態</th>
-              <th style={{ width: "15%" }}>長度</th>
+              <th style={{ width: "15%" }}>數量</th>
               <th style={{ width: "8%" }}>單位</th>
               <th style={{ width: "8%" }}>色號</th>
               <th style={{ width: "15%" }}>瑕疵</th>
