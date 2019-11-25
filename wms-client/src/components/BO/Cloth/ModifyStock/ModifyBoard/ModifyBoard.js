@@ -5,11 +5,11 @@ import {
   getClothInfoes,
   clothIndentifierIsShiped,
   clothIdentifierWaitToShrinkIsTrue,
-  createOutStockRequest
+  createOutStockRequest,
+  updateClothInfo
 } from "../../../../../actions/ClothInfoAcions";
 import ClothInfoContainer from "./ClothInfoContainer";
 import OutStockModal from "./OutStockModal";
-import { trackPromise } from "react-promise-tracker";
 
 const equal = require("fast-deep-equal");
 
@@ -27,6 +27,9 @@ class ModifyBoard extends Component {
     this.handleOutStockRequestSubmit = this.handleOutStockRequestSubmit.bind(
       this
     );
+    this.handleShip = this.handleShip.bind(this);
+    this.handleShrink = this.handleShrink.bind(this);
+    this.handleClothInfoUpdate = this.handleClothInfoUpdate.bind(this);
   }
 
   onChange(e) {
@@ -35,13 +38,28 @@ class ModifyBoard extends Component {
 
   onSubmit(e) {
     e.preventDefault();
-    trackPromise(this.props.getClothInfoes(this.state.productNo));
-    this.setState({ isQuery: true });
+    this.props.getClothInfoes(this.state.productNo).then(response => {
+      if (response.status === 200) {
+        this.setState({ isQuery: true });
+      }
+    });
   }
 
   handleOutStockRequestSubmit(e, outStockRequest) {
     e.preventDefault();
     this.props.createOutStockRequest(outStockRequest);
+  }
+
+  handleShip(shipRequest) {
+    this.props.clothIndentifierIsShiped(shipRequest);
+  }
+
+  handleShrink(id) {
+    this.props.clothIdentifierWaitToShrinkIsTrue(id);
+  }
+
+  handleClothInfoUpdate(updateInfoRequest) {
+    this.props.updateClothInfo(updateInfoRequest);
   }
 
   componentDidUpdate(prevProps) {
@@ -241,8 +259,9 @@ class ModifyBoard extends Component {
           {isQuery ? (
             <ClothInfoContainer
               clothInfoes={clothInfoes}
-              handleShip={this.props.clothIndentifierIsShiped}
-              handleShrink={this.props.clothIdentifierWaitToShrinkIsTrue}
+              handleShip={this.handleShip}
+              handleShrink={this.handleShrink}
+              handleClothInfoUpdate={this.handleClothInfoUpdate}
             />
           ) : null}
         </div>
@@ -263,12 +282,10 @@ const mapStateToProps = state => ({
   queryResult: state.clothInfo
 });
 
-export default connect(
-  mapStateToProps,
-  {
-    getClothInfoes,
-    clothIndentifierIsShiped,
-    clothIdentifierWaitToShrinkIsTrue,
-    createOutStockRequest
-  }
-)(ModifyBoard);
+export default connect(mapStateToProps, {
+  getClothInfoes,
+  clothIndentifierIsShiped,
+  clothIdentifierWaitToShrinkIsTrue,
+  createOutStockRequest,
+  updateClothInfo
+})(ModifyBoard);

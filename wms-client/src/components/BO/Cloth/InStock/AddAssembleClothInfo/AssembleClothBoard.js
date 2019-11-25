@@ -44,6 +44,7 @@ class AssembleClothBoard extends Component {
 
   handleQuerySubmit(e) {
     e.preventDefault();
+    this.setState({ isOrderValid: undefined });
     this.props.getAssembleOrder(this.state.assembleOrderNo);
   }
 
@@ -95,7 +96,6 @@ class AssembleClothBoard extends Component {
   render() {
     const {
       isOrderValid,
-      assembleOrderNo,
       assembleOrderContent,
       waitHandleStatus
     } = this.state;
@@ -111,7 +111,6 @@ class AssembleClothBoard extends Component {
           <hr />
           {isOrderValid ? (
             <ClothInfoContainer
-              assembleOrderNo={assembleOrderNo}
               assembleOrderContent={assembleOrderContent}
               waitHandleStatus={waitHandleStatus}
               handleAssembleRequestSubmit={this.handleAssembleRequestSubmit}
@@ -134,7 +133,7 @@ const mapStateToProps = state => ({
   assembleOrderContent: state.clothInfo
 });
 
-export default connect(
-  mapStateToProps,
-  { getAssembleOrder, batchCreateClothInfoes }
-)(AssembleClothBoard);
+export default connect(mapStateToProps, {
+  getAssembleOrder,
+  batchCreateClothInfoes
+})(AssembleClothBoard);

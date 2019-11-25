@@ -10,7 +10,9 @@ import {
   SHRINK_Cloth,
   CANCEL_SHRINK,
   GET_OutStockRequests,
-  CREATE_FILE
+  CREATE_FILE,
+  UPDATE_ClothInfo,
+  UPDATE_Errors
 } from "./types";
 
 export const getInStockOrder = inStockOrderNo => async dispatch => {
@@ -171,6 +173,28 @@ export const batchCreateClothInfoesForShrink = shrinkStockRequest => async dispa
   }
 };
 
+export const updateClothInfo = updateInfoRequest => async dispatch => {
+  try {
+    let result = await trackPromise(
+      axios.patch("/api/cloth/updateStock", updateInfoRequest)
+    );
+    let productNo = result.data;
+    const res = await trackPromise(
+      axios.get(`/api/cloth/queryStock/query/${productNo}`)
+    );
+
+    dispatch({
+      type: UPDATE_ClothInfo,
+      payload: res.data
+    });
+  } catch (err) {
+    dispatch({
+      type: UPDATE_Errors,
+      payload: err.response
+    });
+  }
+};
+
 export const createOutStockRequest = outStockRequest => async dispatch => {
   try {
     await trackPromise(axios.post("/api/cloth/outStock", outStockRequest));
@@ -214,7 +238,7 @@ export const getWaitHandleListWithInterval = (
 ) => async dispatch => {
   const res = await trackPromise(
     axios.get(
-      `/api/cloth/outStock/waitHandleList/interval/${startDate}&${endDate}`
+      `/api/cloth/outStock/waitHandleList/interval/?date=${startDate}&${endDate}`
     )
   );
 

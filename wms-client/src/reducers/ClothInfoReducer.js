@@ -4,7 +4,8 @@ import {
   GET_ClothInfoes,
   SHIP_Cloth,
   SHRINK_Cloth,
-  CANCEL_SHRINK
+  CANCEL_SHRINK,
+  UPDATE_ClothInfo
 } from "../actions/types";
 
 const initialState = {
@@ -50,6 +51,11 @@ export default function(state = initialState, action) {
         clothInfoes: state.clothInfoes.filter(
           clothInfo => clothInfo.clothIdentifier.id !== action.payload
         )
+      };
+    case UPDATE_ClothInfo:
+      return {
+        ...state,
+        clothInfoes: action.payload
       };
     default:
       return state;

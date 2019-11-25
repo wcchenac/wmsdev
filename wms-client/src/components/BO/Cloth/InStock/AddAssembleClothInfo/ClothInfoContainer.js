@@ -205,7 +205,6 @@ class ClothInfoContainer extends Component {
 
   render() {
     const {
-      assembleOrderNo,
       assembleOrderContent,
       waitHandleStatus
     } = this.props;
@@ -236,7 +235,7 @@ class ClothInfoContainer extends Component {
       return (
         <React.Fragment>
           <p className="h4 text-center">
-            {"組裝單(" + assembleOrderNo + ")資訊"}
+            組裝單資訊
           </p>
           <table className="table table-sm">
             <thead className="thead-dark">

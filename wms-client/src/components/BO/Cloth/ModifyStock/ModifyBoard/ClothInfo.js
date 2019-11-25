@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { StoreList, OutStockOtherReason } from "../../../../../enums/Enums";
-import { trackPromise } from "react-promise-tracker";
 import InformationModal from "./InformationModal";
 
 class ClothInfo extends Component {
@@ -25,9 +24,7 @@ class ClothInfo extends Component {
   }
 
   onShrinkClick() {
-    trackPromise(
-      this.props.handleShrink(this.props.clothInfo.clothIdentifier.id)
-    );
+    this.props.handleShrink(this.props.clothInfo.clothIdentifier.id);
   }
 
   onChange(e) {
@@ -229,7 +226,7 @@ class ClothInfo extends Component {
           <InformationModal
             index={index}
             clothInfo={clothInfo}
-            outStockReason={this.state.outStockReason}
+            handleClothInfoUpdate={this.props.handleClothInfoUpdate}
           />
           {btnContent}
         </td>

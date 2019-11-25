@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getClothInfoesBasic } from "../../../../actions/ClothInfoAcions";
 import ClothInfoContainer from "./ClothInfoContainer";
-import { trackPromise } from "react-promise-tracker";
 
 class QueryBoard extends Component {
   constructor() {
@@ -24,8 +23,11 @@ class QueryBoard extends Component {
 
   onSubmit(e) {
     e.preventDefault();
-    trackPromise(this.props.getClothInfoesBasic(this.state.productNo));
-    this.setState({ isQuery: true });
+    this.props.getClothInfoesBasic(this.state.productNo).then(response => {
+      if (response.status === 200) {
+        this.setState({ isQuery: true });
+      }
+    });
   }
 
   componentDidUpdate(prevProps) {
