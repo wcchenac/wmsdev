@@ -26,7 +26,7 @@ public class InStockOrderRecord {
 
 	private String lotNo;
 
-	private String length;
+	private String quantity;
 
 	private String unit;
 
@@ -36,7 +36,7 @@ public class InStockOrderRecord {
 
 	private String defect;
 
-	private Long clothIdentifierId;
+	private Long stockIdentifierId;
 
 	private LocalDateTime createdAt;
 
@@ -49,17 +49,17 @@ public class InStockOrderRecord {
 	public InStockOrderRecord() {
 	}
 
-	public InStockOrderRecord(ClothIdentifier clothIdentifier, InStockRequest inStockRequest) {
+	public InStockOrderRecord(StockIdentifier stockIdentifier, InStockRequest inStockRequest) {
 		this.inStockType = inStockRequest.getInStockType();
 		this.inStockOrderNo = inStockRequest.getOrderNo();
-		this.productNo = clothIdentifier.getProductNo();
-		this.lotNo=clothIdentifier.getLotNo();
-		this.length = clothIdentifier.getLength();
-		this.unit = clothIdentifier.getUnit();
-		this.type = clothIdentifier.getType();
+		this.productNo = stockIdentifier.getProductNo();
+		this.lotNo = stockIdentifier.getLotNo();
+		this.quantity = stockIdentifier.getQuantity();
+		this.unit = stockIdentifier.getUnit();
+		this.type = stockIdentifier.getType();
 		this.color = inStockRequest.getColor();
 		this.defect = inStockRequest.getDefect();
-		this.clothIdentifierId = clothIdentifier.getId();
+		this.stockIdentifierId = stockIdentifier.getId();
 	}
 
 	public Long getId() {
@@ -102,12 +102,12 @@ public class InStockOrderRecord {
 		this.lotNo = lotNo;
 	}
 
-	public String getLength() {
-		return length;
+	public String getQuantity() {
+		return quantity;
 	}
 
-	public void setLength(String length) {
-		this.length = length;
+	public void setQuantity(String quantity) {
+		this.quantity = quantity;
 	}
 
 	public String getUnit() {
@@ -142,12 +142,12 @@ public class InStockOrderRecord {
 		this.defect = defect;
 	}
 
-	public Long getClothIdentifierId() {
-		return clothIdentifierId;
+	public Long getStockIdentifierId() {
+		return stockIdentifierId;
 	}
 
-	public void setClothIdentifierId(Long clothIdentifierId) {
-		this.clothIdentifierId = clothIdentifierId;
+	public void setStockIdentifierId(Long stockIdentifierId) {
+		this.stockIdentifierId = stockIdentifierId;
 	}
 
 	public LocalDateTime getCreatedAt() {

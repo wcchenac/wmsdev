@@ -4,32 +4,21 @@ import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-public class ClothIdentifier {
+public class StockIdentifier {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
-//	@ManyToOne(fetch = FetchType.LAZY)
-//	@JoinColumn(name = "clothIdentifierBacklog_id", updatable = false, nullable = false)
-//	@JsonIgnore
-//	@Transient
-//	private ClothIdentifierBacklog clothIdentifierBacklog;
 
 	@Column(nullable = false, updatable = false, length = 25)
 	private String productNo;
@@ -39,10 +28,10 @@ public class ClothIdentifier {
 
 	@Column(nullable = false, updatable = false, length = 10)
 	private String type;
-	
+
 	@NotEmpty
 	@Column(nullable = false, updatable = false, length = 10)
-	private String length;
+	private String quantity;
 
 	@Column(nullable = false, length = 10)
 	private String unit;
@@ -58,34 +47,33 @@ public class ClothIdentifier {
 	private String shipReason;
 
 	private boolean isOutStock = false;
-	
+
 	private String firstInStockAt;
 
 //	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
 //	@JsonIgnore
 //	private ClothInfo clothInfo;
 
+	@JsonIgnore
+	private LocalDateTime outStockAt;
+
 	@Column(updatable = false)
 	@JsonIgnore
 	private LocalDateTime createdAt;
 
 	@JsonIgnore
-	private LocalDateTime outStockAt;
-
-	@JsonIgnore
 	private LocalDateTime updatedAt;
 
-	public ClothIdentifier() {
+	public StockIdentifier() {
 	}
 
-	public ClothIdentifier(ClothIdentifierBacklog clothIdentifierBacklog) {
-//		this.clothIdentifierBacklog = clothIdentifierBacklog;
-		this.productNo = clothIdentifierBacklog.getProductNo();
-		this.lotNo = clothIdentifierBacklog.getLotNo();
-		this.type = clothIdentifierBacklog.getType();
-		this.length = clothIdentifierBacklog.getLength();
-		this.unit = clothIdentifierBacklog.getUnit();
-		this.serialNo = clothIdentifierBacklog.getSerialNo();
+	public StockIdentifier(StockIdentifierBacklog stockIdentifierBacklog) {
+		this.productNo = stockIdentifierBacklog.getProductNo();
+		this.lotNo = stockIdentifierBacklog.getLotNo();
+		this.type = stockIdentifierBacklog.getType();
+		this.quantity = stockIdentifierBacklog.getQuantity();
+		this.unit = stockIdentifierBacklog.getUnit();
+		this.serialNo = stockIdentifierBacklog.getSerialNo();
 	}
 
 	public Long getId() {
@@ -96,14 +84,6 @@ public class ClothIdentifier {
 		this.id = id;
 	}
 
-//	public ClothIdentifierBacklog getClothIdentifierBacklog() {
-//		return clothIdentifierBacklog;
-//	}
-//
-//	public void setClothIdentifierBacklog(ClothIdentifierBacklog clothIdentifierBacklog) {
-//		this.clothIdentifierBacklog = clothIdentifierBacklog;
-//	}
-
 	public String getProductNo() {
 		return productNo;
 	}
@@ -111,7 +91,7 @@ public class ClothIdentifier {
 	public void setProductNo(String productNo) {
 		this.productNo = productNo;
 	}
-	
+
 	public String getLotNo() {
 		return lotNo;
 	}
@@ -128,12 +108,12 @@ public class ClothIdentifier {
 		this.type = type;
 	}
 
-	public String getLength() {
-		return length;
+	public String getQuantity() {
+		return quantity;
 	}
 
-	public void setLength(String length) {
-		this.length = length;
+	public void setQuantity(String quantity) {
+		this.quantity = quantity;
 	}
 
 	public String getUnit() {
@@ -191,7 +171,7 @@ public class ClothIdentifier {
 	public void setOutStock(boolean isOutStock) {
 		this.isOutStock = isOutStock;
 	}
-	
+
 	public String getFirstInStockAt() {
 		return firstInStockAt;
 	}
@@ -234,7 +214,7 @@ public class ClothIdentifier {
 
 	@PrePersist
 	protected void onCreated() {
-		this.createdAt =LocalDateTime.now();
+		this.createdAt = LocalDateTime.now();
 	}
 
 	@PreUpdate

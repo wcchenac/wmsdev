@@ -22,7 +22,7 @@ public class OutStockRequest {
 
 	private String type;
 
-	private String length;
+	private String quantity;
 
 	private String unit;
 
@@ -34,7 +34,7 @@ public class OutStockRequest {
 
 	private int outStockType; // 0: 出貨, 1: 減肥, 2: 無指定拉貨
 
-	private long clothIdentifierId;
+	private long stockIdentifierId;
 
 	private String fileName;
 
@@ -55,24 +55,25 @@ public class OutStockRequest {
 	public OutStockRequest() {
 	}
 
-	public OutStockRequest(String productNo, String lotNo, String type, String length, String unit, String reason) {
+	public OutStockRequest(String productNo, String lotNo, String type, String quantity, String unit, String reason) {
 		this.productNo = productNo;
 		this.lotNo = lotNo;
 		this.type = type;
-		this.length = length;
+		this.quantity = quantity;
 		this.unit = unit;
 		this.reason = reason;
 	}
 
-	public OutStockRequest(String productNo, String lotNo, String type, String length, String unit, String reason,
-			long clothIdentifierId) {
-		this.productNo = productNo;
-		this.lotNo = lotNo;
-		this.type = type;
-		this.length = length;
-		this.unit = unit;
+	public OutStockRequest(StockIdentifier stockIdentifier, StockInfo stockInfo, String reason) {
+		this.productNo = stockIdentifier.getProductNo();
+		this.lotNo = stockIdentifier.getLotNo();
+		this.type = stockIdentifier.getType();
+		this.quantity = stockIdentifier.getQuantity();
+		this.unit = stockIdentifier.getUnit();
+		this.stockIdentifierId = stockIdentifier.getId();
+		this.color = stockInfo.getColor();
+		this.defect = stockInfo.getDefect();
 		this.reason = reason;
-		this.clothIdentifierId = clothIdentifierId;
 	}
 
 	public Long getId() {
@@ -107,12 +108,12 @@ public class OutStockRequest {
 		this.type = type;
 	}
 
-	public String getLength() {
-		return length;
+	public String getQuantity() {
+		return quantity;
 	}
 
-	public void setLength(String length) {
-		this.length = length;
+	public void setQuantity(String quantity) {
+		this.quantity = quantity;
 	}
 
 	public String getUnit() {
@@ -155,12 +156,12 @@ public class OutStockRequest {
 		this.outStockType = outStockType;
 	}
 
-	public long getClothIdentifierId() {
-		return clothIdentifierId;
+	public long getStockIdentifierId() {
+		return stockIdentifierId;
 	}
 
-	public void setClothIdentifierId(long clothIdentifierId) {
-		this.clothIdentifierId = clothIdentifierId;
+	public void setStockIdentifierId(long stockIdentifierId) {
+		this.stockIdentifierId = stockIdentifierId;
 	}
 
 	public String getFileName() {

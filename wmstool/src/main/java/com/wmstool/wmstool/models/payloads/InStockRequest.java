@@ -13,7 +13,7 @@ public class InStockRequest {
 	private String type;
 
 	@NotBlank(message = "長度不可空白")
-	private String length;
+	private String quantity;
 
 	private String unit;
 
@@ -55,12 +55,12 @@ public class InStockRequest {
 		this.type = type;
 	}
 
-	public String getLength() {
-		return length;
+	public String getQuantity() {
+		return quantity;
 	}
 
-	public void setLength(String length) {
-		this.length = length;
+	public void setQuantity(String quantity) {
+		this.quantity = quantity;
 	}
 
 	public String getUnit() {

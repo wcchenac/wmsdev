@@ -5,11 +5,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.wmstool.wmstool.models.ClothInfo;
+import com.wmstool.wmstool.models.StockInfo;
 
 @Repository
-public interface ClothInfoRepository extends JpaRepository<ClothInfo, Long> {
+public interface StockInfoRepository extends JpaRepository<StockInfo, Long> {
 
-	Optional<ClothInfo> findByClothIdentifierId(long id);
+	Optional<StockInfo> findByStockIdentifierId(long stockIdentifierId);
 
 }

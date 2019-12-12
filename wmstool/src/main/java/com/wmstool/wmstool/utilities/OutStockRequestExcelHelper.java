@@ -18,34 +18,43 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.stereotype.Component;
 
 import com.wmstool.wmstool.models.OutStockRequest;
 
-@Component
 public class OutStockRequestExcelHelper {
 
-	private static final String dir = "/Users/weichihchen/Desktop/Temp/OutStockList/";
+	private static final String seperator = File.separator;
+	private static final String parentDir = "/Users/weichihchen/Desktop/Temp/OutStockList";
 	private static final String filetype = ".xls";
-	private static final String templateFile = dir + "OutStockListTemplate" + filetype;
+	private static final String templateFile = parentDir + seperator + "OutStockListTemplate" + filetype;
+	private static final String filenamePrefix = "OutStockList-";
+	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
 	/**
 	 * Create a excel from template excel which is named by current date/time
 	 * formated in "yyyyMMddHHmmss" pattern
 	 */
-	public static String createNewFile() throws IOException {
+	public static String createNewFile(LocalDateTime now) throws IOException {
 		// Read template file
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
-		// Define filename
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-		LocalDateTime now = LocalDateTime.now();
+		// Define directory & filename and create files
+		String fileNameNoDir = filenamePrefix + now.format(dtf) + filetype;
+		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
+				+ fileNameNoDir;
+		File f = new File(fileFullName);
 
-		String fileNameNoDir = "OutStockList-" + now.format(dtf) + filetype;
-		String fileFullName = dir + fileNameNoDir;
+		if (!f.exists()) {
+			f.getParentFile().mkdirs();
+			try {
+				f.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
-		// Output new file to certain directory
-		FileOutputStream fos = new FileOutputStream(new File(fileFullName));
+		// Output template content to certain file
+		FileOutputStream fos = new FileOutputStream(f);
 		workbook.write(fos);
 
 		workbook.close();
@@ -56,9 +65,13 @@ public class OutStockRequestExcelHelper {
 	/**
 	 * Using given outStockRequest information to update the given filename excel
 	 */
-	public static void modifyExisting(List<OutStockRequest> outStockRequestList, String fileName) throws IOException {
-		// Read template file
-		FileInputStream fis = new FileInputStream(new File(dir + fileName));
+	public static void modifyExisting(List<OutStockRequest> outStockRequestList, LocalDateTime now, String fileName)
+			throws IOException {
+		// Read target file
+		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
+				+ fileName;
+		File f = new File(fileFullName);
+		FileInputStream fis = new FileInputStream(f);
 		Workbook workbook = WorkbookFactory.create(fis);
 
 		// Select first sheet of excel file
@@ -80,7 +93,7 @@ public class OutStockRequestExcelHelper {
 		// get last row in file, and set value & style into cells under last row
 		for (int i = 0, lastRow = sheet.getLastRowNum() + 1; i < outStockRequestList.size(); i += 1, lastRow += 1) {
 			OutStockRequest outStockRequest = outStockRequestList.get(i);
-			
+
 			Row row = sheet.createRow(lastRow);
 			Cell cell = row.createCell(0);
 			cell.setCellValue(outStockRequestList.get(i).getProductNo());
@@ -89,17 +102,17 @@ public class OutStockRequestExcelHelper {
 			cell = row.createCell(1);
 			cell.setCellValue(outStockRequest.getLotNo());
 			cell.setCellStyle(rowStyle);
-			
+
 			cell = row.createCell(2);
 			cell.setCellValue(outStockRequest.getColor());
 			cell.setCellStyle(rowStyle);
-			
+
 			cell = row.createCell(3);
 			cell.setCellValue(outStockRequest.getDefect());
 			cell.setCellStyle(rowStyle);
-			
+
 			cell = row.createCell(4);
-			cell.setCellValue(outStockRequest.getLength());
+			cell.setCellValue(outStockRequest.getQuantity());
 			cell.setCellStyle(rowStyle);
 
 			cell = row.createCell(6);
@@ -110,15 +123,14 @@ public class OutStockRequestExcelHelper {
 			cell.setCellValue(outStockRequest.getRequestFrom());
 			cell.setCellStyle(rowStyle);
 		}
-		;
 
 		// close input stream
 		fis.close();
 
 		// create out stream
-		FileOutputStream fos = new FileOutputStream(dir + fileName);
+		FileOutputStream fos = new FileOutputStream(f);
 
-		// save file through output stream
+		// save modify contents to target file through output stream
 		workbook.write(fos);
 
 		// close workbook

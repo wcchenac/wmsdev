@@ -3,22 +3,22 @@ package com.wmstool.wmstool.utilities;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.wmstool.wmstool.models.ClothIdentifier;
+import com.wmstool.wmstool.models.StockIdentifier;
 
 public class HistoryTreeNode {
 
-	private ClothIdentifier clothIdentifier;
+	private StockIdentifier clothIdentifier;
 
 	private List<HistoryTreeNode> nodes = new ArrayList<>();
 
 	public HistoryTreeNode() {
 	}
 
-	public ClothIdentifier getClothIdentifier() {
+	public StockIdentifier getClothIdentifier() {
 		return clothIdentifier;
 	}
 
-	public void setClothIdentifier(ClothIdentifier clothIdentifier) {
+	public void setClothIdentifier(StockIdentifier clothIdentifier) {
 		this.clothIdentifier = clothIdentifier;
 	}
 

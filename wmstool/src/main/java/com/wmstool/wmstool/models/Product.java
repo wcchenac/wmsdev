@@ -7,9 +7,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 
 @Entity
-public class TransactionRecord {
+public class Product {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,32 +18,32 @@ public class TransactionRecord {
 
 	private String productNo;
 
-	private String lotNo;
-
 	private String type;
+
+	private String category;
 
 	private String quantity;
 
 	private String unit;
 
-	private String operator; // 1 for positive, -1 for negative
+	private String safeQuantity;
 
-	private Long stockIdentifierId;
+	private boolean needCheck = false;
 
-	private String transactionType; // NI: normal, AI: assemble, SKI/SKO: shrink, SPO: ship
+	private boolean isAlert = false;
 
 	private LocalDateTime createdAt;
 
-	public TransactionRecord() {
+	private LocalDateTime updatedAt;
+
+	public Product() {
 	}
 
-	public TransactionRecord(StockIdentifier stockIdentifier) {
+	public Product(StockIdentifier stockIdentifier) {
 		this.productNo = stockIdentifier.getProductNo();
-		this.lotNo = stockIdentifier.getLotNo();
 		this.type = stockIdentifier.getType();
 		this.quantity = stockIdentifier.getQuantity();
 		this.unit = stockIdentifier.getUnit();
-		this.stockIdentifierId = stockIdentifier.getId();
 	}
 
 	public Long getId() {
@@ -59,14 +60,6 @@ public class TransactionRecord {
 
 	public void setProductNo(String productNo) {
 		this.productNo = productNo;
-	}
-
-	public String getLotNo() {
-		return lotNo;
-	}
-
-	public void setLotNo(String lotNo) {
-		this.lotNo = lotNo;
 	}
 
 	public String getType() {
@@ -93,28 +86,36 @@ public class TransactionRecord {
 		this.unit = unit;
 	}
 
-	public String getOperator() {
-		return operator;
+	public String getSafeQuantity() {
+		return safeQuantity;
 	}
 
-	public void setOperator(String operator) {
-		this.operator = operator;
+	public void setSafeQuantity(String safeQuantity) {
+		this.safeQuantity = safeQuantity;
 	}
 
-	public Long getStockIdentifierId() {
-		return stockIdentifierId;
+	public boolean isNeedCheck() {
+		return needCheck;
 	}
 
-	public void setStockIdentifierId(Long stockIdentifierId) {
-		this.stockIdentifierId = stockIdentifierId;
+	public void setNeedCheck(boolean needCheck) {
+		this.needCheck = needCheck;
 	}
 
-	public String getTransactionType() {
-		return transactionType;
+	public boolean isAlert() {
+		return isAlert;
 	}
 
-	public void setTransactionType(String transactionType) {
-		this.transactionType = transactionType;
+	public void setAlert(boolean isAlert) {
+		this.isAlert = isAlert;
+	}
+
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(String category) {
+		this.category = category;
 	}
 
 	public LocalDateTime getCreatedAt() {
@@ -125,9 +126,22 @@ public class TransactionRecord {
 		this.createdAt = createdAt;
 	}
 
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
 	@PrePersist
 	protected void onCreated() {
 		this.createdAt = LocalDateTime.now();
+	}
+
+	@PreUpdate
+	protected void onUpdate() {
+		this.updatedAt = LocalDateTime.now();
 	}
 
 }

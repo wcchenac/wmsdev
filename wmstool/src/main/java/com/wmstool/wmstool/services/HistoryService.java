@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wmstool.wmstool.models.History;
-import com.wmstool.wmstool.repositories.ClothIdentifierRepo;
+import com.wmstool.wmstool.repositories.StockIdentifierRepo;
 import com.wmstool.wmstool.repositories.HistoryRepository;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
@@ -21,23 +21,26 @@ public class HistoryService {
 	private HistoryRepository historyRepo;
 
 	@Autowired
-	private ClothIdentifierRepo clothIdentifierRepo;
+	private StockIdentifierRepo clothIdentifierRepo;
 
 	public History findHistoryByCurrentId(long id) {
+		// TODO: data not found exception
 		return historyRepo.findByCurrentIdentifierId(id).get();
 	}
 
 	public ResponseEntity<?> createHistoryTree(long rootId) {
-		return new ResponseEntity<HistoryTreeNode>(collectDataForTree(rootId), HttpStatus.OK);
+		return new ResponseEntity<>(collectDataForTree(rootId), HttpStatus.OK);
 	}
 
 	private HistoryTreeNode collectDataForTree(long rootId) {
+		// TODO: data not found exception
 		History root = historyRepo.findByCurrentIdentifierId(rootId).get();
 		Long[] childrenId = root.getChildrenIdentifierId();
 
 		HistoryTreeNode source = new HistoryTreeNode();
+		// TODO: data not found exception
 		source.setClothIdentifier(clothIdentifierRepo.findById(rootId).get());
-		
+
 		if (childrenId.length == 0) {
 			return source;
 		}
@@ -48,7 +51,7 @@ public class HistoryService {
 			long childId = childrenIdList.remove(0);
 			source.getNodes().add(collectDataForTree(childId));
 		}
-		
+
 		return source;
 	}
 
