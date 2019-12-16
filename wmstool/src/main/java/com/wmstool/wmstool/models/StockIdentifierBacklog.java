@@ -9,7 +9,7 @@ import javax.persistence.Id;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
 
 @Entity
-public class ClothIdentifierBacklog {
+public class StockIdentifierBacklog {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,21 +25,21 @@ public class ClothIdentifierBacklog {
 	private String type;
 
 	@Column(nullable = false, length = 10)
-	private String length;
+	private String quantity;
 
 	@Column(nullable = false, length = 10)
 	private String unit;
 
 	private int serialNo = 1;
 
-	public ClothIdentifierBacklog() {
+	public StockIdentifierBacklog() {
 	}
 
-	public ClothIdentifierBacklog(InStockRequest inStockRequest) {
+	public StockIdentifierBacklog(InStockRequest inStockRequest) {
 		this.productNo = inStockRequest.getProductNo();
 		this.lotNo = inStockRequest.getLotNo();
 		this.type = inStockRequest.getType();
-		this.length = inStockRequest.getLength();
+		this.quantity = inStockRequest.getQuantity();
 		this.unit = inStockRequest.getUnit();
 	}
 
@@ -75,12 +75,12 @@ public class ClothIdentifierBacklog {
 		this.type = type;
 	}
 
-	public String getLength() {
-		return length;
+	public String getQuantity() {
+		return quantity;
 	}
 
-	public void setLength(String length) {
-		this.length = length;
+	public void setQuantity(String quantity) {
+		this.quantity = quantity;
 	}
 
 	public String getUnit() {

@@ -4,17 +4,17 @@ import javax.validation.constraints.NotBlank;
 
 public class ShipRequest {
 
-	private long clothIdentifierId;
+	private long stockIdentifierId;
 
 	@NotBlank(message = "原因不可空白")
 	private String reason;
 
-	public long getClothIdentifierId() {
-		return clothIdentifierId;
+	public long getStockIdentifierId() {
+		return stockIdentifierId;
 	}
 
-	public void setClothIdentifierId(long clothIdentifierId) {
-		this.clothIdentifierId = clothIdentifierId;
+	public void setStockIdentifierId(long stockIdentifierId) {
+		this.stockIdentifierId = stockIdentifierId;
 	}
 
 	public String getReason() {

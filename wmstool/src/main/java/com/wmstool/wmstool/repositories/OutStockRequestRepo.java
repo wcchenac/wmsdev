@@ -9,10 +9,9 @@ import org.springframework.stereotype.Repository;
 import com.wmstool.wmstool.models.OutStockRequest;
 
 @Repository
-public interface OutStockRequestRepo extends JpaRepository<OutStockRequest, Long>, JpaSpecificationExecutor<OutStockRequest> {
+public interface OutStockRequestRepo
+		extends JpaRepository<OutStockRequest, Long>, JpaSpecificationExecutor<OutStockRequest> {
 
-	public Optional<OutStockRequest> deleteByClothIdentifierId(Long clothIdentifierId);
-	
-	public Optional<OutStockRequest> findByClothIdentifierIdAndIsDeleted(Long clothIdentifierId, boolean deleted);
-	
+	Optional<OutStockRequest> findByStockIdentifierIdAndIsDeleted(Long stockIdentifierId, boolean deleted);
+
 }

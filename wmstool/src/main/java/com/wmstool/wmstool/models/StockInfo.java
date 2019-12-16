@@ -18,15 +18,15 @@ import com.wmstool.wmstool.models.payloads.InStockRequest;
 import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
 
 @Entity
-public class ClothInfo {
+public class StockInfo {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@OneToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "clothIdentifier_id", nullable = false, updatable = false)
-	private ClothIdentifier clothIdentifier;
+	@JoinColumn(name = "stockIdentifier_id", nullable = false, updatable = false)
+	private StockIdentifier stockIdentifier;
 
 	private int color;
 
@@ -46,18 +46,18 @@ public class ClothInfo {
 	@JsonIgnore
 	private LocalDateTime updatedAt;
 
-	public ClothInfo() {
+	public StockInfo() {
 	}
 
-	public ClothInfo(ClothIdentifier clothIdentifier, InStockRequest inStockRequest) {
-		this.clothIdentifier = clothIdentifier;
+	public StockInfo(StockIdentifier stockIdentifier, InStockRequest inStockRequest) {
+		this.stockIdentifier = stockIdentifier;
 		this.color = inStockRequest.getColor();
 		this.defect = inStockRequest.getDefect();
 		this.record = inStockRequest.getRecord();
 		this.remark = inStockRequest.getRemark();
 	}
 
-	public ClothInfo(UpdateInfoRequest updateInfoRequest) {
+	public StockInfo(UpdateInfoRequest updateInfoRequest) {
 		this.id = updateInfoRequest.getId();
 		this.color = updateInfoRequest.getColor();
 		this.defect = updateInfoRequest.getDefect();
@@ -73,12 +73,12 @@ public class ClothInfo {
 		this.id = id;
 	}
 
-	public ClothIdentifier getClothIdentifier() {
-		return clothIdentifier;
+	public StockIdentifier getStockIdentifier() {
+		return stockIdentifier;
 	}
 
-	public void setClothIdentifier(ClothIdentifier clothIdentifier) {
-		this.clothIdentifier = clothIdentifier;
+	public void setStockIdentifier(StockIdentifier stockIdentifier) {
+		this.stockIdentifier = stockIdentifier;
 	}
 
 	public int getColor() {

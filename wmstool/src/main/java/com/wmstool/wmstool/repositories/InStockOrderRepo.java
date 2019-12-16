@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 import com.wmstool.wmstool.models.InStockOrderRecord;
 
 @Repository
-public interface InStockOrderRepo extends JpaRepository<InStockOrderRecord, Long>{
+public interface InStockOrderRepo extends JpaRepository<InStockOrderRecord, Long> {
 
 	List<InStockOrderRecord> findByInStockTypeAndInStockOrderNo(String inStockType, String inStockOrderNo);
-	
+
 }

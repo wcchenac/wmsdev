@@ -2,27 +2,27 @@ package com.wmstool.wmstool.models.payloads;
 
 import java.util.List;
 
-import com.wmstool.wmstool.models.ClothInfo;
+import com.wmstool.wmstool.models.StockInfo;
 
 public class QueryProductNoResponse {
 
-	private List<ClothInfo> result;
+	private List<StockInfo> result;
 
 	private ProductInformation information;
 
 	public QueryProductNoResponse() {
 	}
 
-	public QueryProductNoResponse(List<ClothInfo> result, ProductInformation information) {
+	public QueryProductNoResponse(List<StockInfo> result, ProductInformation information) {
 		this.result = result;
 		this.information = information;
 	}
 
-	public List<ClothInfo> getResult() {
+	public List<StockInfo> getResult() {
 		return result;
 	}
 
-	public void setResult(List<ClothInfo> result) {
+	public void setResult(List<StockInfo> result) {
 		this.result = result;
 	}
 
