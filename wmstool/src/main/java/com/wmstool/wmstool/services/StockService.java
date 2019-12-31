@@ -59,6 +59,7 @@ import com.wmstool.wmstool.repositories.StockIdentifierRepo;
 import com.wmstool.wmstool.repositories.StockInfoRepository;
 import com.wmstool.wmstool.repositories.TransactionRecordRepo;
 import com.wmstool.wmstool.utilities.DailyStockComparisonExcelHelper;
+import com.wmstool.wmstool.utilities.HistoryTreeNode;
 import com.wmstool.wmstool.utilities.OutStockRequestExcelHelper;
 import com.wmstool.wmstool.utilities.StockAdjustRecordExcelHelper;
 import com.wmstool.wmstool.utilities.StockAllocateRecordExcelHelper;
@@ -83,6 +84,9 @@ public class StockService {
 
 	@Autowired
 	private HistoryRepository historyRepository;
+
+	@Autowired
+	private HistoryService historyService;
 
 	@Autowired
 	private OutStockRequestRepo outStockRequestRepo;
@@ -398,7 +402,7 @@ public class StockService {
 			case InStockType_Normal:
 			case InStockType_Assemble:
 				newHistory.setRootIdentifierId(resIdentifierId);
-				newHistory.setRoot(true);
+//				newHistory.setRoot(true);
 				break;
 			case InStockType_Shrink:
 				// type exchange: array to list
@@ -582,7 +586,8 @@ public class StockService {
 	 * fetching from first db
 	 */
 	public QueryProductNoResponse findBasicStockInfoByProductNo(String productNo) {
-		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getBasicProductNoInfo(productNo));
+		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getBasicProductNoInfo(productNo),
+				getProductsByProductNo(productNo));
 	}
 
 	/**
@@ -610,6 +615,13 @@ public class StockService {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Fetch a list of Products with certain productNo from first db
+	 */
+	private List<Product> getProductsByProductNo(String productNo) {
+		return productRepository.findByProductNo(productNo);
 	}
 
 	/**
@@ -728,8 +740,11 @@ public class StockService {
 
 		// Update related information in StockIdentifier
 		res.setExist(false);
-		res.setShip(true);
-		res.setShipReason(shipRequest.getReason());
+//		res.setShip(true);
+//		res.setShipReason(shipRequest.getReason());
+		res.setEliminateType("0");
+		res.setEliminateReason(shipRequest.getReason());
+		res.setEliminateDate(LocalDate.now().toString());
 		res.setOutStock(true);
 		res.setOutStockAt(LocalDateTime.now());
 
@@ -755,8 +770,11 @@ public class StockService {
 
 		// Update relative information in StockIdentifier
 		res.setExist(true);
-		res.setShip(false);
-		res.setShipReason(null);
+//		res.setShip(false);
+//		res.setShipReason(null);
+		res.setEliminateType(null);
+		res.setEliminateReason(null);
+		res.setEliminateDate(null);
 		res.setOutStock(false);
 		res.setOutStockAt(null);
 
@@ -799,7 +817,7 @@ public class StockService {
 		// TODO: data not found exception
 		StockIdentifier res = stockIdentifierRepo.findById(stockIdentifierId).get();
 		StockInfo resInfo = stockInfoRepository.findByStockIdentifierId(res.getId()).get();
-		OutStockRequest outStockRequest = new OutStockRequest(res, resInfo, "減肥");
+		OutStockRequest outStockRequest = new OutStockRequest(res, resInfo, res.getType().equals("雜項") ? "分裝" : "減肥");
 
 		res.setWaitToShrink(true);
 		res.setOutStock(true);
@@ -836,6 +854,10 @@ public class StockService {
 	 */
 	public void shrinkStock(ShrinkStockRequest shrinkStockRequest) throws IOException {
 		LocalDate now = LocalDate.now();
+		float allocation = shrinkStockRequest.getAllocation();
+		float adjustment = shrinkStockRequest.getAdjustment();
+		String allocationString = String.format("%.1f", allocation);
+		String adjustmentString = String.format("%.1f", adjustment);
 
 		// find old stockIdentifier, and set to not exist
 		// TODO: data not found exception
@@ -843,6 +865,10 @@ public class StockService {
 				.get();
 
 		oldIdentifier.setExist(false);
+		oldIdentifier.setEliminateType("1");
+		oldIdentifier.setEliminateDate(LocalDate.now().toString());
+		oldIdentifier.setEliminateReason("減肥");
+		oldIdentifier.setAdjustment(adjustmentString);
 
 		// Create TransactionRecord for oldStock shrink and save it
 		TransactionRecord transactionRecord = new TransactionRecord(oldIdentifier);
@@ -865,11 +891,8 @@ public class StockService {
 
 		// Create StockAllocationRecord object
 		// and output to record file when allocation != 0
-		float allocation = shrinkStockRequest.getAllocation();
-
 		if (allocation != 0) {
 			String unitReference = productBaseUnitRetrieve(productNo);
-			String allocationString = String.format("%.1f", allocation);
 
 			// Create StockAllocationRecord, and save
 			StockAllocationRecord stockAllocationRecord = new StockAllocationRecord(productNo, unit);
@@ -893,11 +916,8 @@ public class StockService {
 
 		// Create StockAdjustmentRecord object
 		// and output to record file when adjustment != 0
-		float adjustment = shrinkStockRequest.getAdjustment();
-
 		if (adjustment != 0) {
 			String unitReference = productBaseUnitRetrieve(productNo);
-			String adjustmentString = String.format("%.1f", adjustment);
 
 			// Create StocAdjustmnetRecord, and save
 			StockAdjustmentRecord stockAdjustmentRecord = new StockAdjustmentRecord(productNo, unit);
@@ -1086,6 +1106,46 @@ public class StockService {
 			e.printStackTrace();
 		}
 
+	}
+
+	/**
+	 * Based on each start StockIdentifier, collect process histories from
+	 * InStock(Start) to Shrink/Ship(End) with a certain productNo in a period time,
+	 * and return the result list with a hierarchical structure
+	 */
+	public List<HistoryTreeNode> findPeriodStockIdentifierHistory(String productNo, String start, String end) {
+		LocalDateTime startDateTime = LocalDateTime.parse(start, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
+		LocalDateTime endDateTime = LocalDateTime.parse(end, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
+
+		Specification<InStockOrderRecord> specification = (Specification<InStockOrderRecord>) (root, query,
+				criteriaBuilder) -> {
+			List<Predicate> predicatesList = new ArrayList<>();
+
+			Predicate productNoPredicate = criteriaBuilder.equal(root.get("productNo"), productNo);
+			predicatesList.add(productNoPredicate);
+
+			if (startDateTime != null && endDateTime != null) {
+				Predicate startFromPredicate = criteriaBuilder.between(root.get("createdAt"), startDateTime,
+						endDateTime);
+				predicatesList.add(startFromPredicate);
+			}
+
+			query.orderBy(criteriaBuilder.asc(root.get("createdAt")));
+
+			Predicate[] predicates = new Predicate[predicatesList.size()];
+
+			return criteriaBuilder.and(predicatesList.toArray(predicates));
+		};
+
+		List<InStockOrderRecord> resultOfInStockOrderRecord = inStockOrderRepo.findAll(specification);
+		List<HistoryTreeNode> resultOfHistoryTree = new ArrayList<>();
+
+		resultOfInStockOrderRecord.forEach(inStockOrderRecord -> {
+			resultOfHistoryTree
+					.add(historyService.createHistoryTreeByIdentifierId(inStockOrderRecord.getStockIdentifierId()));
+		});
+
+		return resultOfHistoryTree;
 	}
 
 	/**
