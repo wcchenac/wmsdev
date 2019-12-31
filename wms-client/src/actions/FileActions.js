@@ -22,16 +22,19 @@ export const createFile = request => async dispatch => {
 };
 
 export const queryCategoryTodayFile = async fileCategory => {
-  axios
-    .get(`http://localhost:8080/api/file/query/${fileCategory}/today`)
-    .then(res => {
-      if (res.status === 200) {
-        return res.data;
-      }
-    })
-    .catch(err => {
-      console.log(err);
-    });
+  // axios
+  //   .get(`http://localhost:8080/api/file/query/${fileCategory}/today`)
+  //   .then(res => {
+  //     if (res.status === 200) {
+  //       return res.data;
+  //     }
+  //   })
+  //   .catch(err => {
+  //     console.log(err);
+  //   });
+  return await axios.get(
+    `http://localhost:8080/api/file/query/${fileCategory}/today`
+  );
 };
 
 export const queryCategoryIntervalFiles = async (
@@ -39,16 +42,7 @@ export const queryCategoryIntervalFiles = async (
   startDate,
   endDate
 ) => {
-  axios
-    .get(
-      `http://localhost:8080/api/file/query/${fileCategory}/interval?startDate=${startDate}&endDate=${endDate}`
-    )
-    .then(res => {
-      if (res.status === 200) {
-        return res.data;
-      }
-    })
-    .catch(err => {
-      console.log(err);
-    });
+  return await axios.get(
+    `http://localhost:8080/api/file/query/${fileCategory}/interval?startDate=${startDate}&endDate=${endDate}`
+  );
 };

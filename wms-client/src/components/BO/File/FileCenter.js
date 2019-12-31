@@ -23,29 +23,37 @@ class FileCenter extends Component {
   }
 
   handleCategoryCurrentQuery(fileCatagory) {
-    let filenames = queryCategoryTodayFile(fileCatagory);
-
-    this.setState({
-      filenames: {
-        ...this.state.filenames,
-        [fileCatagory]: filenames
-      }
-    });
+    queryCategoryTodayFile(fileCatagory)
+      .then(res => {
+        if (res.status === 200) {
+          this.setState({
+            filenames: {
+              ...this.state.filenames,
+              [fileCatagory]: res.data
+            }
+          });
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }
 
   handleCategoryPeriodQuery(fileCatagory, startDate, endDate) {
-    let filenames = queryCategoryIntervalFiles(
-      fileCatagory,
-      startDate,
-      endDate
-    );
-
-    this.setState({
-      filenames: {
-        ...this.state.filenames,
-        [fileCatagory]: filenames
-      }
-    });
+    queryCategoryIntervalFiles(fileCatagory, startDate, endDate)
+      .then(res => {
+        if (res.status === 200) {
+          this.setState({
+            filenames: {
+              ...this.state.filenames,
+              [fileCatagory]: res.data
+            }
+          });
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }
 
   render() {

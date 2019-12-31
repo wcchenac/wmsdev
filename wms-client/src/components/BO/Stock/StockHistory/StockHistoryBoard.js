@@ -123,7 +123,7 @@ class StockHistoryBoard extends Component {
             <div className="col-md-auto">
               <button className="btn-customize" disabled>
                 <small className="text-muted">
-                  若無設定，預設往前一個月查詢
+                  若無設定，預設查詢前一個月
                 </small>
               </button>
             </div>

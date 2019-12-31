@@ -39,9 +39,6 @@ class FlieContainer extends Component {
       startDate,
       endDate
     );
-
-    console.log(startDate);
-    console.log(endDate);
   }
 
   render() {
@@ -65,6 +62,7 @@ class FlieContainer extends Component {
               </button>
               <DatePeriodSelectModal
                 btnTitle={"特定日期區間查詢"}
+                fileType={fileType}
                 btnSize={"sm"}
                 startDate={startDate}
                 endDate={endDate}
@@ -80,8 +78,14 @@ class FlieContainer extends Component {
             <table className="table table-bordered table-hover">
               <thead className="thead-dark">
                 <tr>
-                  <th style={{ width: "70%" }}>檔名</th>
-                  <th style={{ width: "30%" }}>下載連結</th>
+                  <th style={{ width: "80%", padding: "0.5em 1.5em" }}>檔名</th>
+                  <th
+                    style={{
+                      width: "20%",
+                      padding: "7px 0px",
+                      textAlign: "center"
+                    }}
+                  />
                 </tr>
               </thead>
               <tbody>
@@ -90,16 +94,20 @@ class FlieContainer extends Component {
                     {filenames.map((filename, index) => {
                       return (
                         <React.Fragment>
-                          <td>{filename}</td>
-                          <td>
-                            <div className="row justify-content-center">
+                          <td style={{ padding: "0.5em 1em" }}>
+                            <button className="btn-customize" disabled>
+                              {filename}
+                            </button>
+                          </td>
+                          <td style={{ padding: "0.5em 1em" }}>
+                            <div className="d-flex justify-content-center">
                               <a
                                 key={index}
                                 className="btn btn-primary"
                                 href={downloadURL + filename}
                                 download
                               >
-                                <small>{filename}</small>
+                                下載
                               </a>
                             </div>
                           </td>

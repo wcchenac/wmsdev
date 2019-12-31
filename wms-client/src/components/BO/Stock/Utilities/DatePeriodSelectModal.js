@@ -43,13 +43,13 @@ class DatePeriodSelectModal extends Component {
         <button
           className={this.classNameString()}
           data-toggle="modal"
-          data-target="#dateCondition"
+          data-target={"#dateCondition-" + this.props.fileType}
         >
           {this.props.btnTitle}
         </button>
         <div
           className="modal fade"
-          id="dateCondition"
+          id={"dateCondition-" + this.props.fileType}
           tabIndex="-1"
           role="dialog"
           aria-labelledby="content"
