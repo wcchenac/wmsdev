@@ -29,16 +29,16 @@ class Header extends Component {
                   入庫作業
                 </a>
                 <div className="dropdown-menu">
-                  <a className="dropdown-item" href="/cloth/1/1">
+                  <a className="dropdown-item" href="/stock/1/1">
                     進貨單入庫
                   </a>
-                  <a className="dropdown-item" href="/cloth/1/2">
+                  <a className="dropdown-item" href="/stock/1/2">
                     組裝單入庫
                   </a>
                 </div>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/cloth/2">
+                <a className="nav-link" href="/stock/2">
                   庫存查詢
                 </a>
               </li>
@@ -52,17 +52,27 @@ class Header extends Component {
                   庫存異動作業
                 </a>
                 <div className="dropdown-menu">
-                  <a className="dropdown-item" href="/cloth/3/1">
+                  <a className="dropdown-item" href="/stock/3/1">
                     庫存異動
                   </a>
-                  <a className="dropdown-item" href="/cloth/3/2">
+                  <a className="dropdown-item" href="/stock/3/2">
                     減肥清單
                   </a>
                 </div>
               </li>
               <li className="nav-item">
-                <a className="nav-link" href="/cloth/4">
+                <a className="nav-link" href="/stock/4">
                   拉貨明細
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="/stock/5">
+                  歷史記錄查詢
+                </a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="/files">
+                  檔案總管
                 </a>
               </li>
             </ul>
