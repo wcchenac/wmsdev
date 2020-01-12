@@ -1,0 +1,131 @@
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { getStockInfoesBasic } from "../../../../actions/StockAcions";
+import StockInfoContainer from "./StockInfoContainer";
+import QueryProductInformation from "../Utilities/QueryProductInformation";
+import ShowProductInformation from "../Utilities/ShowProductInformation";
+
+class QueryBoard extends Component {
+  constructor() {
+    super();
+    this.state = {
+      isQuery: false,
+      productNo: "",
+      productInfo: {},
+      stockInfoes: [],
+      stockQuantity: {}
+    };
+    this.onChange = this.onChange.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
+  }
+
+  onChange(e) {
+    this.setState({ [e.target.name]: e.target.value });
+  }
+
+  onSubmit(e) {
+    e.preventDefault();
+    this.props.getStockInfoesBasic(this.state.productNo).then(response => {
+      if (response.status === 200) {
+        this.setState({ isQuery: true });
+      }
+    });
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.stockInfo.stockInfoes !== prevProps.stockInfo.stockInfoes) {
+      this.setState({
+        productInfo: this.props.stockInfo.stockInfoes.information,
+        stockInfoes: this.props.stockInfo.stockInfoes.result,
+        stockQuantity: this.props.stockInfo.stockInfoes.productList
+      });
+    }
+  }
+
+  render() {
+    const {
+      isQuery,
+      productNo,
+      productInfo,
+      stockInfoes,
+      stockQuantity
+    } = this.state;
+
+    return (
+      <div className="query_stockInfo">
+        <div className="container">
+          <div className="row">
+            <div className="col-md-6">
+              <QueryProductInformation
+                productNo={productNo}
+                onSubmit={this.onSubmit}
+                onChange={this.onChange}
+              />
+            </div>
+            <div className="col-md-auto mr-2">
+              <ShowProductInformation
+                isBasic={true}
+                isQuery={isQuery}
+                productNo={productNo}
+                productInfo={productInfo}
+              />
+            </div>
+          </div>
+          <hr />
+          {isQuery ? (
+            stockInfoes.length === 0 ? (
+              <div className="row justify-content-md-center">
+                <div className="col-md-6">
+                  <div className="alert alert-warning" role="alert">
+                    <p className="h5 text-center mb-0">
+                      查無此貨號資料 或 此貨號已無庫存
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <React.Fragment>
+                <div className="row">
+                  {stockQuantity.map((product, index) => (
+                    <React.Fragment key={index}>
+                      <div className="col-6">
+                        <div className="row">
+                          <div className="col-6 text-center">
+                            <p className="h5 mb-0">{product.type}倉總和</p>
+                          </div>
+                          <div className="col-4">
+                            <p className="h5 mb-0">{product.quantity}</p>
+                          </div>
+                          <div className="col-2">
+                            <p className="h5 mb-0">{product.unit}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </React.Fragment>
+                  ))}
+                </div>
+                <hr />
+                <StockInfoContainer
+                  typeValidation={stockQuantity[0].type === "雜項"}
+                  stockInfoes={stockInfoes}
+                />
+              </React.Fragment>
+            )
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+}
+
+QueryBoard.propTypes = {
+  stockInfo: PropTypes.object.isRequired,
+  getStockInfoesBasic: PropTypes.func.isRequired
+};
+
+const mapStateToProps = state => ({
+  stockInfo: state.stockInfo
+});
+
+export default connect(mapStateToProps, { getStockInfoesBasic })(QueryBoard);

@@ -7,19 +7,19 @@ import com.wmstool.wmstool.models.StockIdentifier;
 
 public class HistoryTreeNode {
 
-	private StockIdentifier clothIdentifier;
+	private StockIdentifier stockIdentifier;
 
 	private List<HistoryTreeNode> nodes = new ArrayList<>();
 
 	public HistoryTreeNode() {
 	}
 
-	public StockIdentifier getClothIdentifier() {
-		return clothIdentifier;
+	public StockIdentifier getStockIdentifier() {
+		return stockIdentifier;
 	}
 
-	public void setClothIdentifier(StockIdentifier clothIdentifier) {
-		this.clothIdentifier = clothIdentifier;
+	public void setStockIdentifier(StockIdentifier stockIdentifier) {
+		this.stockIdentifier = stockIdentifier;
 	}
 
 	public List<HistoryTreeNode> getNodes() {
@@ -32,7 +32,7 @@ public class HistoryTreeNode {
 
 	@Override
 	public String toString() {
-		return "HistoryTreeNode [clothInfo=" + clothIdentifier + ", nodes=" + nodes + "]";
+		return "HistoryTreeNode [clothInfo=" + stockIdentifier + ", nodes=" + nodes + "]";
 	}
 
 }

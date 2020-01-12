@@ -9,11 +9,14 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class Product {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@JsonIgnore
 	private Long id;
 
 	private String productNo;
@@ -28,12 +31,16 @@ public class Product {
 
 	private String safeQuantity;
 
-	private boolean needCheck = false;
+	@JsonIgnore
+	private boolean isBypass = false; // set true for no loner exist
 
+	@JsonIgnore
 	private boolean isAlert = false;
 
+	@JsonIgnore
 	private LocalDateTime createdAt;
 
+	@JsonIgnore
 	private LocalDateTime updatedAt;
 
 	public Product() {
@@ -94,12 +101,12 @@ public class Product {
 		this.safeQuantity = safeQuantity;
 	}
 
-	public boolean isNeedCheck() {
-		return needCheck;
+	public boolean isBypass() {
+		return isBypass;
 	}
 
-	public void setNeedCheck(boolean needCheck) {
-		this.needCheck = needCheck;
+	public void setBypass(boolean isBypass) {
+		this.isBypass = isBypass;
 	}
 
 	public boolean isAlert() {

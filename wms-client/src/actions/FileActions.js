@@ -20,3 +20,35 @@ export const createFile = request => async dispatch => {
     });
   }
 };
+
+export const queryCategoryTodayFile = async fileCategory => {
+  axios
+    .get(`http://localhost:8080/api/file/query/${fileCategory}/today`)
+    .then(res => {
+      if (res.status === 200) {
+        return res.data;
+      }
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
+
+export const queryCategoryIntervalFiles = async (
+  fileCategory,
+  startDate,
+  endDate
+) => {
+  axios
+    .get(
+      `http://localhost:8080/api/file/query/${fileCategory}/interval?startDate=${startDate}&endDate=${endDate}`
+    )
+    .then(res => {
+      if (res.status === 200) {
+        return res.data;
+      }
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};

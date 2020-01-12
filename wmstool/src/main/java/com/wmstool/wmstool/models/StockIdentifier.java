@@ -42,17 +42,17 @@ public class StockIdentifier {
 
 	private boolean waitToShrink = false;
 
-	private boolean isShip = false;
+	private String eliminateType; // 0: ship, 1: shrink
 
-	private String shipReason;
+	private String eliminateDate;
+
+	private String eliminateReason;
+
+	private String adjustment;
 
 	private boolean isOutStock = false;
 
 	private String firstInStockAt;
-
-//	@OneToOne(fetch = FetchType.EAGER, mappedBy = "clothIdentifier")
-//	@JsonIgnore
-//	private ClothInfo clothInfo;
 
 	@JsonIgnore
 	private LocalDateTime outStockAt;
@@ -148,20 +148,36 @@ public class StockIdentifier {
 		this.waitToShrink = waitToShrink;
 	}
 
-	public boolean isShip() {
-		return isShip;
+	public String getEliminateType() {
+		return eliminateType;
 	}
 
-	public void setShip(boolean isShip) {
-		this.isShip = isShip;
+	public void setEliminateType(String eliminateType) {
+		this.eliminateType = eliminateType;
 	}
 
-	public String getShipReason() {
-		return shipReason;
+	public String getEliminateDate() {
+		return eliminateDate;
 	}
 
-	public void setShipReason(String shipReason) {
-		this.shipReason = shipReason;
+	public void setEliminateDate(String eliminateDate) {
+		this.eliminateDate = eliminateDate;
+	}
+
+	public String getEliminateReason() {
+		return eliminateReason;
+	}
+
+	public void setEliminateReason(String eliminateReason) {
+		this.eliminateReason = eliminateReason;
+	}
+
+	public String getAdjustment() {
+		return adjustment;
+	}
+
+	public void setAdjustment(String adjustment) {
+		this.adjustment = adjustment;
 	}
 
 	public boolean isOutStock() {
@@ -179,14 +195,6 @@ public class StockIdentifier {
 	public void setFirstInStockAt(String firstInStockAt) {
 		this.firstInStockAt = firstInStockAt;
 	}
-
-//	public ClothInfo getClothInfo() {
-//		return clothInfo;
-//	}
-//
-//	public void setClothInfo(ClothInfo clothInfo) {
-//		this.clothInfo = clothInfo;
-//	}
 
 	public LocalDateTime getCreatedAt() {
 		return createdAt;

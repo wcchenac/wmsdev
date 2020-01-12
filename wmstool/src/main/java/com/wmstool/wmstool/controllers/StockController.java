@@ -25,8 +25,8 @@ import com.wmstool.wmstool.models.payloads.OutStockUpdateRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
-import com.wmstool.wmstool.services.HistoryService;
 import com.wmstool.wmstool.services.StockService;
+import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
 @Validated
 @RestController
@@ -36,9 +36,6 @@ public class StockController {
 
 	@Autowired
 	private StockService stockService;
-
-	@Autowired
-	private HistoryService historyService;
 
 	@GetMapping("/queryOrder/{orderType}/{orderNo}")
 	public ResponseEntity<?> getOrderContent(@PathVariable(value = "orderType") String orderType,
@@ -161,9 +158,11 @@ public class StockController {
 		}
 	}
 
-	@GetMapping("/queryStock/history/{id}")
-	public ResponseEntity<?> getHistory(@PathVariable Long id) {
-		return historyService.createHistoryTree(id);
+	@GetMapping("/queryStock/history/{productNo}")
+	public ResponseEntity<?> getHistoryTree(@PathVariable String productNo,
+			@RequestParam(value = "startDate") String start, @RequestParam(value = "endDate") String end) {
+		return new ResponseEntity<List<HistoryTreeNode>>(
+				stockService.findPeriodStockIdentifierHistory(productNo.toUpperCase(), start, end), HttpStatus.OK);
 	}
 
 	@GetMapping("/stockManagement/dailyCompare")

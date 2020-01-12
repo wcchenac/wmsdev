@@ -1,12 +1,12 @@
 import { combineReducers } from "redux";
 import ErrorReducer from "./ErorrReducer";
-import ClothInfoReducer from "./ClothInfoReducer";
+import StockReducer from "./StockReducer";
 import FileReducer from "./FileReducer";
 import OutStockRequestReducer from "./OutStockRequestReducer";
 
 export default combineReducers({
   errors: ErrorReducer,
-  clothInfo: ClothInfoReducer,
+  stockInfo: StockReducer,
   fileName: FileReducer,
   outStockRequests: OutStockRequestReducer
 });
