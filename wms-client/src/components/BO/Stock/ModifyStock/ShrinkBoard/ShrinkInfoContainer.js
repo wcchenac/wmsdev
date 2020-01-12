@@ -13,17 +13,33 @@ class ShrinkInfoContainer extends Component {
       );
     } else {
       return (
-        <div className="table-wrapper-scroll-y my-custom-scrollbar">
+        <div className="table-wrapper-scroll-y scrollbar-75">
           <table className="table table-hover">
             <thead className="thead-dark">
               <tr>
-                <th style={{ width: "18%" }}>貨號</th>
-                <th style={{ width: "8%" }}>批號</th>
-                <th style={{ width: "8%" }}>型態</th>
-                <th style={{ width: "9%" }}>數量</th>
-                <th style={{ width: "8%" }}>單位</th>
+                <th style={{ width: "18%" }}>
+                  <div className="pl-3">貨號</div>
+                </th>
+                <th style={{ width: "8%" }}>
+                  <div className="pl-1">批號</div>
+                </th>
+                <th style={{ width: "8%" }}>
+                  {" "}
+                  <div className="pl-2">型態</div>
+                </th>
+                <th style={{ width: "9%" }}>
+                  {" "}
+                  <div className="pl-1">數量</div>
+                </th>
+                <th style={{ width: "8%" }}>
+                  {" "}
+                  <div className="pl-1">單位</div>
+                </th>
                 <th style={{ width: "7.5%" }}>色號</th>
-                <th style={{ width: "9%" }}>瑕疵</th>
+                <th style={{ width: "9%" }}>
+                  {" "}
+                  <div className="pl-2">瑕疵</div>
+                </th>
                 <th style={{ width: "10.5%" }} />
                 <th style={{ width: "10.5%" }} />
                 <th style={{ width: "10.5%" }} />
@@ -34,9 +50,6 @@ class ShrinkInfoContainer extends Component {
                 <ShrinkInfo
                   key={index}
                   stockInfo={stockInfo}
-                  // onTypeExchangeClick={this.props.onTypeExchangeClick}
-                  // onSameTypeClick={this.props.onSameTypeClick}
-                  // onHardwareModifyClick={this.props.onHardwareModifyClick}
                   onModifyClick={this.props.onModifyClick}
                   onCancelShrinkClick={this.props.onCancelShrinkClick}
                 />

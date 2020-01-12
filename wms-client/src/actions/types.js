@@ -12,3 +12,4 @@ export const CREATE_FILE = "CREATE_FILE";
 export const SHRINK_Stock = "SHRINK_Stock";
 export const CANCEL_SHRINK = "CANCEL_SHRINK";
 export const GET_OutStockRequests = "GET_OutStockRequests";
+export const SET_Current_User = "SET_Current_User"

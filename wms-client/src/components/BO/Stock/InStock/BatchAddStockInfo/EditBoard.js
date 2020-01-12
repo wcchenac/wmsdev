@@ -4,7 +4,8 @@ import StockInfoContainer from "./StockInfoContainer";
 const equal = require("fast-deep-equal");
 
 class EditBoard extends PureComponent {
-  contentAlgorithm(selectedProductNoList, filterSubmittedList, inStockOrderNo) {
+  contentAlgorithm(filterSubmittedList) {
+    const { selectedProductNoList, inStockOrderNo } = this.props;
     const filterSelectedList = selectedProductNoList.filter(
       object => object.selected === true && object.isSubmitted === false
     );
@@ -28,7 +29,7 @@ class EditBoard extends PureComponent {
       }
     } else {
       return (
-        <div>
+        <div className="my-custom-scrollbar-2">
           <nav>
             <div className="nav nav-tabs" id="nav-tab" role="tablist">
               {filterSelectedList.map((object, index) => {
@@ -90,11 +91,7 @@ class EditBoard extends PureComponent {
     const filterSubmittedList = this.props.selectedProductNoList.filter(
       object => object.isSubmitted === true
     );
-    let content = this.contentAlgorithm(
-      this.props.selectedProductNoList,
-      filterSubmittedList,
-      this.props.inStockOrderNo
-    );
+    let content = this.contentAlgorithm(filterSubmittedList);
 
     return (
       <div>

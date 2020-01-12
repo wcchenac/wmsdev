@@ -7,11 +7,15 @@
     "bootstrap": "^4.3.1",
     "classnames": "^2.2.6",
     "fast-deep-equal": "^2.0.1",
+    "jquery": "^1.9.1",
+    "jwt-decode": "^2.2.0",
     "react": "^16.9.0",
     "react-bootstrap": "^1.0.0-beta.12",
     "react-datepicker": "^2.9.6",
+    "react-dnd": "^7.7.0",
     "react-dom": "^16.9.0",
     "react-loader-spinner": "^3.1.4",
+    "react-loading-overlay": "^1.0.1",
     "react-promise-tracker": "^2.0.5",
     "react-redux": "^7.1.0",
     "react-router-dom": "^5.0.1",
@@ -19,7 +23,8 @@
     "react-select": "^3.0.8",
     "react-sortable-tree": "^2.7.1",
     "redux": "^4.0.4",
-    "redux-thunk": "^2.3.0"
+    "redux-thunk": "^2.3.0",
+    "typescript": "^3.7.4"
   },
   "scripts": {
     "start": "react-scripts start",

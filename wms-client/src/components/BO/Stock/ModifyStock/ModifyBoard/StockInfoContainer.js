@@ -6,7 +6,7 @@ class StockInfoContainer extends Component {
     const { typeValidation, stockInfoes } = this.props;
 
     return (
-      <div className="table-wrapper-scroll-y my-custom-scrollbar">
+      <div className="table-wrapper-scroll-y scrollbar-70">
         <table className="table table-sm table-hover">
           <thead className="thead-dark">
             <tr>
@@ -53,7 +53,9 @@ class StockInfoContainer extends Component {
                   <th style={{ width: "9%" }}>
                     <div className="pl-2">瑕疵</div>
                   </th>
-                  <th style={{ width: "13%" }}>進貨日期</th>
+                  <th style={{ width: "13%" }}>
+                    <div className="pl-2">進貨日期</div>
+                  </th>
                   <th style={{ width: "22%" }} />
                 </React.Fragment>
               )}

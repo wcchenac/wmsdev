@@ -14,7 +14,7 @@ class ModifyRequestBoard extends Component {
     this.state = {
       oldStockInfo: this.props.stockInfo,
       newStockInfoes: [],
-      typeValidation : this.props.stockInfo.stockIdentifier.type === "雜項"
+      typeValidation: this.props.stockInfo.stockIdentifier.type === "雜項"
     };
     this.handleBackClick = this.handleBackClick.bind(this);
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
@@ -236,7 +236,7 @@ class ModifyRequestBoard extends Component {
   }
 
   handleSubmitClick() {
-    const { oldStockInfo,newStockInfoes,typeValidation } = this.state;
+    const { oldStockInfo, newStockInfoes, typeValidation } = this.state;
     let stockInfoesCopy = copy(newStockInfoes);
     let infoLengthCalculation = this.infoLengthCalculation();
 
@@ -251,14 +251,7 @@ class ModifyRequestBoard extends Component {
       adjustment: infoLengthCalculation.adjustment
     };
 
-    this.props
-      .batchCreateStockInfoesForShrink(shrinkStockRequest)
-      .then(res => {
-        if (res.status === 200) {
-          this.props.initialComponent();
-        }
-      })
-      .catch(err => console.log(err));
+    this.props.handleModifyRequestSubmit(shrinkStockRequest);
   }
 
   modalContent() {

@@ -2,7 +2,7 @@ import React from "react";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Header from "./components/Layout/Header";
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store";
 import BatchAddStockInfo from "./components/BO/Stock/InStock/BatchAddStockInfo/BatchAddStockInfo";
@@ -13,21 +13,49 @@ import OutStockRequestList from "./components/BO/Stock/OutStockList/OutStockRequ
 import QueryBoard from "./components/BO/Stock/QueryStock/QueryBoard";
 import FileCenter from "./components/BO/File/FileCenter";
 import StockHistoryBoard from "./components/BO/Stock/StockHistory/StockHistoryBoard";
+import Login from "./components/BO/User/Login";
+import AdminPlatform from "./components/BO/User/AdminPlatform/AdminPlatform";
+import SecuredRouteLvH from "./components/Others/securities/SecuredRouteLvH";
+import SecuredRouteLvM from "./components/Others/securities/SecuredRouteLvM";
+import SecuredRouteLvL from "./components/Others/securities/SecuredRouteLvL";
+import localStorageValidate from "./utilities/LocalStorageValidate";
 
 function App() {
+  localStorageValidate();
+
   return (
     <Provider store={store}>
       <Router>
         <div className="App">
           <Header />
-          <Route exact path="/stock/1/1" component={BatchAddStockInfo} />
-          <Route exact path="/stock/1/2" component={AssembleStockBoard} />
-          <Route exact path="/stock/2" component={QueryBoard} />
-          <Route exact path="/stock/3/1" component={ModifyBoard} />
-          <Route exact path="/stock/3/2" component={ShrinkBoard} />
-          <Route exact path="/stock/4" component={OutStockRequestList} />
-          <Route exact path="/stock/5" component={StockHistoryBoard} />
-          <Route exact path="/files" component={FileCenter} />
+          <Switch>
+            <Route exact path="/login" component={Login} />
+            <SecuredRouteLvM
+              exact
+              path="/stock/1/1"
+              component={BatchAddStockInfo}
+            />
+            <SecuredRouteLvM
+              exact
+              path="/stock/1/2"
+              component={AssembleStockBoard}
+            />
+            <SecuredRouteLvL exact path="/stock/2" component={QueryBoard} />
+            <SecuredRouteLvM exact path="/stock/3/1" component={ModifyBoard} />
+            <SecuredRouteLvM exact path="/stock/3/2" component={ShrinkBoard} />
+            <SecuredRouteLvM
+              exact
+              path="/stock/4"
+              component={OutStockRequestList}
+            />
+            <SecuredRouteLvM
+              exact
+              path="/stock/5"
+              component={StockHistoryBoard}
+            />
+            <SecuredRouteLvM exact path="/files" component={FileCenter} />
+            <SecuredRouteLvH exact path="/admin" component={AdminPlatform} />
+          </Switch>
         </div>
       </Router>
     </Provider>

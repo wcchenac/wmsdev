@@ -34,7 +34,7 @@ class SelectionBoard extends Component {
         <p className="h5 text-center">進貨單單號: {inStockOrderNo}</p>
         <p className="h5 text-center">含有以下貨號，請選擇此次欲入庫貨號</p>
         <hr />
-        <div className="col-md-12">
+        <div className="col-md-12 my-custom-scrollbar-1">
           <div className="row">
             {selectedProductNoList.map((object, index) => (
               <CheckBox

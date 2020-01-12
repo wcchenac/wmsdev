@@ -84,12 +84,44 @@ img {
   font-size: 1rem;
 }
 
-.my-custom-scrollbar {
+.scrollbar-50 {
   position: relative;
-  height: 80vh;
+  height: 50vh;
+  overflow: auto;
+}
+
+.scrollbar-65 {
+  position: relative;
+  height: 65vh;
+  overflow: auto;
+}
+
+.scrollbar-70 {
+  position: relative;
+  height: 70vh;
+  overflow: auto;
+}
+
+.scrollbar-75 {
+  position: relative;
+  height: 75vh;
   overflow: auto;
 }
 
 .table-wrapper-scroll-y {
   display: block;
+}
+
+.batch_add_stockInfo {
+  position: relative;
+  height: 80vh;
+  /* margin-top: -24px;
+  margin-bottom: -50px; */
+}
+
+.assemble_stockInfo {
+  position: relative;
+  height: 80vh;
+  /* margin-top: -24px;
+  margin-bottom: -50px; */
 }

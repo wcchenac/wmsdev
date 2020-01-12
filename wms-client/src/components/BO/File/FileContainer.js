@@ -48,18 +48,31 @@ class FlieContainer extends Component {
       "http://localhost:8080/api/file/download/" + fileType + "/";
 
     return (
-      <div>
+      <div
+        style={{
+          border: "2px solid black",
+          borderRadius: "5px",
+          padding: "0.5rem 0rem",
+          margin: "1rem 0rem"
+        }}
+      >
         <div className="container">
-          <div className="row">
-            <div className="col">
-              <p className="h5">{containerTitle}</p>
+          <div className="row pt-1">
+            <div className="col-auto">
+              <p className="h5 mb-0" style={{ padding: "4px 0px" }}>
+                {containerTitle}
+              </p>
+            </div>
+            <div className="col-auto">
               <button
                 type="button"
-                className="btn btn-sm btn-info mr-1"
+                className="btn btn-sm btn-info"
                 onClick={this.onCurrentClick}
               >
                 檔案查詢
               </button>
+            </div>
+            <div className="col-auto">
               <DatePeriodSelectModal
                 btnTitle={"特定日期區間查詢"}
                 fileType={fileType}
@@ -93,7 +106,7 @@ class FlieContainer extends Component {
                   <tr>
                     {filenames.map((filename, index) => {
                       return (
-                        <React.Fragment>
+                        <React.Fragment key={index}>
                           <td style={{ padding: "0.5em 1em" }}>
                             <button className="btn-customize" disabled>
                               {filename}
@@ -102,7 +115,6 @@ class FlieContainer extends Component {
                           <td style={{ padding: "0.5em 1em" }}>
                             <div className="d-flex justify-content-center">
                               <a
-                                key={index}
                                 className="btn btn-primary"
                                 href={downloadURL + filename}
                                 download
