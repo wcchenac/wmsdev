@@ -1,4 +1,4 @@
-package com.wmstool.ERP.models;
+package com.wmstool.erp.models;
 
 import java.util.ArrayList;
 import java.util.List;

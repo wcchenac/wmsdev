@@ -25,6 +25,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -58,6 +59,7 @@ import com.wmstool.wmstool.repositories.StockIdentifierBacklogRepo;
 import com.wmstool.wmstool.repositories.StockIdentifierRepo;
 import com.wmstool.wmstool.repositories.StockInfoRepository;
 import com.wmstool.wmstool.repositories.TransactionRecordRepo;
+import com.wmstool.wmstool.security.UserPrincipal;
 import com.wmstool.wmstool.utilities.DailyStockComparisonExcelHelper;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 import com.wmstool.wmstool.utilities.OutStockRequestExcelHelper;
@@ -105,6 +107,9 @@ public class StockService {
 
 	@Autowired
 	private StockAdjustmentRecordRepo stockAdjustmentRecordRepo;
+	
+	@Autowired
+	private OutStockRequestExcelHelper outStockRequestExcelHelper;
 
 	private static final String InStockType_Normal = "normal";
 	private static final String InStockType_Assemble = "assemble";
@@ -366,7 +371,9 @@ public class StockService {
 					.orElseGet(() -> stockIdentifierBacklogRepo.save(new StockIdentifierBacklog(inStockRequest)));
 
 			// use stockIdentifierBacklog to create stockIdentifier
-			StockIdentifier stockIdentifier = new StockIdentifier(resStockIdentifierBacklog);
+			String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+					.getFullName();
+			StockIdentifier stockIdentifier = new StockIdentifier(resStockIdentifierBacklog, Editor);
 
 			// increase serialotNo in stockIdentifierBacklog
 			int newSerialNo = resStockIdentifierBacklog.getSerialNo() + 1;
@@ -428,17 +435,17 @@ public class StockService {
 			// history function code end
 
 			// use stockIdentifier & inStockRequest to create stockInfo, then add into list
-			StockInfo result = new StockInfo(resIdentifier, inStockRequest);
+			StockInfo result = new StockInfo(resIdentifier, inStockRequest, Editor);
 			resultList.add(result);
 
 			// only new stock from InStockOrder & AssembleOrder should be saved in
 			// InStockOrderRepo
 			if (condition.equals(InStockType_Normal) || condition.equals(InStockType_Assemble)) {
-				inStockOrderRepo.save(new InStockOrderRecord(resIdentifier, inStockRequest));
+				inStockOrderRepo.save(new InStockOrderRecord(resIdentifier, inStockRequest, Editor));
 			}
 
 			// Create TransactionRecord and save it
-			TransactionRecord transactionRecord = new TransactionRecord(resIdentifier);
+			TransactionRecord transactionRecord = new TransactionRecord(resIdentifier, Editor);
 			transactionRecord.setOperator("1");
 
 			switch (condition) {
@@ -576,6 +583,10 @@ public class StockService {
 		if (!res.getRemark().equals(updateInfoRequest.getRemark())) {
 			res.setRemark(updateInfoRequest.getRemark());
 		}
+
+		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getFullName();
+		res.setUpdatedBy(Editor);
 
 		return res.getStockIdentifier().getProductNo();
 	}
@@ -734,22 +745,23 @@ public class StockService {
 		StockInfo resInfo = stockInfoRepository.findByStockIdentifierId(res.getId()).get();
 
 		// Create OutStockRequest object, set extra information and save it
-		OutStockRequest outStockRequest = new OutStockRequest(res, resInfo, shipRequest.getReason());
+		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getFullName();
+		OutStockRequest outStockRequest = new OutStockRequest(res, resInfo, shipRequest.getReason(), Editor);
 		outStockRequest.setOutStockType(0);
 		outStockRequestRepo.save(outStockRequest);
 
 		// Update related information in StockIdentifier
 		res.setExist(false);
-//		res.setShip(true);
-//		res.setShipReason(shipRequest.getReason());
 		res.setEliminateType("0");
 		res.setEliminateReason(shipRequest.getReason());
 		res.setEliminateDate(LocalDate.now().toString());
 		res.setOutStock(true);
 		res.setOutStockAt(LocalDateTime.now());
+		res.setUpdatedBy(Editor);
 
 		// Create TransactionRecord for ship and save it
-		TransactionRecord transactionRecord = new TransactionRecord(res);
+		TransactionRecord transactionRecord = new TransactionRecord(res, Editor);
 		transactionRecord.setOperator("-1");
 		transactionRecord.setTransactionType("SPO");
 		transactionRecordRepo.save(transactionRecord);
@@ -766,21 +778,26 @@ public class StockService {
 	 */
 	public void letStockIdentifierisNotShiped(long stockIdentifierId) {
 		// TODO: data not found exception
-		StockIdentifier res = stockIdentifierRepo.findById(stockIdentifierId).get();
+		StockIdentifier resIdentifier = stockIdentifierRepo.findById(stockIdentifierId).get();
+		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getFullName();
 
 		// Update relative information in StockIdentifier
-		res.setExist(true);
-//		res.setShip(false);
-//		res.setShipReason(null);
-		res.setEliminateType(null);
-		res.setEliminateReason(null);
-		res.setEliminateDate(null);
-		res.setOutStock(false);
-		res.setOutStockAt(null);
+		resIdentifier.setExist(true);
+		resIdentifier.setEliminateType(null);
+		resIdentifier.setEliminateReason(null);
+		resIdentifier.setEliminateDate(null);
+		resIdentifier.setOutStock(false);
+		resIdentifier.setOutStockAt(null);
+		resIdentifier.setUpdatedBy(Editor);
 
-		// Set delete status in OutStockRequest
+		// Set relative status in OutStockRequest
 		// TODO: data not found exception
-		outStockRequestRepo.findByStockIdentifierIdAndIsDeleted(stockIdentifierId, false).get().setDeleted(true);
+		OutStockRequest resOutStockRequest = outStockRequestRepo
+				.findByStockIdentifierIdAndIsDeleted(stockIdentifierId, false).get();
+
+		resOutStockRequest.setDeleted(true);
+		resOutStockRequest.setUpdatedBy(Editor);
 
 		// Delete TransactionRecord
 		// TODO: data not found exception
@@ -788,8 +805,8 @@ public class StockService {
 				transactionRecordRepo.findByStockIdentifierIdAndTransactionType(stockIdentifierId, "SPO").get());
 
 		// Create Product object to update Product quantity in db
-		Product p = new Product(res);
-		updateProductQuantity(res.getProductNo(), p);
+		Product p = new Product(resIdentifier);
+		updateProductQuantity(resIdentifier.getProductNo(), p);
 	}
 
 	/**
@@ -815,20 +832,24 @@ public class StockService {
 	 */
 	public String letStockIdentifierWaitToShrinkIsTrue(long stockIdentifierId) {
 		// TODO: data not found exception
-		StockIdentifier res = stockIdentifierRepo.findById(stockIdentifierId).get();
-		StockInfo resInfo = stockInfoRepository.findByStockIdentifierId(res.getId()).get();
-		OutStockRequest outStockRequest = new OutStockRequest(res, resInfo, res.getType().equals("雜項") ? "分裝" : "減肥");
+		StockIdentifier resIdentifier = stockIdentifierRepo.findById(stockIdentifierId).get();
+		StockInfo resInfo = stockInfoRepository.findByStockIdentifierId(resIdentifier.getId()).get();
+		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getFullName();
+		OutStockRequest outStockRequest = new OutStockRequest(resIdentifier, resInfo,
+				resIdentifier.getType().equals("雜項") ? "分裝" : "減肥", Editor);
 
-		res.setWaitToShrink(true);
-		res.setOutStock(true);
-		res.setOutStockAt(LocalDateTime.now());
+		resIdentifier.setWaitToShrink(true);
+		resIdentifier.setOutStock(true);
+		resIdentifier.setOutStockAt(LocalDateTime.now());
+		resIdentifier.setUpdatedBy(Editor);
 		// TODO: avoid multiple click
 
 		// Set extra information in OutStockRequest
 		outStockRequest.setOutStockType(1);
 		outStockRequestRepo.save(outStockRequest);
 
-		return res.getProductNo();
+		return resIdentifier.getProductNo();
 	}
 
 	/**
@@ -837,15 +858,22 @@ public class StockService {
 	 */
 	public void letStockIdentifierWaitToShrinkIsFalse(long stockIdentifierId) {
 		// TODO: data not found exception
-		StockIdentifier res = stockIdentifierRepo.findById(stockIdentifierId).get();
+		StockIdentifier resIdentifier = stockIdentifierRepo.findById(stockIdentifierId).get();
 
 		// Set delete status in OutStockRequest
-		outStockRequestRepo.findByStockIdentifierIdAndIsDeleted(stockIdentifierId, false).get().setDeleted(true);
+		OutStockRequest resOutStockRequest = outStockRequestRepo
+				.findByStockIdentifierIdAndIsDeleted(stockIdentifierId, false).get();
+		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getFullName();
+
+		resOutStockRequest.setDeleted(true);
+		resOutStockRequest.setUpdatedBy(Editor);
 
 		// Update relative information in StockIdentifier
-		res.setWaitToShrink(false);
-		res.setOutStock(false);
-		res.setOutStockAt(null);
+		resIdentifier.setWaitToShrink(false);
+		resIdentifier.setOutStock(false);
+		resIdentifier.setOutStockAt(null);
+		resIdentifier.setUpdatedBy(Editor);
 	}
 
 	/**
@@ -863,15 +891,18 @@ public class StockService {
 		// TODO: data not found exception
 		StockIdentifier oldIdentifier = stockIdentifierRepo.findById(shrinkStockRequest.getOldStockIdentifierId())
 				.get();
+		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getFullName();
 
 		oldIdentifier.setExist(false);
 		oldIdentifier.setEliminateType("1");
 		oldIdentifier.setEliminateDate(LocalDate.now().toString());
 		oldIdentifier.setEliminateReason("減肥");
 		oldIdentifier.setAdjustment(adjustmentString);
+		oldIdentifier.setUpdatedBy(Editor);
 
 		// Create TransactionRecord for oldStock shrink and save it
-		TransactionRecord transactionRecord = new TransactionRecord(oldIdentifier);
+		TransactionRecord transactionRecord = new TransactionRecord(oldIdentifier, Editor);
 
 		transactionRecord.setOperator("-1");
 		transactionRecord.setTransactionType("SKO");
@@ -959,7 +990,10 @@ public class StockService {
 	 * Save a special outStockRequest to repository
 	 */
 	public OutStockRequest createOutStockRequest(OutStockRequest outStockRequest) {
+		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getFullName();
 		outStockRequest.setOutStockType(2);
+		outStockRequest.setCreatedBy(Editor);
 
 		return outStockRequestRepo.save(outStockRequest);
 	}
@@ -969,7 +1003,12 @@ public class StockService {
 	 */
 	public void deleteOutStockRequest(long outStockRequestId) {
 		// TODO: data not found exception
-		outStockRequestRepo.findById(outStockRequestId).get().setDeleted(true);
+		OutStockRequest resOutStockRequest = outStockRequestRepo.findById(outStockRequestId).get();
+		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+				.getFullName();
+
+		resOutStockRequest.setDeleted(true);
+		resOutStockRequest.setUpdatedBy(Editor);
 	}
 
 	/**
@@ -1087,21 +1126,25 @@ public class StockService {
 		LocalDateTime now = LocalDateTime.now();
 
 		// Create a excel for this updateRequest for later modification
-		String fileName = OutStockRequestExcelHelper.createNewFile(now);
+		String fileName = outStockRequestExcelHelper.createNewFile(now);
 
 		// Use id stored in update request as key to update database
 		updateRequest.keySet().forEach(id -> {
 			// TODO: data not found exception
 			OutStockRequest res = outStockRequestRepo.findById(id).get();
+			String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
+					.getFullName();
+
 			res.setRequestFrom(updateRequest.get(id));
 			res.setHandled(true);
 			res.setFileName(fileName);
+			res.setUpdatedBy(Editor);
 			tempList.add(res);
 		});
 
 		// write res information into excel
 		try {
-			OutStockRequestExcelHelper.modifyExisting(tempList, now, fileName);
+			outStockRequestExcelHelper.modifyExisting(tempList, now, fileName);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

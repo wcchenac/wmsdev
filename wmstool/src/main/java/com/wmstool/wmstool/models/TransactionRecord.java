@@ -33,16 +33,19 @@ public class TransactionRecord {
 
 	private LocalDateTime createdAt;
 
+	private String createdBy;
+
 	public TransactionRecord() {
 	}
 
-	public TransactionRecord(StockIdentifier stockIdentifier) {
+	public TransactionRecord(StockIdentifier stockIdentifier, String editor) {
 		this.productNo = stockIdentifier.getProductNo();
 		this.lotNo = stockIdentifier.getLotNo();
 		this.type = stockIdentifier.getType();
 		this.quantity = stockIdentifier.getQuantity();
 		this.unit = stockIdentifier.getUnit();
 		this.stockIdentifierId = stockIdentifier.getId();
+		this.createdBy = editor;
 	}
 
 	public Long getId() {
@@ -123,6 +126,14 @@ public class TransactionRecord {
 
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
 	}
 
 	@PrePersist

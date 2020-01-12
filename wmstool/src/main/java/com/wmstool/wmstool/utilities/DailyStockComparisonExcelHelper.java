@@ -18,11 +18,16 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 public class DailyStockComparisonExcelHelper {
 
+	@Autowired
+	private static Environment env;
+
 	private static final String seperator = File.separator;
-	private static final String parentDir = "/Users/weichihchen/Desktop/Temp/DailyStockComparison";
+	private static final String parentDir = env.getProperty("filePathForExcels") + seperator + "DailyStockComparison";
 	private static final String filetype = ".xls";
 	private static final String templateFile = parentDir + seperator + "DailyStockComparisonTemplate" + filetype;
 	private static final String filenamePrefix = "DailyStockComparison-";

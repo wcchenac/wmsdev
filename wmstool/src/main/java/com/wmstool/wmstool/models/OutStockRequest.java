@@ -55,16 +55,18 @@ public class OutStockRequest {
 	public OutStockRequest() {
 	}
 
-	public OutStockRequest(String productNo, String lotNo, String type, String quantity, String unit, String reason) {
+	public OutStockRequest(String productNo, String lotNo, String type, String quantity, String unit, String reason,
+			String editor) {
 		this.productNo = productNo;
 		this.lotNo = lotNo;
 		this.type = type;
 		this.quantity = quantity;
 		this.unit = unit;
 		this.reason = reason;
+		this.createdBy = editor;
 	}
 
-	public OutStockRequest(StockIdentifier stockIdentifier, StockInfo stockInfo, String reason) {
+	public OutStockRequest(StockIdentifier stockIdentifier, StockInfo stockInfo, String reason, String editor) {
 		this.productNo = stockIdentifier.getProductNo();
 		this.lotNo = stockIdentifier.getLotNo();
 		this.type = stockIdentifier.getType();
@@ -74,6 +76,7 @@ public class OutStockRequest {
 		this.color = stockInfo.getColor();
 		this.defect = stockInfo.getDefect();
 		this.reason = reason;
+		this.createdBy = editor;
 	}
 
 	public Long getId() {

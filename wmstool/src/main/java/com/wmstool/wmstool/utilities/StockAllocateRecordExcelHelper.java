@@ -14,13 +14,18 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import com.wmstool.wmstool.models.StockAllocationRecord;
 
 public class StockAllocateRecordExcelHelper {
 
+	@Autowired
+	private static Environment env;
+
 	private static final String seperator = File.separator;
-	private static final String parentDir = "/Users/weichihchen/Desktop/Temp/STKALLT";
+	private static final String parentDir = env.getProperty("filePathForExcels") + seperator + "STKALLT";
 	private static final String filetype = ".xls";
 	private static final String templateFile = parentDir + seperator + "StockAllocateRecordTemplate" + filetype;
 	private static final String filenamePrefix = "StockAllocateRecord-";

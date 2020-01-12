@@ -1,24 +1,23 @@
-package com.wmstool.erp.models;
+package com.wmstool.wmstool.models;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
-public class ProductNo {
+public class Role {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String productNo;
+	@Enumerated(EnumType.STRING)
+	private RoleName role;
 
-	public ProductNo() {
-	}
-
-	public ProductNo(String productNo) {
-		this.productNo = productNo;
+	public Role() {
 	}
 
 	public Long getId() {
@@ -29,12 +28,12 @@ public class ProductNo {
 		this.id = id;
 	}
 
-	public String getProductNo() {
-		return productNo;
+	public RoleName getRole() {
+		return role;
 	}
 
-	public void setProductNo(String productNo) {
-		this.productNo = productNo;
+	public void setRole(RoleName role) {
+		this.role = role;
 	}
 
 }

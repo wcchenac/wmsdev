@@ -1,4 +1,4 @@
-package com.wmstool.ERP;
+package com.wmstool.erp;
 
 import java.util.Properties;
 
