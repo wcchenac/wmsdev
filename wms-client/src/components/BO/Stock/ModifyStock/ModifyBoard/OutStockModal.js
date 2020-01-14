@@ -44,7 +44,7 @@ class OutStockModal extends Component {
     this.setState({ outStockRequest: outStockRequestsCopy });
   }
 
-  handleSubmit(e) {
+  handleSubmit() {
     const { outStockRequest } = this.state;
     const newOutStockRequest = {
       productNo: outStockRequest.productNo,
@@ -56,7 +56,7 @@ class OutStockModal extends Component {
       reason: outStockRequest.reason
     };
 
-    this.props.handleOutStockRequestSubmit(e, newOutStockRequest);
+    this.props.handleOutStockRequestSubmit(newOutStockRequest);
   }
 
   checkFormAlgorithm(outStockRequest) {

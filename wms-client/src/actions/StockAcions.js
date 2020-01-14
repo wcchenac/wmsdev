@@ -89,7 +89,7 @@ export const getShrinkList = () => async dispatch => {
   return res;
 };
 
-export const stockIndentifierIsShiped = shipRequest => async dispatch => {
+export const stockIdentifierIsShiped = shipRequest => async dispatch => {
   try {
     // await trackPromise(axios.patch("/api/stock/shipStock", shipRequest));
 
@@ -109,7 +109,7 @@ export const stockIndentifierIsShiped = shipRequest => async dispatch => {
   }
 };
 
-export const stockIndentifierIsNotShiped = stockIdentifierId => async dispatch => {
+export const stockIdentifierIsNotShiped = stockIdentifierId => async dispatch => {
   try {
     // const res = await trackPromise(
     //   axios.patch(`/api/stock/shipStock/rollback/${stockIdentifierId}`)

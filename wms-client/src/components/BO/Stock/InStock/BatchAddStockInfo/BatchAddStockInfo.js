@@ -44,6 +44,7 @@ class BatchAddStockInfo extends Component {
     }
 
     this.setState({
+      isLoading: false,
       isOrderValid: undefined,
       key: 1,
       currentOrderStatus: {},
@@ -117,9 +118,8 @@ class BatchAddStockInfo extends Component {
   }
 
   handleInStockRequestSubmit(e, index, inStockRequests) {
-    const copyList = [...this.state.selectedProductNoList];
-
     e.preventDefault();
+    const copyList = [...this.state.selectedProductNoList];
 
     this.setState({ isLoading: true }, () => {
       this.props.batchCreateStockInfoes(inStockRequests).then(res => {
@@ -136,19 +136,6 @@ class BatchAddStockInfo extends Component {
         }
       });
     });
-
-    // this.props.batchCreateStockInfoes(inStockRequests).then(res => {
-    //   if (res.status === 200) {
-    //     copyList[index] = {
-    //       ...this.state.selectedProductNoList[index],
-    //       isSubmitted: true
-    //     };
-
-    //     this.setState({
-    //       selectedProductNoList: copyList
-    //     });
-    //   }
-    // });
   }
 
   componentDidUpdate(prevProps) {
@@ -189,73 +176,78 @@ class BatchAddStockInfo extends Component {
     } = this.state;
 
     return (
-      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-        <div className="batch_add_stockInfo">
-          <div className="container">
-            <TabContainer
-              id="left-tabs"
-              activeKey={key}
-              onSelect={this.handleTabSelect}
-            >
-              <Nav justify variant="pills">
-                <Nav.Item>
-                  <Nav.Link eventKey={1} disabled={key !== 1}>
-                    Step 1 - 查詢進貨單內容
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey={2} disabled={key !== 2}>
-                    Step 2 - 選擇入庫貨號
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey={3} disabled={key !== 3}>
-                    Step 3 - 輸入詳細資料及送出
-                  </Nav.Link>
-                </Nav.Item>
-              </Nav>
-              <hr />
-              <TabContent>
-                <TabPane eventKey={1}>
-                  <div className="container">
-                    <QueryOrder
-                      handleStockOrderNo={this.handleStockOrderNo}
-                      handleQueryOrderSubmit={this.handleQueryOrderSubmit}
-                      isOrderValid={isOrderValid}
-                    />
-                  </div>
-                </TabPane>
-                <TabPane eventKey={2}>
-                  <div className="container">
-                    <SelectionBoard
-                      handlePrevStep={this.getInitialize}
-                      handleNextStep={this.handleNextStep}
-                      inStockOrderNo={inStockOrderNo}
-                      waitHandleStatus={waitHandleStatus}
-                      selectedProductNoList={selectedProductNoList}
-                      handleCheckBoxSelected={this.handleCheckBoxSelected}
-                    />
-                  </div>
-                </TabPane>
-                <TabPane eventKey={3}>
-                  <div className="container">
-                    <EditBoard
-                      handlePrevStep={this.handlePrevStep}
-                      inStockOrderNo={inStockOrderNo}
-                      selectedProductNoList={selectedProductNoList}
-                      waitHandleStatus={waitHandleStatus}
-                      handleInStockRequestSubmit={
-                        this.handleInStockRequestSubmit
-                      }
-                      getInitialize={this.getInitialize}
-                    />
-                  </div>
-                </TabPane>
-              </TabContent>
-            </TabContainer>
-          </div>
+      <div className="batch_add_stockInfo">
+        <div className="container">
+          <TabContainer
+            id="left-tabs"
+            activeKey={key}
+            onSelect={this.handleTabSelect}
+          >
+            <Nav justify variant="pills">
+              <Nav.Item>
+                <Nav.Link eventKey={1} disabled={key !== 1}>
+                  Step 1 - 查詢進貨單內容
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey={2} disabled={key !== 2}>
+                  Step 2 - 選擇入庫貨號
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey={3} disabled={key !== 3}>
+                  Step 3 - 輸入詳細資料及送出
+                </Nav.Link>
+              </Nav.Item>
+            </Nav>
+            <hr />
+
+            <TabContent>
+              <TabPane eventKey={1}>
+                <div className="container">
+                  <LoadingOverlay
+                    active={isLoading && key === 1}
+                    spinner={<Spinner />}
+                  >
+                    <div style={{ height: "70vh" }}>
+                      <QueryOrder
+                        handleStockOrderNo={this.handleStockOrderNo}
+                        handleQueryOrderSubmit={this.handleQueryOrderSubmit}
+                        isOrderValid={isOrderValid}
+                      />
+                    </div>
+                  </LoadingOverlay>
+                </div>
+              </TabPane>
+              <TabPane eventKey={2}>
+                <div className="container">
+                  <SelectionBoard
+                    handlePrevStep={this.getInitialize}
+                    handleNextStep={this.handleNextStep}
+                    inStockOrderNo={inStockOrderNo}
+                    waitHandleStatus={waitHandleStatus}
+                    selectedProductNoList={selectedProductNoList}
+                    handleCheckBoxSelected={this.handleCheckBoxSelected}
+                  />
+                </div>
+              </TabPane>
+              <TabPane eventKey={3}>
+                <div className="container">
+                  <EditBoard
+                    isLoading={isLoading && key === 3}
+                    handlePrevStep={this.handlePrevStep}
+                    inStockOrderNo={inStockOrderNo}
+                    selectedProductNoList={selectedProductNoList}
+                    waitHandleStatus={waitHandleStatus}
+                    handleInStockRequestSubmit={this.handleInStockRequestSubmit}
+                    getInitialize={this.getInitialize}
+                  />
+                </div>
+              </TabPane>
+            </TabContent>
+          </TabContainer>
         </div>
-      </LoadingOverlay>
+      </div>
     );
   }
 }

@@ -29,60 +29,32 @@ class ModifyRequestBoard extends Component {
   }
 
   modifyRequestInitialContent(typeExchange, sameTypeModify, hardwareModify) {
+    let initialContent = {
+      productNo: this.state.oldStockInfo.stockIdentifier.productNo,
+      lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
+      quantity: "",
+      unit: "碼",
+      color: this.state.oldStockInfo.color,
+      defect: [{ label: "無", value: "無" }],
+      record: this.state.oldStockInfo.record,
+      remark: "",
+      inStockType: "shrink",
+      parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
+      errors: {
+        quantity: ""
+      }
+    };
     if (typeExchange) {
-      return {
-        productNo: this.state.oldStockInfo.stockIdentifier.productNo,
-        lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
-        type: "板卷",
-        quantity: "",
-        unit: "碼",
-        color: this.state.oldStockInfo.color,
-        defect: [{ label: "無", value: "無" }],
-        record: this.state.oldStockInfo.record,
-        remark: "",
-        inStockType: "shrink",
-        parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
-        errors: {
-          quantity: ""
-        }
-      };
+      initialContent["type"] = "板卷";
     }
     if (sameTypeModify) {
-      return {
-        productNo: this.state.oldStockInfo.stockIdentifier.productNo,
-        lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
-        type: "整支",
-        quantity: "",
-        unit: "碼",
-        color: this.state.oldStockInfo.color,
-        defect: [{ label: "無", value: "無" }],
-        record: this.state.oldStockInfo.record,
-        remark: "",
-        inStockType: "shrink",
-        parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
-        errors: {
-          quantity: ""
-        }
-      };
+      initialContent["type"] = "整支";
     }
     if (hardwareModify) {
-      return {
-        productNo: this.state.oldStockInfo.stockIdentifier.productNo,
-        lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
-        type: this.state.oldStockInfo.stockIdentifier.type,
-        quantity: "",
-        unit: this.state.oldStockInfo.stockIdentifier.unit,
-        color: "",
-        defect: "",
-        record: this.state.oldStockInfo.record,
-        remark: "",
-        inStockType: "shrink",
-        parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
-        errors: {
-          quantity: ""
-        }
-      };
+      initialContent["type"] = "雜項";
     }
+
+    return initialContent;
   }
 
   infoLengthCalculation() {
@@ -309,7 +281,6 @@ class ModifyRequestBoard extends Component {
     const { oldStockInfo, newStockInfoes, typeValidation } = this.state;
     let isLengthChecked = this.checkLengthAlgorithm(newStockInfoes);
     let modalContent = this.modalContent();
-    // let typeValidation = oldStockInfo.stockIdentifier.type === "雜項";
 
     return (
       <div className="stock_info">

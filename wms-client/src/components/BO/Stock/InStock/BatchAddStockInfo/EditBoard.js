@@ -1,11 +1,13 @@
 import React, { PureComponent } from "react";
 import StockInfoContainer from "./StockInfoContainer";
+import LoadingOverlay from "react-loading-overlay";
+import { Spinner } from "../../../../Others/Spinner";
 
 const equal = require("fast-deep-equal");
 
 class EditBoard extends PureComponent {
   contentAlgorithm(filterSubmittedList) {
-    const { selectedProductNoList, inStockOrderNo } = this.props;
+    const { isLoading, selectedProductNoList, inStockOrderNo } = this.props;
     const filterSelectedList = selectedProductNoList.filter(
       object => object.selected === true && object.isSubmitted === false
     );
@@ -65,20 +67,24 @@ class EditBoard extends PureComponent {
               );
 
               return (
-                <StockInfoContainer
-                  typeValidation={typeValidation}
-                  key={object.index}
-                  sequence={index}
-                  index={object.index}
-                  inStockOrderNo={inStockOrderNo}
-                  productNo={object.productNo}
-                  waitHandleStatus={
-                    this.props.waitHandleStatus[object.productNo]
-                  }
-                  handleInStockRequestSubmit={
-                    this.props.handleInStockRequestSubmit
-                  }
-                />
+                <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+                  <div style={{ height: "70vh" }}>
+                    <StockInfoContainer
+                      typeValidation={typeValidation}
+                      key={object.index}
+                      sequence={index}
+                      index={object.index}
+                      inStockOrderNo={inStockOrderNo}
+                      productNo={object.productNo}
+                      waitHandleStatus={
+                        this.props.waitHandleStatus[object.productNo]
+                      }
+                      handleInStockRequestSubmit={
+                        this.props.handleInStockRequestSubmit
+                      }
+                    />
+                  </div>
+                </LoadingOverlay>
               );
             })}
           </div>
@@ -91,7 +97,6 @@ class EditBoard extends PureComponent {
     const filterSubmittedList = this.props.selectedProductNoList.filter(
       object => object.isSubmitted === true
     );
-    let content = this.contentAlgorithm(filterSubmittedList);
 
     return (
       <div>
@@ -106,7 +111,7 @@ class EditBoard extends PureComponent {
           </button>
         </div>
         <br />
-        {content}
+        {this.contentAlgorithm(filterSubmittedList)}
       </div>
     );
   }

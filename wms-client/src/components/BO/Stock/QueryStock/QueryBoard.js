@@ -5,6 +5,7 @@ import { getStockInfoesBasic } from "../../../../actions/StockAcions";
 import StockInfoContainer from "./StockInfoContainer";
 import QueryProductInformation from "../Utilities/QueryProductInformation";
 import ShowProductInformation from "../Utilities/ShowProductInformation";
+import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 
@@ -48,6 +49,45 @@ class QueryBoard extends Component {
     }
   }
 
+  contentAlgorithm(isQuery, stockInfoes, stockQuantity) {
+    if (!isQuery) {
+      return null;
+    } else {
+      if (stockInfoes.length === 0) {
+        return <QueryResponseWithNoStock />;
+      } else {
+        return (
+          <div>
+            <div className="row">
+              {stockQuantity.map((product, index) => (
+                <React.Fragment key={index}>
+                  <div className="col-6">
+                    <div className="row">
+                      <div className="col-6 text-center">
+                        <p className="h5 mb-0">{product.type}倉總和</p>
+                      </div>
+                      <div className="col-4">
+                        <p className="h5 mb-0">{product.quantity}</p>
+                      </div>
+                      <div className="col-2">
+                        <p className="h5 mb-0">{product.unit}</p>
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+            <hr />
+            <StockInfoContainer
+              typeValidation={stockQuantity[0].type === "雜項"}
+              stockInfoes={stockInfoes}
+            />
+          </div>
+        );
+      }
+    }
+  }
+
   render() {
     const {
       isLoading,
@@ -81,46 +121,7 @@ class QueryBoard extends Component {
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <div style={{ height: "80vh" }}>
-              {isQuery ? (
-                stockInfoes.length === 0 ? (
-                  <div className="row justify-content-md-center">
-                    <div className="col-md-6">
-                      <div className="alert alert-warning" role="alert">
-                        <p className="h5 text-center mb-0">
-                          查無此貨號資料 或 此貨號已無庫存
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="row">
-                      {stockQuantity.map((product, index) => (
-                        <React.Fragment key={index}>
-                          <div className="col-6">
-                            <div className="row">
-                              <div className="col-6 text-center">
-                                <p className="h5 mb-0">{product.type}倉總和</p>
-                              </div>
-                              <div className="col-4">
-                                <p className="h5 mb-0">{product.quantity}</p>
-                              </div>
-                              <div className="col-2">
-                                <p className="h5 mb-0">{product.unit}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </React.Fragment>
-                      ))}
-                    </div>
-                    <hr />
-                    <StockInfoContainer
-                      typeValidation={stockQuantity[0].type === "雜項"}
-                      stockInfoes={stockInfoes}
-                    />
-                  </div>
-                )
-              ) : null}
+              {this.contentAlgorithm(isQuery, stockInfoes, stockQuantity)}
             </div>
           </LoadingOverlay>
         </div>

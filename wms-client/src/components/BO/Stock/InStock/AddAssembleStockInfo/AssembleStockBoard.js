@@ -107,9 +107,9 @@ class AssembleStockBoard extends Component {
     } = this.state;
 
     return (
-      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-        <div className="assemble_stockInfo">
-          <div className="container">
+      <div className="assemble_stockInfo">
+        <div className="container">
+          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <QueryAssemble
               isOrderValid={isOrderValid}
               handleQueryChange={this.handleQueryChange}
@@ -126,9 +126,9 @@ class AssembleStockBoard extends Component {
                 getInitialize={this.getInitialize}
               />
             ) : null}
-          </div>
+          </LoadingOverlay>
         </div>
-      </LoadingOverlay>
+      </div>
     );
   }
 }

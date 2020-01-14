@@ -7,13 +7,15 @@ import {
   getWaitHandleList,
   getWaitHandleListWithInterval,
   updateOutStockRequests,
-  stockIndentifierIsNotShiped,
+  stockIdentifierIsNotShiped,
   deleteOutStockRequest
 } from "../../../../actions/StockAcions";
 import "react-datepicker/dist/react-datepicker.css";
 import { copy } from "../../../../utilities/DeepCopy";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
 import { dayOfStart, dayOfEnd } from "../Utilities/DateUtils";
+import LoadingOverlay from "react-loading-overlay";
+import { Spinner } from "../../../Others/Spinner";
 
 const equal = require("fast-deep-equal");
 const refreshTime = 1000 * 60 * 10;
@@ -22,6 +24,7 @@ class OutStockRequestList extends Component {
   constructor() {
     super();
     this.state = {
+      isLoading: false,
       queryResult: {},
       userList: [],
       selectedUserList: [],
@@ -46,11 +49,12 @@ class OutStockRequestList extends Component {
   }
 
   getInitialState() {
-    if (this.timer !== null) {
-      clearTimeout(this.timer);
-    }
+    // if (this.timer !== null) {
+    //   clearTimeout(this.timer);
+    // }
 
     this.setState({
+      isLoading: false,
       queryResult: {},
       userList: [],
       selectedUserList: [],
@@ -59,7 +63,17 @@ class OutStockRequestList extends Component {
       selectedOutStockRequest: []
     });
 
-    this.props.getWaitHandleList();
+    this.loadingWaitHandleList();
+  }
+
+  loadingWaitHandleList() {
+    this.setState({ isLoading: true }, () => {
+      this.props.getWaitHandleList().then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false });
+        }
+      });
+    });
   }
 
   initialSelectedUserList(userList) {
@@ -77,9 +91,10 @@ class OutStockRequestList extends Component {
   }
 
   componentDidMount() {
-    this.props.getWaitHandleList();
+    this.loadingWaitHandleList();
+
     this.apiCall = setInterval(() => {
-      this.props.getWaitHandleList();
+      this.loadingWaitHandleList();
     }, refreshTime);
   }
 
@@ -135,14 +150,24 @@ class OutStockRequestList extends Component {
     let startDate = this.state.startDate.toJSON().substring(0, 19);
     let endDate = this.state.endDate.toJSON().substring(0, 19);
 
-    this.props.getWaitHandleListWithInterval(startDate, endDate);
+    this.setState({ isLoading: true }, () => {
+      this.props
+        .getWaitHandleListWithInterval(startDate, endDate)
+        .then(response => {
+          if (response.status === 200) {
+            this.setState({ isLoading: false });
+          }
+        });
+    });
   }
 
   handleSubmitClick(outStockUpdateRequest) {
-    this.props.updateOutStockRequests(outStockUpdateRequest).then(res => {
-      if (res.status === 200) {
-        this.getInitialState();
-      }
+    this.setState({ isLoading: true }, () => {
+      this.props.updateOutStockRequests(outStockUpdateRequest).then(res => {
+        if (res.status === 200) {
+          this.getInitialState();
+        }
+      });
     });
   }
 
@@ -175,23 +200,33 @@ class OutStockRequestList extends Component {
   }
 
   handleRollBackShipStatus(id) {
-    this.props.stockIndentifierIsNotShiped(id).then(res => {
-      if (res.status === 200) {
-        this.getInitialState();
-      }
+    this.setState({ isLoading: true }, () => {
+      this.props.stockIdentifierIsNotShiped(id).then(res => {
+        if (res.status === 200) {
+          this.getInitialState();
+        }
+      });
     });
   }
 
   handleDeleteOutStockRequest(id) {
-    this.props.deleteOutStockRequest(id).then(res => {
-      if (res.status === 200) {
-        this.getInitialState();
-      }
+    this.setState({ isLoading: true }, () => {
+      this.props.deleteOutStockRequest(id).then(res => {
+        if (res.status === 200) {
+          this.getInitialState();
+        }
+      });
     });
   }
 
   render() {
-    const { queryResult, selectedUserList, startDate, endDate } = this.state;
+    const {
+      isLoading,
+      queryResult,
+      selectedUserList,
+      startDate,
+      endDate
+    } = this.state;
 
     return (
       <div className="outStock_list">
@@ -225,14 +260,18 @@ class OutStockRequestList extends Component {
             handleUserSelection={this.handleUserSelection}
           />
           <hr />
-          <SearchBoard
-            queryResult={queryResult}
-            selectedUserList={selectedUserList}
-            handleSubmitClick={this.handleSubmitClick}
-            cancelShip={this.handleRollBackShipStatus}
-            deleteOutStock={this.handleDeleteOutStockRequest}
-            initialize={this.getInitialState}
-          />
+          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+            <div style={{ height: "65vh" }}>
+              <SearchBoard
+                queryResult={queryResult}
+                selectedUserList={selectedUserList}
+                handleSubmitClick={this.handleSubmitClick}
+                cancelShip={this.handleRollBackShipStatus}
+                deleteOutStock={this.handleDeleteOutStockRequest}
+                initialize={this.getInitialState}
+              />
+            </div>
+          </LoadingOverlay>
         </div>
       </div>
     );
@@ -244,7 +283,7 @@ OutStockRequestList.propTypes = {
   getWaitHandleList: PropTypes.func.isRequired,
   getWaitHandleListWithInterval: PropTypes.func.isRequired,
   updateOutStockRequests: PropTypes.func.isRequired,
-  stockIndentifierIsNotShiped: PropTypes.func.isRequired,
+  stockIdentifierIsNotShiped: PropTypes.func.isRequired,
   deleteOutStockRequest: PropTypes.func.isRequired
 };
 
@@ -256,6 +295,6 @@ export default connect(mapStateToProps, {
   getWaitHandleList,
   getWaitHandleListWithInterval,
   updateOutStockRequests,
-  stockIndentifierIsNotShiped,
+  stockIdentifierIsNotShiped,
   deleteOutStockRequest
 })(OutStockRequestList);

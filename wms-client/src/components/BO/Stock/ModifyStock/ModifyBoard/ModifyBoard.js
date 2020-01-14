@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
   getStockInfoes,
-  stockIndentifierIsShiped,
+  stockIdentifierIsShiped,
   stockIdentifierWaitToShrinkIsTrue,
   createOutStockRequest,
   updateStockInfo
@@ -12,6 +12,7 @@ import StockInfoContainer from "./StockInfoContainer";
 import QueryProductInformation from "../../Utilities/QueryProductInformation";
 import ShowProductInformation from "../../Utilities/ShowProductInformation";
 import OutStockModal from "./OutStockModal";
+import QueryResponseWithNoStock from "../../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
 
@@ -52,12 +53,11 @@ class ModifyBoard extends Component {
     });
   }
 
-  handleOutStockRequestSubmit(e, outStockRequest) {
-    e.preventDefault();
+  handleOutStockRequestSubmit(outStockRequest) {
     this.setState({ isLoading: true }, () => {
       this.props.createOutStockRequest(outStockRequest).then(response => {
         if (response.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
+          this.setState({ isLoading: false });
         }
       });
     });
@@ -65,9 +65,9 @@ class ModifyBoard extends Component {
 
   handleShip(shipRequest) {
     this.setState({ isLoading: true }, () => {
-      this.props.stockIndentifierIsShiped(shipRequest).then(response => {
+      this.props.stockIdentifierIsShiped(shipRequest).then(response => {
         if (response.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
+          this.setState({ isLoading: false });
         }
       });
     });
@@ -77,7 +77,7 @@ class ModifyBoard extends Component {
     this.setState({ isLoading: true }, () => {
       this.props.stockIdentifierWaitToShrinkIsTrue(id).then(response => {
         if (response.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
+          this.setState({ isLoading: false });
         }
       });
     });
@@ -87,7 +87,7 @@ class ModifyBoard extends Component {
     this.setState({ isLoading: true }, () => {
       this.props.updateStockInfo(updateInfoRequest).then(response => {
         if (response.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
+          this.setState({ isLoading: false });
         }
       });
     });
@@ -144,12 +144,10 @@ class ModifyBoard extends Component {
               >
                 拉貨要求
               </button>
-              {productNo.toUpperCase() !== productInfo.productNo ? null : (
-                <OutStockModal
-                  productNo={productNo.toUpperCase()}
-                  handleOutStockRequestSubmit={this.handleOutStockRequestSubmit}
-                />
-              )}
+              <OutStockModal
+                productNo={productNo.toUpperCase()}
+                handleOutStockRequestSubmit={this.handleOutStockRequestSubmit}
+              />
             </div>
           </div>
           <hr />
@@ -157,15 +155,7 @@ class ModifyBoard extends Component {
             <div style={{ height: "80vh" }}>
               {isQuery ? (
                 stockInfoes.length === 0 ? (
-                  <div className="row justify-content-md-center">
-                    <div className="col-md-6">
-                      <div className="alert alert-warning" role="alert">
-                        <p className="h5 text-center mb-0">
-                          查無此貨號資料 或 此貨號已無庫存
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <QueryResponseWithNoStock />
                 ) : (
                   <StockInfoContainer
                     typeValidation={
@@ -189,7 +179,7 @@ class ModifyBoard extends Component {
 ModifyBoard.propTypes = {
   queryResult: PropTypes.object.isRequired,
   getStockInfoes: PropTypes.func.isRequired,
-  stockIndentifierIsShiped: PropTypes.func.isRequired,
+  stockIdentifierIsShiped: PropTypes.func.isRequired,
   stockIdentifierWaitToShrinkIsTrue: PropTypes.func.isRequired,
   createOutStockRequest: PropTypes.func.isRequired
 };
@@ -200,7 +190,7 @@ const mapStateToProps = state => ({
 
 export default connect(mapStateToProps, {
   getStockInfoes,
-  stockIndentifierIsShiped,
+  stockIdentifierIsShiped,
   stockIdentifierWaitToShrinkIsTrue,
   createOutStockRequest,
   updateStockInfo
