@@ -38,8 +38,8 @@ class StockInfoContainer extends PureComponent {
         defect: [{ label: "無", value: "無" }],
         record: "",
         remark: "",
-        inStockType: "normal",
-        orderNo: this.props.inStockOrderNo,
+        inStockType: this.props.type,
+        orderNo: this.props.orderNo,
         errors: {
           quantity: ""
         }
@@ -59,8 +59,8 @@ class StockInfoContainer extends PureComponent {
         defect: stockInfoes[stockInfoes.length - 1].defect,
         record: "",
         remark: "",
-        inStockType: "normal",
-        orderNo: this.props.inStockOrderNo,
+        inStockType: this.props.type,
+        orderNo: this.props.orderNo,
         errors: {
           quantity: ""
         }

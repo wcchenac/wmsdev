@@ -1,13 +1,9 @@
 import React, { Component } from "react";
-import CheckBox from "./CheckBox";
+import CheckBoxForSelectionBoard from "./CheckBoxForSelectionBoard";
 
 class SelectionBoard extends Component {
   render() {
-    const {
-      inStockOrderNo,
-      waitHandleStatus,
-      selectedProductNoList
-    } = this.props;
+    const { orderNo, waitHandleStatus, selectedProductNoList } = this.props;
     const filterSelectedList = selectedProductNoList.filter(
       object => object.selected === true
     );
@@ -31,13 +27,13 @@ class SelectionBoard extends Component {
             下一步
           </button>
         </div>
-        <p className="h5 text-center">進貨單單號: {inStockOrderNo}</p>
+        <p className="h5 text-center">{this.props.type + "單號: " + orderNo}</p>
         <p className="h5 text-center">含有以下貨號，請選擇此次欲入庫貨號</p>
         <hr />
-        <div className="col-md-12 my-custom-scrollbar-1">
+        <div className="scrollbar-65">
           <div className="row">
             {selectedProductNoList.map((object, index) => (
-              <CheckBox
+              <CheckBoxForSelectionBoard
                 key={index}
                 index={object.index}
                 productNo={object.productNo}

@@ -8,8 +8,6 @@ import {
 } from "../../../../../actions/StockAcions";
 import ShrinkList from "./ShrinkList";
 import ModifyRequestBoard from "./ModifyRequestBoard";
-import LoadingOverlay from "react-loading-overlay";
-import { Spinner } from "../../../../Others/Spinner";
 
 class ShrinkBoard extends Component {
   constructor() {

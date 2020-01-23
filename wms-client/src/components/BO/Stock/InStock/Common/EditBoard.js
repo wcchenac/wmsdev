@@ -7,7 +7,7 @@ const equal = require("fast-deep-equal");
 
 class EditBoard extends PureComponent {
   contentAlgorithm(filterSubmittedList) {
-    const { isLoading, selectedProductNoList, inStockOrderNo } = this.props;
+    const { isLoading, selectedProductNoList, orderNo } = this.props;
     const filterSelectedList = selectedProductNoList.filter(
       object => object.selected === true && object.isSubmitted === false
     );
@@ -31,7 +31,7 @@ class EditBoard extends PureComponent {
       }
     } else {
       return (
-        <div className="my-custom-scrollbar-2">
+        <div className="scrollbar-70">
           <nav>
             <div className="nav nav-tabs" id="nav-tab" role="tablist">
               {filterSelectedList.map((object, index) => {
@@ -67,14 +67,19 @@ class EditBoard extends PureComponent {
               );
 
               return (
-                <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-                  <div style={{ height: "70vh" }}>
+                <LoadingOverlay
+                  key={index}
+                  active={isLoading}
+                  spinner={<Spinner />}
+                >
+                  <div>
                     <StockInfoContainer
+                      type={this.props.type}
                       typeValidation={typeValidation}
                       key={object.index}
                       sequence={index}
                       index={object.index}
-                      inStockOrderNo={inStockOrderNo}
+                      orderNo={orderNo}
                       productNo={object.productNo}
                       waitHandleStatus={
                         this.props.waitHandleStatus[object.productNo]

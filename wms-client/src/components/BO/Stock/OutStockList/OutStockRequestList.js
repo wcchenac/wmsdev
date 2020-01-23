@@ -10,6 +10,7 @@ import {
   stockIdentifierIsNotShiped,
   deleteOutStockRequest
 } from "../../../../actions/StockAcions";
+import { downloadFile } from "../../../../actions/FileActions";
 import "react-datepicker/dist/react-datepicker.css";
 import { copy } from "../../../../utilities/DeepCopy";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
@@ -46,6 +47,7 @@ class OutStockRequestList extends Component {
     this.handleDeleteOutStockRequest = this.handleDeleteOutStockRequest.bind(
       this
     );
+    this.handleDownloadClick = this.handleDownloadClick.bind(this);
   }
 
   getInitialState() {
@@ -219,6 +221,10 @@ class OutStockRequestList extends Component {
     });
   }
 
+  handleDownloadClick(e) {
+    downloadFile(e.target.name, e.target.value);
+  }
+
   render() {
     const {
       isLoading,
@@ -268,6 +274,7 @@ class OutStockRequestList extends Component {
                 handleSubmitClick={this.handleSubmitClick}
                 cancelShip={this.handleRollBackShipStatus}
                 deleteOutStock={this.handleDeleteOutStockRequest}
+                downloadFile={this.handleDownloadClick}
                 initialize={this.getInitialState}
               />
             </div>
@@ -284,7 +291,8 @@ OutStockRequestList.propTypes = {
   getWaitHandleListWithInterval: PropTypes.func.isRequired,
   updateOutStockRequests: PropTypes.func.isRequired,
   stockIdentifierIsNotShiped: PropTypes.func.isRequired,
-  deleteOutStockRequest: PropTypes.func.isRequired
+  deleteOutStockRequest: PropTypes.func.isRequired,
+  downloadFile:PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -296,5 +304,5 @@ export default connect(mapStateToProps, {
   getWaitHandleListWithInterval,
   updateOutStockRequests,
   stockIdentifierIsNotShiped,
-  deleteOutStockRequest
+  deleteOutStockRequest,downloadFile
 })(OutStockRequestList);

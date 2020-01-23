@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { getStockInfoesBasic } from "../../../../actions/StockAcions";
+import { getStockInfoesWithQuantity } from "../../../../actions/StockAcions";
 import StockInfoContainer from "./Common/StockInfoContainer";
 import QueryProductInformation from "../Utilities/QueryProductInformation";
 import ShowProductInformation from "../Utilities/ShowProductInformation";
@@ -9,7 +9,7 @@ import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 
-class QueryBoard extends Component {
+class QueryBoardForSales extends Component {
   constructor() {
     super();
     this.state = {
@@ -111,7 +111,7 @@ class QueryBoard extends Component {
             </div>
             <div className="col-md-auto mr-2">
               <ShowProductInformation
-                isBasic={true}
+                isBasic={false}
                 isQuery={isQuery}
                 productNo={productNo}
                 productInfo={productInfo}
@@ -130,13 +130,15 @@ class QueryBoard extends Component {
   }
 }
 
-QueryBoard.propTypes = {
+QueryBoardForSales.propTypes = {
   stockInfo: PropTypes.object.isRequired,
-  getStockInfoesBasic: PropTypes.func.isRequired
+  getStockInfoesWithQuantity: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
   stockInfo: state.stockInfo
 });
 
-export default connect(mapStateToProps, { getStockInfoesBasic })(QueryBoard);
+export default connect(mapStateToProps, { getStockInfoesWithQuantity })(
+  QueryBoardForSales
+);

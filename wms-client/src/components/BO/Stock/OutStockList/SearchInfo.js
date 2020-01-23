@@ -28,7 +28,6 @@ class SearchInfo extends Component {
   }
 
   render() {
-    const downloadURL = "http://localhost:8080/api/file/download/outStockList/";
     const { searchInfo } = this.props;
     const { handled, outStockType } = this.props.searchInfo;
 
@@ -78,13 +77,14 @@ class SearchInfo extends Component {
           <td>
             {handled ? (
               <div className="row justify-content-center">
-                <a
+                <button
                   className="btn btn-primary"
-                  href={downloadURL + searchInfo.fileName}
-                  download
+                  name="outStockList"
+                  value={searchInfo.fileName}
+                  onClick={this.props.downloadFile}
                 >
                   <small>{searchInfo.fileName.substring(13)}</small>
-                </a>
+                </button>
               </div>
             ) : (
               <select

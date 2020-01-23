@@ -2,24 +2,24 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
-import QueryOrder from "./QueryOrder";
-import SelectionBoard from "./SelectionBoard";
-import EditBoard from "./EditBoard";
+import QueryOrder from "./Common/QueryOrder";
+import SelectionBoard from "./Common/SelectionBoard";
+import EditBoard from "./Common/EditBoard";
 import {
   getInStockOrder,
   batchCreateStockInfoes
-} from "../../../../../actions/StockAcions";
-import { checkWaitHandleStatusCompletion } from "../../Utilities/ValidateQueryOrderResponse";
-import { isEmpty } from "../../../../../utilities/IsEmpty";
+} from "../../../../actions/StockAcions";
+import { checkWaitHandleStatusCompletion } from "../Utilities/ValidateQueryOrderResponse";
+import { isEmpty } from "../../../../utilities/IsEmpty";
 import LoadingOverlay from "react-loading-overlay";
-import { Spinner } from "../../../../Others/Spinner";
+import { Spinner } from "../../../Others/Spinner";
 
-class BatchAddStockInfo extends Component {
+class NormalStockBoard extends Component {
   constructor() {
     super();
     this.state = {
       isLoading: false,
-      inStockOrderNo: "",
+      orderNo: "",
       isOrderValid: undefined,
       key: 1,
       currentOrderStatus: {},
@@ -27,10 +27,9 @@ class BatchAddStockInfo extends Component {
       selectedProductNoList: []
     };
     this.getInitialize = this.getInitialize.bind(this);
-    this.handleTabSelect = this.handleTabSelect.bind(this);
     this.handlePrevStep = this.handlePrevStep.bind(this);
     this.handleNextStep = this.handleNextStep.bind(this);
-    this.handleStockOrderNo = this.handleStockOrderNo.bind(this);
+    this.handleOrderNo = this.handleOrderNo.bind(this);
     this.handleQueryOrderSubmit = this.handleQueryOrderSubmit.bind(this);
     this.handleCheckBoxSelected = this.handleCheckBoxSelected.bind(this);
     this.handleInStockRequestSubmit = this.handleInStockRequestSubmit.bind(
@@ -88,14 +87,15 @@ class BatchAddStockInfo extends Component {
     });
   }
 
-  handleStockOrderNo(e) {
+  handleOrderNo(e) {
     this.setState({ [e.target.name]: e.target.value });
   }
 
   handleQueryOrderSubmit(e) {
     e.preventDefault();
+
     this.setState({ isLoading: true }, () => {
-      this.props.getInStockOrder(this.state.inStockOrderNo).then(response => {
+      this.props.getInStockOrder(this.state.orderNo).then(response => {
         if (response.status === 200) {
           this.setState({ isLoading: false });
         }
@@ -168,7 +168,7 @@ class BatchAddStockInfo extends Component {
   render() {
     const {
       isLoading,
-      inStockOrderNo,
+      orderNo,
       isOrderValid,
       waitHandleStatus,
       selectedProductNoList,
@@ -201,7 +201,6 @@ class BatchAddStockInfo extends Component {
               </Nav.Item>
             </Nav>
             <hr />
-
             <TabContent>
               <TabPane eventKey={1}>
                 <div className="container">
@@ -209,9 +208,10 @@ class BatchAddStockInfo extends Component {
                     active={isLoading && key === 1}
                     spinner={<Spinner />}
                   >
-                    <div style={{ height: "70vh" }}>
+                    <div style={{ height: "80vh" }}>
                       <QueryOrder
-                        handleStockOrderNo={this.handleStockOrderNo}
+                        type="進貨單"
+                        handleOrderNo={this.handleOrderNo}
                         handleQueryOrderSubmit={this.handleQueryOrderSubmit}
                         isOrderValid={isOrderValid}
                       />
@@ -224,7 +224,8 @@ class BatchAddStockInfo extends Component {
                   <SelectionBoard
                     handlePrevStep={this.getInitialize}
                     handleNextStep={this.handleNextStep}
-                    inStockOrderNo={inStockOrderNo}
+                    type="進貨單"
+                    orderNo={orderNo}
                     waitHandleStatus={waitHandleStatus}
                     selectedProductNoList={selectedProductNoList}
                     handleCheckBoxSelected={this.handleCheckBoxSelected}
@@ -235,8 +236,9 @@ class BatchAddStockInfo extends Component {
                 <div className="container">
                   <EditBoard
                     isLoading={isLoading && key === 3}
+                    type="normal"
                     handlePrevStep={this.handlePrevStep}
-                    inStockOrderNo={inStockOrderNo}
+                    orderNo={orderNo}
                     selectedProductNoList={selectedProductNoList}
                     waitHandleStatus={waitHandleStatus}
                     handleInStockRequestSubmit={this.handleInStockRequestSubmit}
@@ -252,7 +254,7 @@ class BatchAddStockInfo extends Component {
   }
 }
 
-BatchAddStockInfo.propTypes = {
+NormalStockBoard.propTypes = {
   queryInStockOrderResult: PropTypes.object.isRequired,
   getInStockOrder: PropTypes.func.isRequired,
   batchCreateStockInfoes: PropTypes.func.isRequired,
@@ -267,4 +269,4 @@ const mapStateToProps = state => ({
 export default connect(mapStateToProps, {
   getInStockOrder,
   batchCreateStockInfoes
-})(BatchAddStockInfo);
+})(NormalStockBoard);

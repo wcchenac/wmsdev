@@ -216,6 +216,7 @@ class SearchBoard extends Component {
                   handleToBeSubmitWHChange={this.handleToBeSubmitWHChange}
                   cancelShip={this.props.cancelShip}
                   deleteOutStock={this.props.deleteOutStock}
+                  downloadFile={this.props.downloadFile}
                   initialize={this.props.initialize}
                 />
               );

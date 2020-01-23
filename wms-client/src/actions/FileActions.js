@@ -1,40 +1,32 @@
 import axios from "axios";
-import { GET_Errors, CREATE_FILE } from "./types";
 
-export const createFile = request => async dispatch => {
-  try {
-    const res = await axios.post("/api/download/createFile", request);
-
-    let filename = res.data;
-
-    window.open(`http://localhost:8080/api/download/downloadFile/${filename}`);
-
-    dispatch({
-      type: CREATE_FILE,
-      payload: filename
+export const downloadFile = (fileCategory, filename) => {
+  axios
+    .get(`api/file/download/${fileCategory}/${filename}`, {
+      responseType: "blob"
+    })
+    .then(response => {
+      console.log(response);
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], {
+          type: response.headers["content-type"],
+          encoding: "UTF-8"
+        })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        response.headers["content-disposition"].split("filename=")[1]
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     });
-  } catch (err) {
-    dispatch({
-      type: GET_Errors,
-      payload: err
-    });
-  }
 };
 
 export const queryCategoryTodayFile = async fileCategory => {
-  // axios
-  //   .get(`http://localhost:8080/api/file/query/${fileCategory}/today`)
-  //   .then(res => {
-  //     if (res.status === 200) {
-  //       return res.data;
-  //     }
-  //   })
-  //   .catch(err => {
-  //     console.log(err);
-  //   });
-  return await axios.get(
-    `http://localhost:8080/api/file/query/${fileCategory}/today`
-  );
+  return await axios.get(`/api/file/query/${fileCategory}/today`);
 };
 
 export const queryCategoryIntervalFiles = async (
@@ -43,6 +35,6 @@ export const queryCategoryIntervalFiles = async (
   endDate
 ) => {
   return await axios.get(
-    `http://localhost:8080/api/file/query/${fileCategory}/interval?startDate=${startDate}&endDate=${endDate}`
+    `/api/file/query/${fileCategory}/interval?startDate=${startDate}&endDate=${endDate}`
   );
 };

@@ -33,7 +33,7 @@ class AdminPlatform extends Component {
       <div>
         <div className="platform">
           <div className="container">
-            <div className="row">
+            <div className="row" style={{ height: "80vh" }}>
               <div
                 className="col-2"
                 style={{
@@ -64,7 +64,7 @@ class AdminPlatform extends Component {
                   任務排程
                 </button>
               </div>
-              <div className="col-10 my-custom-scrollbar">
+              <div className="col-10 scrollbar-75">
                 {this.renderSubFunction(functionSelection)}
               </div>
             </div>

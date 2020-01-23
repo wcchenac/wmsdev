@@ -25,10 +25,16 @@ class HeaderStockFunctions extends Component {
                   <NavLink className="dropdown-item" to="/stock/1/2">
                     組裝單入庫
                   </NavLink>
+                  <NavLink className="dropdown-item" to="/stock/1/3">
+                    退貨單入庫
+                  </NavLink>
+                  <NavLink className="dropdown-item" to="/stock/1/4">
+                    調撥單入庫
+                  </NavLink>
                 </div>
               </li>
               <li className="nav-item">
-                <NavLink className="nav-link" to="/stock/2">
+                <NavLink className="nav-link" to="/stock/2/1">
                   庫存查詢
                 </NavLink>
               </li>
@@ -93,10 +99,16 @@ class HeaderStockFunctions extends Component {
                   <NavLink className="dropdown-item" to="/stock/1/2">
                     組裝單入庫
                   </NavLink>
+                  <NavLink className="dropdown-item" to="/stock/1/3">
+                    退貨單入庫
+                  </NavLink>
+                  <NavLink className="dropdown-item" to="/stock/1/4">
+                    調撥單入庫
+                  </NavLink>
                 </div>
               </li>
               <li className="nav-item">
-                <NavLink className="nav-link" to="/stock/2">
+                <NavLink className="nav-link" to="/stock/2/1">
                   庫存查詢
                 </NavLink>
               </li>
@@ -136,12 +148,24 @@ class HeaderStockFunctions extends Component {
             </ul>
           </React.Fragment>
         );
-      case RoleOption["一般人員/業務/門市"]:
+      case RoleOption["一般人員/門市"]:
         return (
           <React.Fragment>
             <ul className="navbar-nav mr-auto">
               <li className="nav-item">
-                <NavLink className="nav-link" to="/stock/2">
+                <NavLink className="nav-link" to="/stock/2/1">
+                  庫存查詢
+                </NavLink>
+              </li>
+            </ul>
+          </React.Fragment>
+        );
+      case RoleOption["業務"]:
+        return (
+          <React.Fragment>
+            <ul className="navbar-nav mr-auto">
+              <li className="nav-item">
+                <NavLink className="nav-link" to="/stock/2/2">
                   庫存查詢
                 </NavLink>
               </li>

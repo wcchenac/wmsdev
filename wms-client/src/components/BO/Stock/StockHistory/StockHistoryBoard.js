@@ -119,10 +119,10 @@ class StockHistoryBoard extends Component {
         );
       } else {
         return (
-          <div style={{ height: 600 }}>
+          <div style={{ height: "70vh" }}>
             <SortableTree
               treeData={treeData}
-              rowHeight={75}
+              rowHeight={100}
               onChange={treeData => this.setState({ treeData })}
               canDrag={false}
             />
@@ -164,7 +164,7 @@ class StockHistoryBoard extends Component {
           </div>
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div style={{ height: "80vh" }}>
+            <div className="scrollbar-70" style={{ height: "75vh" }}>
               {this.contentAlgorithm(isQuery, treeData)}
             </div>
           </LoadingOverlay>

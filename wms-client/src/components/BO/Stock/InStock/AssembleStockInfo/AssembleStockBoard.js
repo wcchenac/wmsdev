@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import QueryAssemble from "./QueryAssemble";
+import QueryOrder from "../Common/QueryOrder";
 import StockInfoContainer from "./StockInfoContainer";
 import {
   getAssembleOrder,
@@ -19,7 +19,7 @@ class AssembleStockBoard extends Component {
       isLoading: false,
       isOrderValid: undefined,
       isSubmited: false,
-      assembleOrderNo: "",
+      orderNo: "",
       assembleOrderContent: {},
       waitHandleStatus: {}
     };
@@ -50,7 +50,7 @@ class AssembleStockBoard extends Component {
   handleQuerySubmit(e) {
     e.preventDefault();
     this.setState({ isLoading: true, isOrderValid: undefined }, () => {
-      this.props.getAssembleOrder(this.state.assembleOrderNo).then(response => {
+      this.props.getAssembleOrder(this.state.orderNo).then(response => {
         if (response.status === 200) {
           this.setState({ isLoading: false });
         }
@@ -101,7 +101,7 @@ class AssembleStockBoard extends Component {
       isLoading,
       isOrderValid,
       isSubmited,
-      assembleOrderNo,
+      orderNo,
       assembleOrderContent,
       waitHandleStatus
     } = this.state;
@@ -110,22 +110,25 @@ class AssembleStockBoard extends Component {
       <div className="assemble_stockInfo">
         <div className="container">
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <QueryAssemble
+            <QueryOrder
+              type="組裝單"
               isOrderValid={isOrderValid}
-              handleQueryChange={this.handleQueryChange}
-              handleQuerySubmit={this.handleQuerySubmit}
+              handleOrderNo={this.handleQueryChange}
+              handleQueryOrderSubmit={this.handleQuerySubmit}
             />
             <hr />
-            {isOrderValid ? (
-              <StockInfoContainer
-                isSubmited={isSubmited}
-                assembleOrderNo={assembleOrderNo}
-                assembleOrderContent={assembleOrderContent}
-                waitHandleStatus={waitHandleStatus}
-                handleAssembleRequestSubmit={this.handleAssembleRequestSubmit}
-                getInitialize={this.getInitialize}
-              />
-            ) : null}
+            <div style={{ height: "80vh" }}>
+              {isOrderValid ? (
+                <StockInfoContainer
+                  isSubmited={isSubmited}
+                  assembleOrderNo={orderNo}
+                  assembleOrderContent={assembleOrderContent}
+                  waitHandleStatus={waitHandleStatus}
+                  handleAssembleRequestSubmit={this.handleAssembleRequestSubmit}
+                  getInitialize={this.getInitialize}
+                />
+              ) : null}
+            </div>
           </LoadingOverlay>
         </div>
       </div>

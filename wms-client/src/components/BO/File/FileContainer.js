@@ -44,8 +44,6 @@ class FlieContainer extends Component {
   render() {
     const { startDate, endDate } = this.state;
     const { containerTitle, fileType, filenames } = this.props;
-    const downloadURL =
-      "http://localhost:8080/api/file/download/" + fileType + "/";
 
     return (
       <div
@@ -114,13 +112,14 @@ class FlieContainer extends Component {
                           </td>
                           <td style={{ padding: "0.5em 1em" }}>
                             <div className="d-flex justify-content-center">
-                              <a
+                              <button
                                 className="btn btn-primary"
-                                href={downloadURL + filename}
-                                download
+                                name={fileType}
+                                value={filename}
+                                onClick={this.props.downloadFile}
                               >
                                 下載
-                              </a>
+                              </button>
                             </div>
                           </td>
                         </React.Fragment>
