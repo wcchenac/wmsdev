@@ -26,7 +26,7 @@ import com.wmstool.wmstool.models.payloads.OutStockUpdateRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
-import com.wmstool.wmstool.services.StockService;
+import com.wmstool.wmstool.services.stockService.StockService;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
 @Validated
@@ -44,12 +44,18 @@ public class StockController {
 			@PathVariable(value = "orderNo") String orderNo) {
 		final String OrderType_InStock = "inStock";
 		final String OrderType_Assemble = "assemble";
+		final String OrderType_CustomerReturn = "customerReturn";
+		final String OrderType_StoreReturn = "storeReturn";
 
 		switch (orderType) {
 		case OrderType_InStock:
 			return new ResponseEntity<>(stockService.queryInStockOrder(orderNo), HttpStatus.OK);
 		case OrderType_Assemble:
 			return new ResponseEntity<>(stockService.queryAssembleOrder(orderNo), HttpStatus.OK);
+		case OrderType_CustomerReturn:
+			return new ResponseEntity<>(stockService.queryCustomerReturnOrder(orderNo), HttpStatus.OK);
+		case OrderType_StoreReturn:
+			return new ResponseEntity<>(stockService.queryStoreReturnOrder(orderNo), HttpStatus.OK);
 		default:
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
@@ -70,15 +76,22 @@ public class StockController {
 	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Normal','ROLE_Operator','ROLE_Admin')")
-	@GetMapping("/queryStock/query/{productNo}/basic")
+	@GetMapping("/queryStock/query/2/{productNo}")
 	public ResponseEntity<?> getStockInfoListBasic(@PathVariable String productNo) {
 		return new ResponseEntity<>(stockService.findBasicStockInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
 	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
-	@GetMapping("/queryStock/query/{productNo}")
+	@GetMapping("/queryStock/query/1/{productNo}")
 	public ResponseEntity<?> getStockInfoList(@PathVariable String productNo) {
 		return new ResponseEntity<>(stockService.findStockInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
+	}
+
+	@PreAuthorize("hasAnyRole('ROLE_Sales','ROLE_Admin')")
+	@GetMapping("/queryStock/query/3/{productNo}/")
+	public ResponseEntity<?> getStockInfoListWithQauntity(@PathVariable String productNo) {
+		return new ResponseEntity<>(stockService.findStockInfoByProductNoWithQuantity(productNo.toUpperCase()),
+				HttpStatus.OK);
 	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
@@ -103,7 +116,7 @@ public class StockController {
 
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-	
+
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PatchMapping("/shipStock/rollback/{stockIdentifierId}")
 	public ResponseEntity<?> letStockIndentifierisNotShiped(@PathVariable long stockIdentifierId) {
@@ -183,7 +196,6 @@ public class StockController {
 				stockService.findPeriodStockIdentifierHistory(productNo.toUpperCase(), start, end), HttpStatus.OK);
 	}
 
-	
 	@GetMapping("/stockManagement/dailyCompare")
 	public void dailyStockComparison() {
 		try {

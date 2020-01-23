@@ -18,9 +18,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.wmstool.wmstool.models.OutStockRequest;
@@ -28,16 +26,11 @@ import com.wmstool.wmstool.models.OutStockRequest;
 @Component
 public class OutStockRequestExcelHelper {
 
-//	@Autowired
-//	private Environment env;
 	@Value("${file.filePathForExcels}")
 	private String folderPath;
 
 	private static final String seperator = File.separator;
-//	private final String parentDir = env.getProperty("file.filePathForExcels") + seperator + "OutStockList";
-//	private String parentDir = folderPath + seperator + "OutStockList";
 	private static final String filetype = ".xls";
-//	private String templateFile = parentDir + seperator + "OutStockListTemplate" + filetype;
 	private static final String filenamePrefix = "OutStockList-";
 	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
@@ -48,7 +41,7 @@ public class OutStockRequestExcelHelper {
 	public String createNewFile(LocalDateTime now) throws IOException {
 		String parentDir = folderPath + seperator + "OutStockList";
 		String templateFile = parentDir + seperator + "OutStockListTemplate" + filetype;
-		
+
 		// Read template file
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
@@ -82,7 +75,7 @@ public class OutStockRequestExcelHelper {
 	public void modifyExisting(List<OutStockRequest> outStockRequestList, LocalDateTime now, String fileName)
 			throws IOException {
 		String parentDir = folderPath + seperator + "OutStockList";
-		
+
 		// Read target file
 		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
 				+ fileName;

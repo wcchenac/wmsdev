@@ -14,20 +14,19 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.wmstool.wmstool.models.StockAllocationRecord;
 
+@Component
 public class StockAllocateRecordExcelHelper {
 
-	@Autowired
-	private static Environment env;
+	@Value("${file.filePathForExcels}")
+	private String folderPath;
 
 	private static final String seperator = File.separator;
-	private static final String parentDir = env.getProperty("filePathForExcels") + seperator + "STKALLT";
 	private static final String filetype = ".xls";
-	private static final String templateFile = parentDir + seperator + "StockAllocateRecordTemplate" + filetype;
 	private static final String filenamePrefix = "StockAllocateRecord-";
 	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -35,7 +34,10 @@ public class StockAllocateRecordExcelHelper {
 	 * Create a excel from template excel which is named by current date formated in
 	 * "yyyyMMdd" pattern
 	 */
-	public static String createNewFile(LocalDate now) throws IOException {
+	public String createNewFile(LocalDate now) throws IOException {
+		String parentDir = folderPath + seperator + "STKALLT";
+		String templateFile = parentDir + seperator + "StockAllocateRecordTemplate" + filetype;
+
 		// Read template file
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
@@ -68,8 +70,10 @@ public class StockAllocateRecordExcelHelper {
 	 * Using given stockAllocationRecord information to update the given filename
 	 * excel
 	 */
-	public static void modifyExisting(StockAllocationRecord stockAllocationRecord, LocalDate now, String fileName)
+	public void modifyExisting(StockAllocationRecord stockAllocationRecord, LocalDate now, String fileName)
 			throws IOException {
+		String parentDir = folderPath + seperator + "STKALLT";
+
 		// Read target file
 		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
 				+ fileName;

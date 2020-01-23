@@ -9,6 +9,7 @@ import java.util.List;
 import javax.servlet.ServletContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,8 +31,11 @@ import com.wmstool.wmstool.services.FileService;
 @PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 public class FileController {
 
+	@Value("${file.filePathForExcels}")
+	private String folderPath;
+
 	private static final String seperator = File.separator;
-	private static final String ParentFolderDir = "/Users/weichihchen/Desktop/Temp";
+	private static final String filetype = ".xls";
 
 	private static final String SubFolder_OutStockList = "OutStockList";
 	private static final String SubFolder_STKADST = "STKADST";
@@ -65,14 +69,15 @@ public class FileController {
 		}
 
 		try {
-			MediaType mediaType = getMediaTypeByFilename(this.servletContext, fileName);
-			Path path = Paths.get(ParentFolderDir + seperator + subFolderName + seperator + pathResolver(fileName));
+			MediaType mediaType = getMediaTypeByFilename(this.servletContext, fileName + filetype);
+			Path path = Paths
+					.get(folderPath + seperator + subFolderName + seperator + pathResolver(fileName) + filetype);
 			byte[] data = Files.readAllBytes(path);
 			ByteArrayResource resource = new ByteArrayResource(data);
 
 			return ResponseEntity.ok()
 					.header(HttpHeaders.CONTENT_DISPOSITION,
-							String.format("attachment; filename=\"%s\"", path.getFileName().toString()))
+							String.format("attachment; filename=%s", path.getFileName().toString()))
 					.contentType(mediaType).contentLength(data.length).body(resource);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -84,11 +89,13 @@ public class FileController {
 	public ResponseEntity<?> queryCategoryTodayFile(@PathVariable String fileCategory) {
 		switch (fileCategory) {
 		case File_Category_Allocation:
-			return new ResponseEntity<String>(fileService.findTodayFile(ParentFolderDir + seperator + SubFolder_STKALLT,
-					FilenamePrefix_Allocation), HttpStatus.OK);
+			return new ResponseEntity<String>(
+					fileService.findTodayFile(folderPath + seperator + SubFolder_STKALLT, FilenamePrefix_Allocation),
+					HttpStatus.OK);
 		case File_Category_Adjustment:
-			return new ResponseEntity<String>(fileService.findTodayFile(ParentFolderDir + seperator + SubFolder_STKADST,
-					FilenamePrefix_Adjustment), HttpStatus.OK);
+			return new ResponseEntity<String>(
+					fileService.findTodayFile(folderPath + seperator + SubFolder_STKADST, FilenamePrefix_Adjustment),
+					HttpStatus.OK);
 		default:
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
@@ -99,15 +106,11 @@ public class FileController {
 			@RequestParam(value = "startDate") String start, @RequestParam(value = "endDate") String end) {
 		switch (fileCategory) {
 		case File_Category_Allocation:
-			return new ResponseEntity<List<String>>(
-					fileService.findPeriodFiles(ParentFolderDir + seperator + SubFolder_STKALLT,
-							FilenamePrefix_Allocation, start, end),
-					HttpStatus.OK);
+			return new ResponseEntity<List<String>>(fileService.findPeriodFiles(
+					folderPath + seperator + SubFolder_STKALLT, FilenamePrefix_Allocation, start, end), HttpStatus.OK);
 		case File_Category_Adjustment:
-			return new ResponseEntity<List<String>>(
-					fileService.findPeriodFiles(ParentFolderDir + seperator + SubFolder_STKADST,
-							FilenamePrefix_Adjustment, start, end),
-					HttpStatus.OK);
+			return new ResponseEntity<List<String>>(fileService.findPeriodFiles(
+					folderPath + seperator + SubFolder_STKADST, FilenamePrefix_Adjustment, start, end), HttpStatus.OK);
 		default:
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
@@ -131,9 +134,8 @@ public class FileController {
 	 */
 	private String pathResolver(String fileName) {
 		int index = fileName.indexOf("-");
-		String seperator = File.separator;
 
-		return fileName.substring(index + 1, index + 5) + seperator + fileName.substring(index + 5, index + 7)
-				+ seperator + fileName;
+		return fileName.substring(index + 1, index + 5) + seperator
+				+ String.valueOf(Integer.parseInt(fileName.substring(index + 5, index + 7))) + seperator + fileName;
 	}
 }

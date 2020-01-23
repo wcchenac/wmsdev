@@ -5,6 +5,10 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +17,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,8 +38,8 @@ import com.wmstool.wmstool.repositories.UserRepository;
 import com.wmstool.wmstool.security.JwtTokenProvider;
 
 @RestController
-@RequestMapping("/api/auth")
-public class AuthController {
+@RequestMapping("/api/user")
+public class UserController {
 
 	@Autowired
 	private AuthenticationManager authenticationManager;
@@ -61,7 +69,7 @@ public class AuthController {
 	}
 
 //	@PreAuthorize("hasRole('Role_Admin')")
-	@PostMapping("/register")
+	@PostMapping("/adminManagement/register")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
 		if (userRepository.existsByEmployeeId(registerRequest.getEmployeeId())) {
 			return new ResponseEntity<>(new ApiResponse(false, "EmployeeId is already exists!"),
@@ -82,6 +90,26 @@ public class AuthController {
 		userRepository.save(user);
 
 		return new ResponseEntity<String>("Success", HttpStatus.CREATED);
+	}
+
+	@PreAuthorize("hasRole('Role_Admin')")
+	@GetMapping("/adminManagement/userList")
+	public ResponseEntity<?> getUserList() {
+		return new ResponseEntity<Page<User>>(
+				userRepository.findAll(PageRequest.of(0, 15, Sort.by(Direction.DESC, "id"))), HttpStatus.OK);
+	}
+
+	@PreAuthorize("hasRole('Role_Admin')")
+	@PatchMapping("/adminManagement/update")
+	public ResponseEntity<?> updateUser() {
+		return null;
+	}
+
+	@PreAuthorize("hasRole('Role_Admin')")
+	@DeleteMapping("/adminManagement/delete/{userId}")
+	public ResponseEntity<?> deleteUser(@PathVariable long userId) {
+		userRepository.deleteById(userId);
+		return ResponseEntity.ok("Done");
 	}
 
 }

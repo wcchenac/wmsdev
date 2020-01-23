@@ -42,6 +42,8 @@ public class StockIdentifier {
 
 	private boolean waitToShrink = false;
 
+	private String inStockType;
+
 	private String eliminateType; // 0: ship, 1: shrink
 
 	private String eliminateDate;
@@ -153,6 +155,14 @@ public class StockIdentifier {
 
 	public void setWaitToShrink(boolean waitToShrink) {
 		this.waitToShrink = waitToShrink;
+	}
+
+	public String getInStockType() {
+		return inStockType;
+	}
+
+	public void setInStockType(String inStockType) {
+		this.inStockType = inStockType;
 	}
 
 	public String getEliminateType() {
