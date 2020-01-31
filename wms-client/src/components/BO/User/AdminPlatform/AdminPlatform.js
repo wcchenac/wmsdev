@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import UserRegister from "./UserRegister";
-import UserManagement from "./UserManagement";
+import UserManagement from "./UserManagement/UserManagement";
 
 class AdminPlatform extends Component {
   constructor() {
@@ -64,8 +64,10 @@ class AdminPlatform extends Component {
                   任務排程
                 </button>
               </div>
-              <div className="col-10 scrollbar-75">
-                {this.renderSubFunction(functionSelection)}
+              <div className="col-10">
+                <div style={{ height: "80vh" }}>
+                  {this.renderSubFunction(functionSelection)}
+                </div>
               </div>
             </div>
           </div>

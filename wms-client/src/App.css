@@ -108,6 +108,12 @@ img {
   overflow: auto;
 }
 
+.scrollbar-80 {
+  position: relative;
+  height: 80vh;
+  overflow: auto;
+}
+
 .table-wrapper-scroll-y {
   display: block;
 }

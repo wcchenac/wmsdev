@@ -71,7 +71,7 @@ class UserRegister extends Component {
             style={{ border: "1px solid black", borderRadius: "5px" }}
           >
             <div className="mt-2 mb-2">
-              <p className="h5 text-center mb-3">新使用者註冊</p>
+              <p className="h5 text-center mb-3">註冊新員工</p>
               <form onSubmit={this.handleSubmit}>
                 <div className="form-group row">
                   <label htmlFor="employeeId" className="col-4 col-form-label">
@@ -90,7 +90,7 @@ class UserRegister extends Component {
                 </div>
                 <div className="form-group row">
                   <label htmlFor="fullName" className="col-4 col-form-label">
-                    全名
+                    姓名
                   </label>
                   <div className="col-8">
                     <input
@@ -98,7 +98,7 @@ class UserRegister extends Component {
                       id="fullName"
                       name="fullName"
                       className="form-control"
-                      placeholder="全名"
+                      placeholder="姓名"
                       onChange={this.userKeyInChange}
                     />
                   </div>

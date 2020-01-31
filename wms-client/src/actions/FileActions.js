@@ -6,7 +6,6 @@ export const downloadFile = (fileCategory, filename) => {
       responseType: "blob"
     })
     .then(response => {
-      console.log(response);
       const url = window.URL.createObjectURL(
         new Blob([response.data], {
           type: response.headers["content-type"],

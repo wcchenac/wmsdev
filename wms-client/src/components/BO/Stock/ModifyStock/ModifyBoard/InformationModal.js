@@ -68,11 +68,11 @@ class InformationModal extends Component {
     let { stockInfo } = this.state;
 
     const updateInfoRequest = {
-      id: this.state.stockInfo.id,
-      color: this.state.stockInfo.color,
+      id: stockInfo.id,
+      color: stockInfo.color,
       defect: joinInfoDefectArray(stockInfo),
-      record: this.state.stockInfo.record,
-      remark: this.state.stockInfo.remark
+      record: stockInfo.record,
+      remark: stockInfo.remark
     };
 
     this.props.handleStockInfoUpdate(updateInfoRequest);

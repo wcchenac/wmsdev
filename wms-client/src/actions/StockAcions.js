@@ -9,7 +9,6 @@ import {
   SHRINK_Stock,
   CANCEL_SHRINK,
   GET_OutStockRequests,
-  CREATE_FILE,
   UPDATE_StockInfo,
   UPDATE_Errors
 } from "./types";
@@ -43,6 +42,19 @@ export const getAssembleOrder = assembleOrderNo => async dispatch => {
 export const getCustomerReturnOrder = returnOrderNo => async dispatch => {
   const res = await axios.get(
     `/api/stock/queryOrder/customerReturn/${returnOrderNo}`
+  );
+
+  dispatch({
+    type: GET_Order,
+    payload: res.data
+  });
+
+  return res;
+};
+
+export const getStoreReturnOrder = returnOrderNo => async dispatch => {
+  const res = await axios.get(
+    `/api/stock/queryOrder/storeReturn/${returnOrderNo}`
   );
 
   dispatch({
