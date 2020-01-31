@@ -51,7 +51,7 @@ public class QueryStockFunction {
 	private ProductRepository productRepository;
 
 	private final String queryBasicProductInfoSQLStatement = "SELECT CODE, CNAME, SPEC, PACKDESC, ADDTYPE, PICTURE FROM dbo.PRODUCT WHERE CODE= ?1";
-	private final String queryProductInfoSQLStatement = "SELECT x.CODE, x.CNAME, x.SPEC, x.SUPP, y.CNAME SUPPNAME, x.PRODDESC, x.USERFLD1, x.DESCRIP, x.PACKDESC, x.ADDTYPE, x.PICTURE FROM dbo.PRODUCT x INNER JOIN dbo.SUPPLIER y ON x.SUPP = y.CODE WHERE x.CODE= ?1";
+	private final String queryProductInfoSQLStatement = "SELECT x.CODE, x.CNAME, x.SPEC, x.SUPP, y.CNAME SUPPNAME, x.PRODDESC, x.USERFLD1, x.DESCRIP, x.PACKDESC, x.ADDTYPE, x.PICTURE, x.CCOST FROM dbo.PRODUCT x INNER JOIN dbo.SUPPLIER y ON x.SUPP = y.CODE WHERE x.CODE= ?1";
 
 	/**
 	 * Return a response containing 'less' information for certain productNo
@@ -196,6 +196,7 @@ public class QueryStockFunction {
 				productInformation.setPackDesc(nullValueHelper(cells[8].toString()));
 				productInformation.setAddType(addTypeMappingHelper(Integer.parseInt(cells[9].toString())));
 				productInformation.setPicture(nullValueHelper(cells[10].toString()));
+				productInformation.setcCost(nullValueHelper(cells[11].toString()));
 			}
 		}
 

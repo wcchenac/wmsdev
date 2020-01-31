@@ -24,6 +24,8 @@ public class ProductInformation {
 
 	private String picture;
 
+	private String cCost;
+
 	public String getProductNo() {
 		return productNo;
 	}
@@ -110,6 +112,14 @@ public class ProductInformation {
 
 	public void setPicture(String picture) {
 		this.picture = picture;
+	}
+
+	public String getcCost() {
+		return cCost;
+	}
+
+	public void setcCost(String cCost) {
+		this.cCost = cCost;
 	}
 
 }

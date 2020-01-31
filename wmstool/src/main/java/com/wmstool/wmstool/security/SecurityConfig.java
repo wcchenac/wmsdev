@@ -55,7 +55,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
 				.antMatchers("/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html",
 						"/**/*.css", "/**/*.js")
-				.permitAll().antMatchers("/api/auth/register", "/api/auth/login").permitAll().anyRequest()
+				.permitAll().antMatchers("/api/user/adminManagement/register", "/api/user/login").permitAll().anyRequest()
 				.authenticated();
 
 		// character encode filter for dealing with Chinese

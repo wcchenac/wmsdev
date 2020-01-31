@@ -41,6 +41,7 @@ public class QueryOrderFunction {
 	private final String inStockOrderSQLStatement = "SELECT PROD, QTY, UNIT, GWN, BANQTY FROM dbo.STKPRHS2 WHERE CODE= ?1";
 	private final String assembleOrderAndProductUnitSQLStatement = "SELECT x.MPROD, x.GWN, x.MQTY, y.UNIT FROM dbo.BOMMIS1 x INNER JOIN dbo.PRODUCT y ON x.MPROD = y.CODE WHERE x.CODE = ?1";
 	private final String customerReturnOrderSQLStatement = "SELECT PROD, QTY, UNIT, GWN FROM dbo.STKSALE2 WHERE TYPE='1' AND CODE= ?1";
+	private final String storeReturnOrderSQLStatement = "SELECT PROD, QTY, UNIT, INGWN FROM dbo.STKALLT2 WHERE TYPE='1' AND (INGWN='AB' OR INGWN='AC' OR INGWN='AD' OR INGWN='AE' OR INGWN='AP') AND CODE= ?1";
 
 	/**
 	 * Return a response containing current 'in-stock' order content fetching from
@@ -87,7 +88,7 @@ public class QueryOrderFunction {
 	 */
 	public QueryOrderResponse queryStoreReturnOrder(String returnOrderNo) {
 		// TODO: modify to getStoreReturnOrderContent
-		Map<String, Map<String, Map<String, String>>> currentOrderStatus = getCustomerReturnOrderContent(returnOrderNo);
+		Map<String, Map<String, Map<String, String>>> currentOrderStatus = getStoreReturnOrderContent(returnOrderNo);
 		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(InStockType_StoreReturn,
 				returnOrderNo);
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = deriveWaitHandleStatus(currentOrderStatus,
@@ -182,6 +183,34 @@ public class QueryOrderFunction {
 
 		// The format of q.getResultList() is as below:
 		// Row n : [PROD, QTY, UNIT, GWN]
+		for (Object row : q.getResultList()) {
+			Object[] cell = (Object[]) row;
+			InStockOrderRecord orderRecord = new InStockOrderRecord();
+
+			orderRecord.setProductNo(cell[0].toString());
+			orderRecord.setQuantity(String.format("%.1f", Double.parseDouble(cell[1].toString())));
+			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[2].toString()));
+			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[3].toString()));
+
+			orderRecordList.add(orderRecord);
+		}
+
+		return orderContentCollector(orderRecordList);
+	}
+
+	/**
+	 * Fetch necessary 'storeReturn' order content from second db, and accumulate
+	 * the amount of same type based on productNo
+	 */
+	private Map<String, Map<String, Map<String, String>>> getStoreReturnOrderContent(String orderNo) {
+		List<InStockOrderRecord> orderRecordList = new ArrayList<>();
+
+		EntityManager em = emf.createEntityManager();
+		Query q = em.createNativeQuery(storeReturnOrderSQLStatement);
+		q.setParameter(1, orderNo);
+
+		// The format of q.getResultList() is as below:
+		// Row n : [PROD, QTY, UNIT, INGWN]
 		for (Object row : q.getResultList()) {
 			Object[] cell = (Object[]) row;
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
