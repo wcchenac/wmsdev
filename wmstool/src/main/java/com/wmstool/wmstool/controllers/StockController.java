@@ -88,7 +88,7 @@ public class StockController {
 	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Sales','ROLE_Admin')")
-	@GetMapping("/queryStock/query/3/{productNo}/")
+	@GetMapping("/queryStock/query/3/{productNo}")
 	public ResponseEntity<?> getStockInfoListWithQauntity(@PathVariable String productNo) {
 		return new ResponseEntity<>(stockService.findStockInfoByProductNoWithQuantity(productNo.toUpperCase()),
 				HttpStatus.OK);

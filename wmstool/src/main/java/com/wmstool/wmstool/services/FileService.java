@@ -1,6 +1,7 @@
 package com.wmstool.wmstool.services;
 
 import java.io.File;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -8,15 +9,33 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.transaction.Transactional;
+
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbookFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.services.stockService.StockService;
 
 @Service
+@Transactional
 public class FileService {
+
+	@Autowired
+	private StockService stockService;
 
 	private static final String seperator = File.separator;
 	private static final String filetype = ".xls";
 	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
 
+	/**
+	 * Find files at current date
+	 */
 	public String findTodayFile(String parentDir, String filenamePrefix) {
 		LocalDate now = LocalDate.now();
 		String fileNameNoDir = filenamePrefix + now.format(dtf) + filetype;
@@ -32,6 +51,9 @@ public class FileService {
 
 	}
 
+	/**
+	 * Find files at given date range
+	 */
 	public List<String> findPeriodFiles(String parentDir, String filenamePrefix, String start, String end) {
 		List<String> resultList = new ArrayList<>();
 		LocalDateTime startDateTime = LocalDateTime.parse(start, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
@@ -52,5 +74,44 @@ public class FileService {
 		}
 
 		return resultList;
+	}
+
+	/**
+	 * Execute inStock process based on the file imported by user
+	 */
+	public void importStockRecord(MultipartFile multipartFile) {
+		try {
+			List<InStockRequest> requestList = new ArrayList<>();
+			InputStream inp = multipartFile.getInputStream();
+
+			Workbook workbook = XSSFWorkbookFactory.createWorkbook(inp);
+			Sheet sheet = workbook.getSheetAt(0);
+			int lastRow = sheet.getLastRowNum();
+
+			// template file start row
+			for (int i = 3; i <= lastRow; i += 1) {
+				Row row = sheet.getRow(i);
+				InStockRequest inStockRequest = new InStockRequest();
+
+				inStockRequest.setProductNo(row.getCell(0).toString());
+				if (row.getCell(1) != null)
+					inStockRequest.setLotNo(row.getCell(1).toString());
+				inStockRequest.setType(row.getCell(2).toString());
+				inStockRequest.setQuantity(row.getCell(3).toString());
+				inStockRequest.setUnit(row.getCell(4).toString());
+				inStockRequest.setColor((int) Double.parseDouble(row.getCell(5).toString()));
+				inStockRequest.setDefect(row.getCell(6).toString());
+				inStockRequest.setRemark("20200201");
+				inStockRequest.setInStockType("normal");
+
+				requestList.add(inStockRequest);
+			}
+
+			stockService.createStockInfoes(requestList);
+
+			inp.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 }

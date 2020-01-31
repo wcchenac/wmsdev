@@ -31,6 +31,9 @@ public class InStockRequest {
 
 	private long parentId; // for history use
 
+	public InStockRequest() {
+	}
+
 	public String getProductNo() {
 		return productNo;
 	}
