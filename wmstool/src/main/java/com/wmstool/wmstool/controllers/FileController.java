@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -118,8 +119,14 @@ public class FileController {
 	}
 
 	@PostMapping("/import/inStockFile")
-	public void importStockRecord(@RequestParam(name = "file") MultipartFile multipartFile) {
-		fileService.importStockRecord(multipartFile);
+	public ResponseEntity<?> importStockRecord(@RequestParam(name = "files") MultipartFile[] multipartFiles) {
+		try {
+			Arrays.asList(multipartFiles).stream()
+					.forEach(multipartFile -> fileService.importStockRecord(multipartFile));
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception ex) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
 
 	}
 

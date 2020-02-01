@@ -3,7 +3,9 @@ package com.wmstool.wmstool.services.stockService.subFunctions;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,9 +63,10 @@ public class CreateStockFunction {
 	 */
 	public List<StockInfo> createStockInfoes(List<InStockRequest> inStockRequests) {
 		List<StockInfo> resultList = new ArrayList<>();
-		List<Product> productList = new ArrayList<>();
-		String productNo = inStockRequests.get(0).getProductNo();
-
+//		List<Product> productList = new ArrayList<>();
+//		String productNo = inStockRequests.get(0).getProductNo();
+		Map<String, Map<String, Map<String, String>>> productResult = new HashMap<>();
+		
 		for (InStockRequest isr : inStockRequests) {
 			History oldHistory = new History();
 			History newHistory = new History();
@@ -194,11 +197,12 @@ public class CreateStockFunction {
 
 			// Create Individual Product object, then add to list
 			Product p = new Product(resIdentifier);
-			productList.add(p);
+			
+			stockServiceUtilities.contentCollector(p, productResult);
 		}
 
 		// Accumulate quantity in productList, then create or update Product
-		stockServiceUtilities.updateProductQuantityWithList(productNo, productList);
+		stockServiceUtilities.updateProductQuantityWithList(productResult);
 
 		return stockInfoRepository.saveAll(resultList);
 	}

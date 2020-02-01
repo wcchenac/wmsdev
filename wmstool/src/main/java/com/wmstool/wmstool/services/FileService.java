@@ -86,22 +86,24 @@ public class FileService {
 
 			Workbook workbook = XSSFWorkbookFactory.createWorkbook(inp);
 			Sheet sheet = workbook.getSheetAt(0);
-			int lastRow = sheet.getLastRowNum();
 
 			// template file start row
-			for (int i = 3; i <= lastRow; i += 1) {
+			for (int i = 1; i <= sheet.getLastRowNum(); i += 1) {
 				Row row = sheet.getRow(i);
 				InStockRequest inStockRequest = new InStockRequest();
 
 				inStockRequest.setProductNo(row.getCell(0).toString());
-				if (row.getCell(1) != null)
+				if (row.getCell(1) != null) {
 					inStockRequest.setLotNo(row.getCell(1).toString());
+				}
 				inStockRequest.setType(row.getCell(2).toString());
 				inStockRequest.setQuantity(row.getCell(3).toString());
 				inStockRequest.setUnit(row.getCell(4).toString());
 				inStockRequest.setColor((int) Double.parseDouble(row.getCell(5).toString()));
 				inStockRequest.setDefect(row.getCell(6).toString());
-				inStockRequest.setRemark("20200201");
+				if (row.getCell(7) != null) {
+					inStockRequest.setRemark(row.getCell(7).toString());
+				}
 				inStockRequest.setInStockType("normal");
 
 				requestList.add(inStockRequest);
