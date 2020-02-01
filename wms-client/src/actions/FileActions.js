@@ -37,3 +37,7 @@ export const queryCategoryIntervalFiles = async (
     `/api/file/query/${fileCategory}/interval?startDate=${startDate}&endDate=${endDate}`
   );
 };
+
+export const inStockByImportFile = async files => {
+  return await axios.post("api/file/import/inStockFile", files);
+};

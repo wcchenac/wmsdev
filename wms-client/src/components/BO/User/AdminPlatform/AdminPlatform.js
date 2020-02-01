@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import UserRegister from "./UserRegister";
 import UserManagement from "./UserManagement/UserManagement";
+import InStockByImportFile from "./InStockByImportFile";
 
 class AdminPlatform extends Component {
   constructor() {
@@ -21,6 +22,8 @@ class AdminPlatform extends Component {
         return <UserRegister />;
       case "userManagement":
         return <UserManagement />;
+      case "importFile":
+        return <InStockByImportFile />;
       default:
         break;
     }
@@ -55,6 +58,13 @@ class AdminPlatform extends Component {
                   onClick={this.buttonClick}
                 >
                   使用者管理
+                </button>
+                <button
+                  className="btn btn-info btn-block"
+                  name="importFile"
+                  onClick={this.buttonClick}
+                >
+                  批量入庫
                 </button>
                 <button
                   className="btn btn-info btn-block"
