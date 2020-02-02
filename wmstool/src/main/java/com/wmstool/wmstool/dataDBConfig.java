@@ -20,14 +20,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(entityManagerFactoryRef = "testEntityManagerFactory", transactionManagerRef = "testTransactionManager", basePackages = {"com.wmstool.test.repository"})
-public class testDBConfig {
+@EnableJpaRepositories(entityManagerFactoryRef = "dataDbEntityManagerFactory", transactionManagerRef = "dataDbTransactionManager")
+public class dataDBConfig {
 
-	private static final String DB_URL = "spring.third-datasource.url";
-	private static final String DB_USERNAME = "spring.third-datasource.username";
-	private static final String DB_PASSWORD = "spring.third-datasource.password";
-	private static final String DB_DIALECT = "spring.third-datasource.dialect";
-	private static final String ENTITYMANAGER_PACKAGES_TO_SCAN = "com.wmstool.test";
+	private static final String DB_URL = "spring.second-datasource.url";
+	private static final String DB_USERNAME = "spring.second-datasource.username";
+	private static final String DB_PASSWORD = "spring.second-datasource.password";
+	private static final String DB_DIALECT = "spring.second-datasource.dialect";
 	private static final String PROPERTY_NAME_HIBERNATE_JDBC_BATCH_SIZE = "hibernate.jdbc.batch_size";
 	private static final String PROPERTY_NAME_HIBERNATE_SHOW_SQL = "hibernate.show_sql";
 	private static final String PROPERTY_NAME_HIBERNATE_FMT_SQL = "hibernate.format_sql";
@@ -37,7 +36,7 @@ public class testDBConfig {
 	private Environment env;
 
 	@Bean
-	public DataSource testDataSource() {
+	public DataSource dataDbDataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
 		dataSource.setUrl(env.getProperty(DB_URL));
 		dataSource.setUsername(env.getProperty(DB_USERNAME));
@@ -45,17 +44,15 @@ public class testDBConfig {
 		return dataSource;
 	}
 
-	@Bean(name = "testEntityManagerFactory")
-	public LocalContainerEntityManagerFactoryBean testEntityManagerFactory() {
+	@Bean(name = "dataDbEntityManagerFactory")
+	public LocalContainerEntityManagerFactoryBean dataDbEntityManagerFactory() {
 		final LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-		em.setDataSource(testDataSource());
+		em.setDataSource(dataDbDataSource());
 
 		final HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		vendorAdapter.setDatabasePlatform(env.getProperty(DB_DIALECT));
 		vendorAdapter.setShowSql(false);
 		em.setJpaVendorAdapter(vendorAdapter);
-
-		em.setPackagesToScan(ENTITYMANAGER_PACKAGES_TO_SCAN);
 
 		Properties properties = new Properties();
 		properties.put(PROPERTY_NAME_HIBERNATE_FMT_SQL, env.getProperty(PROPERTY_NAME_HIBERNATE_FMT_SQL));
@@ -68,10 +65,10 @@ public class testDBConfig {
 		return em;
 	}
 
-	@Bean(name = "testTransactionManager")
-	public PlatformTransactionManager testTransactionManager(
-			@Qualifier("testEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
+	@Bean(name = "dataDbTransactionManager")
+	public PlatformTransactionManager dataDbTransactionManager(
+			@Qualifier("dataDbEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
 		return new JpaTransactionManager(entityManagerFactory);
 	}
-	
+
 }

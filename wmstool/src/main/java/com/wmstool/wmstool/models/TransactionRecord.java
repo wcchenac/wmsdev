@@ -29,7 +29,7 @@ public class TransactionRecord {
 
 	private Long stockIdentifierId;
 
-	private String transactionType; // NI: normal, AI: assemble, SKI/SKO: shrink, SPO: ship
+	private String transactionType; // NI: normal, AI: assemble, SKI/SKO: shrink, SPO: ship, FI: file import
 
 	private LocalDateTime createdAt;
 

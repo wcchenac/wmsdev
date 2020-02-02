@@ -32,7 +32,7 @@ import com.wmstool.wmstool.utilities.HistoryTreeNode;
 public class QueryStockFunction {
 
 	@Autowired
-	@Qualifier("testEntityManagerFactory")
+	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
 
 	@Autowired

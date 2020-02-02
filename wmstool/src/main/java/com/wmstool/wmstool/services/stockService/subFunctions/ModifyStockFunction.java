@@ -37,7 +37,7 @@ import com.wmstool.wmstool.utilities.StockAllocateRecordExcelHelper;
 public class ModifyStockFunction {
 
 	@Autowired
-	@Qualifier("testEntityManagerFactory")
+	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
 
 	@Autowired

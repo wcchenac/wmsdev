@@ -8,7 +8,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.wmstool.wmstool.models.InStockOrderRecord;
 import com.wmstool.wmstool.models.Product;
 import com.wmstool.wmstool.repositories.ProductRepository;
 
@@ -84,31 +83,6 @@ public class StockServiceUtilities {
 		productRepository.saveAll(productList);
 	}
 
-//	public void updateProductQuantityWithList(List<Product> productList) {
-//		Map<String, String> typeQuantity = accumulateQuantityByTypeForSameProduct(productList);
-//		List<Product> result = new ArrayList<>();
-//		String unit = productList.get(0).getUnit();
-//
-//		typeQuantity.keySet().forEach(type -> {
-//			Product p = productRepository.findByProductNoAndType(productNo, type).orElseGet(() -> {
-//				Product x = new Product();
-//				x.setProductNo(productNo);
-//				x.setType(type);
-//				x.setQuantity("0");
-//				x.setUnit(unit);
-//
-//				return x;
-//			});
-//
-//			p.setQuantity(String.format("%.1f",
-//					Double.parseDouble(typeQuantity.get(type)) + Double.parseDouble(p.getQuantity())));
-//
-//			result.add(p);
-//		});
-//
-//		productRepository.saveAll(result);
-//	}
-//
 	/**
 	 * Helper method for accumulate "same" Product quantity by type
 	 */

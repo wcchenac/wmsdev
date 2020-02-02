@@ -32,7 +32,7 @@ import com.wmstool.wmstool.utilities.WeeklyStockComparisonExcelHelper;
 public class CompareStockFunction {
 
 	@Autowired
-	@Qualifier("testEntityManagerFactory")
+	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
 
 	@Autowired
@@ -51,12 +51,13 @@ public class CompareStockFunction {
 	private WeeklyStockComparisonExcelHelper weeklyStockComparisonExcelHelper;
 
 	/**
-	 * Daily stock comparison between 2 databases based on TransactionRecord
+	 * Daily stock quantity comparison between 2 databases based on
+	 * TransactionRecord
 	 */
 	public void stockComparisonByTransactionRecord() throws IOException {
-		LocalDateTime startTime = LocalDateTime.of(LocalDate.of(2019, 12, 06), LocalTime.of(0, 0, 0));
-		LocalDateTime endTime = LocalDateTime.of(LocalDate.of(2019, 12, 06), LocalTime.of(23, 59, 59));
-		String fileName = dailyStockComparisonExcelHelper.createNewFile(startTime.toLocalDate()); // TODO : track now
+		LocalDateTime startTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0, 0));
+		LocalDateTime endTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59, 59));
+		String fileName = dailyStockComparisonExcelHelper.createNewFile(startTime.toLocalDate());
 
 		// Define query criteria : createdAt between startTime and endTime
 		Specification<TransactionRecord> specification = (Specification<TransactionRecord>) (root, query,
@@ -138,18 +139,28 @@ public class CompareStockFunction {
 				List<String> tempResultList = new ArrayList<>();
 				String secondDBQTY = secondTypeQuantity.get(type);
 
-				tempResultList.add(productNo);
-				tempResultList.add(type);
-				tempResultList.add(secondDBQTY);
-				tempResultList.add(quantity);
-				tempResultList.add(unitString);
-
-				if (quantity.equals(secondDBQTY)) {
-					tempResultList.add("Pass");
-				} else {
+				if (secondDBQTY == null) {
+					tempResultList.add(productNo);
+					tempResultList.add(type);
+					tempResultList.add("");
+					tempResultList.add(quantity);
+					tempResultList.add(unitString);
 					tempResultList.add("Fail");
-					tempResultList
-							.add(String.format("%.1f", Double.parseDouble(quantity) - Double.parseDouble(secondDBQTY)));
+					tempResultList.add(quantity);
+				} else {
+					tempResultList.add(productNo);
+					tempResultList.add(type);
+					tempResultList.add(secondDBQTY);
+					tempResultList.add(quantity);
+					tempResultList.add(unitString);
+
+					if (quantity.equals(secondDBQTY)) {
+						tempResultList.add("Pass");
+					} else {
+						tempResultList.add("Fail");
+						tempResultList.add(
+								String.format("%.1f", Double.parseDouble(quantity) - Double.parseDouble(secondDBQTY)));
+					}
 				}
 
 				compareResult.add(tempResultList);
@@ -165,7 +176,7 @@ public class CompareStockFunction {
 	}
 
 	/**
-	 * Weakly stock comparison between 2 databases
+	 * Weakly stock quantity comparison between 2 databases
 	 */
 	public void stockFullyComparison() throws IOException {
 		LocalDate now = LocalDate.now();
@@ -201,7 +212,7 @@ public class CompareStockFunction {
 					unit = 2;
 					break;
 				case 7: // 打
-					quantity = String.format("%d", Integer.parseInt(quantity) * 12);
+					quantity = String.format("%.1f", Double.parseDouble(quantity) * 12.0);
 					unit = 6;
 					break;
 				default:

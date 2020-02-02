@@ -182,8 +182,8 @@ public class StockController {
 			return new ResponseEntity<>(HttpStatus.OK);
 
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
 			e.printStackTrace();
+
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -196,22 +196,31 @@ public class StockController {
 				stockService.findPeriodStockIdentifierHistory(productNo.toUpperCase(), start, end), HttpStatus.OK);
 	}
 
-	@GetMapping("/stockManagement/dailyCompare")
-	public void dailyStockComparison() {
+	@GetMapping("/stockManagement/daily/stockCompare")
+	public ResponseEntity<?> dailyStockComparison() {
 		try {
 			stockService.stockComparisonByTransactionRecord();
+
+			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
-	@GetMapping("/test")
-	public void test() {
+	@GetMapping("/stockManagement/weekly/stockCompare")
+	public ResponseEntity<?> weeklyStockComparison() {
 		try {
 			stockService.stockFullyComparison();
+
+			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
+	// "/stockManagement/weekly/productCategory"
 }

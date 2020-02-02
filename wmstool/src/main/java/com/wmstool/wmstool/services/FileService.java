@@ -104,7 +104,7 @@ public class FileService {
 				if (row.getCell(7) != null) {
 					inStockRequest.setRemark(row.getCell(7).toString());
 				}
-				inStockRequest.setInStockType("normal");
+				inStockRequest.setInStockType("fileImport");
 
 				requestList.add(inStockRequest);
 			}

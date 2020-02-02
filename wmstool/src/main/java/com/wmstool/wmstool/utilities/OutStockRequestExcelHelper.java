@@ -65,6 +65,7 @@ public class OutStockRequestExcelHelper {
 		workbook.write(fos);
 
 		workbook.close();
+		fos.close();
 
 		return fileNameNoDir;
 	}

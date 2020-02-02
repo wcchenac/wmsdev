@@ -62,6 +62,7 @@ public class DailyStockComparisonExcelHelper {
 			workbook.write(fos);
 
 			workbook.close();
+			fos.close();
 		}
 
 		return fileNameNoDir;
@@ -84,10 +85,11 @@ public class DailyStockComparisonExcelHelper {
 		// Style setting for font, alignment and cell border
 		CellStyle rowStyle_Pass = workbook.createCellStyle();
 		CellStyle rowStyle_Fail = workbook.createCellStyle();
-		Font font = workbook.createFont();
+		Font font_pass = workbook.createFont();
+		Font font_fail = workbook.createFont();
 
-		font.setColor(Font.COLOR_NORMAL);
-		rowStyle_Pass.setFont(font);
+		font_pass.setColor(Font.COLOR_NORMAL);
+		rowStyle_Pass.setFont(font_pass);
 		rowStyle_Pass.setAlignment(HorizontalAlignment.CENTER);
 		rowStyle_Pass.setVerticalAlignment(VerticalAlignment.CENTER);
 		rowStyle_Pass.setBorderBottom(BorderStyle.THIN);
@@ -95,8 +97,8 @@ public class DailyStockComparisonExcelHelper {
 		rowStyle_Pass.setBorderRight(BorderStyle.THIN);
 		rowStyle_Pass.setBorderTop(BorderStyle.THIN);
 
-		font.setColor(Font.COLOR_RED);
-		rowStyle_Fail.setFont(font);
+		font_fail.setColor(Font.COLOR_RED);
+		rowStyle_Fail.setFont(font_fail);
 		rowStyle_Fail.setAlignment(HorizontalAlignment.CENTER);
 		rowStyle_Fail.setVerticalAlignment(VerticalAlignment.CENTER);
 		rowStyle_Fail.setBorderBottom(BorderStyle.THIN);

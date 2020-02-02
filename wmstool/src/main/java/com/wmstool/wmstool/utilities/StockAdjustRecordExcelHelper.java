@@ -60,6 +60,7 @@ public class StockAdjustRecordExcelHelper {
 			workbook.write(fos);
 
 			workbook.close();
+			fos.close();
 		}
 
 		return fileNameNoDir;

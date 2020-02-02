@@ -57,16 +57,15 @@ public class CreateStockFunction {
 	private final String InStockType_Shrink = "shrink";
 	private final String InStockType_CustomerReturn = "customerReturn";
 	private final String InStockType_StoreReturn = "storeReturn";
+	private final String InStockType_FileImport = "fileImport";
 
 	/**
 	 * Save inStockRequest in List as StockInfo/InStockOrderRecord to first db
 	 */
 	public List<StockInfo> createStockInfoes(List<InStockRequest> inStockRequests) {
 		List<StockInfo> resultList = new ArrayList<>();
-//		List<Product> productList = new ArrayList<>();
-//		String productNo = inStockRequests.get(0).getProductNo();
 		Map<String, Map<String, Map<String, String>>> productResult = new HashMap<>();
-		
+
 		for (InStockRequest isr : inStockRequests) {
 			History oldHistory = new History();
 			History newHistory = new History();
@@ -109,6 +108,10 @@ public class CreateStockFunction {
 				stockIdentifier.setFirstInStockAt(LocalDate.now().toString());
 				stockIdentifier.setInStockType("調撥單");
 				break;
+			case InStockType_FileImport:
+				stockIdentifier.setFirstInStockAt(LocalDate.now().toString());
+				stockIdentifier.setInStockType("檔案匯入");
+				break;
 			case InStockType_Shrink:
 				// use the data "parentId" from inStockRequest as key to find the parent
 				// TODO: data not found exception
@@ -135,6 +138,7 @@ public class CreateStockFunction {
 			case InStockType_Assemble:
 			case InStockType_CustomerReturn:
 			case InStockType_StoreReturn:
+			case InStockType_FileImport:
 				newHistory.setRootIdentifierId(resIdentifierId);
 				break;
 			case InStockType_Shrink:
@@ -189,6 +193,8 @@ public class CreateStockFunction {
 			case InStockType_StoreReturn:
 				transactionRecord.setTransactionType("SRI");
 				break;
+			case InStockType_FileImport:
+				transactionRecord.setTransactionType("FI");
 			default:
 				break;
 			}
@@ -197,7 +203,7 @@ public class CreateStockFunction {
 
 			// Create Individual Product object, then add to list
 			Product p = new Product(resIdentifier);
-			
+
 			stockServiceUtilities.contentCollector(p, productResult);
 		}
 

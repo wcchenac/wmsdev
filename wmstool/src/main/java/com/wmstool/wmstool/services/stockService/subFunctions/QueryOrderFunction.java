@@ -24,7 +24,7 @@ import com.wmstool.wmstool.repositories.InStockOrderRepo;
 public class QueryOrderFunction {
 
 	@Autowired
-	@Qualifier("testEntityManagerFactory")
+	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
 
 	@Autowired
