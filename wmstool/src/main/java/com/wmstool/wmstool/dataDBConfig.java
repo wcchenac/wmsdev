@@ -20,13 +20,15 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(entityManagerFactoryRef = "dataDbEntityManagerFactory", transactionManagerRef = "dataDbTransactionManager")
+@EnableJpaRepositories(entityManagerFactoryRef = "dataDbEntityManagerFactory", transactionManagerRef = "dataDbTransactionManager", basePackages = {
+		"com.wmstool.test.repositories" })
 public class dataDBConfig {
 
 	private static final String DB_URL = "spring.second-datasource.url";
 	private static final String DB_USERNAME = "spring.second-datasource.username";
 	private static final String DB_PASSWORD = "spring.second-datasource.password";
 	private static final String DB_DIALECT = "spring.second-datasource.dialect";
+	private static final String ENTITYMANAGER_PACKAGES_TO_SCAN = "com.wmstool.test";
 	private static final String PROPERTY_NAME_HIBERNATE_JDBC_BATCH_SIZE = "hibernate.jdbc.batch_size";
 	private static final String PROPERTY_NAME_HIBERNATE_SHOW_SQL = "hibernate.show_sql";
 	private static final String PROPERTY_NAME_HIBERNATE_FMT_SQL = "hibernate.format_sql";
@@ -53,6 +55,8 @@ public class dataDBConfig {
 		vendorAdapter.setDatabasePlatform(env.getProperty(DB_DIALECT));
 		vendorAdapter.setShowSql(false);
 		em.setJpaVendorAdapter(vendorAdapter);
+
+		em.setPackagesToScan(ENTITYMANAGER_PACKAGES_TO_SCAN);
 
 		Properties properties = new Properties();
 		properties.put(PROPERTY_NAME_HIBERNATE_FMT_SQL, env.getProperty(PROPERTY_NAME_HIBERNATE_FMT_SQL));
