@@ -100,12 +100,7 @@ class StockInfo extends Component {
         </td>
         <td>
           <button className="btn-customize" disabled>
-            {stockIdentifier.quantity}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {stockIdentifier.unit}
+            {stockIdentifier.quantity + " " + stockIdentifier.unit}
           </button>
         </td>
         {typeValidation ? null : (
@@ -125,6 +120,11 @@ class StockInfo extends Component {
         <td>
           <button className="btn-customize" disabled>
             {stockIdentifier.firstInStockAt}
+          </button>
+        </td>
+        <td>
+          <button className="btn-customize" disabled>
+            {stockInfo.remark}
           </button>
         </td>
         <td>

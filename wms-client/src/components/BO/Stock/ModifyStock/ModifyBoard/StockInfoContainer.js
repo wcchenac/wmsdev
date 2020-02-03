@@ -15,47 +15,43 @@ class StockInfoContainer extends Component {
                   <th style={{ width: "20%" }}>
                     <div className="pl-3">貨號</div>
                   </th>
-                  <th style={{ width: "10%" }}>
+                  <th style={{ width: "8%" }}>
                     <div className="pl-1">批號</div>
                   </th>
-                  <th style={{ width: "12.5%" }}>
+                  <th style={{ width: "10%" }}>
                     <div className="pl-2">型態</div>
                   </th>
-                  <th style={{ width: "12.5%" }}>
-                    <div className="pl-2">數量</div>
-                  </th>
                   <th style={{ width: "10%" }}>
-                    <div className="pl-2">單位</div>
+                    <div className="pl-2">數量/單位</div>
                   </th>
-                  <th style={{ width: "13%" }}>
+                  <th style={{ width: "15%" }}>
                     <div className="pl-2">進貨日期</div>
                   </th>
+                  <th style={{ width: "15%" }}>註解</th>
                   <th style={{ width: "22%" }} />
                 </React.Fragment>
               ) : (
                 <React.Fragment>
-                  <th style={{ width: "20%" }}>
+                  <th style={{ width: "15%" }}>
                     <div className="pl-3">貨號</div>
                   </th>
                   <th style={{ width: "8%" }}>
                     <div className="pl-1">批號</div>
                   </th>
-                  <th style={{ width: "8%" }}>
+                  <th style={{ width: "7%" }}>
                     <div className="pl-2">型態</div>
                   </th>
+                  <th style={{ width: "10%" }}>
+                    <div className="pl-1">數量/單位</div>
+                  </th>
+                  <th style={{ width: "5%" }}>色號</th>
                   <th style={{ width: "8%" }}>
-                    <div className="pl-1">數量</div>
-                  </th>
-                  <th style={{ width: "6%" }}>
-                    <div className="pl-1">單位</div>
-                  </th>
-                  <th style={{ width: "6%" }}>色號</th>
-                  <th style={{ width: "9%" }}>
                     <div className="pl-2">瑕疵</div>
                   </th>
-                  <th style={{ width: "13%" }}>
+                  <th style={{ width: "12%" }}>
                     <div className="pl-2">進貨日期</div>
                   </th>
+                  <th style={{ width: "13%" }}>註解</th>
                   <th style={{ width: "22%" }} />
                 </React.Fragment>
               )}

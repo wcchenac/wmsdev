@@ -26,19 +26,20 @@ class InStockByImportFile extends Component {
 
   checkMimeType = event => {
     let files = event.target.files;
-    let err = "";
+    let err = [];
     const type =
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     for (let i = 0; i < files.length; i += 1) {
       if (files[i].type !== type) {
-        err += files[i].type + " is not a supported format\n";
+        err[i] = files[i].type + " is not a supported format\n";
       }
     }
-    if (err !== "") {
+
+    for (let j = 0; j < err.length; j += 1) {
       event.target.value = null; // discard selected file
-      console.log(err);
-      return false;
+
+      toast.error(err[j]);
     }
 
     return true;
@@ -68,30 +69,30 @@ class InStockByImportFile extends Component {
     return (
       <div className="container">
         <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
-        <div style={{ height: "80vh" }}>
-          <div className="row">
-            <div className="offset-md-3 col-md-6">
-              <div className="form-group files">
-                <label>Upload Your File </label>
-                <input
-                  type="file"
-                  name="files"
-                  multiple
-                  onChange={this.onChangeHandler}
-                />
+          <div style={{ height: "80vh" }}>
+            <div className="row">
+              <div className="offset-md-3 col-md-6">
+                <div className="form-group files">
+                  <label>Upload Your File </label>
+                  <input
+                    type="file"
+                    name="files"
+                    multiple
+                    onChange={this.onChangeHandler}
+                  />
+                </div>
+                <div class="form-group">
+                  <ToastContainer />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-success btn-block"
+                  onClick={this.onClickHandler}
+                >
+                  Upload
+                </button>
               </div>
-              <div class="form-group">
-                <ToastContainer />
-              </div>
-              <button
-                type="button"
-                className="btn btn-success btn-block"
-                onClick={this.onClickHandler}
-              >
-                Upload
-              </button>
             </div>
-          </div>
           </div>
         </LoadingOverlay>
       </div>

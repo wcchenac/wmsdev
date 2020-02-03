@@ -144,7 +144,7 @@ export const stockIdentifierWaitToShrinkIsTrue = stockIdentifierId => async disp
       `/api/stock/waitToShrink/${stockIdentifierId}`
     );
     let productNo = result.data;
-    const res = await axios.get(`/api/stock/queryStock/query/${productNo}`);
+    const res = await axios.get(`/api/stock/queryStock/query/1/${productNo}`);
 
     dispatch({
       type: SHRINK_Stock,
@@ -300,4 +300,10 @@ export const getProductHistory = request => async dispatch => {
   });
 
   return res;
+};
+
+export const stockComparison = async periodType => {
+  return await axios.get(
+    `/api/stock/stockManagement/${periodType}/stockCompare`
+  );
 };
