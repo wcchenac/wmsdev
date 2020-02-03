@@ -56,7 +56,7 @@ public class StockServiceUtilities {
 		// TODO: data not found exception
 		Product res = productRepository.findByProductNoAndType(productNo, type).get();
 
-		res.setQuantity(String.format("%.1f",
+		res.setQuantity(String.format("%.2f",
 				Double.parseDouble(product.getQuantity()) + Double.parseDouble(res.getQuantity())));
 	}
 
@@ -94,7 +94,7 @@ public class StockServiceUtilities {
 				typeQuantity.put(p.getType(), p.getQuantity());
 			} else {
 				String currentQuantity = typeQuantity.get(p.getType());
-				typeQuantity.put(p.getType(), String.format("%.1f",
+				typeQuantity.put(p.getType(), String.format("%.2f",
 						Double.parseDouble(currentQuantity) + Double.parseDouble(p.getQuantity())));
 			}
 		}
@@ -135,7 +135,7 @@ public class StockServiceUtilities {
 				} else {
 					// if productNo exist and type exist, sum
 					Map<String, String> tempProperties = productResult.get(p.getProductNo()).get(p.getType());
-					tempProperties.put("quantity", String.format("%.1f",
+					tempProperties.put("quantity", String.format("%.2f",
 							Double.parseDouble(tempProperties.get("quantity")) + Double.parseDouble(p.getQuantity())));
 				}
 			}

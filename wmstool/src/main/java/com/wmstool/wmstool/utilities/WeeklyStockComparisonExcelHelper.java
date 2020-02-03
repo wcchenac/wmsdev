@@ -30,8 +30,8 @@ public class WeeklyStockComparisonExcelHelper {
 	private static final String seperator = File.separator;
 	private static final String filetype = ".xls";
 	private static final String filenamePrefix = "WeeklyStockComparison-";
-	private static final DateTimeFormatter dtf1 = DateTimeFormatter.ofPattern("yyyy");
-	private static final DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("ww");
+	private static final DateTimeFormatter dtf_yyyy = DateTimeFormatter.ofPattern("yyyy");
+	private static final DateTimeFormatter dtf_ww = DateTimeFormatter.ofPattern("ww");
 
 	/**
 	 * Create a excel from template excel which is named by current date formated in
@@ -45,7 +45,7 @@ public class WeeklyStockComparisonExcelHelper {
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
 		// Define directory & filename and create files
-		String fileNameNoDir = filenamePrefix + now.format(dtf1) + "-Week" + now.format(dtf2) + filetype;
+		String fileNameNoDir = filenamePrefix + now.format(dtf_yyyy) + "-Week" + now.format(dtf_ww) + filetype;
 		String fileFullName = parentDir + seperator + now.getYear() + seperator + fileNameNoDir;
 		File f = new File(fileFullName);
 
@@ -82,19 +82,8 @@ public class WeeklyStockComparisonExcelHelper {
 		Workbook workbook = WorkbookFactory.create(fis);
 
 		// Style setting for font, alignment and cell border
-		CellStyle rowStyle_Pass = workbook.createCellStyle();
 		CellStyle rowStyle_Fail = workbook.createCellStyle();
-		Font font_pass = workbook.createFont();
 		Font font_fail = workbook.createFont();
-
-		font_pass.setColor(Font.COLOR_NORMAL);
-		rowStyle_Pass.setFont(font_pass);
-		rowStyle_Pass.setAlignment(HorizontalAlignment.CENTER);
-		rowStyle_Pass.setVerticalAlignment(VerticalAlignment.CENTER);
-		rowStyle_Pass.setBorderBottom(BorderStyle.THIN);
-		rowStyle_Pass.setBorderLeft(BorderStyle.THIN);
-		rowStyle_Pass.setBorderRight(BorderStyle.THIN);
-		rowStyle_Pass.setBorderTop(BorderStyle.THIN);
 
 		font_fail.setColor(Font.COLOR_RED);
 		rowStyle_Fail.setFont(font_fail);

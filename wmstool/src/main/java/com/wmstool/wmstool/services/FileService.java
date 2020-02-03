@@ -31,16 +31,41 @@ public class FileService {
 
 	private static final String seperator = File.separator;
 	private static final String filetype = ".xls";
-	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+	private static final DateTimeFormatter dtf_yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd");
+	private static final DateTimeFormatter dtf_yyyy = DateTimeFormatter.ofPattern("yyyy");
+	private static final DateTimeFormatter dtf_ww = DateTimeFormatter.ofPattern("ww");
+
+	private static final String File_Category_Adjustment = "adjustment";
+	private static final String File_Category_Allocation = "allocation";
+	private static final String File_Category_DailyCompare = "dailyComparison";
+	private static final String File_Category_WeeklyCompare = "weeklyComparison";
 
 	/**
 	 * Find files at current date
 	 */
-	public String findTodayFile(String parentDir, String filenamePrefix) {
+	public String findTodayFile(String fileCategory, String parentDir, String filenamePrefix) {
 		LocalDate now = LocalDate.now();
-		String fileNameNoDir = filenamePrefix + now.format(dtf) + filetype;
-		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
-				+ fileNameNoDir;
+		String fileNameNoDir = "";
+		String fileFullName = "";
+
+		switch (fileCategory) {
+		case File_Category_Adjustment:
+		case File_Category_Allocation:
+			fileNameNoDir = filenamePrefix + now.format(dtf_yyyyMMdd) + filetype;
+			fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
+					+ fileNameNoDir;
+		case File_Category_DailyCompare:
+			now.minusDays(1);
+			fileNameNoDir = filenamePrefix + now.format(dtf_yyyyMMdd) + filetype;
+			fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
+					+ fileNameNoDir;
+		case File_Category_WeeklyCompare:
+			fileNameNoDir = filenamePrefix + now.format(dtf_yyyy) + "-Week" + now.format(dtf_ww) + filetype;
+			fileFullName = parentDir + seperator + now.getYear() + seperator + fileNameNoDir;
+		default:
+			break;
+		}
+
 		File f = new File(fileFullName);
 
 		if (!f.exists()) {
@@ -48,29 +73,56 @@ public class FileService {
 		}
 
 		return fileNameNoDir;
-
 	}
 
 	/**
 	 * Find files at given date range
 	 */
-	public List<String> findPeriodFiles(String parentDir, String filenamePrefix, String start, String end) {
+	public List<String> findPeriodFiles(String fileCategory, String parentDir, String filenamePrefix, String start,
+			String end) {
 		List<String> resultList = new ArrayList<>();
 		LocalDateTime startDateTime = LocalDateTime.parse(start, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
 		LocalDateTime endDateTime = LocalDateTime.parse(end, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
 		Period period = Period.between(startDateTime.toLocalDate(), endDateTime.toLocalDate());
-		int dayInterval = period.getDays();
 
-		for (int i = 0; i <= dayInterval; i += 1) {
-			LocalDate d = startDateTime.plusDays(i).toLocalDate();
-			String fileNameNoDir = filenamePrefix + d.format(dtf) + filetype;
-			String fileFullName = parentDir + seperator + d.getYear() + seperator + d.getMonthValue() + seperator
-					+ fileNameNoDir;
-			File f = new File(fileFullName);
+		switch (fileCategory) {
+		case File_Category_Adjustment:
+		case File_Category_Allocation:
+		case File_Category_DailyCompare:
+			int dayInterval = period.getDays();
 
-			if (f.exists()) {
-				resultList.add(fileNameNoDir);
+			for (int i = 0; i <= dayInterval; i += 1) {
+				LocalDate d = startDateTime.plusDays(i).toLocalDate();
+				String fileNameNoDir = filenamePrefix + d.format(dtf_yyyyMMdd) + filetype;
+				String fileFullName = parentDir + seperator + d.getYear() + seperator + d.getMonthValue() + seperator
+						+ fileNameNoDir;
+				File f = new File(fileFullName);
+
+				if (f.exists()) {
+					resultList.add(fileNameNoDir);
+				}
 			}
+
+			break;
+		case File_Category_WeeklyCompare:
+			int weekPeriod = Integer.parseInt(endDateTime.format(dtf_ww))
+					- Integer.parseInt(startDateTime.format(dtf_ww));
+
+			for (int i = 0; i <= weekPeriod; i += 1) {
+				LocalDate d = startDateTime.plusWeeks(i).toLocalDate();
+				String fileNameNoDir = filenamePrefix + d.format(dtf_yyyy) + "-Week" + d.format(dtf_ww) + filetype;
+				String fileFullName = parentDir + seperator + d.getYear() + seperator + fileNameNoDir;
+
+				File f = new File(fileFullName);
+
+				if (f.exists()) {
+					resultList.add(fileNameNoDir);
+				}
+			}
+
+			break;
+		default:
+			break;
 		}
 
 		return resultList;
@@ -87,7 +139,7 @@ public class FileService {
 			Workbook workbook = XSSFWorkbookFactory.createWorkbook(inp);
 			Sheet sheet = workbook.getSheetAt(0);
 
-			// template file start row
+			// template file start at row 1
 			for (int i = 1; i <= sheet.getLastRowNum(); i += 1) {
 				Row row = sheet.getRow(i);
 				InStockRequest inStockRequest = new InStockRequest();

@@ -30,7 +30,7 @@ public class DailyStockComparisonExcelHelper {
 	private static final String seperator = File.separator;
 	private static final String filetype = ".xls";
 	private static final String filenamePrefix = "DailyStockComparison-";
-	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+	private static final DateTimeFormatter dtf_yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 	/**
 	 * Create a excel from template excel which is named by current date formated in
@@ -44,7 +44,7 @@ public class DailyStockComparisonExcelHelper {
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
 		// Define directory & filename and create files
-		String fileNameNoDir = filenamePrefix + now.format(dtf) + filetype;
+		String fileNameNoDir = filenamePrefix + now.format(dtf_yyyyMMdd) + filetype;
 		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
 				+ fileNameNoDir;
 		File f = new File(fileFullName);
@@ -121,8 +121,10 @@ public class DailyStockComparisonExcelHelper {
 			for (int i = 0; i < stringList.size(); i += 1) {
 				Cell cell = row.createCell(i);
 				cell.setCellValue(stringList.get(i));
-				cell.setCellStyle(isPassed ? rowStyle_Pass : rowStyle_Fail);
+//				cell.setCellStyle(isPassed ? rowStyle_Pass : rowStyle_Fail);
 			}
+			
+			row.setRowStyle(isPassed ? rowStyle_Pass : rowStyle_Fail);
 		}
 
 		// close input stream

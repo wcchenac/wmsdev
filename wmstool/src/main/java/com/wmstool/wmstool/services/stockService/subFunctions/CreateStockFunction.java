@@ -222,7 +222,7 @@ public class CreateStockFunction {
 
 		switch (unit) {
 		case "尺":
-			quantity = String.format("%.1f", Double.parseDouble(quantity) / 3.0);
+			quantity = String.format("%.2f", Double.parseDouble(quantity) / 3.0);
 			unit = "碼";
 			inStockRequest.setQuantity(quantity);
 			inStockRequest.setUnit(unit);

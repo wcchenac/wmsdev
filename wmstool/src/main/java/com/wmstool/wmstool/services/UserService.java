@@ -54,26 +54,6 @@ public class UserService {
 		return jwt;
 	}
 
-//	public User registerUser(RegisterRequest registerRequest) {
-//		if (userRepository.existsByEmployeeId(registerRequest.getEmployeeId())) {
-//			return new ResponseEntity<?>(new ApiResponse(false, "EmployeeId is already exists!"),
-//					HttpStatus.BAD_REQUEST);
-//		}
-//
-//		User user = new User(registerRequest.getEmployeeId(), registerRequest.getFullName(),
-//				passwordEncoder.encode(registerRequest.getPassword()));
-//
-//		Optional<Role> userRole = roleRepository.findByRole(RoleName.valueOf(registerRequest.getRole()));
-//
-//		if (userRole.isPresent()) {
-//			user.setRole(userRole.get());
-//		} else {
-//			return new ResponseEntity<>(new ApiResponse(false, "Role setting error"), HttpStatus.BAD_REQUEST);
-//		}
-//
-//		return userRepository.save(user);
-//	}
-
 	// Return an object list with users information
 	public List<Map<String, String>> getUserList() {
 		List<Map<String, String>> result = new ArrayList<>();
@@ -121,7 +101,7 @@ public class UserService {
 			return false;
 		}
 	}
-	
+
 	private String rolenameResolve(Role role) {
 		switch (role.getRole()) {
 		case ROLE_Admin:

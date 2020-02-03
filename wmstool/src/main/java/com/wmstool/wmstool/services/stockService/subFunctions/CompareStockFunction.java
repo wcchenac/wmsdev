@@ -107,7 +107,7 @@ public class CompareStockFunction {
 
 				switch (unit) {
 				case 3: // 尺
-					quantity = String.format("%.1f", Double.parseDouble(quantity) / 3.0);
+					quantity = String.format("%.2f", Double.parseDouble(quantity) / 3.0);
 					unit = 2;
 					break;
 				case 7: // 打
@@ -154,12 +154,13 @@ public class CompareStockFunction {
 					tempResultList.add(quantity);
 					tempResultList.add(unitString);
 
-					if (quantity.equals(secondDBQTY)) {
+					if (String.format("%.2f", Double.parseDouble(quantity))
+							.equals(String.format("%.2f", Double.parseDouble(secondDBQTY)))) {
 						tempResultList.add("Pass");
 					} else {
 						tempResultList.add("Fail");
 						tempResultList.add(
-								String.format("%.1f", Double.parseDouble(quantity) - Double.parseDouble(secondDBQTY)));
+								String.format("%.2f", Double.parseDouble(quantity) - Double.parseDouble(secondDBQTY)));
 					}
 				}
 
@@ -208,11 +209,11 @@ public class CompareStockFunction {
 
 				switch (unit) {
 				case 3: // 尺
-					quantity = String.format("%.1f", Double.parseDouble(quantity) / 3.0);
+					quantity = String.format("%.2f", Double.parseDouble(quantity) / 3.0);
 					unit = 2;
 					break;
 				case 7: // 打
-					quantity = String.format("%.1f", Double.parseDouble(quantity) * 12.0);
+					quantity = String.format("%.2f", Double.parseDouble(quantity) * 12.0);
 					unit = 6;
 					break;
 				default:
@@ -234,7 +235,7 @@ public class CompareStockFunction {
 					secondDBRes.get(productNo).put(type, p);
 				} else {
 					Product temp = secondDBRes.get(productNo).get(type);
-					temp.setQuantity(String.format("%.1f",
+					temp.setQuantity(String.format("%.2f",
 							Double.parseDouble(temp.getQuantity()) + Double.parseDouble(quantity)));
 				}
 			}
@@ -270,7 +271,7 @@ public class CompareStockFunction {
 				} else {
 					tempResultList.add("Fail");
 					tempResultList.add(
-							String.format("%.1f", Double.parseDouble(firstDBQTY) - Double.parseDouble(secondDBQTY)));
+							String.format("%.2f", Double.parseDouble(firstDBQTY) - Double.parseDouble(secondDBQTY)));
 				}
 
 				// After comparing, remove p1 data from the map under productNo in secondDBRes;
@@ -310,7 +311,7 @@ public class CompareStockFunction {
 						rest.add("");
 						rest.add(p.getUnit());
 						rest.add("Fail");
-						rest.add(String.format("%.1f", Double.parseDouble(quantity) * -1));
+						rest.add(String.format("%.2f", Double.parseDouble(quantity) * -1));
 
 						compareResult.add(rest);
 					}

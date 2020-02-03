@@ -101,10 +101,9 @@ public class StockController {
 			stockService.shrinkStock(shrinkStockRequest);
 
 			return new ResponseEntity<>(HttpStatus.OK);
-
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
 			e.printStackTrace();
+
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -180,7 +179,6 @@ public class StockController {
 			stockService.updateOutStockRequest(outStockUpdateRequest);
 
 			return new ResponseEntity<>(HttpStatus.OK);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 

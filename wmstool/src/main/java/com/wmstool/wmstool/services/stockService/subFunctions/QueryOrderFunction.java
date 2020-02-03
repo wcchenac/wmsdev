@@ -114,7 +114,7 @@ public class QueryOrderFunction {
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
 
 			orderRecord.setProductNo(cell[0].toString());
-			orderRecord.setQuantity(String.format("%.1f",
+			orderRecord.setQuantity(String.format("%.2f",
 					Double.parseDouble(cell[1].toString()) + Double.parseDouble(cell[4].toString())));
 			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[2].toString()));
 			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[3].toString()));
@@ -154,7 +154,7 @@ public class QueryOrderFunction {
 				quantity = cell[2].toString();
 				break;
 			case 3:
-				quantity = String.format("%.1f", Double.parseDouble(cell[2].toString()) / 3.0);
+				quantity = String.format("%.2f", Double.parseDouble(cell[2].toString()) / 3.0);
 				unit = 2;
 				break;
 			default:
@@ -188,7 +188,7 @@ public class QueryOrderFunction {
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
 
 			orderRecord.setProductNo(cell[0].toString());
-			orderRecord.setQuantity(String.format("%.1f", Double.parseDouble(cell[1].toString())));
+			orderRecord.setQuantity(String.format("%.2f", Double.parseDouble(cell[1].toString())));
 			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[2].toString()));
 			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[3].toString()));
 
@@ -216,7 +216,7 @@ public class QueryOrderFunction {
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
 
 			orderRecord.setProductNo(cell[0].toString());
-			orderRecord.setQuantity(String.format("%.1f", Double.parseDouble(cell[1].toString())));
+			orderRecord.setQuantity(String.format("%.2f", Double.parseDouble(cell[1].toString())));
 			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[2].toString()));
 			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[3].toString()));
 
@@ -273,7 +273,7 @@ public class QueryOrderFunction {
 						Map<String, String> tempProperties = productNo_type_properties.get(content.getProductNo())
 								.get(content.getType());
 						tempProperties.put("quantity",
-								String.format("%.1f", Double.parseDouble(tempProperties.get("quantity"))
+								String.format("%.2f", Double.parseDouble(tempProperties.get("quantity"))
 										+ Double.parseDouble(content.getQuantity())));
 					}
 				}
@@ -305,7 +305,7 @@ public class QueryOrderFunction {
 		waitHandleStatus.keySet().forEach(productNo -> waitHandleStatus.get(productNo).keySet().forEach(type -> {
 			if (prevStatus.get(productNo) != null && prevStatus.get(productNo).get(type) != null) {
 				waitHandleStatus.get(productNo).get(type).put("quantity",
-						String.format("%.1f",
+						String.format("%.2f",
 								Double.parseDouble(waitHandleStatus.get(productNo).get(type).get("quantity"))
 										- Double.parseDouble(prevStatus.get(productNo).get(type).get("quantity"))));
 			}
