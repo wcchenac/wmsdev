@@ -5,6 +5,8 @@ import { getProductHistory } from "../../../../actions/StockAcions";
 import { dayOfStart, dayOfEnd, setPreviousMonth } from "../Utilities/DateUtils";
 import QueryProductInformation from "../Utilities/QueryProductInformation";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
+import LoadingOverlay from "react-loading-overlay";
+import { Spinner } from "../../../Others/Spinner";
 import "react-sortable-tree/style.css";
 import SortableTree from "react-sortable-tree";
 import TreeDataNode from "./TreeDataNode";
@@ -13,6 +15,7 @@ class StockHistoryBoard extends Component {
   constructor() {
     super();
     this.state = {
+      isLoading: false,
       isQuery: false,
       productNo: "",
       startDate: setPreviousMonth(dayOfStart(new Date()), 1),
@@ -89,15 +92,48 @@ class StockHistoryBoard extends Component {
       endDate: endDate.toJSON().substring(0, 19)
     };
 
-    this.props.getProductHistory(request).then(response => {
-      if (response.status === 200) {
-        this.setState({ isQuery: true });
-      }
+    this.setState({ isLoading: true }, () => {
+      this.props.getProductHistory(request).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false, isQuery: true });
+        }
+      });
     });
   }
 
+  contentAlgorithm(isQuery, treeData) {
+    if (!isQuery) {
+      return null;
+    } else {
+      if (treeData.length === 0) {
+        return (
+          <div className="row justify-content-md-center">
+            <div className="col-md-6">
+              <div className="alert alert-warning" role="alert">
+                <p className="h5 text-center mb-0">
+                  查無此貨號資料 或 此貨號設定期間內無進貨資料
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      } else {
+        return (
+          <div style={{ height: "70vh" }}>
+            <SortableTree
+              treeData={treeData}
+              rowHeight={100}
+              onChange={treeData => this.setState({ treeData })}
+              canDrag={false}
+            />
+          </div>
+        );
+      }
+    }
+  }
+
   render() {
-    const { isQuery, treeData, startDate, endDate } = this.state;
+    const { isLoading, isQuery, treeData, startDate, endDate } = this.state;
 
     return (
       <div className="stockHistoryBoard">
@@ -122,35 +158,16 @@ class StockHistoryBoard extends Component {
             </div>
             <div className="col-md-auto">
               <button className="btn-customize" disabled>
-                <small className="text-muted">
-                  若無設定，預設往前一個月查詢
-                </small>
+                <small className="text-muted">若無設定，預設查詢前一個月</small>
               </button>
             </div>
           </div>
           <hr />
-          {isQuery ? (
-            treeData.length === 0 ? (
-              <div className="row justify-content-md-center">
-                <div className="col-md-6">
-                  <div className="alert alert-warning" role="alert">
-                    <p className="h5 text-center mb-0">
-                      查無此貨號資料 或 此貨號設定期間內無進貨資料
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ height: 600 }}>
-                <SortableTree
-                  treeData={treeData}
-                  rowHeight={75}
-                  onChange={treeData => this.setState({ treeData })}
-                  canDrag={false}
-                />
-              </div>
-            )
-          ) : null}
+          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+            <div className="scrollbar-70" style={{ height: "75vh" }}>
+              {this.contentAlgorithm(isQuery, treeData)}
+            </div>
+          </LoadingOverlay>
         </div>
       </div>
     );

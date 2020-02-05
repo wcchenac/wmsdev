@@ -39,32 +39,41 @@ class FlieContainer extends Component {
       startDate,
       endDate
     );
-
-    console.log(startDate);
-    console.log(endDate);
   }
 
   render() {
     const { startDate, endDate } = this.state;
     const { containerTitle, fileType, filenames } = this.props;
-    const downloadURL =
-      "http://localhost:8080/api/file/download/" + fileType + "/";
 
     return (
-      <div>
+      <div
+        style={{
+          border: "2px solid black",
+          borderRadius: "5px",
+          padding: "0.5rem 0rem",
+          margin: "1rem 0rem"
+        }}
+      >
         <div className="container">
-          <div className="row">
-            <div className="col">
-              <p className="h5">{containerTitle}</p>
+          <div className="row pt-1">
+            <div className="col-auto">
+              <p className="h5 mb-0" style={{ padding: "4px 0px" }}>
+                {containerTitle}
+              </p>
+            </div>
+            <div className="col-auto">
               <button
                 type="button"
-                className="btn btn-sm btn-info mr-1"
+                className="btn btn-sm btn-info"
                 onClick={this.onCurrentClick}
               >
                 檔案查詢
               </button>
+            </div>
+            <div className="col-auto">
               <DatePeriodSelectModal
                 btnTitle={"特定日期區間查詢"}
+                fileType={fileType}
                 btnSize={"sm"}
                 startDate={startDate}
                 endDate={endDate}
@@ -80,8 +89,14 @@ class FlieContainer extends Component {
             <table className="table table-bordered table-hover">
               <thead className="thead-dark">
                 <tr>
-                  <th style={{ width: "70%" }}>檔名</th>
-                  <th style={{ width: "30%" }}>下載連結</th>
+                  <th style={{ width: "80%", padding: "0.5em 1.5em" }}>檔名</th>
+                  <th
+                    style={{
+                      width: "20%",
+                      padding: "7px 0px",
+                      textAlign: "center"
+                    }}
+                  />
                 </tr>
               </thead>
               <tbody>
@@ -89,18 +104,22 @@ class FlieContainer extends Component {
                   <tr>
                     {filenames.map((filename, index) => {
                       return (
-                        <React.Fragment>
-                          <td>{filename}</td>
-                          <td>
-                            <div className="row justify-content-center">
-                              <a
-                                key={index}
+                        <React.Fragment key={index}>
+                          <td style={{ padding: "0.5em 1em" }}>
+                            <button className="btn-customize" disabled>
+                              {filename}
+                            </button>
+                          </td>
+                          <td style={{ padding: "0.5em 1em" }}>
+                            <div className="d-flex justify-content-center">
+                              <button
                                 className="btn btn-primary"
-                                href={downloadURL + filename}
-                                download
+                                name={fileType}
+                                value={filename}
+                                onClick={this.props.downloadFile}
                               >
-                                <small>{filename}</small>
-                              </a>
+                                下載
+                              </button>
                             </div>
                           </td>
                         </React.Fragment>

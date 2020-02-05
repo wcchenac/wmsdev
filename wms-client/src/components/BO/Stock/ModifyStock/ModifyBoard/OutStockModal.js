@@ -44,7 +44,7 @@ class OutStockModal extends Component {
     this.setState({ outStockRequest: outStockRequestsCopy });
   }
 
-  handleSubmit(e) {
+  handleSubmit() {
     const { outStockRequest } = this.state;
     const newOutStockRequest = {
       productNo: outStockRequest.productNo,
@@ -56,7 +56,7 @@ class OutStockModal extends Component {
       reason: outStockRequest.reason
     };
 
-    this.props.handleOutStockRequestSubmit(e, newOutStockRequest);
+    this.props.handleOutStockRequestSubmit(newOutStockRequest);
   }
 
   checkFormAlgorithm(outStockRequest) {
@@ -91,7 +91,7 @@ class OutStockModal extends Component {
         aria-labelledby="content"
         aria-hidden="true"
       >
-        <div className="modal-dialog" role="document">
+        <div className="modal-dialog modal-dialog-centered" role="document">
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">拉貨要求</h5>

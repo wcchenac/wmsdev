@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {
   getStockInfoes,
-  stockIndentifierIsShiped,
+  stockIdentifierIsShiped,
   stockIdentifierWaitToShrinkIsTrue,
   createOutStockRequest,
   updateStockInfo
@@ -12,6 +12,9 @@ import StockInfoContainer from "./StockInfoContainer";
 import QueryProductInformation from "../../Utilities/QueryProductInformation";
 import ShowProductInformation from "../../Utilities/ShowProductInformation";
 import OutStockModal from "./OutStockModal";
+import QueryResponseWithNoStock from "../../Utilities/QueryResponseWithNoStock";
+import LoadingOverlay from "react-loading-overlay";
+import { Spinner } from "../../../../Others/Spinner";
 
 const equal = require("fast-deep-equal");
 
@@ -19,6 +22,7 @@ class ModifyBoard extends Component {
   constructor() {
     super();
     this.state = {
+      isLoading: false,
       isQuery: false,
       productNo: "",
       productInfo: {},
@@ -40,28 +44,53 @@ class ModifyBoard extends Component {
 
   onSubmit(e) {
     e.preventDefault();
-    this.props.getStockInfoes(this.state.productNo).then(response => {
-      if (response.status === 200) {
-        this.setState({ isQuery: true });
-      }
+    this.setState({ isLoading: true }, () => {
+      this.props.getStockInfoes(this.state.productNo).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false, isQuery: true });
+        }
+      });
     });
   }
 
-  handleOutStockRequestSubmit(e, outStockRequest) {
-    e.preventDefault();
-    this.props.createOutStockRequest(outStockRequest);
+  handleOutStockRequestSubmit(outStockRequest) {
+    this.setState({ isLoading: true }, () => {
+      this.props.createOutStockRequest(outStockRequest).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false });
+        }
+      });
+    });
   }
 
   handleShip(shipRequest) {
-    this.props.stockIndentifierIsShiped(shipRequest);
+    this.setState({ isLoading: true }, () => {
+      this.props.stockIdentifierIsShiped(shipRequest).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false });
+        }
+      });
+    });
   }
 
   handleShrink(id) {
-    this.props.stockIdentifierWaitToShrinkIsTrue(id);
+    this.setState({ isLoading: true }, () => {
+      this.props.stockIdentifierWaitToShrinkIsTrue(id).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false });
+        }
+      });
+    });
   }
 
   handleStockInfoUpdate(updateInfoRequest) {
-    this.props.updateStockInfo(updateInfoRequest);
+    this.setState({ isLoading: true }, () => {
+      this.props.updateStockInfo(updateInfoRequest).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false });
+        }
+      });
+    });
   }
 
   componentDidUpdate(prevProps) {
@@ -74,7 +103,13 @@ class ModifyBoard extends Component {
   }
 
   render() {
-    const { isQuery, productNo, productInfo, stockInfoes } = this.state;
+    const {
+      isLoading,
+      isQuery,
+      productNo,
+      productInfo,
+      stockInfoes
+    } = this.state;
 
     return (
       <div className="modify_stockInfo">
@@ -109,36 +144,32 @@ class ModifyBoard extends Component {
               >
                 拉貨要求
               </button>
-              {productNo.toUpperCase() !== productInfo.productNo ? null : (
-                <OutStockModal
-                  productNo={productNo.toUpperCase()}
-                  handleOutStockRequestSubmit={this.handleOutStockRequestSubmit}
-                />
-              )}
+              <OutStockModal
+                productNo={productNo.toUpperCase()}
+                handleOutStockRequestSubmit={this.handleOutStockRequestSubmit}
+              />
             </div>
           </div>
           <hr />
-          {isQuery ? (
-            stockInfoes.length === 0 ? (
-              <div className="row justify-content-md-center">
-                <div className="col-md-6">
-                  <div className="alert alert-warning" role="alert">
-                    <p className="h5 text-center mb-0">
-                      查無此貨號資料 或 此貨號已無庫存
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <StockInfoContainer
-                typeValidation={stockInfoes[0].stockIdentifier.type === "雜項"}
-                stockInfoes={stockInfoes}
-                handleShip={this.handleShip}
-                handleShrink={this.handleShrink}
-                handleStockInfoUpdate={this.handleStockInfoUpdate}
-              />
-            )
-          ) : null}
+          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+            <div style={{ height: "80vh" }}>
+              {isQuery ? (
+                stockInfoes.length === 0 ? (
+                  <QueryResponseWithNoStock />
+                ) : (
+                  <StockInfoContainer
+                    typeValidation={
+                      stockInfoes[0].stockIdentifier.type === "雜項"
+                    }
+                    stockInfoes={stockInfoes}
+                    handleShip={this.handleShip}
+                    handleShrink={this.handleShrink}
+                    handleStockInfoUpdate={this.handleStockInfoUpdate}
+                  />
+                )
+              ) : null}
+            </div>
+          </LoadingOverlay>
         </div>
       </div>
     );
@@ -148,7 +179,7 @@ class ModifyBoard extends Component {
 ModifyBoard.propTypes = {
   queryResult: PropTypes.object.isRequired,
   getStockInfoes: PropTypes.func.isRequired,
-  stockIndentifierIsShiped: PropTypes.func.isRequired,
+  stockIdentifierIsShiped: PropTypes.func.isRequired,
   stockIdentifierWaitToShrinkIsTrue: PropTypes.func.isRequired,
   createOutStockRequest: PropTypes.func.isRequired
 };
@@ -159,7 +190,7 @@ const mapStateToProps = state => ({
 
 export default connect(mapStateToProps, {
   getStockInfoes,
-  stockIndentifierIsShiped,
+  stockIdentifierIsShiped,
   stockIdentifierWaitToShrinkIsTrue,
   createOutStockRequest,
   updateStockInfo

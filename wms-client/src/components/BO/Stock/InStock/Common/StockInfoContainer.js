@@ -28,40 +28,25 @@ class StockInfoContainer extends PureComponent {
     let newStockInfo;
 
     if (stockInfoes.length === 0) {
+      newStockInfo = {
+        productNo: this.props.productNo,
+        lotNo: "",
+        type: type.toString(),
+        quantity: "",
+        unit: waitHandleStatus[type].unit,
+        color: "1",
+        defect: [{ label: "無", value: "無" }],
+        record: "",
+        remark: "",
+        inStockType: this.props.type,
+        orderNo: this.props.orderNo,
+        errors: {
+          quantity: ""
+        }
+      };
       if (typeValidation) {
-        newStockInfo = {
-          productNo: this.props.productNo,
-          lotNo: "",
-          type: type.toString(),
-          quantity: "",
-          unit: waitHandleStatus[type].unit,
-          color: "",
-          defect: "",
-          record: "",
-          remark: "",
-          inStockType: "normal",
-          orderNo: this.props.inStockOrderNo,
-          errors: {
-            quantity: ""
-          }
-        };
-      } else {
-        newStockInfo = {
-          productNo: this.props.productNo,
-          lotNo: "",
-          type: type.toString(),
-          quantity: "",
-          unit: waitHandleStatus[type].unit,
-          color: "1",
-          defect: [{ label: "無", value: "無" }],
-          record: "",
-          remark: "",
-          inStockType: "normal",
-          orderNo: this.props.inStockOrderNo,
-          errors: {
-            quantity: ""
-          }
-        };
+        newStockInfo["color"] = "";
+        newStockInfo["defect"] = "";
       }
     } else {
       newStockInfo = {
@@ -74,8 +59,8 @@ class StockInfoContainer extends PureComponent {
         defect: stockInfoes[stockInfoes.length - 1].defect,
         record: "",
         remark: "",
-        inStockType: "normal",
-        orderNo: this.props.inStockOrderNo,
+        inStockType: this.props.type,
+        orderNo: this.props.orderNo,
         errors: {
           quantity: ""
         }

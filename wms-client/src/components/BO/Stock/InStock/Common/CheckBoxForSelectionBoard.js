@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-class CheckBox extends Component {
+class CheckBoxForSelectionBoard extends Component {
   constructor(props) {
     super(props);
     this.handleChecked = this.handleChecked.bind(this);
@@ -15,8 +15,7 @@ class CheckBox extends Component {
 
     Object.keys(waitHandleStatus).forEach(type => {
       if (parseFloat(waitHandleStatus[type].quantity) !== 0) {
-        result = false;
-        return result;
+        return (result = false);
       }
     });
 
@@ -69,8 +68,9 @@ class CheckBox extends Component {
                     <div className="row mb-0">
                       <label className="col-auto mb-0">{type.toString()}</label>
                       <label className="col-auto mb-0">
-                        {waitHandleStatus[type].quantity}{" "}
-                        {waitHandleStatus[type].unit}
+                        {waitHandleStatus[type].quantity +
+                          " " +
+                          waitHandleStatus[type].unit}
                       </label>
                     </div>
                   </div>
@@ -84,4 +84,4 @@ class CheckBox extends Component {
   }
 }
 
-export default CheckBox;
+export default CheckBoxForSelectionBoard;

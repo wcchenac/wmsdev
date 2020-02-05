@@ -49,7 +49,7 @@ public class InStockOrderRecord {
 	public InStockOrderRecord() {
 	}
 
-	public InStockOrderRecord(StockIdentifier stockIdentifier, InStockRequest inStockRequest) {
+	public InStockOrderRecord(StockIdentifier stockIdentifier, InStockRequest inStockRequest, String editor) {
 		this.inStockType = inStockRequest.getInStockType();
 		this.inStockOrderNo = inStockRequest.getOrderNo();
 		this.productNo = stockIdentifier.getProductNo();
@@ -60,6 +60,7 @@ public class InStockOrderRecord {
 		this.color = inStockRequest.getColor();
 		this.defect = inStockRequest.getDefect();
 		this.stockIdentifierId = stockIdentifier.getId();
+		this.createdBy = editor;
 	}
 
 	public Long getId() {

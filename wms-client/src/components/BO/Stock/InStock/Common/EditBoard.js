@@ -1,10 +1,13 @@
 import React, { PureComponent } from "react";
 import StockInfoContainer from "./StockInfoContainer";
+import LoadingOverlay from "react-loading-overlay";
+import { Spinner } from "../../../../Others/Spinner";
 
 const equal = require("fast-deep-equal");
 
 class EditBoard extends PureComponent {
-  contentAlgorithm(selectedProductNoList, filterSubmittedList, inStockOrderNo) {
+  contentAlgorithm(filterSubmittedList) {
+    const { isLoading, selectedProductNoList, orderNo } = this.props;
     const filterSelectedList = selectedProductNoList.filter(
       object => object.selected === true && object.isSubmitted === false
     );
@@ -28,7 +31,7 @@ class EditBoard extends PureComponent {
       }
     } else {
       return (
-        <div>
+        <div className="scrollbar-70">
           <nav>
             <div className="nav nav-tabs" id="nav-tab" role="tablist">
               {filterSelectedList.map((object, index) => {
@@ -64,20 +67,29 @@ class EditBoard extends PureComponent {
               );
 
               return (
-                <StockInfoContainer
-                  typeValidation={typeValidation}
-                  key={object.index}
-                  sequence={index}
-                  index={object.index}
-                  inStockOrderNo={inStockOrderNo}
-                  productNo={object.productNo}
-                  waitHandleStatus={
-                    this.props.waitHandleStatus[object.productNo]
-                  }
-                  handleInStockRequestSubmit={
-                    this.props.handleInStockRequestSubmit
-                  }
-                />
+                <LoadingOverlay
+                  key={index}
+                  active={isLoading}
+                  spinner={<Spinner />}
+                >
+                  <div>
+                    <StockInfoContainer
+                      type={this.props.type}
+                      typeValidation={typeValidation}
+                      key={object.index}
+                      sequence={index}
+                      index={object.index}
+                      orderNo={orderNo}
+                      productNo={object.productNo}
+                      waitHandleStatus={
+                        this.props.waitHandleStatus[object.productNo]
+                      }
+                      handleInStockRequestSubmit={
+                        this.props.handleInStockRequestSubmit
+                      }
+                    />
+                  </div>
+                </LoadingOverlay>
               );
             })}
           </div>
@@ -89,11 +101,6 @@ class EditBoard extends PureComponent {
   render() {
     const filterSubmittedList = this.props.selectedProductNoList.filter(
       object => object.isSubmitted === true
-    );
-    let content = this.contentAlgorithm(
-      this.props.selectedProductNoList,
-      filterSubmittedList,
-      this.props.inStockOrderNo
     );
 
     return (
@@ -109,7 +116,7 @@ class EditBoard extends PureComponent {
           </button>
         </div>
         <br />
-        {content}
+        {this.contentAlgorithm(filterSubmittedList)}
       </div>
     );
   }

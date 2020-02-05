@@ -12,7 +12,6 @@ class StockInfoContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSubmited: false,
       stockInfoes: []
     };
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
@@ -107,13 +106,7 @@ class StockInfoContainer extends Component {
     // join stockInfo.defect array contents
     joinInfoesDefectArray(stockInfoesCopy);
 
-    this.props.handleAssembleRequestSubmit(stockInfoesCopy).then(res => {
-      if (res.status === 200) {
-        this.setState({
-          isSubmited: true
-        });
-      }
-    });
+    this.props.handleAssembleRequestSubmit(stockInfoesCopy);
   }
 
   checkFormAlgorithm(stockInfoes, quantitySum, currentStatus) {
@@ -156,8 +149,8 @@ class StockInfoContainer extends Component {
   }
 
   render() {
-    const { assembleOrderContent, waitHandleStatus } = this.props;
-    const { isSubmited, stockInfoes } = this.state;
+    const { isSubmited, assembleOrderContent, waitHandleStatus } = this.props;
+    const { stockInfoes } = this.state;
     const quantitySum = quantityAccumulate(stockInfoes);
     let isFormValid = this.checkFormAlgorithm(
       stockInfoes,

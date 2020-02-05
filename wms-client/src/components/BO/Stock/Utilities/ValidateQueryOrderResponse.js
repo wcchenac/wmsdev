@@ -6,9 +6,7 @@ export function checkWaitHandleStatusCompletion(waitHandleStatus) {
   Object.keys(waitHandleStatus).forEach(productNo => {
     Object.keys(waitHandleStatus[productNo]).forEach(type => {
       if (parseFloat(waitHandleStatus[productNo][type].quantity) !== 0.0) {
-        quantityValid = false;
-
-        return quantityValid;
+        return quantityValid = false;
       }
     });
   });

@@ -18,15 +18,19 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.wmstool.wmstool.models.OutStockRequest;
 
+@Component
 public class OutStockRequestExcelHelper {
 
+	@Value("${file.filePathForExcels}")
+	private String folderPath;
+
 	private static final String seperator = File.separator;
-	private static final String parentDir = "/Users/weichihchen/Desktop/Temp/OutStockList";
 	private static final String filetype = ".xls";
-	private static final String templateFile = parentDir + seperator + "OutStockListTemplate" + filetype;
 	private static final String filenamePrefix = "OutStockList-";
 	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
@@ -34,7 +38,10 @@ public class OutStockRequestExcelHelper {
 	 * Create a excel from template excel which is named by current date/time
 	 * formated in "yyyyMMddHHmmss" pattern
 	 */
-	public static String createNewFile(LocalDateTime now) throws IOException {
+	public String createNewFile(LocalDateTime now) throws IOException {
+		String parentDir = folderPath + seperator + "OutStockList";
+		String templateFile = parentDir + seperator + "OutStockListTemplate" + filetype;
+
 		// Read template file
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
@@ -65,8 +72,10 @@ public class OutStockRequestExcelHelper {
 	/**
 	 * Using given outStockRequest information to update the given filename excel
 	 */
-	public static void modifyExisting(List<OutStockRequest> outStockRequestList, LocalDateTime now, String fileName)
+	public void modifyExisting(List<OutStockRequest> outStockRequestList, LocalDateTime now, String fileName)
 			throws IOException {
+		String parentDir = folderPath + seperator + "OutStockList";
+
 		// Read target file
 		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
 				+ fileName;

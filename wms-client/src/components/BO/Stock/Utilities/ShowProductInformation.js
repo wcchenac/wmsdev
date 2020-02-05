@@ -27,7 +27,10 @@ export default class ShowProductInformation extends Component {
           aria-labelledby="content"
           aria-hidden="true"
         >
-          <div className="modal-dialog modal-lg" role="document">
+          <div
+            className="modal-dialog modal-dialog-centered modal-lg"
+            role="document"
+          >
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">詳細資料</h5>
@@ -123,18 +126,16 @@ export default class ShowProductInformation extends Component {
                                 {productInfo.descrip}
                               </label>
                             </div>
+                            <div className="form-group row">
+                              <label className="col-5 col-form-label text-right">
+                                成本:
+                              </label>
+                              <label className="col-7 col-form-label">
+                                {productInfo.cCost}
+                              </label>
+                            </div>
                           </React.Fragment>
                         )}
-                        {/* TODO: investigate original working function
-                              <div className="form-group row">
-                                <label className="col-5 col-form-label text-right">
-                                  成本:
-                                </label>
-                                <label className="col-7 col-form-label">
-                                  成本
-                                </label>
-                              </div>
-                                */}
                       </div>
                     </div>
                   </div>

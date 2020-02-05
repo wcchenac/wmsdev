@@ -1,4 +1,4 @@
-package com.wmstool.ERP.services;
+package com.wmstool.erp.services;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,10 +6,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.wmstool.ERP.models.ERPRecord;
-import com.wmstool.ERP.models.ProductNo;
-import com.wmstool.ERP.repositories.ERPRecordRepository;
-import com.wmstool.ERP.repositories.ProductNoRepository;
+import com.wmstool.erp.models.ERPRecord;
+import com.wmstool.erp.models.ProductNo;
+import com.wmstool.erp.repositories.ERPRecordRepository;
+import com.wmstool.erp.repositories.ProductNoRepository;
 
 @Service
 public class ERPService {

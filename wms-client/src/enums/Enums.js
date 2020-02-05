@@ -64,3 +64,11 @@ export const unitLlist = [
   "疊",
   "組"
 ];
+
+export const RoleOption = {
+  "請選擇...": "",
+  "一般人員/門市": "ROLE_Normal",
+  業務: "ROLE_Sales",
+  庫存相關人員: "ROLE_Operator",
+  管理員: "ROLE_Admin"
+};

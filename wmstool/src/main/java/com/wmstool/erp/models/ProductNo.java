@@ -1,4 +1,4 @@
-package com.wmstool.ERP.models;
+package com.wmstool.erp.models;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

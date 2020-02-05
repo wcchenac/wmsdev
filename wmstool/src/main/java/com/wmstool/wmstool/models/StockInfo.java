@@ -46,24 +46,32 @@ public class StockInfo {
 	@JsonIgnore
 	private LocalDateTime updatedAt;
 
+	@JsonIgnore
+	private String createdBy;
+
+	@JsonIgnore
+	private String updatedBy;
+
 	public StockInfo() {
 	}
 
-	public StockInfo(StockIdentifier stockIdentifier, InStockRequest inStockRequest) {
+	public StockInfo(StockIdentifier stockIdentifier, InStockRequest inStockRequest, String editor) {
 		this.stockIdentifier = stockIdentifier;
 		this.color = inStockRequest.getColor();
 		this.defect = inStockRequest.getDefect();
 		this.record = inStockRequest.getRecord();
 		this.remark = inStockRequest.getRemark();
+		this.createdBy = editor;
 	}
 
-	public StockInfo(UpdateInfoRequest updateInfoRequest) {
-		this.id = updateInfoRequest.getId();
-		this.color = updateInfoRequest.getColor();
-		this.defect = updateInfoRequest.getDefect();
-		this.record = updateInfoRequest.getRecord();
-		this.remark = updateInfoRequest.getRemark();
-	}
+//	public StockInfo(UpdateInfoRequest updateInfoRequest, String editor) {
+//		this.id = updateInfoRequest.getId();
+//		this.color = updateInfoRequest.getColor();
+//		this.defect = updateInfoRequest.getDefect();
+//		this.record = updateInfoRequest.getRecord();
+//		this.remark = updateInfoRequest.getRemark();
+//		this.updatedBy = editor;
+//	}
 
 	public Long getId() {
 		return id;
@@ -135,6 +143,22 @@ public class StockInfo {
 
 	public void setUpdatedAt(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
+	}
+
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public String getUpdatedBy() {
+		return updatedBy;
+	}
+
+	public void setUpdatedBy(String updatedBy) {
+		this.updatedBy = updatedBy;
 	}
 
 	@PrePersist

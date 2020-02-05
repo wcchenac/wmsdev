@@ -16,6 +16,9 @@ const initialState = {
 export default function(state = initialState, action) {
   switch (action.type) {
     case GET_Order:
+    case GET_StockInfoes:
+    case SHRINK_Stock:
+    case UPDATE_StockInfo:
       return {
         ...state,
         stockInfoes: action.payload
@@ -24,11 +27,6 @@ export default function(state = initialState, action) {
       return {
         ...state,
         stockInfo: action.payload
-      };
-    case GET_StockInfoes:
-      return {
-        ...state,
-        stockInfoes: action.payload
       };
     case SHIP_Stock:
       return {
@@ -40,22 +38,12 @@ export default function(state = initialState, action) {
           )
         }
       };
-    case SHRINK_Stock:
-      return {
-        ...state,
-        stockInfoes: action.payload
-      };
     case CANCEL_SHRINK:
       return {
         ...state,
         stockInfoes: state.stockInfoes.filter(
           stockInfo => stockInfo.stockIdentifier.id !== action.payload
         )
-      };
-    case UPDATE_StockInfo:
-      return {
-        ...state,
-        stockInfoes: action.payload
       };
     default:
       return state;

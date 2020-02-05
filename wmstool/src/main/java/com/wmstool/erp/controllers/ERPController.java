@@ -1,4 +1,4 @@
-package com.wmstool.ERP.controllers;
+package com.wmstool.erp.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wmstool.ERP.models.ERPRecord;
-import com.wmstool.ERP.models.ProductNo;
-import com.wmstool.ERP.services.ERPService;
+import com.wmstool.erp.models.ERPRecord;
+import com.wmstool.erp.models.ProductNo;
+import com.wmstool.erp.services.ERPService;
 
 @RestController
 @RequestMapping("/api/erp")

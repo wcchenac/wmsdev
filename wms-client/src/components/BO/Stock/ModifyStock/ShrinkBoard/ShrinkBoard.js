@@ -13,16 +13,16 @@ class ShrinkBoard extends Component {
   constructor() {
     super();
     this.state = {
+      isLoading: false,
       shrinkList: [],
       stockInfo: {},
       typeExchange: false,
       sameTypeModify: false,
       hardwareModify: false
     };
-    // this.onSameTypeClick = this.onSameTypeClick.bind(this);
-    // this.onTypeExchangeClick = this.onTypeExchangeClick.bind(this);
-    // this.onHardwareModifyClick = this.onHardwareModifyClick.bind(this);
+    this.queryShrinkList = this.queryShrinkList.bind(this);
     this.onModifyClick = this.onModifyClick.bind(this);
+    this.handleModifyRequestSubmit = this.handleModifyRequestSubmit.bind(this);
     this.onCancelShrinkClick = this.onCancelShrinkClick.bind(this);
     this.handleGoBack = this.handleGoBack.bind(this);
     this.initialComponent = this.initialComponent.bind(this);
@@ -36,6 +36,7 @@ class ShrinkBoard extends Component {
 
   initialComponent() {
     this.setState({
+      isLoading: false,
       shrinkList: [],
       stockInfo: {},
       typeExchange: false,
@@ -52,24 +53,44 @@ class ShrinkBoard extends Component {
     this.setState({ [type]: true, stockInfo: stockInfo });
   }
 
-  // onTypeExchangeClick(stockInfo) {
-  //   this.setState({ typeExchange: true, stockInfo: stockInfo });
-  // }
+  queryShrinkList() {
+    this.setState({ isLoading: true }, () => {
+      this.props.getShrinkList().then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false });
+        }
+      });
+    });
+  }
 
-  // onSameTypeClick(stockInfo) {
-  //   this.setState({ sameTypeModify: true, stockInfo: stockInfo });
-  // }
-
-  // onHardwareModifyClick(stockInfo) {
-  //   this.setState({ hardwareModify: true, stockInfo: stockInfo });
-  // }
+  handleModifyRequestSubmit(shrinkStockRequest) {
+    this.setState({ isLoading: true }, () => {
+      this.props
+        .batchCreateStockInfoesForShrink(shrinkStockRequest)
+        .then(res => {
+          if (res.status === 200) {
+            this.initialComponent();
+          }
+        })
+        .catch(err => console.log(err));
+    });
+  }
 
   onCancelShrinkClick(stockIdentifierId) {
-    this.props.stockIdentifierWaitToShrinkIsFalse(stockIdentifierId);
+    this.setState({ isLoading: true }, () => {
+      this.props
+        .stockIdentifierWaitToShrinkIsFalse(stockIdentifierId)
+        .then(response => {
+          if (response.status === 200) {
+            this.setState({ isLoading: false });
+          }
+        });
+    });
   }
 
   render() {
     const {
+      isLoading,
       shrinkList,
       stockInfo,
       typeExchange,
@@ -77,33 +98,54 @@ class ShrinkBoard extends Component {
       hardwareModify
     } = this.state;
 
-    if (typeExchange || sameTypeModify || hardwareModify) {
-      return (
-        <ModifyRequestBoard
-          stockInfo={stockInfo}
-          typeExchange={typeExchange}
-          sameTypeModify={sameTypeModify}
-          hardwareModify={hardwareModify}
-          handleGoBack={this.handleGoBack}
-          batchCreateStockInfoesForShrink={
-            this.props.batchCreateStockInfoesForShrink
-          }
-          initialComponent={this.initialComponent}
-        />
-      );
-    } else {
-      return (
-        <ShrinkList
-          shrinkList={shrinkList}
-          getShrinkList={this.props.getShrinkList}
-          // onTypeExchangeClick={this.onTypeExchangeClick}
-          // onSameTypeClick={this.onSameTypeClick}
-          // onHardwareModifyClick={this.onHardwareModifyClick}
-          onModifyClick={this.onModifyClick}
-          onCancelShrinkClick={this.onCancelShrinkClick}
-        />
-      );
-    }
+    return typeExchange || sameTypeModify || hardwareModify ? (
+      <ModifyRequestBoard
+        isLoading={isLoading}
+        stockInfo={stockInfo}
+        typeExchange={typeExchange}
+        sameTypeModify={sameTypeModify}
+        hardwareModify={hardwareModify}
+        handleGoBack={this.handleGoBack}
+        handleModifyRequestSubmit={this.handleModifyRequestSubmit}
+        initialComponent={this.initialComponent}
+      />
+    ) : (
+      <ShrinkList
+        isLoading={isLoading}
+        shrinkList={shrinkList}
+        queryShrinkList={this.queryShrinkList}
+        onModifyClick={this.onModifyClick}
+        onCancelShrinkClick={this.onCancelShrinkClick}
+      />
+    );
+    // if (typeExchange || sameTypeModify || hardwareModify) {
+    //   return (
+    //     <ModifyRequestBoard
+    //       stockInfo={stockInfo}
+    //       typeExchange={typeExchange}
+    //       sameTypeModify={sameTypeModify}
+    //       hardwareModify={hardwareModify}
+    //       handleGoBack={this.handleGoBack}
+    //       batchCreateStockInfoesForShrink={
+    //         this.props.batchCreateStockInfoesForShrink
+    //       }
+    //       initialComponent={this.initialComponent}
+    //     />
+    //   );
+    // } else {
+    //   return (
+
+    //     <ShrinkList
+    //       shrinkList={shrinkList}
+    //       getShrinkList={this.props.getShrinkList}
+    //       // onTypeExchangeClick={this.onTypeExchangeClick}
+    //       // onSameTypeClick={this.onSameTypeClick}
+    //       // onHardwareModifyClick={this.onHardwareModifyClick}
+    //       onModifyClick={this.onModifyClick}
+    //       onCancelShrinkClick={this.onCancelShrinkClick}
+    //     />
+    //   );
+    // }
   }
 }
 

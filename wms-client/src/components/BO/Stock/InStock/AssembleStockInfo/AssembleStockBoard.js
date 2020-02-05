@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import QueryAssemble from "./QueryAssemble";
+import QueryOrder from "../Common/QueryOrder";
 import StockInfoContainer from "./StockInfoContainer";
 import {
   getAssembleOrder,
@@ -9,13 +9,17 @@ import {
 } from "../../../../../actions/StockAcions";
 import { checkWaitHandleStatusCompletion } from "../../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../../utilities/IsEmpty";
+import LoadingOverlay from "react-loading-overlay";
+import { Spinner } from "../../../../Others/Spinner";
 
 class AssembleStockBoard extends Component {
   constructor() {
     super();
     this.state = {
+      isLoading: false,
       isOrderValid: undefined,
-      assembleOrderNo: "",
+      isSubmited: false,
+      orderNo: "",
       assembleOrderContent: {},
       waitHandleStatus: {}
     };
@@ -45,12 +49,28 @@ class AssembleStockBoard extends Component {
 
   handleQuerySubmit(e) {
     e.preventDefault();
-    this.setState({ isOrderValid: undefined });
-    this.props.getAssembleOrder(this.state.assembleOrderNo);
+    this.setState({ isLoading: true, isOrderValid: undefined }, () => {
+      this.props.getAssembleOrder(this.state.orderNo).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false });
+        }
+      });
+    });
   }
 
   handleAssembleRequestSubmit(inStockRequests) {
-    return this.props.batchCreateStockInfoes(inStockRequests);
+    this.setState({ isLoading: true }, () => {
+      this.props
+        .batchCreateStockInfoes(inStockRequests)
+        .then(res => {
+          this.setState({ isLoading: false, isSubmited: true });
+          return res;
+        })
+        .catch(err => {
+          this.setState({ isLoading: false, isSubmited: false });
+          return err;
+        });
+    });
   }
 
   componentDidUpdate(prevProps) {
@@ -78,8 +98,10 @@ class AssembleStockBoard extends Component {
 
   render() {
     const {
+      isLoading,
       isOrderValid,
-      assembleOrderNo,
+      isSubmited,
+      orderNo,
       assembleOrderContent,
       waitHandleStatus
     } = this.state;
@@ -87,21 +109,27 @@ class AssembleStockBoard extends Component {
     return (
       <div className="assemble_stockInfo">
         <div className="container">
-          <QueryAssemble
-            isOrderValid={isOrderValid}
-            handleQueryChange={this.handleQueryChange}
-            handleQuerySubmit={this.handleQuerySubmit}
-          />
-          <hr />
-          {isOrderValid ? (
-            <StockInfoContainer
-              assembleOrderNo={assembleOrderNo}
-              assembleOrderContent={assembleOrderContent}
-              waitHandleStatus={waitHandleStatus}
-              handleAssembleRequestSubmit={this.handleAssembleRequestSubmit}
-              getInitialize={this.getInitialize}
+          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+            <QueryOrder
+              type="組裝單"
+              isOrderValid={isOrderValid}
+              handleOrderNo={this.handleQueryChange}
+              handleQueryOrderSubmit={this.handleQuerySubmit}
             />
-          ) : null}
+            <hr />
+            <div style={{ height: "80vh" }}>
+              {isOrderValid ? (
+                <StockInfoContainer
+                  isSubmited={isSubmited}
+                  assembleOrderNo={orderNo}
+                  assembleOrderContent={assembleOrderContent}
+                  waitHandleStatus={waitHandleStatus}
+                  handleAssembleRequestSubmit={this.handleAssembleRequestSubmit}
+                  getInitialize={this.getInitialize}
+                />
+              ) : null}
+            </div>
+          </LoadingOverlay>
         </div>
       </div>
     );
