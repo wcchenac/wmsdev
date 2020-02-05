@@ -104,7 +104,7 @@ class SearchInfo extends Component {
             )}
           </td>
           <td>
-            {handled || outStockType === 1 ? null : (
+            {outStockType === 1 ? null : (
               <i
                 className="fa fa-trash fa-lg pt-2"
                 aria-hidden="true"

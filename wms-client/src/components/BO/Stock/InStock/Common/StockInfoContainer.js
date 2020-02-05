@@ -275,10 +275,10 @@ class StockInfoContainer extends PureComponent {
                   <th style={{ width: "20%" }}>貨號</th>
                   <th style={{ width: "8%" }}>批號</th>
                   <th style={{ width: "8%" }}>型態</th>
-                  <th style={{ width: "15%" }}>數量</th>
+                  <th style={{ width: "13%" }}>數量</th>
                   <th style={{ width: "8%" }}>單位</th>
                   <th style={{ width: "8%" }}>色號</th>
-                  <th style={{ width: "15%" }}>瑕疵</th>
+                  <th style={{ width: "17%" }}>瑕疵</th>
                   <th style={{ width: "18%" }}>記錄</th>
                 </React.Fragment>
               )}

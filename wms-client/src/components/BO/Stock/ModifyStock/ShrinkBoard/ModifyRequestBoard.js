@@ -3,7 +3,8 @@ import ModifyRequestContainer from "./ModifyRequestContainer";
 import { copy } from "../../../../../utilities/DeepCopy";
 import {
   updateStockInfoesCopy,
-  joinInfoesDefectArray
+  joinInfoesDefectArray,
+  defectStringTransToOptions
 } from "../../Utilities/StockInfoHelperMethods";
 
 const equal = require("fast-deep-equal");
@@ -35,8 +36,10 @@ class ModifyRequestBoard extends Component {
       quantity: "",
       unit: "碼",
       color: this.state.oldStockInfo.color,
-      defect: [{ label: "無", value: "無" }],
-      record: this.state.oldStockInfo.record,
+      defect: defectStringTransToOptions(
+        this.state.oldStockInfo.stockIdentifier.defect
+      ),
+      record: "",
       remark: "",
       inStockType: "shrink",
       parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use

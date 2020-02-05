@@ -5,10 +5,10 @@ export const StoreList = [
   "台中門市",
   "嘉義門市",
   "台南門市",
-  "西門門市",
   "鼎山門市",
   "中山門市",
-  "屏東門市"
+  "屏東門市",
+  "西門門市"
 ];
 
 // Used at ModifyBoard-ClothInfo-OutStockModal

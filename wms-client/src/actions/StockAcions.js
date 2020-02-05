@@ -87,16 +87,16 @@ export const getStockInfoes = productNo => async dispatch => {
   return res;
 };
 
-export const getStockInfoesWithQuantity = productNo => async dispatch => {
-  const res = await axios.get(`/api/stock/queryStock/query/3/${productNo}`);
+// export const getStockInfoesWithQuantity = productNo => async dispatch => {
+//   const res = await axios.get(`/api/stock/queryStock/query/3/${productNo}`);
 
-  dispatch({
-    type: GET_StockInfoes,
-    payload: res.data
-  });
+//   dispatch({
+//     type: GET_StockInfoes,
+//     payload: res.data
+//   });
 
-  return res;
-};
+//   return res;
+// };
 
 export const getShrinkList = () => async dispatch => {
   const res = await axios.get("/api/stock/queryStock/shrinkList");
@@ -206,7 +206,7 @@ export const updateStockInfo = updateInfoRequest => async dispatch => {
   try {
     let result = await axios.patch("/api/stock/updateStock", updateInfoRequest);
     let productNo = result.data;
-    const res = await axios.get(`/api/stock/queryStock/query/${productNo}`);
+    const res = await axios.get(`/api/stock/queryStock/query/1/${productNo}`);
 
     dispatch({
       type: UPDATE_StockInfo,

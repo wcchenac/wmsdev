@@ -26,12 +26,14 @@ class OutStockRequestList extends Component {
     super();
     this.state = {
       isLoading: false,
+      modalShow: false,
       queryResult: {},
       userList: [],
       selectedUserList: [],
       startDate: dayOfStart(new Date()),
       endDate: dayOfEnd(new Date()),
-      selectedOutStockRequest: []
+      selectedOutStockRequest: [],
+      handlingInfo: {}
     };
     this.getInitialState = this.getInitialState.bind(this);
     this.handleStartDateSelection = this.handleStartDateSelection.bind(this);
@@ -51,18 +53,16 @@ class OutStockRequestList extends Component {
   }
 
   getInitialState() {
-    // if (this.timer !== null) {
-    //   clearTimeout(this.timer);
-    // }
-
     this.setState({
       isLoading: false,
+      modalShow: false,
       queryResult: {},
       userList: [],
       selectedUserList: [],
       startDate: dayOfStart(new Date()),
       endDate: dayOfEnd(new Date()),
-      selectedOutStockRequest: []
+      selectedOutStockRequest: [],
+      handlingInfo: {}
     });
 
     this.loadingWaitHandleList();
@@ -225,6 +225,10 @@ class OutStockRequestList extends Component {
     downloadFile(e.target.name, e.target.value);
   }
 
+  handleModalClose() {
+    this.setState({ modalShow: false });
+  }
+
   render() {
     const {
       isLoading,
@@ -292,7 +296,7 @@ OutStockRequestList.propTypes = {
   updateOutStockRequests: PropTypes.func.isRequired,
   stockIdentifierIsNotShiped: PropTypes.func.isRequired,
   deleteOutStockRequest: PropTypes.func.isRequired,
-  downloadFile:PropTypes.func.isRequired
+  downloadFile: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -304,5 +308,6 @@ export default connect(mapStateToProps, {
   getWaitHandleListWithInterval,
   updateOutStockRequests,
   stockIdentifierIsNotShiped,
-  deleteOutStockRequest,downloadFile
+  deleteOutStockRequest,
+  downloadFile
 })(OutStockRequestList);
