@@ -208,8 +208,11 @@ public class ModifyStockFunction {
 		if (!res.getDefect().equals(updateInfoRequest.getDefect())) {
 			res.setDefect(updateInfoRequest.getDefect());
 		}
-		if (!res.getRecord().equals(updateInfoRequest.getRecord())) {
+		if (res.getRecord() == null) {
 			res.setRecord(updateInfoRequest.getRecord());
+		} else {
+			if (!res.getRecord().equals(updateInfoRequest.getRecord()))
+				res.setRecord(updateInfoRequest.getRecord());
 		}
 		if (!res.getRemark().equals(updateInfoRequest.getRemark())) {
 			res.setRemark(updateInfoRequest.getRemark());

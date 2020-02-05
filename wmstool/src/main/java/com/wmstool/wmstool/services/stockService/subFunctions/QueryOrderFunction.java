@@ -253,6 +253,8 @@ public class QueryOrderFunction {
 					Map<String, Map<String, String>> type_properties = new HashMap<>();
 					Map<String, String> properties = new HashMap<>();
 
+					quantityConvertor(content);
+
 					properties.put("quantity", content.getQuantity());
 					properties.put("unit", content.getUnit());
 					type_properties.put(content.getType(), properties);
@@ -264,6 +266,8 @@ public class QueryOrderFunction {
 					if (!temp_type_properties.containsKey(content.getType())) {
 						Map<String, String> properties = new HashMap<>();
 
+						quantityConvertor(content);
+
 						properties.put("quantity", content.getQuantity());
 						properties.put("unit", content.getUnit());
 
@@ -272,6 +276,9 @@ public class QueryOrderFunction {
 						// if productNo exist and type exist, sum
 						Map<String, String> tempProperties = productNo_type_properties.get(content.getProductNo())
 								.get(content.getType());
+
+						quantityConvertor(content);
+
 						tempProperties.put("quantity",
 								String.format("%.2f", Double.parseDouble(tempProperties.get("quantity"))
 										+ Double.parseDouble(content.getQuantity())));
@@ -281,6 +288,34 @@ public class QueryOrderFunction {
 		}
 
 		return productNo_type_properties;
+	}
+
+	/**
+	 * Unit conversion for InStockOrderRecord (There are some unit having the
+	 * conversion)
+	 */
+	private InStockOrderRecord quantityConvertor(InStockOrderRecord inStockOrderRecord) {
+		String quantity = inStockOrderRecord.getQuantity();
+		String unit = inStockOrderRecord.getUnit();
+
+		switch (unit) {
+		case "尺":
+			quantity = String.format("%.2f", Double.parseDouble(quantity) / 3.0);
+			unit = "碼";
+			inStockOrderRecord.setQuantity(quantity);
+			inStockOrderRecord.setUnit(unit);
+
+			return inStockOrderRecord;
+		case "打":
+			quantity = String.format("%d", Integer.parseInt(quantity) * 12);
+			unit = "個";
+			inStockOrderRecord.setQuantity(quantity);
+			inStockOrderRecord.setUnit(unit);
+
+			return inStockOrderRecord;
+		default:
+			return inStockOrderRecord;
+		}
 	}
 
 	/**

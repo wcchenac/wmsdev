@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.wmstool</groupId>
 	<artifactId>wmstool</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.4-SNAPSHOT</version>
 	<name>wmstool</name>
 	<description>wmstool project for Spring Boot</description>
 

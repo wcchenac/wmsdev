@@ -103,14 +103,14 @@ public class StockService {
 		return queryStockFunction.findBasicStockInfoByProductNo(productNo);
 	}
 
-	/**
-	 * Return a response containing information for certain productNo fetching from
-	 * second db and a list of StockInfoes with certain productNo fetching from
-	 * first db
-	 */
-	public QueryProductNoResponse findStockInfoByProductNo(String productNo) {
-		return queryStockFunction.findStockInfoByProductNo(productNo);
-	}
+//	/**
+//	 * Return a response containing information for certain productNo fetching from
+//	 * second db and a list of StockInfoes with certain productNo fetching from
+//	 * first db
+//	 */
+//	public QueryProductNoResponse findStockInfoByProductNo(String productNo) {
+//		return queryStockFunction.findStockInfoByProductNo(productNo);
+//	}
 
 	/**
 	 * Return a response containing information for certain productNo fetching from

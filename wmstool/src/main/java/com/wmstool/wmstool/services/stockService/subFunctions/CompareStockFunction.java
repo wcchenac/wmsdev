@@ -50,6 +50,10 @@ public class CompareStockFunction {
 	@Autowired
 	private WeeklyStockComparisonExcelHelper weeklyStockComparisonExcelHelper;
 
+	private final String queryProductCQTYAndUnitByProductSQLStatement = "SELECT x.PROD, x.GWN, x.CQTY, y.UNIT FROM dbo.PRODQTY x INNER JOIN dbo.PRODUCT y ON y.CODE = x.PROD WHERE x.PROD=?1";
+	private final String queryProductCQTYAndUnitSQLStatement = "SELECT x.PROD, x.GWN, x.CQTY, y.UNIT FROM dbo.PRODQTY x INNER JOIN dbo.PRODUCT y ON y.CODE = x.PROD WHERE x.GWN='AB' OR x.GWN='AC' OR x.GWN='AD' OR x.GWN='AE' OR x.GWN='AP'";
+	private final String queryProductCategoryStatement = "SELECT CODE, CLAS FROM dbo.PRODUCT";
+
 	/**
 	 * Daily stock quantity comparison between 2 databases based on
 	 * TransactionRecord
@@ -80,7 +84,6 @@ public class CompareStockFunction {
 		transactionRecordRepo.findAll(specification).forEach(tr -> productNoStringSet.add(tr.getProductNo()));
 
 		EntityManager em = emf.createEntityManager();
-		String queryProductCQTYAndUnitSQLStatement = "SELECT x.PROD, x.GWN, x.CQTY, y.UNIT FROM dbo.PRODQTY x INNER JOIN dbo.PRODUCT y ON y.CODE = x.PROD WHERE x.PROD=?1";
 
 		// Based on productNoStringSet, compare each product quantity
 		// between 1st db and 2nd db
@@ -90,7 +93,7 @@ public class CompareStockFunction {
 
 			// Get productNo current quantity from 2nd db
 			List<Product> secondDBRes = new ArrayList<>();
-			Query q = em.createNativeQuery(queryProductCQTYAndUnitSQLStatement);
+			Query q = em.createNativeQuery(queryProductCQTYAndUnitByProductSQLStatement);
 			q.setParameter(1, productNo);
 
 			// The format of q.getResultList() is as below:
@@ -189,7 +192,6 @@ public class CompareStockFunction {
 		// Get all product quantity from 2nd db
 		Map<String, Map<String, Product>> secondDBRes = new HashMap<>();
 		EntityManager em = emf.createEntityManager();
-		String queryProductCQTYAndUnitSQLStatement = "SELECT x.PROD, x.GWN, x.CQTY, y.UNIT FROM dbo.PRODQTY x INNER JOIN dbo.PRODUCT y ON y.CODE = x.PROD WHERE x.GWN='AB' OR x.GWN='AC' OR x.GWN='AD' OR x.GWN='AE' OR x.GWN='AP'";
 		Query q = em.createNativeQuery(queryProductCQTYAndUnitSQLStatement);
 
 		// The format of q.getResultList() is as below:
@@ -266,7 +268,8 @@ public class CompareStockFunction {
 				tempResultList.add(firstDBQTY);
 				tempResultList.add(unit);
 
-				if (firstDBQTY.equals(secondDBQTY)) {
+				if (String.format("%.2f", Math.abs(Double.parseDouble(firstDBQTY) - Double.parseDouble(secondDBQTY)))
+						.equals("0.00")) {
 					tempResultList.add("Pass");
 				} else {
 					tempResultList.add("Fail");
@@ -326,4 +329,18 @@ public class CompareStockFunction {
 		}
 	}
 
+	/**
+	 * Sync Product category information from 1st to 2nd
+	 */
+	public void syncProductCategory() {
+		EntityManager em = emf.createEntityManager();
+		Query q = em.createNativeQuery(queryProductCategoryStatement);
+
+		// The format of q.getResultList() is as below:
+		// Row n : [CODE, CLAS]
+
+		// Get product list from 1st db
+		List<Product> firstDBResList = productRepository.findAll();
+
+	}
 }

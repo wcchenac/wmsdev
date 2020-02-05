@@ -89,8 +89,8 @@ public class FileController {
 
 		try {
 			MediaType mediaType = getMediaTypeByFilename(this.servletContext, fileName + filetype);
-			Path path = Paths.get(folderPath + seperator + subFolderName + seperator
-					+ pathResolver(fileCategory, fileName) + filetype);
+			Path path = Paths
+					.get(folderPath + seperator + subFolderName + seperator + pathResolver(fileCategory, fileName));
 			byte[] data = Files.readAllBytes(path);
 			ByteArrayResource resource = new ByteArrayResource(data);
 

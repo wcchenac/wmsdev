@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,11 +54,21 @@ public class StockServiceUtilities {
 	public void updateProductQuantity(String productNo, Product product) {
 		String type = product.getType();
 
-		// TODO: data not found exception
-		Product res = productRepository.findByProductNoAndType(productNo, type).get();
+		Optional<Product> res = productRepository.findByProductNoAndType(productNo, type);
 
-		res.setQuantity(String.format("%.2f",
-				Double.parseDouble(product.getQuantity()) + Double.parseDouble(res.getQuantity())));
+		if (res.isPresent()) {
+			res.get().setQuantity(String.format("%.2f",
+					Double.parseDouble(product.getQuantity()) + Double.parseDouble(res.get().getQuantity())));
+		} else {
+			Product p = new Product();
+
+			p.setProductNo(productNo);
+			p.setType(product.getType());
+			p.setQuantity(product.getQuantity());
+			p.setUnit(product.getUnit());
+
+			productRepository.save(p);
+		}
 	}
 
 	/**
@@ -80,7 +91,9 @@ public class StockServiceUtilities {
 			});
 		});
 
-		productRepository.saveAll(productList);
+		productList.forEach(product -> {
+			updateProductQuantity(product.getProductNo(), product);
+		});
 	}
 
 	/**

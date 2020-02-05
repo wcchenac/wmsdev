@@ -81,18 +81,19 @@ public class StockController {
 		return new ResponseEntity<>(stockService.findBasicStockInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
+	@PreAuthorize("hasAnyRole('ROLE_Sales','ROLE_Operator','ROLE_Admin')")
 	@GetMapping("/queryStock/query/1/{productNo}")
 	public ResponseEntity<?> getStockInfoList(@PathVariable String productNo) {
-		return new ResponseEntity<>(stockService.findStockInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
-	}
-
-	@PreAuthorize("hasAnyRole('ROLE_Sales','ROLE_Admin')")
-	@GetMapping("/queryStock/query/3/{productNo}")
-	public ResponseEntity<?> getStockInfoListWithQauntity(@PathVariable String productNo) {
 		return new ResponseEntity<>(stockService.findStockInfoByProductNoWithQuantity(productNo.toUpperCase()),
 				HttpStatus.OK);
 	}
+
+//	@PreAuthorize("hasAnyRole(,'ROLE_Admin')")
+//	@GetMapping("/queryStock/query/3/{productNo}")
+//	public ResponseEntity<?> getStockInfoListWithQauntity(@PathVariable String productNo) {
+//		return new ResponseEntity<>(stockService.findStockInfoByProductNoWithQuantity(productNo.toUpperCase()),
+//				HttpStatus.OK);
+//	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PostMapping("/shrinkStock")
