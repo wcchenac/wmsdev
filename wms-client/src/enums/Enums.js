@@ -65,6 +65,7 @@ export const unitLlist = [
   "組"
 ];
 
+// Use at UserManagement-Register
 export const RoleOption = {
   "請選擇...": "",
   "一般人員/門市": "ROLE_Normal",

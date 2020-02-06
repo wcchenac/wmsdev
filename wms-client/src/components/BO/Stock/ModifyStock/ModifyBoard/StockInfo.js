@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import InformationModal from "./InformationModal";
-import ShipModal from "./ShipModal";
+import ShipModal from "../../Utilities/ShipModal";
 
 class StockInfo extends Component {
   constructor(props) {

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StoreList, OutStockOtherReason } from "../../../../../enums/Enums";
+import { StoreList, OutStockOtherReason } from "../../../../enums/Enums";
 
 class ShipModal extends Component {
   render() {

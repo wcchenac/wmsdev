@@ -1,4 +1,5 @@
-import axios from "axios";
+// import axios from "axios";
+import API from "../utilities/API";
 import {
   SET_Current_User,
   GET_UserList,
@@ -11,7 +12,7 @@ import jwt_decode from "jwt-decode";
 
 export const registerUser = (newUser, history) => async dispatch => {
   try {
-    return await axios.post("/api/user/adminManagement/user/register", newUser);
+    return await API.post("/api/user/adminManagement/user/register", newUser);
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -22,7 +23,7 @@ export const registerUser = (newUser, history) => async dispatch => {
 
 export const login = loginRequest => async dispatch => {
   try {
-    const res = await axios.post("/api/user/login", loginRequest);
+    const res = await API.post("/api/user/login", loginRequest);
     const token = res.data.accessToken;
 
     localStorage.setItem("jwtToken", token);
@@ -55,7 +56,7 @@ export const logout = () => dispatch => {
 };
 
 export const getUserList = () => async dispatch => {
-  const res = await axios.get("/api/user/adminManagement/user/userList");
+  const res = await API.get("/api/user/adminManagement/user/userList");
 
   dispatch({
     type: GET_UserList,
@@ -67,7 +68,7 @@ export const getUserList = () => async dispatch => {
 
 export const deleteUser = employeeId => async dispatch => {
   try {
-    const res = await axios.delete(
+    const res = await API.delete(
       `/api/user/adminManagement/user/delete?employeeId=${employeeId}`
     );
 
@@ -87,12 +88,9 @@ export const deleteUser = employeeId => async dispatch => {
 
 export const updateUser = updateInfoRequest => async dispatch => {
   try {
-    await axios.patch(
-      "/api/user/adminManagement/user/update",
-      updateInfoRequest
-    );
+    await API.patch("/api/user/adminManagement/user/update", updateInfoRequest);
 
-    const res = await axios.get("/api/user/adminManagement/user/userList");
+    const res = await API.get("/api/user/adminManagement/user/userList");
 
     dispatch({
       type: UPDATE_User,

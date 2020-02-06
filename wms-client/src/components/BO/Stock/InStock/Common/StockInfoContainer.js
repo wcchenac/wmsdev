@@ -264,22 +264,24 @@ class StockInfoContainer extends PureComponent {
               {typeValidation ? (
                 <React.Fragment>
                   <th style={{ width: "20%" }}>貨號</th>
-                  <th style={{ width: "15%" }}>批號</th>
-                  <th style={{ width: "15%" }}>型態</th>
-                  <th style={{ width: "15%" }}>數量</th>
-                  <th style={{ width: "15%" }}>單位</th>
+                  <th style={{ width: "14%" }}>批號</th>
+                  <th style={{ width: "14%" }}>型態</th>
+                  <th style={{ width: "14%" }}>數量</th>
+                  <th style={{ width: "14%" }}>單位</th>
                   <th style={{ width: "20%" }}>記錄</th>
+                  <th style={{ width: "4%" }}>直出</th>
                 </React.Fragment>
               ) : (
                 <React.Fragment>
                   <th style={{ width: "20%" }}>貨號</th>
                   <th style={{ width: "8%" }}>批號</th>
                   <th style={{ width: "8%" }}>型態</th>
-                  <th style={{ width: "13%" }}>數量</th>
+                  <th style={{ width: "12%" }}>數量</th>
                   <th style={{ width: "8%" }}>單位</th>
                   <th style={{ width: "8%" }}>色號</th>
-                  <th style={{ width: "17%" }}>瑕疵</th>
-                  <th style={{ width: "18%" }}>記錄</th>
+                  <th style={{ width: "16%" }}>瑕疵</th>
+                  <th style={{ width: "16%" }}>記錄</th>
+                  <th style={{ width: "4%" }}>直出</th>
                 </React.Fragment>
               )}
             </tr>

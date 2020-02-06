@@ -13,18 +13,7 @@ class SearchInfo extends Component {
   }
 
   onDeleteClick() {
-    const { outStockType } = this.props.searchInfo;
-
-    switch (outStockType) {
-      case 0:
-        this.props.cancelShip(this.props.searchInfo.stockIdentifierId);
-        break;
-      case 2:
-        this.props.deleteOutStock(this.props.searchInfo.id);
-        break;
-      default:
-        break;
-    }
+    this.props.handleDeleteClick(this.props.searchInfo);
   }
 
   render() {
@@ -83,7 +72,7 @@ class SearchInfo extends Component {
                   value={searchInfo.fileName}
                   onClick={this.props.downloadFile}
                 >
-                  <small>{searchInfo.fileName.substring(13)}</small>
+                  {searchInfo.fileName.substring(13)}
                 </button>
               </div>
             ) : (

@@ -169,8 +169,8 @@ class SearchContainer extends PureComponent {
                     }
                     onInfoCheckBoxChange={this.onInfoCheckBoxChange}
                     onInfoWHChange={this.onInfoWHChange}
-                    cancelShip={this.props.cancelShip}
-                    deleteOutStock={this.props.deleteOutStock}
+                    handleDeleteClick={this.props.handleDeleteClick}
+                    handleModalShow={this.props.handleModalShow}
                     downloadFile={this.props.downloadFile}
                     initialize={this.props.initialize}
                   />

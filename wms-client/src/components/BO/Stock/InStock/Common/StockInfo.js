@@ -159,6 +159,7 @@ class StockInfo extends Component {
             />
           </div>
         </td>
+        <td></td>
       </tr>
     );
   }
