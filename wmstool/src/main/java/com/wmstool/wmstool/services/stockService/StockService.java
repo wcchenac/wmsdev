@@ -219,16 +219,16 @@ public class StockService {
 	}
 
 	/**
-	 * Daily stock comparison between 2 databases based on TransactionRecord
-	 */
-	public void stockComparisonByTransactionRecord() throws IOException {
-		compareStockFunction.stockComparisonByTransactionRecord();
-	}
-
-	/**
-	 * Weakly stock comparison between 2 databases
+	 * Daily stock comparison between 2 databases
 	 */
 	public void stockFullyComparison() throws IOException {
 		compareStockFunction.stockFullyComparison();
+	}
+
+	/**
+	 * Weekly sync product category from 2nd DB to 1st DB
+	 */
+	public void syncProductCategory() {
+		compareStockFunction.syncProductCategory();
 	}
 }

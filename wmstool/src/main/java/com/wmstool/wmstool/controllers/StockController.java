@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,6 +70,13 @@ public class StockController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
+	// TODO: rollbackInStock
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
+	@DeleteMapping("/inStocks/rollback")
+	public ResponseEntity<?> rollbackInStock(@RequestParam(value = "id") long stockIdentifier) {
+		return null;
+	}
+
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PatchMapping("/updateStock")
 	public ResponseEntity<?> updateStockInfo(@RequestBody UpdateInfoRequest updateInfoRequest) {
@@ -87,13 +95,6 @@ public class StockController {
 		return new ResponseEntity<>(stockService.findStockInfoByProductNoWithQuantity(productNo.toUpperCase()),
 				HttpStatus.OK);
 	}
-
-//	@PreAuthorize("hasAnyRole(,'ROLE_Admin')")
-//	@GetMapping("/queryStock/query/3/{productNo}")
-//	public ResponseEntity<?> getStockInfoListWithQauntity(@PathVariable String productNo) {
-//		return new ResponseEntity<>(stockService.findStockInfoByProductNoWithQuantity(productNo.toUpperCase()),
-//				HttpStatus.OK);
-//	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PostMapping("/shrinkStock")
@@ -198,19 +199,6 @@ public class StockController {
 	@GetMapping("/stockManagement/daily/stockCompare")
 	public ResponseEntity<?> dailyStockComparison() {
 		try {
-			stockService.stockComparisonByTransactionRecord();
-
-			return new ResponseEntity<>(HttpStatus.OK);
-		} catch (Exception e) {
-			e.printStackTrace();
-
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@GetMapping("/stockManagement/weekly/stockCompare")
-	public ResponseEntity<?> weeklyStockComparison() {
-		try {
 			stockService.stockFullyComparison();
 
 			return new ResponseEntity<>(HttpStatus.OK);
@@ -221,5 +209,16 @@ public class StockController {
 		}
 	}
 
-	// "/stockManagement/weekly/productCategory"
+	@GetMapping("/stockManagement/weekly/syncProductCategory")
+	public ResponseEntity<?> syncProductCategory() {
+		try {
+			stockService.syncProductCategory();
+
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

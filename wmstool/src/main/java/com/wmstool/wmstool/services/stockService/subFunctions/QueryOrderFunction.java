@@ -144,25 +144,8 @@ public class QueryOrderFunction {
 
 			orderRecord.setProductNo(cell[0].toString());
 			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[1].toString()));
-
-			Integer unit = Integer.parseInt(cell[3].toString()); // receive product unit
-			String quantity = "";
-
-			// calculate quantity for unit conversion
-			switch (unit) {
-			case 2:
-				quantity = cell[2].toString();
-				break;
-			case 3:
-				quantity = String.format("%.2f", Double.parseDouble(cell[2].toString()) / 3.0);
-				unit = 2;
-				break;
-			default:
-				break;
-			}
-
-			orderRecord.setQuantity(quantity);
-			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(unit.toString()));
+			orderRecord.setQuantity(String.format("%.2f", Double.parseDouble(cell[2].toString())));
+			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[3].toString()));
 
 			orderRecordList.add(orderRecord);
 		}

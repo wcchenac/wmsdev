@@ -89,14 +89,14 @@ public class FileController {
 
 		try {
 			MediaType mediaType = getMediaTypeByFilename(this.servletContext, fileName + filetype);
-			Path path = Paths
-					.get(folderPath + seperator + subFolderName + seperator + pathResolver(fileCategory, fileName));
+			Path path = Paths.get(folderPath + seperator + subFolderName + seperator
+					+ pathResolver(fileCategory, fileName) + filetype);
 			byte[] data = Files.readAllBytes(path);
 			ByteArrayResource resource = new ByteArrayResource(data);
 
 			return ResponseEntity.ok()
 					.header(HttpHeaders.CONTENT_DISPOSITION,
-							String.format("attachment; filename=%s", path.getFileName().toString()))
+							String.format("attachment; filename=%s", path.getFileName()))
 					.contentType(mediaType).contentLength(data.length).body(resource);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -164,10 +164,10 @@ public class FileController {
 	 * Helper method to specify media type
 	 */
 	private MediaType getMediaTypeByFilename(ServletContext servletContext, String filename) {
-		String mimeType = servletContext.getMimeType(filename);
 		try {
-			MediaType mediaType = MediaType.parseMediaType(mimeType);
-			return mediaType;
+			String mimeType = servletContext.getMimeType(filename);
+			
+			return MediaType.parseMediaType(mimeType);
 		} catch (Exception e) {
 			return MediaType.APPLICATION_OCTET_STREAM;
 		}
