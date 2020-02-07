@@ -1,5 +1,7 @@
 import React, { Component } from "react";
-import { stockComparison } from "../../../../actions/StockAcions";
+import { missionTrigger } from "../../../../actions/StockAcions";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 class ScheduleMission extends Component {
   constructor() {
@@ -7,38 +9,40 @@ class ScheduleMission extends Component {
     this.state = {
       isLoading: false
     };
-    this.handleStockCompareButton = this.handleStockCompareButton.bind(this);
+    this.handleMissionTrigger = this.handleMissionTrigger.bind(this);
   }
 
-  handleStockCompareButton(e) {
-    const period = e.target.name;
+  handleMissionTrigger(e) {
+    let arr = e.target.name.split("-");
 
     this.setState({ isLoading: true }, () => {
-      stockComparison(period).then(res => {
-        if (res.status === 200) {
-          this.setState({ isLoading: false });
-        }
+      missionTrigger(arr[0], arr[1]).then(res => {
+        this.setState({ isLoading: false });
+        toast.success("Misson Complete");
       });
     });
   }
 
   render() {
     return (
-      <div>
-        <button
-          className="btn btn-primary mr-2"
-          name="daily"
-          onClick={this.handleStockCompareButton}
-        >
-          每日比對
-        </button>
-        <button
-          className="btn btn-primary"
-          name="weekly"
-          onClick={this.handleStockCompareButton}
-        >
-          每週比對
-        </button>
+      <div className="container">
+        <div>
+          <button
+            className="btn btn-primary mr-2"
+            name="daily-stockCompare"
+            onClick={this.handleMissionTrigger}
+          >
+            每日比對
+          </button>
+          <button
+            className="btn btn-primary"
+            name="weekly-syncProductCategory"
+            onClick={this.handleMissionTrigger}
+          >
+            貨號類別同步
+          </button>
+        </div>
+        <ToastContainer />
       </div>
     );
   }

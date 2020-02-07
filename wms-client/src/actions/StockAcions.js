@@ -298,6 +298,6 @@ export const getProductHistory = request => async dispatch => {
   return res;
 };
 
-export const stockComparison = async periodType => {
-  return await API.get(`/api/stock/stockManagement/${periodType}/stockCompare`);
+export const missionTrigger = async (periodType, fn) => {
+  return await API.get(`/api/stock/stockManagement/${periodType}/${fn}`);
 };

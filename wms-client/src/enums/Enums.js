@@ -35,11 +35,11 @@ export const DefectOptions = [
 
 // Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo
 // the index is same as db
-export const unitLlist = [
-  "台",
-  "支",
+export const UnitOptions = [
   "碼",
   "尺",
+  "台",
+  "支",
   "公斤",
   "公尺",
   "個",

@@ -34,7 +34,7 @@ class ModifyRequestBoard extends Component {
       productNo: this.state.oldStockInfo.stockIdentifier.productNo,
       lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
       quantity: "",
-      unit: "碼",
+      unit: this.state.oldStockInfo.stockIdentifier.unit,
       color: this.state.oldStockInfo.color,
       defect: defectStringTransToOptions(
         this.state.oldStockInfo.stockIdentifier.defect
