@@ -6,7 +6,7 @@ import QueryOrder from "./Common/QueryOrder";
 import SelectionBoard from "./Common/SelectionBoard";
 import EditBoard from "./Common/EditBoard";
 import {
-  getStoreReturnOrder,
+  getAssembleOrder,
   batchCreateStockInfoes
 } from "../../../../actions/StockAcions";
 import {
@@ -17,7 +17,7 @@ import { isEmpty } from "../../../../utilities/IsEmpty";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 
-class StoreReturnBoard extends Component {
+class AssembleStockBoard extends Component {
   constructor() {
     super();
     this.state = {
@@ -100,7 +100,7 @@ class StoreReturnBoard extends Component {
     e.preventDefault();
 
     this.setState({ isLoading: true }, () => {
-      this.props.getStoreReturnOrder(this.state.orderNo).then(response => {
+      this.props.getAssembleOrder(this.state.orderNo).then(response => {
         if (response.status === 200) {
           this.setState({ isLoading: false });
         }
@@ -145,13 +145,13 @@ class StoreReturnBoard extends Component {
 
   componentDidUpdate(prevProps) {
     if (
-      this.props.queryReturnOrderResult !== prevProps.queryReturnOrderResult
+      this.props.queryAssembleOrderResult !== prevProps.queryAssembleOrderResult
     ) {
       this.setState(
         {
-          currentOrderStatus: this.props.queryReturnOrderResult.stockInfoes
+          currentOrderStatus: this.props.queryAssembleOrderResult.stockInfoes
             .currentStatus,
-          waitHandleStatus: this.props.queryReturnOrderResult.stockInfoes
+          waitHandleStatus: this.props.queryAssembleOrderResult.stockInfoes
             .waitHandleStatus
         },
         function() {
@@ -184,7 +184,7 @@ class StoreReturnBoard extends Component {
     } = this.state;
 
     return (
-      <div className="returnOrder_stockInfo">
+      <div className="batch_add_stockInfo">
         <div className="container">
           <TabContainer
             id="left-tabs"
@@ -194,7 +194,7 @@ class StoreReturnBoard extends Component {
             <Nav justify variant="pills">
               <Nav.Item>
                 <Nav.Link eventKey={1} disabled={key !== 1}>
-                  Step 1 - 查詢調撥單內容
+                  Step 1 - 查詢組裝單內容
                 </Nav.Link>
               </Nav.Item>
               <Nav.Item>
@@ -218,7 +218,7 @@ class StoreReturnBoard extends Component {
                   >
                     <div style={{ height: "80vh" }}>
                       <QueryOrder
-                        type="調撥單"
+                        type="組裝單"
                         handleOrderNo={this.handleOrderNo}
                         handleQueryOrderSubmit={this.handleQueryOrderSubmit}
                         isOrderValid={isOrderValid}
@@ -232,7 +232,7 @@ class StoreReturnBoard extends Component {
                   <SelectionBoard
                     handlePrevStep={this.getInitialize}
                     handleNextStep={this.handleNextStep}
-                    type="調撥單"
+                    type="組裝單"
                     orderNo={orderNo}
                     waitHandleStatus={waitHandleStatus}
                     selectedProductNoList={selectedProductNoList}
@@ -244,7 +244,7 @@ class StoreReturnBoard extends Component {
                 <div className="container">
                   <EditBoard
                     isLoading={isLoading && key === 3}
-                    type="storeReturn"
+                    type="assemble"
                     handlePrevStep={this.handlePrevStep}
                     orderNo={orderNo}
                     selectedProductNoList={selectedProductNoList}
@@ -262,19 +262,19 @@ class StoreReturnBoard extends Component {
   }
 }
 
-StoreReturnBoard.propTypes = {
-  queryReturnOrderResult: PropTypes.object.isRequired,
-  getStoreReturnOrder: PropTypes.func.isRequired,
+AssembleStockBoard.propTypes = {
+  queryAssembleOrderResult: PropTypes.object.isRequired,
+  getAssembleOrder: PropTypes.func.isRequired,
   batchCreateStockInfoes: PropTypes.func.isRequired,
   errors: PropTypes.object.isRequired
 };
 
 const mapStateToProps = state => ({
-  queryReturnOrderResult: state.stockInfo,
+  queryAssembleOrderResult: state.stockInfo,
   errors: state.errors
 });
 
 export default connect(mapStateToProps, {
-  getStoreReturnOrder,
+  getAssembleOrder,
   batchCreateStockInfoes
-})(StoreReturnBoard);
+})(AssembleStockBoard);

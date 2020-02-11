@@ -10,6 +10,8 @@ import com.wmstool.wmstool.models.StockInfo;
 @Repository
 public interface StockInfoRepository extends JpaRepository<StockInfo, Long> {
 
-	Optional<StockInfo> findByStockIdentifierId(long stockIdentifierId);
+	Optional<StockInfo> findByStockIdentifierId(Long stockIdentifierId);
+
+	void deleteByStockIdentifierId(Long stockIdentifierId);
 
 }

@@ -1,7 +1,5 @@
 import React, { PureComponent } from "react";
 import StockInfoContainer from "./StockInfoContainer";
-import LoadingOverlay from "react-loading-overlay";
-import { Spinner } from "../../../../Others/Spinner";
 
 const equal = require("fast-deep-equal");
 
@@ -42,7 +40,7 @@ class EditBoard extends PureComponent {
                         ? "nav-item nav-link active"
                         : "nav-item nav-link"
                     }
-                    id={"nav-tab" + object.index}
+                    id={"nav-tab-" + object.index}
                     key={index}
                     data-toggle="tab"
                     href={"#nav-" + object.index}
@@ -67,29 +65,22 @@ class EditBoard extends PureComponent {
               );
 
               return (
-                <LoadingOverlay
-                  key={index}
-                  active={isLoading}
-                  spinner={<Spinner />}
-                >
-                  <div>
-                    <StockInfoContainer
-                      type={this.props.type}
-                      typeValidation={typeValidation}
-                      key={object.index}
-                      sequence={index}
-                      index={object.index}
-                      orderNo={orderNo}
-                      productNo={object.productNo}
-                      waitHandleStatus={
-                        this.props.waitHandleStatus[object.productNo]
-                      }
-                      handleInStockRequestSubmit={
-                        this.props.handleInStockRequestSubmit
-                      }
-                    />
-                  </div>
-                </LoadingOverlay>
+                <StockInfoContainer
+                  isLoading={isLoading}
+                  type={this.props.type}
+                  typeValidation={typeValidation}
+                  key={object.index}
+                  sequence={index}
+                  index={object.index}
+                  orderNo={orderNo}
+                  productNo={object.productNo}
+                  waitHandleStatus={
+                    this.props.waitHandleStatus[object.productNo]
+                  }
+                  handleInStockRequestSubmit={
+                    this.props.handleInStockRequestSubmit
+                  }
+                />
               );
             })}
           </div>

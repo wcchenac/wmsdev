@@ -3,6 +3,8 @@ import DatePeriodSelectModal from "../Stock/Utilities/DatePeriodSelectModal";
 import { isEmpty } from "../../../utilities/IsEmpty";
 import { dayOfStart, dayOfEnd } from "../Stock/Utilities/DateUtils";
 
+const NotFoundMessage = "File Not Found";
+
 class FlieContainer extends Component {
   constructor(props) {
     super(props);
@@ -111,16 +113,18 @@ class FlieContainer extends Component {
                             </button>
                           </td>
                           <td style={{ padding: "0.5em 1em" }}>
-                            <div className="d-flex justify-content-center">
-                              <button
-                                className="btn btn-primary"
-                                name={fileType}
-                                value={filename}
-                                onClick={this.props.downloadFile}
-                              >
-                                下載
-                              </button>
-                            </div>
+                            {filename === NotFoundMessage ? null : (
+                              <div className="d-flex justify-content-center">
+                                <button
+                                  className="btn btn-primary"
+                                  name={fileType}
+                                  value={filename}
+                                  onClick={this.props.downloadFile}
+                                >
+                                  下載
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </React.Fragment>
                       );

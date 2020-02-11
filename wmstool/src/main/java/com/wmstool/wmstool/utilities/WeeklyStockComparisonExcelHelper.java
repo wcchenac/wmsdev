@@ -30,8 +30,8 @@ public class WeeklyStockComparisonExcelHelper {
 	private static final String seperator = File.separator;
 	private static final String filetype = ".xls";
 	private static final String filenamePrefix = "WeeklyStockComparison-";
-	private static final DateTimeFormatter dtf1 = DateTimeFormatter.ofPattern("yyyy");
-	private static final DateTimeFormatter dtf2 = DateTimeFormatter.ofPattern("ww");
+	private static final DateTimeFormatter dtf_yyyy = DateTimeFormatter.ofPattern("yyyy");
+	private static final DateTimeFormatter dtf_ww = DateTimeFormatter.ofPattern("ww");
 
 	/**
 	 * Create a excel from template excel which is named by current date formated in
@@ -45,7 +45,7 @@ public class WeeklyStockComparisonExcelHelper {
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
 		// Define directory & filename and create files
-		String fileNameNoDir = filenamePrefix + now.format(dtf1) + "-Week" + now.format(dtf2) + filetype;
+		String fileNameNoDir = filenamePrefix + now.format(dtf_yyyy) + "-Week" + now.format(dtf_ww) + filetype;
 		String fileFullName = parentDir + seperator + now.getYear() + seperator + fileNameNoDir;
 		File f = new File(fileFullName);
 
@@ -62,6 +62,7 @@ public class WeeklyStockComparisonExcelHelper {
 			workbook.write(fos);
 
 			workbook.close();
+			fos.close();
 		}
 
 		return fileNameNoDir;
@@ -75,28 +76,17 @@ public class WeeklyStockComparisonExcelHelper {
 		String parentDir = folderPath + seperator + "WeeklyStockComparison";
 
 		// Read target file
-		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
-				+ fileName;
+		String fileFullName = parentDir + seperator + now.getYear() + seperator + fileName;
 		File f = new File(fileFullName);
 		FileInputStream fis = new FileInputStream(f);
 		Workbook workbook = WorkbookFactory.create(fis);
 
 		// Style setting for font, alignment and cell border
-		CellStyle rowStyle_Pass = workbook.createCellStyle();
 		CellStyle rowStyle_Fail = workbook.createCellStyle();
-		Font font = workbook.createFont();
+		Font font_fail = workbook.createFont();
 
-		font.setColor(Font.COLOR_NORMAL);
-		rowStyle_Pass.setFont(font);
-		rowStyle_Pass.setAlignment(HorizontalAlignment.CENTER);
-		rowStyle_Pass.setVerticalAlignment(VerticalAlignment.CENTER);
-		rowStyle_Pass.setBorderBottom(BorderStyle.THIN);
-		rowStyle_Pass.setBorderLeft(BorderStyle.THIN);
-		rowStyle_Pass.setBorderRight(BorderStyle.THIN);
-		rowStyle_Pass.setBorderTop(BorderStyle.THIN);
-
-		font.setColor(Font.COLOR_RED);
-		rowStyle_Fail.setFont(font);
+		font_fail.setColor(Font.COLOR_RED);
+		rowStyle_Fail.setFont(font_fail);
 		rowStyle_Fail.setAlignment(HorizontalAlignment.CENTER);
 		rowStyle_Fail.setVerticalAlignment(VerticalAlignment.CENTER);
 		rowStyle_Fail.setBorderBottom(BorderStyle.THIN);
@@ -108,18 +98,20 @@ public class WeeklyStockComparisonExcelHelper {
 			// Pass = true, Fail = false
 			boolean isPassed = stringList.get(5).equals("Pass");
 
-			// Write to different sheet based on isPassed
-			Sheet sheet = isPassed ? workbook.getSheetAt(1) : workbook.getSheetAt(0);
+			if (!isPassed) {
+				// Write to different sheet based on isPassed
+				Sheet sheet = workbook.getSheetAt(0);
 
-			// get last row in file, and set value & style into cells under last row
-			int lastRow = sheet.getLastRowNum() + 1;
-			Row row = sheet.createRow(lastRow);
+				// get last row in file, and set value & style into cells under last row
+				int lastRow = sheet.getLastRowNum() + 1;
+				Row row = sheet.createRow(lastRow);
 
-			// iterate list and write in workbook
-			for (int i = 0; i < stringList.size(); i += 1) {
-				Cell cell = row.createCell(i);
-				cell.setCellValue(stringList.get(i));
-				cell.setCellStyle(isPassed ? rowStyle_Pass : rowStyle_Fail);
+				// iterate list and write in workbook
+				for (int i = 0; i < stringList.size(); i += 1) {
+					Cell cell = row.createCell(i);
+					cell.setCellValue(stringList.get(i));
+					cell.setCellStyle(rowStyle_Fail);
+				}
 			}
 		}
 

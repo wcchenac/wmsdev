@@ -37,7 +37,7 @@ import com.wmstool.wmstool.utilities.StockAllocateRecordExcelHelper;
 public class ModifyStockFunction {
 
 	@Autowired
-	@Qualifier("testEntityManagerFactory")
+	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
 
 	@Autowired
@@ -208,8 +208,11 @@ public class ModifyStockFunction {
 		if (!res.getDefect().equals(updateInfoRequest.getDefect())) {
 			res.setDefect(updateInfoRequest.getDefect());
 		}
-		if (!res.getRecord().equals(updateInfoRequest.getRecord())) {
+		if (res.getRecord() == null) {
 			res.setRecord(updateInfoRequest.getRecord());
+		} else {
+			if (!res.getRecord().equals(updateInfoRequest.getRecord()))
+				res.setRecord(updateInfoRequest.getRecord());
 		}
 		if (!res.getRemark().equals(updateInfoRequest.getRemark())) {
 			res.setRemark(updateInfoRequest.getRemark());
@@ -230,8 +233,8 @@ public class ModifyStockFunction {
 		LocalDate now = LocalDate.now();
 		float allocation = shrinkStockRequest.getAllocation();
 		float adjustment = shrinkStockRequest.getAdjustment();
-		String allocationString = String.format("%.1f", allocation);
-		String adjustmentString = String.format("%.1f", adjustment);
+		String allocationString = String.format("%.2f", allocation);
+		String adjustmentString = String.format("%.2f", adjustment);
 
 		// find old stockIdentifier, and set to not exist
 		// TODO: data not found exception
@@ -281,7 +284,7 @@ public class ModifyStockFunction {
 			if (unitReference.equals(unit)) {
 				stockAllocationRecord.setRealQuantity(allocationString);
 			} else {
-				stockAllocationRecord.setRealQuantity(String.format("%.1f", allocation * 3.0));
+				stockAllocationRecord.setRealQuantity(String.format("%.2f", allocation * 3.0));
 			}
 
 			stockAllocationRecordRepo.save(stockAllocationRecord);
@@ -306,7 +309,7 @@ public class ModifyStockFunction {
 			if (unitReference.equals(unit)) {
 				stockAdjustmentRecord.setRealQuantity(adjustmentString);
 			} else {
-				stockAdjustmentRecord.setRealQuantity(String.format("%.1f", adjustment * 3.0));
+				stockAdjustmentRecord.setRealQuantity(String.format("%.2f", adjustment * 3.0));
 			}
 
 			stockAdjustmentRecordRepo.save(stockAdjustmentRecord);

@@ -12,7 +12,7 @@ import com.wmstool.wmstool.models.Product;
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
 	Optional<Product> findByProductNoAndType(String productNo, String type);
-	
+
 	List<Product> findByProductNo(String productNo);
 
 }

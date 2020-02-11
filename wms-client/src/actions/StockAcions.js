@@ -1,4 +1,4 @@
-import axios from "axios";
+import API from "../utilities/API";
 import {
   GET_Order,
   GET_StockInfoes,
@@ -14,9 +14,7 @@ import {
 } from "./types";
 
 export const getInStockOrder = inStockOrderNo => async dispatch => {
-  const res = await axios.get(
-    `/api/stock/queryOrder/inStock/${inStockOrderNo}`
-  );
+  const res = await API.get(`/api/stock/queryOrder/inStock/${inStockOrderNo}`);
 
   dispatch({
     type: GET_Order,
@@ -27,7 +25,7 @@ export const getInStockOrder = inStockOrderNo => async dispatch => {
 };
 
 export const getAssembleOrder = assembleOrderNo => async dispatch => {
-  const res = await axios.get(
+  const res = await API.get(
     `/api/stock/queryOrder/assemble/${assembleOrderNo}`
   );
 
@@ -40,7 +38,7 @@ export const getAssembleOrder = assembleOrderNo => async dispatch => {
 };
 
 export const getCustomerReturnOrder = returnOrderNo => async dispatch => {
-  const res = await axios.get(
+  const res = await API.get(
     `/api/stock/queryOrder/customerReturn/${returnOrderNo}`
   );
 
@@ -53,7 +51,7 @@ export const getCustomerReturnOrder = returnOrderNo => async dispatch => {
 };
 
 export const getStoreReturnOrder = returnOrderNo => async dispatch => {
-  const res = await axios.get(
+  const res = await API.get(
     `/api/stock/queryOrder/storeReturn/${returnOrderNo}`
   );
 
@@ -66,7 +64,7 @@ export const getStoreReturnOrder = returnOrderNo => async dispatch => {
 };
 
 export const getStockInfoesBasic = productNo => async dispatch => {
-  const res = await axios.get(`/api/stock/queryStock/query/2/${productNo}`);
+  const res = await API.get(`/api/stock/queryStock/query/2/${productNo}`);
 
   dispatch({
     type: GET_StockInfoes,
@@ -77,18 +75,7 @@ export const getStockInfoesBasic = productNo => async dispatch => {
 };
 
 export const getStockInfoes = productNo => async dispatch => {
-  const res = await axios.get(`/api/stock/queryStock/query/1/${productNo}`);
-
-  dispatch({
-    type: GET_StockInfoes,
-    payload: res.data
-  });
-
-  return res;
-};
-
-export const getStockInfoesWithQuantity = productNo => async dispatch => {
-  const res = await axios.get(`/api/stock/queryStock/query/3/${productNo}`);
+  const res = await API.get(`/api/stock/queryStock/query/1/${productNo}`);
 
   dispatch({
     type: GET_StockInfoes,
@@ -99,7 +86,7 @@ export const getStockInfoesWithQuantity = productNo => async dispatch => {
 };
 
 export const getShrinkList = () => async dispatch => {
-  const res = await axios.get("/api/stock/queryStock/shrinkList");
+  const res = await API.get("/api/stock/queryStock/shrinkList");
 
   dispatch({
     type: GET_StockInfoes,
@@ -116,7 +103,7 @@ export const stockIdentifierIsShiped = shipRequest => async dispatch => {
       payload: shipRequest.stockIdentifierId
     });
 
-    return await axios.patch("/api/stock/shipStock", shipRequest);
+    return await API.patch("/api/stock/shipStock", shipRequest);
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -127,7 +114,7 @@ export const stockIdentifierIsShiped = shipRequest => async dispatch => {
 
 export const stockIdentifierIsNotShiped = stockIdentifierId => async dispatch => {
   try {
-    return await axios.patch(
+    return await API.patch(
       `/api/stock/shipStock/rollback/${stockIdentifierId}`
     );
   } catch (err) {
@@ -140,11 +127,11 @@ export const stockIdentifierIsNotShiped = stockIdentifierId => async dispatch =>
 
 export const stockIdentifierWaitToShrinkIsTrue = stockIdentifierId => async dispatch => {
   try {
-    let result = await axios.patch(
+    let result = await API.patch(
       `/api/stock/waitToShrink/${stockIdentifierId}`
     );
     let productNo = result.data;
-    const res = await axios.get(`/api/stock/queryStock/query/${productNo}`);
+    const res = await API.get(`/api/stock/queryStock/query/1/${productNo}`);
 
     dispatch({
       type: SHRINK_Stock,
@@ -162,7 +149,7 @@ export const stockIdentifierWaitToShrinkIsTrue = stockIdentifierId => async disp
 
 export const stockIdentifierWaitToShrinkIsFalse = stockIdentifierId => async dispatch => {
   try {
-    const res = await axios.patch(
+    const res = await API.patch(
       `/api/stock/waitToShrink/rollback/${stockIdentifierId}`
     );
 
@@ -182,7 +169,7 @@ export const stockIdentifierWaitToShrinkIsFalse = stockIdentifierId => async dis
 
 export const batchCreateStockInfoes = inStockRequests => async dispatch => {
   try {
-    return await axios.post("/api/stock/inStocks", inStockRequests);
+    return await API.post("/api/stock/inStocks", inStockRequests);
   } catch (err) {
     dispatch({
       type: CREATE_Errors,
@@ -193,7 +180,7 @@ export const batchCreateStockInfoes = inStockRequests => async dispatch => {
 
 export const batchCreateStockInfoesForShrink = shrinkStockRequest => async dispatch => {
   try {
-    return await axios.post("/api/stock/shrinkStock", shrinkStockRequest);
+    return await API.post("/api/stock/shrinkStock", shrinkStockRequest);
   } catch (err) {
     dispatch({
       type: SHRINK_Errors,
@@ -204,9 +191,9 @@ export const batchCreateStockInfoesForShrink = shrinkStockRequest => async dispa
 
 export const updateStockInfo = updateInfoRequest => async dispatch => {
   try {
-    let result = await axios.patch("/api/stock/updateStock", updateInfoRequest);
+    let result = await API.patch("/api/stock/updateStock", updateInfoRequest);
     let productNo = result.data;
-    const res = await axios.get(`/api/stock/queryStock/query/${productNo}`);
+    const res = await API.get(`/api/stock/queryStock/query/1/${productNo}`);
 
     dispatch({
       type: UPDATE_StockInfo,
@@ -224,7 +211,7 @@ export const updateStockInfo = updateInfoRequest => async dispatch => {
 
 export const createOutStockRequest = outStockRequest => async dispatch => {
   try {
-    return await axios.post("/api/stock/outStock", outStockRequest);
+    return await API.post("/api/stock/outStock", outStockRequest);
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -235,7 +222,7 @@ export const createOutStockRequest = outStockRequest => async dispatch => {
 
 export const deleteOutStockRequest = outStockRequestId => async dispatch => {
   try {
-    const res = await axios.patch(
+    const res = await API.patch(
       `/api/stock/outStock/rollback/${outStockRequestId}`
     );
 
@@ -249,7 +236,7 @@ export const deleteOutStockRequest = outStockRequestId => async dispatch => {
 };
 
 export const getWaitHandleList = () => async dispatch => {
-  const res = await axios.get("/api/stock/outStock/waitHandleList/basic");
+  const res = await API.get("/api/stock/outStock/waitHandleList/basic");
 
   dispatch({
     type: GET_OutStockRequests,
@@ -263,7 +250,7 @@ export const getWaitHandleListWithInterval = (
   startDate,
   endDate
 ) => async dispatch => {
-  const res = await axios.get(
+  const res = await API.get(
     `/api/stock/outStock/waitHandleList/interval?startDate=${startDate}&endDate=${endDate}`
   );
 
@@ -277,10 +264,7 @@ export const getWaitHandleListWithInterval = (
 
 export const updateOutStockRequests = outStockUpdateRequest => async dispatch => {
   try {
-    return await axios.patch(
-      "/api/stock/outStock/update",
-      outStockUpdateRequest
-    );
+    return await API.patch("/api/stock/outStock/update", outStockUpdateRequest);
   } catch (err) {
     dispatch({
       type: GET_Errors,
@@ -290,7 +274,7 @@ export const updateOutStockRequests = outStockUpdateRequest => async dispatch =>
 };
 
 export const getProductHistory = request => async dispatch => {
-  const res = await axios.get(
+  const res = await API.get(
     `/api/stock/queryStock/history/${request.productNo}?startDate=${request.startDate}&endDate=${request.endDate}`
   );
 
@@ -300,4 +284,8 @@ export const getProductHistory = request => async dispatch => {
   });
 
   return res;
+};
+
+export const missionTrigger = async (periodType, fn) => {
+  return await API.get(`/api/stock/stockManagement/${periodType}/${fn}`);
 };

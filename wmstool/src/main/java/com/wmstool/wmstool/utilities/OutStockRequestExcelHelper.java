@@ -32,7 +32,7 @@ public class OutStockRequestExcelHelper {
 	private static final String seperator = File.separator;
 	private static final String filetype = ".xls";
 	private static final String filenamePrefix = "OutStockList-";
-	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+	private static final DateTimeFormatter dtf_yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
 	/**
 	 * Create a excel from template excel which is named by current date/time
@@ -46,7 +46,7 @@ public class OutStockRequestExcelHelper {
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
 		// Define directory & filename and create files
-		String fileNameNoDir = filenamePrefix + now.format(dtf) + filetype;
+		String fileNameNoDir = filenamePrefix + now.format(dtf_yyyyMMdd) + filetype;
 		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
 				+ fileNameNoDir;
 		File f = new File(fileFullName);
@@ -65,6 +65,7 @@ public class OutStockRequestExcelHelper {
 		workbook.write(fos);
 
 		workbook.close();
+		fos.close();
 
 		return fileNameNoDir;
 	}

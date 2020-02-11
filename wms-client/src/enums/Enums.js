@@ -5,10 +5,10 @@ export const StoreList = [
   "台中門市",
   "嘉義門市",
   "台南門市",
-  "西門門市",
   "鼎山門市",
   "中山門市",
-  "屏東門市"
+  "屏東門市",
+  "西門門市"
 ];
 
 // Used at ModifyBoard-ClothInfo-OutStockModal
@@ -35,11 +35,11 @@ export const DefectOptions = [
 
 // Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo
 // the index is same as db
-export const unitLlist = [
-  "台",
-  "支",
+export const UnitOptions = [
   "碼",
   "尺",
+  "台",
+  "支",
   "公斤",
   "公尺",
   "個",
@@ -65,6 +65,7 @@ export const unitLlist = [
   "組"
 ];
 
+// Use at UserManagement-Register
 export const RoleOption = {
   "請選擇...": "",
   "一般人員/門市": "ROLE_Normal",

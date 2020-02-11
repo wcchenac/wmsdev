@@ -17,21 +17,25 @@ import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
 import { dayOfStart, dayOfEnd } from "../Utilities/DateUtils";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
+import ConfirmModal from "./ConfirmModal";
 
 const equal = require("fast-deep-equal");
 const refreshTime = 1000 * 60 * 10;
+const dayIntervalRange = 7;
 
 class OutStockRequestList extends Component {
   constructor() {
     super();
     this.state = {
       isLoading: false,
+      modalShow: false,
       queryResult: {},
       userList: [],
       selectedUserList: [],
       startDate: dayOfStart(new Date()),
       endDate: dayOfEnd(new Date()),
-      selectedOutStockRequest: []
+      selectedOutStockRequest: [],
+      handlingInfo: {}
     };
     this.getInitialState = this.getInitialState.bind(this);
     this.handleStartDateSelection = this.handleStartDateSelection.bind(this);
@@ -43,26 +47,27 @@ class OutStockRequestList extends Component {
     this.handleUserSelection = this.handleUserSelection.bind(this);
     this.handleUserSelectAll = this.handleUserSelectAll.bind(this);
     this.handleUserUnselectAll = this.handleUserUnselectAll.bind(this);
+    this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleRollBackShipStatus = this.handleRollBackShipStatus.bind(this);
     this.handleDeleteOutStockRequest = this.handleDeleteOutStockRequest.bind(
       this
     );
     this.handleDownloadClick = this.handleDownloadClick.bind(this);
+    this.handleModalShow = this.handleModalShow.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
   }
 
   getInitialState() {
-    // if (this.timer !== null) {
-    //   clearTimeout(this.timer);
-    // }
-
     this.setState({
       isLoading: false,
+      modalShow: false,
       queryResult: {},
       userList: [],
       selectedUserList: [],
       startDate: dayOfStart(new Date()),
       endDate: dayOfEnd(new Date()),
-      selectedOutStockRequest: []
+      selectedOutStockRequest: [],
+      handlingInfo: {}
     });
 
     this.loadingWaitHandleList();
@@ -201,6 +206,10 @@ class OutStockRequestList extends Component {
     });
   }
 
+  handleDeleteClick(info) {
+    this.setState({ modalShow: true, handlingInfo: info });
+  }
+
   handleRollBackShipStatus(id) {
     this.setState({ isLoading: true }, () => {
       this.props.stockIdentifierIsNotShiped(id).then(res => {
@@ -225,13 +234,23 @@ class OutStockRequestList extends Component {
     downloadFile(e.target.name, e.target.value);
   }
 
+  handleModalShow() {
+    this.setState({ modalShow: true });
+  }
+
+  handleModalClose() {
+    this.setState({ modalShow: false });
+  }
+
   render() {
     const {
       isLoading,
       queryResult,
       selectedUserList,
       startDate,
-      endDate
+      endDate,
+      modalShow,
+      handlingInfo
     } = this.state;
 
     return (
@@ -254,7 +273,7 @@ class OutStockRequestList extends Component {
                 handleStartDateSelection={this.handleStartDateSelection}
                 handleEndDateSelection={this.handleEndDateSelection}
                 handleDateSelectionModeClick={this.handleDateSelectionModeClick}
-                dayRange={7}
+                dayRange={dayIntervalRange}
               />
             </div>
           </div>
@@ -272,12 +291,19 @@ class OutStockRequestList extends Component {
                 queryResult={queryResult}
                 selectedUserList={selectedUserList}
                 handleSubmitClick={this.handleSubmitClick}
-                cancelShip={this.handleRollBackShipStatus}
-                deleteOutStock={this.handleDeleteOutStockRequest}
+                handleDeleteClick={this.handleDeleteClick}
                 downloadFile={this.handleDownloadClick}
+                handleModalShow={this.handleModalShow}
                 initialize={this.getInitialState}
               />
             </div>
+            <ConfirmModal
+              show={modalShow}
+              searchInfo={handlingInfo}
+              handleModalClose={this.handleModalClose}
+              cancelShip={this.handleRollBackShipStatus}
+              deleteOutStock={this.handleDeleteOutStockRequest}
+            />
           </LoadingOverlay>
         </div>
       </div>
@@ -292,7 +318,7 @@ OutStockRequestList.propTypes = {
   updateOutStockRequests: PropTypes.func.isRequired,
   stockIdentifierIsNotShiped: PropTypes.func.isRequired,
   deleteOutStockRequest: PropTypes.func.isRequired,
-  downloadFile:PropTypes.func.isRequired
+  downloadFile: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -304,5 +330,6 @@ export default connect(mapStateToProps, {
   getWaitHandleListWithInterval,
   updateOutStockRequests,
   stockIdentifierIsNotShiped,
-  deleteOutStockRequest,downloadFile
+  deleteOutStockRequest,
+  downloadFile
 })(OutStockRequestList);

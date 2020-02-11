@@ -118,34 +118,6 @@ class ShrinkBoard extends Component {
         onCancelShrinkClick={this.onCancelShrinkClick}
       />
     );
-    // if (typeExchange || sameTypeModify || hardwareModify) {
-    //   return (
-    //     <ModifyRequestBoard
-    //       stockInfo={stockInfo}
-    //       typeExchange={typeExchange}
-    //       sameTypeModify={sameTypeModify}
-    //       hardwareModify={hardwareModify}
-    //       handleGoBack={this.handleGoBack}
-    //       batchCreateStockInfoesForShrink={
-    //         this.props.batchCreateStockInfoesForShrink
-    //       }
-    //       initialComponent={this.initialComponent}
-    //     />
-    //   );
-    // } else {
-    //   return (
-
-    //     <ShrinkList
-    //       shrinkList={shrinkList}
-    //       getShrinkList={this.props.getShrinkList}
-    //       // onTypeExchangeClick={this.onTypeExchangeClick}
-    //       // onSameTypeClick={this.onSameTypeClick}
-    //       // onHardwareModifyClick={this.onHardwareModifyClick}
-    //       onModifyClick={this.onModifyClick}
-    //       onCancelShrinkClick={this.onCancelShrinkClick}
-    //     />
-    //   );
-    // }
   }
 }
 

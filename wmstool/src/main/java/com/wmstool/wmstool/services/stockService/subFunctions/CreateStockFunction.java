@@ -3,7 +3,9 @@ package com.wmstool.wmstool.services.stockService.subFunctions;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import com.wmstool.wmstool.models.StockIdentifierBacklog;
 import com.wmstool.wmstool.models.StockInfo;
 import com.wmstool.wmstool.models.TransactionRecord;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.repositories.HistoryRepository;
 import com.wmstool.wmstool.repositories.InStockOrderRepo;
 import com.wmstool.wmstool.repositories.StockIdentifierBacklogRepo;
@@ -50,19 +53,23 @@ public class CreateStockFunction {
 	@Autowired
 	private StockServiceUtilities stockServiceUtilities;
 
+	@Autowired
+	private ModifyStockFunction modifyStockFunction;
+
 	private final String InStockType_Normal = "normal";
 	private final String InStockType_Assemble = "assemble";
 	private final String InStockType_Shrink = "shrink";
 	private final String InStockType_CustomerReturn = "customerReturn";
 	private final String InStockType_StoreReturn = "storeReturn";
+	private final String InStockType_FileImport = "fileImport";
 
 	/**
 	 * Save inStockRequest in List as StockInfo/InStockOrderRecord to first db
 	 */
-	public List<StockInfo> createStockInfoes(List<InStockRequest> inStockRequests) {
+	public void createStockInfoes(List<InStockRequest> inStockRequests) {
 		List<StockInfo> resultList = new ArrayList<>();
-		List<Product> productList = new ArrayList<>();
-		String productNo = inStockRequests.get(0).getProductNo();
+		Map<String, Map<String, Map<String, String>>> productResult = new HashMap<>();
+		List<ShipRequest> waitToShip = new ArrayList<>();
 
 		for (InStockRequest isr : inStockRequests) {
 			History oldHistory = new History();
@@ -106,6 +113,10 @@ public class CreateStockFunction {
 				stockIdentifier.setFirstInStockAt(LocalDate.now().toString());
 				stockIdentifier.setInStockType("調撥單");
 				break;
+			case InStockType_FileImport:
+				stockIdentifier.setFirstInStockAt(LocalDate.now().toString());
+				stockIdentifier.setInStockType("檔案匯入");
+				break;
 			case InStockType_Shrink:
 				// use the data "parentId" from inStockRequest as key to find the parent
 				// TODO: data not found exception
@@ -132,6 +143,7 @@ public class CreateStockFunction {
 			case InStockType_Assemble:
 			case InStockType_CustomerReturn:
 			case InStockType_StoreReturn:
+			case InStockType_FileImport:
 				newHistory.setRootIdentifierId(resIdentifierId);
 				break;
 			case InStockType_Shrink:
@@ -186,6 +198,8 @@ public class CreateStockFunction {
 			case InStockType_StoreReturn:
 				transactionRecord.setTransactionType("SRI");
 				break;
+			case InStockType_FileImport:
+				transactionRecord.setTransactionType("FI");
 			default:
 				break;
 			}
@@ -194,13 +208,28 @@ public class CreateStockFunction {
 
 			// Create Individual Product object, then add to list
 			Product p = new Product(resIdentifier);
-			productList.add(p);
+
+			stockServiceUtilities.contentCollector(p, productResult);
+
+			// direct execute Ship process?
+			if (inStockRequest.isDirectShip()) {
+				ShipRequest shipRequest = new ShipRequest(resIdentifierId, inStockRequest.getOutStockReason());
+
+				waitToShip.add(shipRequest);
+			}
 		}
 
 		// Accumulate quantity in productList, then create or update Product
-		stockServiceUtilities.updateProductQuantityWithList(productNo, productList);
+		stockServiceUtilities.updateProductQuantityWithList(productResult);
 
-		return stockInfoRepository.saveAll(resultList);
+		stockInfoRepository.saveAll(resultList);
+
+		// execute Ship process
+		if (!waitToShip.isEmpty()) {
+			waitToShip.forEach(shipRequest -> {
+				modifyStockFunction.letStockIdentifierisShiped(shipRequest);
+			});
+		}
 	}
 
 	/**
@@ -212,7 +241,7 @@ public class CreateStockFunction {
 
 		switch (unit) {
 		case "尺":
-			quantity = String.format("%.1f", Double.parseDouble(quantity) / 3.0);
+			quantity = String.format("%.2f", Double.parseDouble(quantity) / 3.0);
 			unit = "碼";
 			inStockRequest.setQuantity(quantity);
 			inStockRequest.setUnit(unit);

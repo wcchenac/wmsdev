@@ -214,9 +214,9 @@ class SearchBoard extends Component {
                   allSelectMethod={this.allSelectMethod}
                   handleToBeSubmitChange={this.handleToBeSubmitChange}
                   handleToBeSubmitWHChange={this.handleToBeSubmitWHChange}
-                  cancelShip={this.props.cancelShip}
-                  deleteOutStock={this.props.deleteOutStock}
+                  handleDeleteClick={this.props.handleDeleteClick}
                   downloadFile={this.props.downloadFile}
+                  handleModalShow={this.props.handleModalShow}
                   initialize={this.props.initialize}
                 />
               );
