@@ -102,6 +102,9 @@ export function updateStockInfoesCopy(stockInfoesCopy, name, value, i) {
     case "remark":
       stockInfoesCopy[i].remark = value;
       break;
+    case "outStockReason":
+      stockInfoesCopy[i].outStockReason = value;
+      break;
     default:
       break;
   }

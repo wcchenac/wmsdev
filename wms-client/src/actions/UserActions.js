@@ -1,4 +1,3 @@
-// import axios from "axios";
 import API from "../utilities/API";
 import {
   SET_Current_User,

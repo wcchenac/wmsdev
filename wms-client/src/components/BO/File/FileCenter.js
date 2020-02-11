@@ -14,7 +14,6 @@ class FileCenter extends Component {
     this.state = {
       isLoading: false,
       filenames: {
-        weeklyComparison: {},
         adjustment: {},
         allocation: {},
         dailyComparison: {}
@@ -43,7 +42,6 @@ class FileCenter extends Component {
         })
         .catch(err => {
           this.setState({ isLoading: false });
-          console.log(err);
         });
     });
   }
@@ -64,7 +62,6 @@ class FileCenter extends Component {
         })
         .catch(err => {
           this.setState({ isLoading: false });
-          console.log(err);
         });
     });
   }
@@ -76,11 +73,9 @@ class FileCenter extends Component {
   render() {
     const { isLoading, filenames } = this.state;
     const dailyComparisonTitle = "每日庫存比對紀錄";
-    const weeklyComparisonTitle = "每週庫存比對紀錄";
     const allocationTitle = "每日倉庫調撥記錄";
     const adjustmentTitle = "每日存貨調整記錄";
     const dailyComparisonFileType = "dailyComparison";
-    const weeklyComparisonFileType = "weeklyComparison";
     const allocationFileType = "allocation";
     const adjustmentFileType = "adjustment";
 
@@ -91,28 +86,6 @@ class FileCenter extends Component {
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <div style={{ height: "80vh" }}>
-              <div className="row">
-                <div className="col-6">
-                  <FlieContainer
-                    filenames={filenames.dailyComparison}
-                    containerTitle={dailyComparisonTitle}
-                    fileType={dailyComparisonFileType}
-                    handleCategoryCurrentQuery={this.handleCategoryCurrentQuery}
-                    handleCategoryPeriodQuery={this.handleCategoryPeriodQuery}
-                    downloadFile={this.handleDownloadClick}
-                  />
-                </div>
-                <div className="col-6">
-                  <FlieContainer
-                    filenames={filenames.weeklyComparison}
-                    containerTitle={weeklyComparisonTitle}
-                    fileType={weeklyComparisonFileType}
-                    handleCategoryCurrentQuery={this.handleCategoryCurrentQuery}
-                    handleCategoryPeriodQuery={this.handleCategoryPeriodQuery}
-                    downloadFile={this.handleDownloadClick}
-                  />
-                </div>
-              </div>
               <div className="row">
                 <div className="col-6">
                   <FlieContainer
@@ -129,6 +102,18 @@ class FileCenter extends Component {
                     filenames={filenames.adjustment}
                     containerTitle={adjustmentTitle}
                     fileType={adjustmentFileType}
+                    handleCategoryCurrentQuery={this.handleCategoryCurrentQuery}
+                    handleCategoryPeriodQuery={this.handleCategoryPeriodQuery}
+                    downloadFile={this.handleDownloadClick}
+                  />
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-6">
+                  <FlieContainer
+                    filenames={filenames.dailyComparison}
+                    containerTitle={dailyComparisonTitle}
+                    fileType={dailyComparisonFileType}
                     handleCategoryCurrentQuery={this.handleCategoryCurrentQuery}
                     handleCategoryPeriodQuery={this.handleCategoryPeriodQuery}
                     downloadFile={this.handleDownloadClick}

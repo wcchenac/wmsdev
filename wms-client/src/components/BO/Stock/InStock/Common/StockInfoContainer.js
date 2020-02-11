@@ -7,11 +7,14 @@ import {
   joinInfoesDefectArray
 } from "../../Utilities/StockInfoHelperMethods";
 import ToolbarForAddDeleteSubmit from "../../Utilities/ToolbarForAddDeleteSubmit";
+import LoadingOverlay from "react-loading-overlay";
+import { Spinner } from "../../../../Others/Spinner";
 
 class StockInfoContainer extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
+      assignRowNum: 0,
       stockInfoes: []
     };
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
@@ -19,35 +22,49 @@ class StockInfoContainer extends PureComponent {
     this.handleInfoChange = this.handleInfoChange.bind(this);
     this.handleSubmitClick = this.handleSubmitClick.bind(this);
     this.handleDefectChange = this.handleDefectChange.bind(this);
+    this.handleShipCheck = this.handleShipCheck.bind(this);
+    this.handleReasonButton = this.handleReasonButton.bind(this);
+    this.handleRowNumChange = this.handleRowNumChange.bind(this);
+    this.handleRowNumSubmit = this.handleRowNumSubmit.bind(this);
   }
 
-  handleNewDataClick() {
+  initialInfoContent() {
     const { typeValidation, waitHandleStatus } = this.props;
-    const { stockInfoes } = this.state;
     const type = Object.keys(waitHandleStatus).pop();
     let newStockInfo;
 
-    if (stockInfoes.length === 0) {
-      newStockInfo = {
-        productNo: this.props.productNo,
-        lotNo: "",
-        type: type.toString(),
-        quantity: "",
-        unit: waitHandleStatus[type].unit,
-        color: "1",
-        defect: [{ label: "無", value: "無" }],
-        record: "",
-        remark: "",
-        inStockType: this.props.type,
-        orderNo: this.props.orderNo,
-        errors: {
-          quantity: ""
-        }
-      };
-      if (typeValidation) {
-        newStockInfo["color"] = "";
-        newStockInfo["defect"] = "";
+    newStockInfo = {
+      productNo: this.props.productNo,
+      lotNo: "",
+      type: type.toString(),
+      quantity: "",
+      unit: waitHandleStatus[type].unit,
+      color: "1",
+      defect: [{ label: "無", value: "無" }],
+      record: "",
+      remark: "",
+      inStockType: this.props.type,
+      orderNo: this.props.orderNo,
+      directShip: false,
+      outStockReason: "",
+      errors: {
+        quantity: ""
       }
+    };
+    if (typeValidation) {
+      newStockInfo["color"] = "";
+      newStockInfo["defect"] = "";
+    }
+
+    return newStockInfo;
+  }
+
+  handleNewDataClick() {
+    const { stockInfoes } = this.state;
+    let newStockInfo;
+
+    if (stockInfoes.length === 0) {
+      newStockInfo = this.initialInfoContent();
     } else {
       newStockInfo = {
         productNo: this.props.productNo,
@@ -61,6 +78,8 @@ class StockInfoContainer extends PureComponent {
         remark: "",
         inStockType: this.props.type,
         orderNo: this.props.orderNo,
+        directShip: false,
+        outStockReason: "",
         errors: {
           quantity: ""
         }
@@ -103,6 +122,46 @@ class StockInfoContainer extends PureComponent {
     });
   }
 
+  handleShipCheck(e, i) {
+    const copyList = [...this.state.stockInfoes];
+
+    copyList[i].directShip = e.target.checked;
+
+    if (!e.target.checked) {
+      copyList[i].outStockReason = "";
+    }
+
+    this.setState({
+      stockInfoes: copyList
+    });
+  }
+
+  handleReasonButton(e, i) {
+    const copyList = [...this.state.stockInfoes];
+
+    copyList[i].outStockReason = e.target.value;
+
+    this.setState({
+      stockInfoes: copyList
+    });
+  }
+
+  handleRowNumChange(e) {
+    this.setState({ [e.target.name]: e.target.value });
+  }
+
+  handleRowNumSubmit(e) {
+    e.preventDefault();
+
+    let stockInfoesCopy = copy(this.state.stockInfoes);
+
+    for (let i = 0; i < this.state.assignRowNum; i += 1) {
+      stockInfoesCopy.push(this.initialInfoContent());
+    }
+
+    this.setState({ assignRowNum: 0, stockInfoes: stockInfoesCopy });
+  }
+
   handleSubmitClick(e) {
     let stockInfoesCopy = copy(this.state.stockInfoes);
 
@@ -115,6 +174,10 @@ class StockInfoContainer extends PureComponent {
 
   checkFormAlgorithm(stockInfoes, quantitySum, waitHandleStatus) {
     var isFormValid = false;
+
+    if (stockInfoes.length === 0) {
+      return isFormValid;
+    }
 
     // check form has errors ro invalid value
     for (let i = 0; i < stockInfoes.length; i += 1) {
@@ -151,7 +214,7 @@ class StockInfoContainer extends PureComponent {
   }
 
   render() {
-    const { stockInfoes } = this.state;
+    const { stockInfoes, assignRowNum } = this.state;
     const {
       sequence,
       index,
@@ -173,133 +236,140 @@ class StockInfoContainer extends PureComponent {
         }
         id={"nav-" + index}
         role="tabpanel"
-        aria-labelledby={"nav-tab" + index}
+        aria-labelledby={"nav-tab-" + index}
       >
-        <p className="h4 text-center">待入庫總量</p>
-        <div>
+        <LoadingOverlay active={this.props.isLoading} spinner={<Spinner />}>
+          <p className="h4 text-center">待入庫總量</p>
+          <div>
+            <table className="table table-sm">
+              <thead className="thead-dark">
+                <tr>
+                  <th style={{ width: "20%" }}>貨號</th>
+                  <th style={{ width: "20%" }}>型態</th>
+                  <th style={{ width: "20%" }}>總數量</th>
+                  <th style={{ width: "20%" }}>目前數量</th>
+                  <th style={{ width: "20%" }}>單位</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.keys(waitHandleStatus).map((type, index) => (
+                  <tr key={index}>
+                    <td>
+                      <div className="form-group mb-0">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="productNo"
+                          value={productNo}
+                          readOnly
+                        />
+                      </div>
+                    </td>
+                    <td>
+                      <div className="form-group mb-0">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="type"
+                          value={type}
+                          readOnly
+                        />
+                      </div>
+                    </td>
+                    <td>
+                      <div className="form-group mb-0">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="quantity_waitHandle"
+                          value={waitHandleStatus[type].quantity}
+                          readOnly
+                        />
+                      </div>
+                    </td>
+                    <td>
+                      <div className="form-group mb-0">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="quantity_handled"
+                          value={quantitySum[type].toString()}
+                          readOnly
+                        />
+                      </div>
+                    </td>
+                    <td>
+                      <div className="form-group mb-0">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="unit"
+                          value={waitHandleStatus[type].unit}
+                          readOnly
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <hr />
+          <ToolbarForAddDeleteSubmit
+            onAddClick={this.handleNewDataClick}
+            onDeleteClick={this.handleDeleteDataClick}
+            onSubmitClick={this.handleSubmitClick}
+            handleRowNumChange={this.handleRowNumChange}
+            handleRowNumSubmit={this.handleRowNumSubmit}
+            deleteDisabled={stockInfoes.length === 0}
+            submitDisabled={!isFormValid}
+            assignRowNum={assignRowNum}
+          />
           <table className="table table-sm">
             <thead className="thead-dark">
               <tr>
-                <th style={{ width: "20%" }}>貨號</th>
-                <th style={{ width: "20%" }}>型態</th>
-                <th style={{ width: "20%" }}>總數量</th>
-                <th style={{ width: "20%" }}>目前數量</th>
-                <th style={{ width: "20%" }}>單位</th>
+                {typeValidation ? (
+                  <React.Fragment>
+                    <th style={{ width: "20%" }}>貨號</th>
+                    <th style={{ width: "14%" }}>批號</th>
+                    <th style={{ width: "14%" }}>型態</th>
+                    <th style={{ width: "14%" }}>數量</th>
+                    <th style={{ width: "14%" }}>單位</th>
+                    <th style={{ width: "20%" }}>記錄</th>
+                    <th style={{ width: "4%" }}>直出</th>
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    <th style={{ width: "20%" }}>貨號</th>
+                    <th style={{ width: "8%" }}>批號</th>
+                    <th style={{ width: "8%" }}>型態</th>
+                    <th style={{ width: "12%" }}>數量</th>
+                    <th style={{ width: "8%" }}>單位</th>
+                    <th style={{ width: "8%" }}>色號</th>
+                    <th style={{ width: "16%" }}>瑕疵</th>
+                    <th style={{ width: "16%" }}>記錄</th>
+                    <th style={{ width: "4%" }}>直出</th>
+                  </React.Fragment>
+                )}
               </tr>
             </thead>
             <tbody>
-              {Object.keys(waitHandleStatus).map((type, index) => (
-                <tr key={index}>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="productNo"
-                        value={productNo}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="type"
-                        value={type}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="quantity_waitHandle"
-                        value={waitHandleStatus[type].quantity}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="quantity_handled"
-                        value={quantitySum[type].toString()}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="unit"
-                        value={waitHandleStatus[type].unit}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                </tr>
+              {stockInfoes.map((stockInfo, index) => (
+                <StockInfo
+                  key={index}
+                  index={index}
+                  typeValidation={typeValidation}
+                  stockInfo={stockInfo}
+                  errors={stockInfo.errors}
+                  handleInfoChange={this.handleInfoChange}
+                  handleDefectChange={this.handleDefectChange}
+                  handleShipCheck={this.handleShipCheck}
+                  handleReasonButton={this.handleReasonButton}
+                />
               ))}
             </tbody>
           </table>
-        </div>
-        <hr />
-        <ToolbarForAddDeleteSubmit
-          onAddClick={this.handleNewDataClick}
-          onDeleteClick={this.handleDeleteDataClick}
-          onSubmitClick={this.handleSubmitClick}
-          deleteDisabled={stockInfoes.length === 0}
-          submitDisabled={!isFormValid}
-        />
-        <table className="table table-sm">
-          <thead className="thead-dark">
-            <tr>
-              {typeValidation ? (
-                <React.Fragment>
-                  <th style={{ width: "20%" }}>貨號</th>
-                  <th style={{ width: "14%" }}>批號</th>
-                  <th style={{ width: "14%" }}>型態</th>
-                  <th style={{ width: "14%" }}>數量</th>
-                  <th style={{ width: "14%" }}>單位</th>
-                  <th style={{ width: "20%" }}>記錄</th>
-                  <th style={{ width: "4%" }}>直出</th>
-                </React.Fragment>
-              ) : (
-                <React.Fragment>
-                  <th style={{ width: "20%" }}>貨號</th>
-                  <th style={{ width: "8%" }}>批號</th>
-                  <th style={{ width: "8%" }}>型態</th>
-                  <th style={{ width: "12%" }}>數量</th>
-                  <th style={{ width: "8%" }}>單位</th>
-                  <th style={{ width: "8%" }}>色號</th>
-                  <th style={{ width: "16%" }}>瑕疵</th>
-                  <th style={{ width: "16%" }}>記錄</th>
-                  <th style={{ width: "4%" }}>直出</th>
-                </React.Fragment>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {stockInfoes.map((stockInfo, index) => (
-              <StockInfo
-                key={index}
-                index={index}
-                typeValidation={typeValidation}
-                stockInfo={stockInfo}
-                errors={stockInfo.errors}
-                handleInfoChange={this.handleInfoChange}
-                handleDefectChange={this.handleDefectChange}
-              />
-            ))}
-          </tbody>
-        </table>
+        </LoadingOverlay>
       </div>
     );
   }

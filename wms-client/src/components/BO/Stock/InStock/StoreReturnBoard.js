@@ -9,7 +9,10 @@ import {
   getStoreReturnOrder,
   batchCreateStockInfoes
 } from "../../../../actions/StockAcions";
-import { checkWaitHandleStatusCompletion } from "../Utilities/ValidateQueryOrderResponse";
+import {
+  checkWaitHandleStatusCompletion,
+  checkWaitHandleProductStatus
+} from "../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../utilities/IsEmpty";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
@@ -52,7 +55,7 @@ class StoreReturnBoard extends Component {
     });
   }
 
-  initialSelectedList(currentOrderStatus) {
+  initialSelectedList(currentOrderStatus, waitHandleStatus) {
     if (!isEmpty(currentOrderStatus)) {
       let selectedList = [];
 
@@ -61,7 +64,9 @@ class StoreReturnBoard extends Component {
         .forEach((element, index) => {
           selectedList.push({
             productNo: element.toString(),
-            selected: false,
+            selected: checkWaitHandleProductStatus(
+              waitHandleStatus[element.toString()]
+            ),
             index: index,
             isSubmitted: false
           });
@@ -156,7 +161,10 @@ class StoreReturnBoard extends Component {
           ) {
             this.setState({ isOrderValid: false });
           } else {
-            this.initialSelectedList(this.state.currentOrderStatus);
+            this.initialSelectedList(
+              this.state.currentOrderStatus,
+              this.state.waitHandleStatus
+            );
             this.setState({ isOrderValid: true });
             this.handleTabSelect(2);
           }

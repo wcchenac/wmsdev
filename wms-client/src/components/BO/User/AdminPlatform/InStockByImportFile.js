@@ -73,7 +73,7 @@ class InStockByImportFile extends Component {
             <div className="row">
               <div className="offset-md-3 col-md-6">
                 <div className="form-group files">
-                  <label>Upload Your File </label>
+                  <label>上傳制式檔案(副檔名: xlsx)</label>
                   <input
                     type="file"
                     name="files"
@@ -81,7 +81,7 @@ class InStockByImportFile extends Component {
                     onChange={this.onChangeHandler}
                   />
                 </div>
-                <div class="form-group">
+                <div className="form-group">
                   <ToastContainer />
                 </div>
                 <button

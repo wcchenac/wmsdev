@@ -1,17 +1,21 @@
 import React, { Component } from "react";
 import InformationModal from "./InformationModal";
 import ShipModal from "../../Utilities/ShipModal";
+import { Button } from "react-bootstrap";
 
 class StockInfo extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      modalShow: false,
       outStockReason: ""
     };
     this.onShipClick = this.onShipClick.bind(this);
     this.onShrinkClick = this.onShrinkClick.bind(this);
     this.onChange = this.onChange.bind(this);
     this.handleReasonButton = this.handleReasonButton.bind(this);
+    this.handleModalShow = this.handleModalShow.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
   }
 
   onShipClick() {
@@ -21,6 +25,7 @@ class StockInfo extends Component {
     };
 
     this.props.handleShip(shipRequest);
+    this.setState({ modalShow: false });
   }
 
   onShrinkClick() {
@@ -31,6 +36,14 @@ class StockInfo extends Component {
     this.setState({ [e.target.name]: e.target.value });
   }
 
+  handleModalShow() {
+    this.setState({ modalShow: true });
+  }
+
+  handleModalClose() {
+    this.setState({ modalShow: false });
+  }
+
   handleReasonButton(e) {
     this.setState({ outStockReason: e.target.value });
   }
@@ -39,27 +52,27 @@ class StockInfo extends Component {
     if (waitToShrink === false) {
       return (
         <React.Fragment>
-          <button
-            type="button"
-            className="btn btn-primary mr-2"
+          <Button
+            variant="primary"
+            className="mr-2"
             onClick={this.onShrinkClick}
           >
             {typeValidation ? "分裝" : "減肥"}
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary mr-2"
-            data-toggle="modal"
-            data-target={"#reasonContent-" + index}
+          </Button>
+          <Button
+            variant="primary"
+            className="mr-2"
+            onClick={this.handleModalShow}
           >
             出庫
-          </button>
+          </Button>
           <ShipModal
-            index={index}
+            show={this.state.modalShow}
             outStockReason={this.state.outStockReason}
             onChange={this.onChange}
-            handleReasonButton={this.handleReasonButton}
+            onReansonButtonChange={this.handleReasonButton}
             onShipClick={this.onShipClick}
+            handleModalClose={this.handleModalClose}
           />
         </React.Fragment>
       );

@@ -1,4 +1,3 @@
-// import axios from "axios";
 import API from "../utilities/API";
 import {
   GET_Order,
@@ -85,17 +84,6 @@ export const getStockInfoes = productNo => async dispatch => {
 
   return res;
 };
-
-// export const getStockInfoesWithQuantity = productNo => async dispatch => {
-//   const res = await API.get(`/api/stock/queryStock/query/3/${productNo}`);
-
-//   dispatch({
-//     type: GET_StockInfoes,
-//     payload: res.data
-//   });
-
-//   return res;
-// };
 
 export const getShrinkList = () => async dispatch => {
   const res = await API.get("/api/stock/queryStock/shrinkList");
