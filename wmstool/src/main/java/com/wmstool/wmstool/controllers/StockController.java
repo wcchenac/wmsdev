@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,9 +65,22 @@ public class StockController {
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PostMapping("/inStocks")
 	public ResponseEntity<?> createStockInfoes(@RequestBody List<@Valid InStockRequest> inStockRequests) {
-		stockService.createStockInfoes(inStockRequests);
+		try {
+			stockService.createStockInfoes(inStockRequests);
 
-		return new ResponseEntity<>(HttpStatus.OK);
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	// TODO: rollbackInStock
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
+	@DeleteMapping("/inStocks/rollback")
+	public ResponseEntity<?> rollbackInStock(@RequestParam(value = "id") long stockIdentifier) {
+		return null;
 	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
@@ -81,15 +95,9 @@ public class StockController {
 		return new ResponseEntity<>(stockService.findBasicStockInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
+	@PreAuthorize("hasAnyRole('ROLE_Sales','ROLE_Operator','ROLE_Admin')")
 	@GetMapping("/queryStock/query/1/{productNo}")
 	public ResponseEntity<?> getStockInfoList(@PathVariable String productNo) {
-		return new ResponseEntity<>(stockService.findStockInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
-	}
-
-	@PreAuthorize("hasAnyRole('ROLE_Sales','ROLE_Admin')")
-	@GetMapping("/queryStock/query/3/{productNo}/")
-	public ResponseEntity<?> getStockInfoListWithQauntity(@PathVariable String productNo) {
 		return new ResponseEntity<>(stockService.findStockInfoByProductNoWithQuantity(productNo.toUpperCase()),
 				HttpStatus.OK);
 	}
@@ -101,10 +109,9 @@ public class StockController {
 			stockService.shrinkStock(shrinkStockRequest);
 
 			return new ResponseEntity<>(HttpStatus.OK);
-
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
 			e.printStackTrace();
+
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -180,10 +187,9 @@ public class StockController {
 			stockService.updateOutStockRequest(outStockUpdateRequest);
 
 			return new ResponseEntity<>(HttpStatus.OK);
-
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
 			e.printStackTrace();
+
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -196,22 +202,29 @@ public class StockController {
 				stockService.findPeriodStockIdentifierHistory(productNo.toUpperCase(), start, end), HttpStatus.OK);
 	}
 
-	@GetMapping("/stockManagement/dailyCompare")
-	public void dailyStockComparison() {
-		try {
-			stockService.stockComparisonByTransactionRecord();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@GetMapping("/test")
-	public void test() {
+	@GetMapping("/stockManagement/daily/stockCompare")
+	public ResponseEntity<?> dailyStockComparison() {
 		try {
 			stockService.stockFullyComparison();
+
+			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
+	@GetMapping("/stockManagement/weekly/syncProductCategory")
+	public ResponseEntity<?> syncProductCategory() {
+		try {
+			stockService.syncProductCategory();
+
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

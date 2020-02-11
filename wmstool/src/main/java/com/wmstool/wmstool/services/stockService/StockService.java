@@ -83,8 +83,8 @@ public class StockService {
 	/**
 	 * Save inStockRequest in List as StockInfo/InStockOrderRecord to first db
 	 */
-	public List<StockInfo> createStockInfoes(List<InStockRequest> inStockRequests) {
-		return createStockFunction.createStockInfoes(inStockRequests);
+	public void createStockInfoes(List<InStockRequest> inStockRequests) {
+		createStockFunction.createStockInfoes(inStockRequests);
 	}
 
 	/**
@@ -101,15 +101,6 @@ public class StockService {
 	 */
 	public QueryProductNoResponse findBasicStockInfoByProductNo(String productNo) {
 		return queryStockFunction.findBasicStockInfoByProductNo(productNo);
-	}
-
-	/**
-	 * Return a response containing information for certain productNo fetching from
-	 * second db and a list of StockInfoes with certain productNo fetching from
-	 * first db
-	 */
-	public QueryProductNoResponse findStockInfoByProductNo(String productNo) {
-		return queryStockFunction.findStockInfoByProductNo(productNo);
 	}
 
 	/**
@@ -219,16 +210,16 @@ public class StockService {
 	}
 
 	/**
-	 * Daily stock comparison between 2 databases based on TransactionRecord
-	 */
-	public void stockComparisonByTransactionRecord() throws IOException {
-		compareStockFunction.stockComparisonByTransactionRecord();
-	}
-
-	/**
-	 * Weakly stock comparison between 2 databases
+	 * Daily stock comparison between 2 databases
 	 */
 	public void stockFullyComparison() throws IOException {
 		compareStockFunction.stockFullyComparison();
+	}
+
+	/**
+	 * Weekly sync product category from 2nd DB to 1st DB
+	 */
+	public void syncProductCategory() {
+		compareStockFunction.syncProductCategory();
 	}
 }

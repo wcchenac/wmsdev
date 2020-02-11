@@ -15,7 +15,6 @@ import javax.persistence.PreUpdate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
-import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
 
 @Entity
 public class StockInfo {
@@ -63,15 +62,6 @@ public class StockInfo {
 		this.remark = inStockRequest.getRemark();
 		this.createdBy = editor;
 	}
-
-//	public StockInfo(UpdateInfoRequest updateInfoRequest, String editor) {
-//		this.id = updateInfoRequest.getId();
-//		this.color = updateInfoRequest.getColor();
-//		this.defect = updateInfoRequest.getDefect();
-//		this.record = updateInfoRequest.getRecord();
-//		this.remark = updateInfoRequest.getRemark();
-//		this.updatedBy = editor;
-//	}
 
 	public Long getId() {
 		return id;

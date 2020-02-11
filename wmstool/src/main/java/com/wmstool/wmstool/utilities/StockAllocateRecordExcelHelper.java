@@ -28,7 +28,7 @@ public class StockAllocateRecordExcelHelper {
 	private static final String seperator = File.separator;
 	private static final String filetype = ".xls";
 	private static final String filenamePrefix = "StockAllocateRecord-";
-	private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+	private static final DateTimeFormatter dtf_yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 	/**
 	 * Create a excel from template excel which is named by current date formated in
@@ -42,7 +42,7 @@ public class StockAllocateRecordExcelHelper {
 		Workbook workbook = WorkbookFactory.create(new File(templateFile));
 
 		// Define directory & filename and create files
-		String fileNameNoDir = filenamePrefix + now.format(dtf) + filetype;
+		String fileNameNoDir = filenamePrefix + now.format(dtf_yyyyMMdd) + filetype;
 		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
 				+ fileNameNoDir;
 		File f = new File(fileFullName);
@@ -60,7 +60,7 @@ public class StockAllocateRecordExcelHelper {
 			workbook.write(fos);
 
 			workbook.close();
-
+			fos.close();
 		}
 
 		return fileNameNoDir;

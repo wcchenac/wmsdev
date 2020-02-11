@@ -32,7 +32,7 @@ import com.wmstool.wmstool.utilities.HistoryTreeNode;
 public class QueryStockFunction {
 
 	@Autowired
-	@Qualifier("testEntityManagerFactory")
+	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
 
 	@Autowired
@@ -63,14 +63,14 @@ public class QueryStockFunction {
 				getProductsByProductNo(productNo));
 	}
 
-	/**
-	 * Return a response containing information for certain productNo fetching from
-	 * second db and a list of StockInfoes with certain productNo fetching from
-	 * first db
-	 */
-	public QueryProductNoResponse findStockInfoByProductNo(String productNo) {
-		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, false));
-	}
+//	/**
+//	 * Return a response containing information for certain productNo fetching from
+//	 * second db and a list of StockInfoes with certain productNo fetching from
+//	 * first db
+//	 */
+//	public QueryProductNoResponse findStockInfoByProductNo(String productNo) {
+//		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, false));
+//	}
 
 	/**
 	 * Return a response containing information for certain productNo fetching from

@@ -1,13 +1,14 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { getStockInfoesWithQuantity } from "../../../../actions/StockAcions";
+import { getStockInfoes } from "../../../../actions/StockAcions";
 import StockInfoContainer from "./Common/StockInfoContainer";
 import QueryProductInformation from "../Utilities/QueryProductInformation";
 import ShowProductInformation from "../Utilities/ShowProductInformation";
 import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
+import ShowProductQuantity from "../Utilities/ShowProductQuantity";
 
 class QueryBoardForSales extends Component {
   constructor() {
@@ -31,7 +32,7 @@ class QueryBoardForSales extends Component {
   onSubmit(e) {
     e.preventDefault();
     this.setState({ isLoading: true }, () => {
-      this.props.getStockInfoesBasic(this.state.productNo).then(response => {
+      this.props.getStockInfoes(this.state.productNo).then(response => {
         if (response.status === 200) {
           this.setState({ isLoading: false, isQuery: true });
         }
@@ -58,25 +59,7 @@ class QueryBoardForSales extends Component {
       } else {
         return (
           <div>
-            <div className="row">
-              {stockQuantity.map((product, index) => (
-                <React.Fragment key={index}>
-                  <div className="col-6">
-                    <div className="row">
-                      <div className="col-6 text-center">
-                        <p className="h5 mb-0">{product.type}倉總和</p>
-                      </div>
-                      <div className="col-4">
-                        <p className="h5 mb-0">{product.quantity}</p>
-                      </div>
-                      <div className="col-2">
-                        <p className="h5 mb-0">{product.unit}</p>
-                      </div>
-                    </div>
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
+            <ShowProductQuantity stockQuantity={stockQuantity} />
             <hr />
             <StockInfoContainer
               typeValidation={stockQuantity[0].type === "雜項"}
@@ -132,13 +115,11 @@ class QueryBoardForSales extends Component {
 
 QueryBoardForSales.propTypes = {
   stockInfo: PropTypes.object.isRequired,
-  getStockInfoesWithQuantity: PropTypes.func.isRequired
+  getStockInfoes: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
   stockInfo: state.stockInfo
 });
 
-export default connect(mapStateToProps, { getStockInfoesWithQuantity })(
-  QueryBoardForSales
-);
+export default connect(mapStateToProps, { getStockInfoes })(QueryBoardForSales);

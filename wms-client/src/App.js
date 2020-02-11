@@ -6,7 +6,7 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store";
 import NormalStockBoard from "./components/BO/Stock/InStock/NormalStockBoard";
-import AssembleStockBoard from "./components/BO/Stock/InStock/AssembleStockInfo/AssembleStockBoard";
+import AssembleStockBoard from "./components/BO/Stock/InStock/AssembleStockBoard";
 import CustomerReturnBoard from "./components/BO/Stock/InStock/CustomerReturnBoard";
 import StoreReturnBoard from "./components/BO/Stock/InStock/StoreReturnBoard";
 import ModifyBoard from "./components/BO/Stock/ModifyStock/ModifyBoard/ModifyBoard";

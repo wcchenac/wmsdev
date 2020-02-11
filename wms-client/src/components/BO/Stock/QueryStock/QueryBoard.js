@@ -8,6 +8,7 @@ import ShowProductInformation from "../Utilities/ShowProductInformation";
 import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
+import ShowProductQuantity from "../Utilities/ShowProductQuantity";
 
 class QueryBoard extends Component {
   constructor() {
@@ -30,6 +31,7 @@ class QueryBoard extends Component {
 
   onSubmit(e) {
     e.preventDefault();
+
     this.setState({ isLoading: true }, () => {
       this.props.getStockInfoesBasic(this.state.productNo).then(response => {
         if (response.status === 200) {
@@ -58,25 +60,7 @@ class QueryBoard extends Component {
       } else {
         return (
           <div>
-            <div className="row">
-              {stockQuantity.map((product, index) => (
-                <React.Fragment key={index}>
-                  <div className="col-6">
-                    <div className="row">
-                      <div className="col-6 text-center">
-                        <p className="h5 mb-0">{product.type}倉總和</p>
-                      </div>
-                      <div className="col-4">
-                        <p className="h5 mb-0">{product.quantity}</p>
-                      </div>
-                      <div className="col-2">
-                        <p className="h5 mb-0">{product.unit}</p>
-                      </div>
-                    </div>
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
+            <ShowProductQuantity stockQuantity={stockQuantity} />
             <hr />
             <StockInfoContainer
               typeValidation={stockQuantity[0].type === "雜項"}
@@ -139,4 +123,6 @@ const mapStateToProps = state => ({
   stockInfo: state.stockInfo
 });
 
-export default connect(mapStateToProps, { getStockInfoesBasic })(QueryBoard);
+export default connect(mapStateToProps, {
+  getStockInfoesBasic
+})(QueryBoard);

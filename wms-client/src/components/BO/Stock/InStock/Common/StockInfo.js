@@ -2,13 +2,24 @@ import React, { Component } from "react";
 import classnames from "classnames";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
-import { ColorOptions, DefectOptions } from "../../../../../enums/Enums";
+import {
+  UnitOptions,
+  ColorOptions,
+  DefectOptions
+} from "../../../../../enums/Enums";
+import ShipModal from "../../Utilities/ShipModal";
 
 class StockInfo extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      modalShow: false
+    };
     this.onChange = this.onChange.bind(this);
     this.onDefectChange = this.onDefectChange.bind(this);
+    this.onShipCheck = this.onShipCheck.bind(this);
+    this.onReansonButtonChange = this.onReansonButtonChange.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
   }
 
   onChange(e) {
@@ -17,6 +28,19 @@ class StockInfo extends Component {
 
   onDefectChange(selectedOptions) {
     this.props.handleDefectChange(selectedOptions, this.props.index);
+  }
+
+  onShipCheck(e) {
+    this.setState({ modalShow: true });
+    this.props.handleShipCheck(e, this.props.index);
+  }
+
+  onReansonButtonChange(e) {
+    this.props.handleReasonButton(e, this.props.index);
+  }
+
+  handleModalClose() {
+    this.setState({ modalShow: false });
   }
 
   render() {
@@ -114,8 +138,11 @@ class StockInfo extends Component {
                   value={stockInfo.unit}
                   onChange={this.onChange}
                 >
-                  <option value="碼">碼</option>
-                  <option value="尺">尺</option>
+                  {UnitOptions.map((unit, index) => (
+                    <option key={index} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
                 </select>
               </div>
             </td>
@@ -155,9 +182,28 @@ class StockInfo extends Component {
               className="form-control"
               placeholder="記錄"
               name="record"
+              value={stockInfo.record}
               onChange={this.onChange}
             />
           </div>
+        </td>
+        <td>
+          <div className="form-check mt-2 ml-2">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              value={stockInfo.directShip}
+              onChange={this.onShipCheck}
+            />
+          </div>
+          <ShipModal
+            outStockReason={stockInfo.outStockReason}
+            onChange={this.onChange}
+            onReansonButtonChange={this.onReansonButtonChange}
+            onShipClick={this.handleModalClose}
+            handleModalClose={this.handleModalClose}
+            show={stockInfo.directShip && this.state.modalShow}
+          />
         </td>
       </tr>
     );

@@ -15,6 +15,7 @@ import OutStockModal from "./OutStockModal";
 import QueryResponseWithNoStock from "../../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
+import ShowProductQuantity from "../../Utilities/ShowProductQuantity";
 
 const equal = require("fast-deep-equal");
 
@@ -26,7 +27,8 @@ class ModifyBoard extends Component {
       isQuery: false,
       productNo: "",
       productInfo: {},
-      stockInfoes: []
+      stockInfoes: [],
+      stockQuantity: {}
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -97,8 +99,33 @@ class ModifyBoard extends Component {
     if (!equal(this.props.queryResult, prevProps.queryResult)) {
       this.setState({
         productInfo: this.props.queryResult.stockInfoes.information,
-        stockInfoes: this.props.queryResult.stockInfoes.result
+        stockInfoes: this.props.queryResult.stockInfoes.result,
+        stockQuantity: this.props.queryResult.stockInfoes.productList
       });
+    }
+  }
+
+  contentAlgorithm(isQuery, stockInfoes, stockQuantity) {
+    if (!isQuery) {
+      return null;
+    } else {
+      if (stockInfoes.length === 0) {
+        return <QueryResponseWithNoStock />;
+      } else {
+        return (
+          <div>
+            <ShowProductQuantity stockQuantity={stockQuantity} />
+            <hr />
+            <StockInfoContainer
+              typeValidation={stockInfoes[0].stockIdentifier.type === "雜項"}
+              stockInfoes={stockInfoes}
+              handleShip={this.handleShip}
+              handleShrink={this.handleShrink}
+              handleStockInfoUpdate={this.handleStockInfoUpdate}
+            />
+          </div>
+        );
+      }
     }
   }
 
@@ -108,7 +135,8 @@ class ModifyBoard extends Component {
       isQuery,
       productNo,
       productInfo,
-      stockInfoes
+      stockInfoes,
+      stockQuantity
     } = this.state;
 
     return (
@@ -153,21 +181,7 @@ class ModifyBoard extends Component {
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <div style={{ height: "80vh" }}>
-              {isQuery ? (
-                stockInfoes.length === 0 ? (
-                  <QueryResponseWithNoStock />
-                ) : (
-                  <StockInfoContainer
-                    typeValidation={
-                      stockInfoes[0].stockIdentifier.type === "雜項"
-                    }
-                    stockInfoes={stockInfoes}
-                    handleShip={this.handleShip}
-                    handleShrink={this.handleShrink}
-                    handleStockInfoUpdate={this.handleStockInfoUpdate}
-                  />
-                )
-              ) : null}
+              {this.contentAlgorithm(isQuery, stockInfoes, stockQuantity)}
             </div>
           </LoadingOverlay>
         </div>

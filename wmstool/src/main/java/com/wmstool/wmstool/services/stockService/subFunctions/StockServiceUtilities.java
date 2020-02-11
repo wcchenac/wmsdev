@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,39 +54,46 @@ public class StockServiceUtilities {
 	public void updateProductQuantity(String productNo, Product product) {
 		String type = product.getType();
 
-		// TODO: data not found exception
-		Product res = productRepository.findByProductNoAndType(productNo, type).get();
+		Optional<Product> res = productRepository.findByProductNoAndType(productNo, type);
 
-		res.setQuantity(String.format("%.1f",
-				Double.parseDouble(product.getQuantity()) + Double.parseDouble(res.getQuantity())));
+		if (res.isPresent()) {
+			res.get().setQuantity(String.format("%.2f",
+					Double.parseDouble(product.getQuantity()) + Double.parseDouble(res.get().getQuantity())));
+		} else {
+			Product p = new Product();
+
+			p.setProductNo(productNo);
+			p.setType(product.getType());
+			p.setQuantity(product.getQuantity());
+			p.setUnit(product.getUnit());
+
+			productRepository.save(p);
+		}
 	}
 
 	/**
-	 * Update or create Product quantity to db by a given Product list
+	 * Update or create Product quantity to db by a given Product collection
 	 */
-	public void updateProductQuantityWithList(String productNo, List<Product> productList) {
-		Map<String, String> typeQuantity = accumulateQuantityByTypeForSameProduct(productList);
-		List<Product> result = new ArrayList<>();
-		String unit = productList.get(0).getUnit();
+	public void updateProductQuantityWithList(Map<String, Map<String, Map<String, String>>> productResult) {
+		List<Product> productList = new ArrayList<>();
 
-		typeQuantity.keySet().forEach(type -> {
-			Product p = productRepository.findByProductNoAndType(productNo, type).orElseGet(() -> {
-				Product x = new Product();
-				x.setProductNo(productNo);
-				x.setType(type);
-				x.setQuantity("0");
-				x.setUnit(unit);
+		productResult.keySet().forEach(productNo -> {
+			productResult.get(productNo).keySet().forEach(type -> {
+				Product p = new Product();
+				Map<String, String> property = productResult.get(productNo).get(type);
 
-				return x;
+				p.setProductNo(productNo);
+				p.setType(type);
+				p.setQuantity(property.get("quantity"));
+				p.setUnit(property.get("unit"));
+
+				productList.add(p);
 			});
-
-			p.setQuantity(String.format("%.1f",
-					Double.parseDouble(typeQuantity.get(type)) + Double.parseDouble(p.getQuantity())));
-
-			result.add(p);
 		});
 
-		productRepository.saveAll(result);
+		productList.forEach(product -> {
+			updateProductQuantity(product.getProductNo(), product);
+		});
 	}
 
 	/**
@@ -99,12 +107,52 @@ public class StockServiceUtilities {
 				typeQuantity.put(p.getType(), p.getQuantity());
 			} else {
 				String currentQuantity = typeQuantity.get(p.getType());
-				typeQuantity.put(p.getType(), String.format("%.1f",
+				typeQuantity.put(p.getType(), String.format("%.2f",
 						Double.parseDouble(currentQuantity) + Double.parseDouble(p.getQuantity())));
 			}
 		}
 
 		return typeQuantity;
+	}
+
+	/**
+	 * Helper method to create nested structure : { productNo : { type : { quantity:
+	 * quantity_value, unit: unit_value}}}
+	 */
+	public void contentCollector(Product p, Map<String, Map<String, Map<String, String>>> productResult) {
+		if (p == null) {
+			return;
+		}
+
+		// filter type = "" which is not necessary
+		if (!p.getType().equals("")) {
+			// if product is not exist, create sub Map Objects
+			if (!productResult.containsKey(p.getProductNo())) {
+				Map<String, Map<String, String>> type_properties = new HashMap<>();
+				Map<String, String> properties = new HashMap<>();
+
+				properties.put("quantity", p.getQuantity());
+				properties.put("unit", p.getUnit());
+				type_properties.put(p.getType(), properties);
+				productResult.put(p.getProductNo(), type_properties);
+			} else {
+				Map<String, Map<String, String>> temp_type_properties = productResult.get(p.getProductNo());
+				// if productNo exist but type no exist, create sub Map object
+				if (!temp_type_properties.containsKey(p.getType())) {
+					Map<String, String> properties = new HashMap<>();
+
+					properties.put("quantity", p.getQuantity());
+					properties.put("unit", p.getUnit());
+
+					temp_type_properties.put(p.getType(), properties);
+				} else {
+					// if productNo exist and type exist, sum
+					Map<String, String> tempProperties = productResult.get(p.getProductNo()).get(p.getType());
+					tempProperties.put("quantity", String.format("%.2f",
+							Double.parseDouble(tempProperties.get("quantity")) + Double.parseDouble(p.getQuantity())));
+				}
+			}
+		}
 	}
 
 }

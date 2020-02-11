@@ -15,4 +15,8 @@ public interface TransactionRecordRepo
 	Optional<TransactionRecord> findByStockIdentifierIdAndTransactionType(Long stockIdentifierId,
 			String transactionType);
 
+	Optional<TransactionRecord> findByStockIdentifierId(Long stockIdentifierId);
+
+	void deleteByStockIdentifierId(Long stockIdentifierId);
+
 }

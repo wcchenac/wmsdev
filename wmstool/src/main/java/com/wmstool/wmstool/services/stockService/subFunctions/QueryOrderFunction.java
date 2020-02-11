@@ -24,7 +24,7 @@ import com.wmstool.wmstool.repositories.InStockOrderRepo;
 public class QueryOrderFunction {
 
 	@Autowired
-	@Qualifier("testEntityManagerFactory")
+	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
 
 	@Autowired
@@ -114,7 +114,7 @@ public class QueryOrderFunction {
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
 
 			orderRecord.setProductNo(cell[0].toString());
-			orderRecord.setQuantity(String.format("%.1f",
+			orderRecord.setQuantity(String.format("%.2f",
 					Double.parseDouble(cell[1].toString()) + Double.parseDouble(cell[4].toString())));
 			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[2].toString()));
 			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[3].toString()));
@@ -144,25 +144,8 @@ public class QueryOrderFunction {
 
 			orderRecord.setProductNo(cell[0].toString());
 			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[1].toString()));
-
-			Integer unit = Integer.parseInt(cell[3].toString()); // receive product unit
-			String quantity = "";
-
-			// calculate quantity for unit conversion
-			switch (unit) {
-			case 2:
-				quantity = cell[2].toString();
-				break;
-			case 3:
-				quantity = String.format("%.1f", Double.parseDouble(cell[2].toString()) / 3.0);
-				unit = 2;
-				break;
-			default:
-				break;
-			}
-
-			orderRecord.setQuantity(quantity);
-			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(unit.toString()));
+			orderRecord.setQuantity(String.format("%.2f", Double.parseDouble(cell[2].toString())));
+			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[3].toString()));
 
 			orderRecordList.add(orderRecord);
 		}
@@ -188,7 +171,7 @@ public class QueryOrderFunction {
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
 
 			orderRecord.setProductNo(cell[0].toString());
-			orderRecord.setQuantity(String.format("%.1f", Double.parseDouble(cell[1].toString())));
+			orderRecord.setQuantity(String.format("%.2f", Double.parseDouble(cell[1].toString())));
 			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[2].toString()));
 			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[3].toString()));
 
@@ -216,7 +199,7 @@ public class QueryOrderFunction {
 			InStockOrderRecord orderRecord = new InStockOrderRecord();
 
 			orderRecord.setProductNo(cell[0].toString());
-			orderRecord.setQuantity(String.format("%.1f", Double.parseDouble(cell[1].toString())));
+			orderRecord.setQuantity(String.format("%.2f", Double.parseDouble(cell[1].toString())));
 			orderRecord.setUnit(stockServiceUtilities.unitMappingHelper(cell[2].toString()));
 			orderRecord.setType(stockServiceUtilities.typeMappingHelper(cell[3].toString()));
 
@@ -253,6 +236,8 @@ public class QueryOrderFunction {
 					Map<String, Map<String, String>> type_properties = new HashMap<>();
 					Map<String, String> properties = new HashMap<>();
 
+					quantityConvertor(content);
+
 					properties.put("quantity", content.getQuantity());
 					properties.put("unit", content.getUnit());
 					type_properties.put(content.getType(), properties);
@@ -264,6 +249,8 @@ public class QueryOrderFunction {
 					if (!temp_type_properties.containsKey(content.getType())) {
 						Map<String, String> properties = new HashMap<>();
 
+						quantityConvertor(content);
+
 						properties.put("quantity", content.getQuantity());
 						properties.put("unit", content.getUnit());
 
@@ -272,8 +259,11 @@ public class QueryOrderFunction {
 						// if productNo exist and type exist, sum
 						Map<String, String> tempProperties = productNo_type_properties.get(content.getProductNo())
 								.get(content.getType());
+
+						quantityConvertor(content);
+
 						tempProperties.put("quantity",
-								String.format("%.1f", Double.parseDouble(tempProperties.get("quantity"))
+								String.format("%.2f", Double.parseDouble(tempProperties.get("quantity"))
 										+ Double.parseDouble(content.getQuantity())));
 					}
 				}
@@ -281,6 +271,34 @@ public class QueryOrderFunction {
 		}
 
 		return productNo_type_properties;
+	}
+
+	/**
+	 * Unit conversion for InStockOrderRecord (There are some unit having the
+	 * conversion)
+	 */
+	private InStockOrderRecord quantityConvertor(InStockOrderRecord inStockOrderRecord) {
+		String quantity = inStockOrderRecord.getQuantity();
+		String unit = inStockOrderRecord.getUnit();
+
+		switch (unit) {
+		case "尺":
+			quantity = String.format("%.2f", Double.parseDouble(quantity) / 3.0);
+			unit = "碼";
+			inStockOrderRecord.setQuantity(quantity);
+			inStockOrderRecord.setUnit(unit);
+
+			return inStockOrderRecord;
+		case "打":
+			quantity = String.format("%d", Integer.parseInt(quantity) * 12);
+			unit = "個";
+			inStockOrderRecord.setQuantity(quantity);
+			inStockOrderRecord.setUnit(unit);
+
+			return inStockOrderRecord;
+		default:
+			return inStockOrderRecord;
+		}
 	}
 
 	/**
@@ -305,7 +323,7 @@ public class QueryOrderFunction {
 		waitHandleStatus.keySet().forEach(productNo -> waitHandleStatus.get(productNo).keySet().forEach(type -> {
 			if (prevStatus.get(productNo) != null && prevStatus.get(productNo).get(type) != null) {
 				waitHandleStatus.get(productNo).get(type).put("quantity",
-						String.format("%.1f",
+						String.format("%.2f",
 								Double.parseDouble(waitHandleStatus.get(productNo).get(type).get("quantity"))
 										- Double.parseDouble(prevStatus.get(productNo).get(type).get("quantity"))));
 			}

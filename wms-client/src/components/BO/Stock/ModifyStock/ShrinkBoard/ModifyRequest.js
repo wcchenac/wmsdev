@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import classnames from "classnames";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
-import { DefectOptions } from "../../../../../enums/Enums";
+import { UnitOptions, DefectOptions } from "../../../../../enums/Enums";
 
 class ModifyRequest extends Component {
   constructor(props) {
@@ -92,8 +92,11 @@ class ModifyRequest extends Component {
                   defaultValue={stockInfo.unit}
                   onChange={this.handleChange}
                 >
-                  <option value="碼">碼</option>
-                  <option value="尺">尺</option>
+                  {UnitOptions.map((unit, index) => (
+                    <option key={index} value={unit}>
+                      {unit}
+                    </option>
+                  ))}
                 </select>
               </div>
             </td>

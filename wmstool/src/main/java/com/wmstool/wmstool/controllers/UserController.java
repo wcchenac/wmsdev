@@ -53,7 +53,7 @@ public class UserController {
 		return ResponseEntity.ok(new JwtAuthenticationResponse(userService.authentiacateUser(loginRequest)));
 	}
 
-//	@PreAuthorize("hasRole('ROLE_Admin')")
+	@PreAuthorize("hasRole('ROLE_Admin')")
 	@PostMapping("/adminManagement/user/register")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
 		if (userRepository.existsByEmployeeId(registerRequest.getEmployeeId())) {

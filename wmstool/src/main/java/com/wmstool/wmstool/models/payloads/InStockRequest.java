@@ -29,7 +29,14 @@ public class InStockRequest {
 
 	private String orderNo;
 
+	private boolean directShip;
+
+	private String outStockReason;
+
 	private long parentId; // for history use
+
+	public InStockRequest() {
+	}
 
 	public String getProductNo() {
 		return productNo;
@@ -117,6 +124,22 @@ public class InStockRequest {
 
 	public void setOrderNo(String orderNo) {
 		this.orderNo = orderNo;
+	}
+
+	public boolean isDirectShip() {
+		return directShip;
+	}
+
+	public void setDirectShip(boolean directShip) {
+		this.directShip = directShip;
+	}
+
+	public String getOutStockReason() {
+		return outStockReason;
+	}
+
+	public void setOutStockReason(String outStockReason) {
+		this.outStockReason = outStockReason;
 	}
 
 	public long getParentId() {

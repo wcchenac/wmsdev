@@ -124,7 +124,7 @@ class InformationModal extends Component {
                 </label>
               </div>
               <div className="form-group row mb-0">
-                <label className="col-6 col-form-label text-center">缺陷</label>
+                <label className="col-6 col-form-label text-center">瑕疵</label>
                 <label className="col-6 col-form-label">
                   {stockInfo.defect}
                 </label>
@@ -204,7 +204,7 @@ class InformationModal extends Component {
                 </div>
               </div>
               <div className="form-group row mb-0">
-                <label className="col-6 col-form-label text-center">缺陷</label>
+                <label className="col-6 col-form-label text-center">瑕疵</label>
                 <div className="col-6">
                   <Select
                     closeMenuOnSelect={false}
