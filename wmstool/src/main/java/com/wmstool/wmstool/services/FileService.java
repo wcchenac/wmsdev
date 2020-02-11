@@ -32,13 +32,10 @@ public class FileService {
 	private static final String seperator = File.separator;
 	private static final String filetype = ".xls";
 	private static final DateTimeFormatter dtf_yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd");
-	private static final DateTimeFormatter dtf_yyyy = DateTimeFormatter.ofPattern("yyyy");
-	private static final DateTimeFormatter dtf_ww = DateTimeFormatter.ofPattern("ww");
 
 	private static final String File_Category_Adjustment = "adjustment";
 	private static final String File_Category_Allocation = "allocation";
 	private static final String File_Category_DailyCompare = "dailyComparison";
-	private static final String File_Category_WeeklyCompare = "weeklyComparison";
 
 	/**
 	 * Find files at current date
@@ -59,9 +56,6 @@ public class FileService {
 			fileNameNoDir = filenamePrefix + now.format(dtf_yyyyMMdd) + filetype;
 			fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
 					+ fileNameNoDir;
-		case File_Category_WeeklyCompare:
-			fileNameNoDir = filenamePrefix + now.format(dtf_yyyy) + "-Week" + now.format(dtf_ww) + filetype;
-			fileFullName = parentDir + seperator + now.getYear() + seperator + fileNameNoDir;
 		default:
 			break;
 		}
@@ -96,23 +90,6 @@ public class FileService {
 				String fileNameNoDir = filenamePrefix + d.format(dtf_yyyyMMdd) + filetype;
 				String fileFullName = parentDir + seperator + d.getYear() + seperator + d.getMonthValue() + seperator
 						+ fileNameNoDir;
-				File f = new File(fileFullName);
-
-				if (f.exists()) {
-					resultList.add(fileNameNoDir);
-				}
-			}
-
-			break;
-		case File_Category_WeeklyCompare:
-			int weekPeriod = Integer.parseInt(endDateTime.format(dtf_ww))
-					- Integer.parseInt(startDateTime.format(dtf_ww));
-
-			for (int i = 0; i <= weekPeriod; i += 1) {
-				LocalDate d = startDateTime.plusWeeks(i).toLocalDate();
-				String fileNameNoDir = filenamePrefix + d.format(dtf_yyyy) + "-Week" + d.format(dtf_ww) + filetype;
-				String fileFullName = parentDir + seperator + d.getYear() + seperator + fileNameNoDir;
-
 				File f = new File(fileFullName);
 
 				if (f.exists()) {

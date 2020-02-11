@@ -83,8 +83,8 @@ public class StockService {
 	/**
 	 * Save inStockRequest in List as StockInfo/InStockOrderRecord to first db
 	 */
-	public List<StockInfo> createStockInfoes(List<InStockRequest> inStockRequests) {
-		return createStockFunction.createStockInfoes(inStockRequests);
+	public void createStockInfoes(List<InStockRequest> inStockRequests) {
+		createStockFunction.createStockInfoes(inStockRequests);
 	}
 
 	/**
@@ -102,15 +102,6 @@ public class StockService {
 	public QueryProductNoResponse findBasicStockInfoByProductNo(String productNo) {
 		return queryStockFunction.findBasicStockInfoByProductNo(productNo);
 	}
-
-//	/**
-//	 * Return a response containing information for certain productNo fetching from
-//	 * second db and a list of StockInfoes with certain productNo fetching from
-//	 * first db
-//	 */
-//	public QueryProductNoResponse findStockInfoByProductNo(String productNo) {
-//		return queryStockFunction.findStockInfoByProductNo(productNo);
-//	}
 
 	/**
 	 * Return a response containing information for certain productNo fetching from

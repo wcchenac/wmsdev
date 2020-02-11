@@ -65,9 +65,15 @@ public class StockController {
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PostMapping("/inStocks")
 	public ResponseEntity<?> createStockInfoes(@RequestBody List<@Valid InStockRequest> inStockRequests) {
-		stockService.createStockInfoes(inStockRequests);
+		try {
+			stockService.createStockInfoes(inStockRequests);
 
-		return new ResponseEntity<>(HttpStatus.OK);
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	// TODO: rollbackInStock

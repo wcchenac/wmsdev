@@ -20,6 +20,7 @@ import com.wmstool.wmstool.models.StockIdentifierBacklog;
 import com.wmstool.wmstool.models.StockInfo;
 import com.wmstool.wmstool.models.TransactionRecord;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
+import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.repositories.HistoryRepository;
 import com.wmstool.wmstool.repositories.InStockOrderRepo;
 import com.wmstool.wmstool.repositories.StockIdentifierBacklogRepo;
@@ -52,6 +53,9 @@ public class CreateStockFunction {
 	@Autowired
 	private StockServiceUtilities stockServiceUtilities;
 
+	@Autowired
+	private ModifyStockFunction modifyStockFunction;
+
 	private final String InStockType_Normal = "normal";
 	private final String InStockType_Assemble = "assemble";
 	private final String InStockType_Shrink = "shrink";
@@ -62,9 +66,10 @@ public class CreateStockFunction {
 	/**
 	 * Save inStockRequest in List as StockInfo/InStockOrderRecord to first db
 	 */
-	public List<StockInfo> createStockInfoes(List<InStockRequest> inStockRequests) {
+	public void createStockInfoes(List<InStockRequest> inStockRequests) {
 		List<StockInfo> resultList = new ArrayList<>();
 		Map<String, Map<String, Map<String, String>>> productResult = new HashMap<>();
+		List<ShipRequest> waitToShip = new ArrayList<>();
 
 		for (InStockRequest isr : inStockRequests) {
 			History oldHistory = new History();
@@ -205,12 +210,26 @@ public class CreateStockFunction {
 			Product p = new Product(resIdentifier);
 
 			stockServiceUtilities.contentCollector(p, productResult);
+
+			// direct execute Ship process?
+			if (inStockRequest.isDirectShip()) {
+				ShipRequest shipRequest = new ShipRequest(resIdentifierId, inStockRequest.getOutStockReason());
+
+				waitToShip.add(shipRequest);
+			}
 		}
 
 		// Accumulate quantity in productList, then create or update Product
 		stockServiceUtilities.updateProductQuantityWithList(productResult);
 
-		return stockInfoRepository.saveAll(resultList);
+		stockInfoRepository.saveAll(resultList);
+
+		// execute Ship process
+		if (!waitToShip.isEmpty()) {
+			waitToShip.forEach(shipRequest -> {
+				modifyStockFunction.letStockIdentifierisShiped(shipRequest);
+			});
+		}
 	}
 
 	/**

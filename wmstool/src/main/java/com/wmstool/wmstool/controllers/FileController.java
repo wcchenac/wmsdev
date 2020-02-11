@@ -43,19 +43,16 @@ public class FileController {
 	private static final String SubFolder_OutStockList = "OutStockList";
 	private static final String SubFolder_STKADST = "STKADST";
 	private static final String SubFolder_STKALLT = "STKALLT";
-	private static final String SubFolder_DailyCompare = "DailyStockComparison";
-	private static final String SubFolder_WeeklyCompare = "WeeklyStockComparison";
+	private static final String SubFolder_DailyCompare = "StockComparisonResult";
 
 	private static final String File_Category_OutStockList = "outStockList";
 	private static final String File_Category_Adjustment = "adjustment";
 	private static final String File_Category_Allocation = "allocation";
 	private static final String File_Category_DailyCompare = "dailyComparison";
-	private static final String File_Category_WeeklyCompare = "weeklyComparison";
 
 	private static final String FilenamePrefix_Allocation = "StockAllocateRecord-";
 	private static final String FilenamePrefix_Adjustment = "StockAdjustRecord-";
-	private static final String FilenamePrefix_DailyCompare = "DailyStockComparison-";
-	private static final String FilenamePrefix_WeekylyCompare = "WeeklyStockComparison-";
+	private static final String FilenamePrefix_DailyCompare = "StockComparisonResult-";
 
 	@Autowired
 	private ServletContext servletContext;
@@ -79,9 +76,6 @@ public class FileController {
 			break;
 		case File_Category_DailyCompare:
 			subFolderName = SubFolder_DailyCompare;
-			break;
-		case File_Category_WeeklyCompare:
-			subFolderName = SubFolder_WeeklyCompare;
 			break;
 		default:
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -117,9 +111,6 @@ public class FileController {
 		case File_Category_DailyCompare:
 			return new ResponseEntity<String>(fileService.findTodayFile(fileCategory,
 					folderPath + seperator + SubFolder_DailyCompare, FilenamePrefix_DailyCompare), HttpStatus.OK);
-		case File_Category_WeeklyCompare:
-			return new ResponseEntity<String>(fileService.findTodayFile(fileCategory,
-					folderPath + seperator + SubFolder_WeeklyCompare, FilenamePrefix_WeekylyCompare), HttpStatus.OK);
 		default:
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
@@ -136,10 +127,6 @@ public class FileController {
 			return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
 					folderPath + seperator + SubFolder_STKADST, FilenamePrefix_Adjustment, start, end), HttpStatus.OK);
 		case File_Category_DailyCompare:
-			return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
-					folderPath + seperator + SubFolder_DailyCompare, FilenamePrefix_DailyCompare, start, end),
-					HttpStatus.OK);
-		case File_Category_WeeklyCompare:
 			return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
 					folderPath + seperator + SubFolder_DailyCompare, FilenamePrefix_DailyCompare, start, end),
 					HttpStatus.OK);
@@ -166,7 +153,7 @@ public class FileController {
 	private MediaType getMediaTypeByFilename(ServletContext servletContext, String filename) {
 		try {
 			String mimeType = servletContext.getMimeType(filename);
-			
+
 			return MediaType.parseMediaType(mimeType);
 		} catch (Exception e) {
 			return MediaType.APPLICATION_OCTET_STREAM;
@@ -186,8 +173,6 @@ public class FileController {
 		case File_Category_DailyCompare:
 			return fileName.substring(index + 1, index + 5) + seperator
 					+ String.valueOf(Integer.parseInt(fileName.substring(index + 5, index + 7))) + seperator + fileName;
-		case File_Category_WeeklyCompare:
-			return fileName.substring(index + 1, index + 5) + seperator + fileName;
 		default:
 			return null;
 		}

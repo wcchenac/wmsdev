@@ -9,6 +9,14 @@ public class ShipRequest {
 	@NotBlank(message = "原因不可空白")
 	private String reason;
 
+	public ShipRequest() {
+	}
+
+	public ShipRequest(long stockIdentifierId, String reason) {
+		this.stockIdentifierId = stockIdentifierId;
+		this.reason = reason;
+	}
+
 	public long getStockIdentifierId() {
 		return stockIdentifierId;
 	}
