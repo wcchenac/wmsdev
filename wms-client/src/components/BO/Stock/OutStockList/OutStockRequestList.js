@@ -297,13 +297,15 @@ class OutStockRequestList extends Component {
                 initialize={this.getInitialState}
               />
             </div>
-            <ConfirmModal
-              show={modalShow}
-              searchInfo={handlingInfo}
-              handleModalClose={this.handleModalClose}
-              cancelShip={this.handleRollBackShipStatus}
-              deleteOutStock={this.handleDeleteOutStockRequest}
-            />
+            {modalShow ? (
+              <ConfirmModal
+                show
+                searchInfo={handlingInfo}
+                handleModalClose={this.handleModalClose}
+                cancelShip={this.handleRollBackShipStatus}
+                deleteOutStock={this.handleDeleteOutStockRequest}
+              />
+            ) : null}
           </LoadingOverlay>
         </div>
       </div>

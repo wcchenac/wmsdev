@@ -169,6 +169,10 @@ export function joinInfoDefectArray(stockInfo) {
   let newDefectContent = "";
 
   stockInfo.defect.forEach((object, index) => {
+    if (object === undefined) {
+      return newDefectContent;
+    }
+
     if (index === stockInfo.defect.length - 1) {
       newDefectContent = newDefectContent + object.value;
     } else {

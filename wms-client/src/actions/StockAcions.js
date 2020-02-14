@@ -6,6 +6,7 @@ import {
   CREATE_Errors,
   SHRINK_Errors,
   SHIP_Stock,
+  SHIP_Stocks,
   SHRINK_Stock,
   CANCEL_SHRINK,
   GET_OutStockRequests,
@@ -104,6 +105,29 @@ export const stockIdentifierIsShiped = shipRequest => async dispatch => {
     });
 
     return await API.patch("/api/stock/shipStock", shipRequest);
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
+export const stockIdentifiersAreShiped = (
+  productNo,
+  shipRequests
+) => async dispatch => {
+  try {
+    await API.patch("/api/stock/shipStocks", shipRequests);
+
+    let res = await API.get(`/api/stock/queryStock/query/1/${productNo}`);
+
+    dispatch({
+      type: SHIP_Stocks,
+      payload: res.data
+    });
+
+    return res;
   } catch (err) {
     dispatch({
       type: GET_Errors,

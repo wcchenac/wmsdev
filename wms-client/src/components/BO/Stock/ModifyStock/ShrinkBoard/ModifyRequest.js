@@ -3,12 +3,19 @@ import classnames from "classnames";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import { UnitOptions, DefectOptions } from "../../../../../enums/Enums";
+import ShipModal from "../../Utilities/ShipModal";
 
 class ModifyRequest extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      modalShow: false
+    };
     this.handleChange = this.handleChange.bind(this);
     this.onDefectChange = this.onDefectChange.bind(this);
+    this.onShipCheck = this.onShipCheck.bind(this);
+    this.onReansonButtonChange = this.onReansonButtonChange.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
   }
 
   handleChange(e) {
@@ -17,6 +24,19 @@ class ModifyRequest extends Component {
 
   onDefectChange(selectedOptions) {
     this.props.handleDefectChange(selectedOptions, this.props.index);
+  }
+
+  onShipCheck(e) {
+    this.setState({ modalShow: true });
+    this.props.handleShipCheck(e, this.props.index);
+  }
+
+  onReansonButtonChange(e) {
+    this.props.handleReasonButton(e, this.props.index);
+  }
+
+  handleModalClose() {
+    this.setState({ modalShow: false });
   }
 
   render() {
@@ -123,6 +143,24 @@ class ModifyRequest extends Component {
               onChange={this.handleChange}
             />
           </div>
+        </td>
+        <td>
+          <div className="form-check mt-2 ml-2">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              value={stockInfo.directShip}
+              onChange={this.onShipCheck}
+            />
+          </div>
+          <ShipModal
+            outStockReason={stockInfo.outStockReason}
+            onChange={this.handleChange}
+            onReansonButtonChange={this.onReansonButtonChange}
+            onShipClick={this.handleModalClose}
+            handleModalClose={this.handleModalClose}
+            show={stockInfo.directShip && this.state.modalShow}
+          />
         </td>
       </tr>
     );

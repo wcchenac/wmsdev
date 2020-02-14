@@ -196,14 +196,16 @@ class StockInfo extends Component {
               onChange={this.onShipCheck}
             />
           </div>
-          <ShipModal
-            outStockReason={stockInfo.outStockReason}
-            onChange={this.onChange}
-            onReansonButtonChange={this.onReansonButtonChange}
-            onShipClick={this.handleModalClose}
-            handleModalClose={this.handleModalClose}
-            show={stockInfo.directShip && this.state.modalShow}
-          />
+          {stockInfo.directShip && this.state.modalShow ? (
+            <ShipModal
+              outStockReason={stockInfo.outStockReason}
+              onChange={this.onChange}
+              onReansonButtonChange={this.onReansonButtonChange}
+              onShipClick={this.handleModalClose}
+              handleModalClose={this.handleModalClose}
+              show
+            />
+          ) : null}
         </td>
       </tr>
     );

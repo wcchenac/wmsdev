@@ -102,11 +102,11 @@ class FlieContainer extends Component {
                 </tr>
               </thead>
               <tbody>
-                {isEmpty(filenames) ? null : (
-                  <tr>
-                    {filenames.map((filename, index) => {
-                      return (
-                        <React.Fragment key={index}>
+                {isEmpty(filenames)
+                  ? null
+                  : filenames.map((filename, index) => (
+                      <React.Fragment key={index}>
+                        <tr>
                           <td style={{ padding: "0.5em 1em" }}>
                             <button className="btn-customize" disabled>
                               {filename}
@@ -126,11 +126,9 @@ class FlieContainer extends Component {
                               </div>
                             )}
                           </td>
-                        </React.Fragment>
-                      );
-                    })}
-                  </tr>
-                )}
+                        </tr>
+                      </React.Fragment>
+                    ))}
               </tbody>
             </table>
           </div>
