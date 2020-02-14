@@ -66,14 +66,16 @@ class StockInfo extends Component {
           >
             出庫
           </Button>
-          <ShipModal
-            show={this.state.modalShow}
-            outStockReason={this.state.outStockReason}
-            onChange={this.onChange}
-            onReansonButtonChange={this.handleReasonButton}
-            onShipClick={this.onShipClick}
-            handleModalClose={this.handleModalClose}
-          />
+          {this.state.modalShow ? (
+            <ShipModal
+              show
+              outStockReason={this.state.outStockReason}
+              onChange={this.onChange}
+              onReansonButtonChange={this.handleReasonButton}
+              onShipClick={this.onShipClick}
+              handleModalClose={this.handleModalClose}
+            />
+          ) : null}
         </React.Fragment>
       );
     } else {

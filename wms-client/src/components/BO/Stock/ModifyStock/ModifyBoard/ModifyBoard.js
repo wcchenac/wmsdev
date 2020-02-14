@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import {
   getStockInfoes,
   stockIdentifierIsShiped,
+  stockIdentifiersAreShiped,
   stockIdentifierWaitToShrinkIsTrue,
   createOutStockRequest,
   updateStockInfo
@@ -16,6 +17,8 @@ import QueryResponseWithNoStock from "../../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
 import ShowProductQuantity from "../../Utilities/ShowProductQuantity";
+import { Button } from "react-bootstrap";
+import BatchShipModal from "./BatchShipModal";
 
 const equal = require("fast-deep-equal");
 
@@ -25,6 +28,7 @@ class ModifyBoard extends Component {
     this.state = {
       isLoading: false,
       isQuery: false,
+      modlaShow: false,
       productNo: "",
       productInfo: {},
       stockInfoes: [],
@@ -36,8 +40,11 @@ class ModifyBoard extends Component {
       this
     );
     this.handleShip = this.handleShip.bind(this);
+    this.handleShipList = this.handleShipList.bind(this);
     this.handleShrink = this.handleShrink.bind(this);
     this.handleStockInfoUpdate = this.handleStockInfoUpdate.bind(this);
+    this.handleModalShow = this.handleModalShow.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
   }
 
   onChange(e) {
@@ -75,6 +82,16 @@ class ModifyBoard extends Component {
     });
   }
 
+  handleShipList(shipRequests) {
+    this.setState({ isLoading: true }, () => {
+      this.props
+        .stockIdentifiersAreShiped(this.state.productNo, shipRequests)
+        .then(response => {
+          this.setState({ isLoading: false, modalShow: false });
+        });
+    });
+  }
+
   handleShrink(id) {
     this.setState({ isLoading: true }, () => {
       this.props.stockIdentifierWaitToShrinkIsTrue(id).then(response => {
@@ -93,6 +110,23 @@ class ModifyBoard extends Component {
         }
       });
     });
+  }
+
+  handleModalClose() {
+    this.setState({ modalShow: false });
+  }
+
+  handleModalShow() {
+    this.setState({ modalShow: true });
+  }
+
+  infoSimplify() {
+    const { stockInfoes } = this.state;
+    let identifiers = [];
+
+    stockInfoes.forEach(info => identifiers.push(info.stockIdentifier));
+
+    return identifiers;
   }
 
   componentDidUpdate(prevProps) {
@@ -116,6 +150,24 @@ class ModifyBoard extends Component {
           <div>
             <ShowProductQuantity stockQuantity={stockQuantity} />
             <hr />
+            <div className="container">
+              <div className="row justify-content-end">
+                <Button variant="info" size="sm" onClick={this.handleModalShow}>
+                  批量出庫
+                </Button>
+              </div>
+              {this.state.modalShow ? (
+                <BatchShipModal
+                  show
+                  handleModalClose={this.handleModalClose}
+                  handleShipList={this.handleShipList}
+                  typeValidation={
+                    stockInfoes[0].stockIdentifier.type === "雜項"
+                  }
+                  data={this.infoSimplify()}
+                />
+              ) : null}
+            </div>
             <StockInfoContainer
               typeValidation={stockInfoes[0].stockIdentifier.type === "雜項"}
               stockInfoes={stockInfoes}
@@ -194,6 +246,7 @@ ModifyBoard.propTypes = {
   queryResult: PropTypes.object.isRequired,
   getStockInfoes: PropTypes.func.isRequired,
   stockIdentifierIsShiped: PropTypes.func.isRequired,
+  stockIdentifiersAreShiped: PropTypes.func.isRequired,
   stockIdentifierWaitToShrinkIsTrue: PropTypes.func.isRequired,
   createOutStockRequest: PropTypes.func.isRequired
 };
@@ -205,6 +258,7 @@ const mapStateToProps = state => ({
 export default connect(mapStateToProps, {
   getStockInfoes,
   stockIdentifierIsShiped,
+  stockIdentifiersAreShiped,
   stockIdentifierWaitToShrinkIsTrue,
   createOutStockRequest,
   updateStockInfo

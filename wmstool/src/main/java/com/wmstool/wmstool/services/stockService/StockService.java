@@ -122,6 +122,15 @@ public class StockService {
 	}
 
 	/**
+	 * Using given information containing in ShipRequest list to mark certain
+	 * stockIdentifier ship status is true and save a record to
+	 * OutStockReqeust/TransactionRecord/Product repository
+	 */
+	public void letStockIdentifiersAreShiped(List<ShipRequest> shipRequests) {
+		modifyStockFunction.letStockIdentifiersAreShiped(shipRequests);
+	}
+
+	/**
 	 * Cancel certain stockIdentifier ship process and update the corresponding
 	 * OutStockReqeust/TransactionRecord as deleted, update Product repository
 	 */
