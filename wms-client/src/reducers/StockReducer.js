@@ -3,6 +3,7 @@ import {
   GET_StockInfo,
   GET_StockInfoes,
   SHIP_Stock,
+  SHIP_Stocks,
   SHRINK_Stock,
   CANCEL_SHRINK,
   UPDATE_StockInfo
@@ -17,6 +18,7 @@ export default function(state = initialState, action) {
   switch (action.type) {
     case GET_Order:
     case GET_StockInfoes:
+    case SHIP_Stocks:
     case SHRINK_Stock:
     case UPDATE_StockInfo:
       return {

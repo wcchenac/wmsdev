@@ -6,6 +6,8 @@ import {
   joinInfoesDefectArray,
   defectStringTransToOptions
 } from "../../Utilities/StockInfoHelperMethods";
+import ToolbarForAddDeleteSubmit from "../../Utilities/ToolbarForAddDeleteSubmit";
+import ShrinkConfirmModal from "./ShrinkConfirmModal";
 
 const equal = require("fast-deep-equal");
 
@@ -13,9 +15,11 @@ class ModifyRequestBoard extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      modalShow: false,
       oldStockInfo: this.props.stockInfo,
       newStockInfoes: [],
-      typeValidation: this.props.stockInfo.stockIdentifier.type === "雜項"
+      typeValidation: this.props.stockInfo.stockIdentifier.type === "雜項",
+      assignRowNum: 0
     };
     this.handleBackClick = this.handleBackClick.bind(this);
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
@@ -23,13 +27,20 @@ class ModifyRequestBoard extends Component {
     this.handleRequestChange = this.handleRequestChange.bind(this);
     this.handleDefectChange = this.handleDefectChange.bind(this);
     this.handleSubmitClick = this.handleSubmitClick.bind(this);
+    this.handleModalShow = this.handleModalShow.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
+    this.handleShipCheck = this.handleShipCheck.bind(this);
+    this.handleReasonButton = this.handleReasonButton.bind(this);
+    this.handleRowNumChange = this.handleRowNumChange.bind(this);
+    this.handleRowNumSubmit = this.handleRowNumSubmit.bind(this);
   }
 
   handleBackClick() {
     this.props.handleGoBack();
   }
 
-  modifyRequestInitialContent(typeExchange, sameTypeModify, hardwareModify) {
+  modifyRequestInitialContent() {
+    const { typeExchange, sameTypeModify, hardwareModify } = this.props;
     let initialContent = {
       productNo: this.state.oldStockInfo.stockIdentifier.productNo,
       lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
@@ -42,6 +53,8 @@ class ModifyRequestBoard extends Component {
       record: "",
       remark: "",
       inStockType: "shrink",
+      directShip: false,
+      outStockReason: "",
       parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
       errors: {
         quantity: ""
@@ -146,17 +159,20 @@ class ModifyRequestBoard extends Component {
         };
   }
 
+  handleModalClose() {
+    this.setState({ modalShow: false });
+  }
+
+  handleModalShow() {
+    this.setState({ modalShow: true });
+  }
+
   handleNewDataClick() {
-    const { typeExchange, sameTypeModify, hardwareModify } = this.props;
     const { newStockInfoes } = this.state;
     let newStockInfo;
 
     if (newStockInfoes.length === 0) {
-      newStockInfo = this.modifyRequestInitialContent(
-        typeExchange,
-        sameTypeModify,
-        hardwareModify
-      );
+      newStockInfo = this.modifyRequestInitialContent();
     } else {
       newStockInfo = {
         productNo: this.state.oldStockInfo.stockIdentifier.productNo,
@@ -169,6 +185,8 @@ class ModifyRequestBoard extends Component {
         record: this.state.oldStockInfo.record,
         remark: "",
         inStockType: "shrink",
+        directShip: false,
+        outStockReason: "",
         parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
         errors: {
           quantity: ""
@@ -227,6 +245,47 @@ class ModifyRequestBoard extends Component {
     };
 
     this.props.handleModifyRequestSubmit(shrinkStockRequest);
+    this.handleModalClose();
+  }
+
+  handleRowNumChange(e) {
+    this.setState({ [e.target.name]: e.target.value });
+  }
+
+  handleRowNumSubmit(e) {
+    e.preventDefault();
+
+    const stockInfoesCopy = [...this.state.newStockInfoes];
+
+    for (let i = 0; i < this.state.assignRowNum; i += 1) {
+      stockInfoesCopy.push(this.modifyRequestInitialContent());
+    }
+
+    this.setState({ assignRowNum: 0, newStockInfoes: stockInfoesCopy });
+  }
+
+  handleShipCheck(e, i) {
+    const copyList = [...this.state.newStockInfoes];
+
+    copyList[i].directShip = e.target.checked;
+
+    if (!e.target.checked) {
+      copyList[i].outStockReason = "";
+    }
+
+    this.setState({
+      newStockInfoes: copyList
+    });
+  }
+
+  handleReasonButton(e, i) {
+    const copyList = [...this.state.newStockInfoes];
+
+    copyList[i].outStockReason = e.target.value;
+
+    this.setState({
+      newStockInfoes: copyList
+    });
   }
 
   modalContent() {
@@ -281,7 +340,13 @@ class ModifyRequestBoard extends Component {
   }
 
   render() {
-    const { oldStockInfo, newStockInfoes, typeValidation } = this.state;
+    const {
+      modalShow,
+      oldStockInfo,
+      newStockInfoes,
+      typeValidation,
+      assignRowNum
+    } = this.state;
     let isLengthChecked = this.checkLengthAlgorithm(newStockInfoes);
     let modalContent = this.modalContent();
 
@@ -379,93 +444,37 @@ class ModifyRequestBoard extends Component {
               </tr>
             </tbody>
           </table>
-          <div className="row">
-            <div className="col-md-auto mr-auto">
-              <button
-                type="button"
-                className="btn btn-primary mr-2 "
-                onClick={this.handleNewDataClick}
-              >
-                新增資料
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={this.handleDeleteDataClick}
-                disabled={newStockInfoes.length === 0}
-              >
-                刪除資料
-              </button>
-            </div>
-            <div className="col-md-auto">
-              <button
-                type="button"
-                className="btn btn-primary btn-block"
-                disabled={!isLengthChecked}
-                data-toggle="modal"
-                data-target="#warn_info"
-              >
-                送出
-              </button>
-              <div
-                className="modal fade"
-                id="warn_info"
-                tabIndex="-1"
-                role="dialog"
-                aria-labelledby="content"
-                aria-hidden="true"
-              >
-                <div
-                  className="modal-dialog modal-dialog-centered"
-                  role="document"
-                >
-                  <div className="modal-content">
-                    <div className="modal-header">
-                      <h5 className="modal-title">減肥確認</h5>
-                      <button
-                        type="button"
-                        className="close"
-                        data-dismiss="modal"
-                        aria-label="Close"
-                      >
-                        <span aria-hidden="true">&times;</span>
-                      </button>
-                    </div>
-                    <div className="modal-body">{modalContent}</div>
-                    <div className="modal-footer">
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        data-dismiss="modal"
-                      >
-                        取消
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        data-dismiss="modal"
-                        onClick={this.handleSubmitClick}
-                      >
-                        送出
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <br />
+          <ToolbarForAddDeleteSubmit
+            onAddClick={this.handleNewDataClick}
+            onDeleteClick={this.handleDeleteDataClick}
+            onSubmitClick={this.handleModalShow}
+            handleRowNumChange={this.handleRowNumChange}
+            handleRowNumSubmit={this.handleRowNumSubmit}
+            deleteDisabled={newStockInfoes.length === 0}
+            submitDisabled={!isLengthChecked}
+            assignRowNum={assignRowNum}
+          />
           {newStockInfoes.length === 0 ? (
             <div className="alert alert-warning text-center" role="alert">
               請新增資料
             </div>
           ) : (
-            <ModifyRequestContainer
-              typeValidation={typeValidation}
-              newStockInfoes={newStockInfoes}
-              onRequestChange={this.handleRequestChange}
-              handleDefectChange={this.handleDefectChange}
-            />
+            <div>
+              <ModifyRequestContainer
+                typeValidation={typeValidation}
+                newStockInfoes={newStockInfoes}
+                onRequestChange={this.handleRequestChange}
+                handleDefectChange={this.handleDefectChange}
+                handleShipCheck={this.handleShipCheck}
+                handleReasonButton={this.handleReasonButton}
+              />
+              <ShrinkConfirmModal
+                show={modalShow}
+                modalContent={modalContent}
+                handleModalClose={this.handleModalClose}
+                handleSubmitClick={this.handleSubmitClick}
+              />
+            </div>
           )}
           <hr />
         </div>

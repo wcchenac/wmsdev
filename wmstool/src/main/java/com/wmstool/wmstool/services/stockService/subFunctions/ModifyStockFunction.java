@@ -3,6 +3,7 @@ package com.wmstool.wmstool.services.stockService.subFunctions;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -106,6 +107,15 @@ public class ModifyStockFunction {
 		Product p = new Product(res);
 		p.setQuantity("-" + p.getQuantity());
 		stockServiceUtilities.updateProductQuantity(res.getProductNo(), p);
+	}
+	
+	/**
+	 * Mark stockIdentifiers ship status given by shipRequest list
+	 */
+	public void letStockIdentifiersAreShiped(List<ShipRequest>shipRequests) {
+		shipRequests.forEach(shipRequest-> {
+			letStockIdentifierisShiped(shipRequest);
+		});
 	}
 
 	/**

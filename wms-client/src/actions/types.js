@@ -8,6 +8,7 @@ export const GET_StockInfoes = "GET_StockInfoes";
 export const UPDATE_StockInfo = "UPDATE_StockInfo";
 export const DELETE_Stock = "DELETE_Stock";
 export const SHIP_Stock = "SHIP_Stock";
+export const SHIP_Stocks = "SHIP_Stocks";
 export const CREATE_FILE = "CREATE_FILE";
 export const SHRINK_Stock = "SHRINK_Stock";
 export const CANCEL_SHRINK = "CANCEL_SHRINK";

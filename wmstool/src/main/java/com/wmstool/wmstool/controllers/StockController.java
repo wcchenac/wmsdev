@@ -125,6 +125,14 @@ public class StockController {
 	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
+	@PatchMapping("/shipStocks")
+	public ResponseEntity<?> letStockIndentifiersAreShiped(@RequestBody List<@Valid ShipRequest> shipRequests) {
+		stockService.letStockIdentifiersAreShiped(shipRequests);
+
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PatchMapping("/shipStock/rollback/{stockIdentifierId}")
 	public ResponseEntity<?> letStockIndentifierisNotShiped(@PathVariable long stockIdentifierId) {
 		stockService.letStockIdentifierisNotShiped(stockIdentifierId);

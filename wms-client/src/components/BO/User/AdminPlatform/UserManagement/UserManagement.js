@@ -8,9 +8,7 @@ import {
 } from "../../../../../actions/UserActions";
 import LoadingOverlay from "react-loading-overlay";
 import MaterialTable from "material-table";
-import { tableIcons } from "./TableIcons";
-import DeleteOutline from "@material-ui/icons/DeleteOutline";
-import Edit from "@material-ui/icons/Edit";
+import { tableIcons } from "../../../../Others/TableIcons";
 import { Spinner } from "../../../../Others/Spinner";
 import EditModal from "./EditModal";
 
@@ -94,20 +92,25 @@ class UserManagement extends Component {
                     data={this.props.queryResult}
                     actions={[
                       {
-                        icon: () => <Edit />,
+                        icon: tableIcons.Edit,
                         tooltip: "Edit User",
                         onClick: (event, rowData) =>
                           this.handleEditClick(rowData)
                       },
                       {
-                        icon: () => <DeleteOutline />,
+                        icon: tableIcons.Delete,
                         tooltip: "Delete User",
                         onClick: (event, rowData) => {
                           this.handleDeleteSubmit(rowData.employeeId);
                         }
                       }
                     ]}
-                    options={{ filtering: true, draggable: false }}
+                    options={{
+                      filtering: true,
+                      draggable: false,
+                      pageSize: 10,
+                      pageSizeOptions: [10, 20]
+                    }}
                   />
                   {this.state.modalShow ? (
                     <EditModal
