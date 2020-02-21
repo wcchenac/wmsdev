@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.wmstool.wmstool.models.History;
 import com.wmstool.wmstool.repositories.HistoryRepository;
-import com.wmstool.wmstool.repositories.StockIdentifierRepo;
+import com.wmstool.wmstool.repositories.StockInfoRepository;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
 @Service
@@ -19,7 +19,7 @@ public class HistoryService {
 	private HistoryRepository historyRepo;
 
 	@Autowired
-	private StockIdentifierRepo stockIdentifierRepo;
+	private StockInfoRepository stockInfoRepository;
 
 	public History findHistoryByCurrentId(long id) {
 		// TODO: data not found exception
@@ -37,7 +37,7 @@ public class HistoryService {
 
 		HistoryTreeNode source = new HistoryTreeNode();
 		// TODO: data not found exception
-		source.setStockIdentifier(stockIdentifierRepo.findById(rootId).get());
+		source.setStockInfo(stockInfoRepository.findByStockIdentifierId(rootId).get());
 
 		if (childrenId.length == 0) {
 			return source;

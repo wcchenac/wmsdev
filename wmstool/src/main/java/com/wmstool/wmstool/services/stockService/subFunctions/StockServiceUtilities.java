@@ -1,5 +1,7 @@
 package com.wmstool.wmstool.services.stockService.subFunctions;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.wmstool.wmstool.models.Product;
+import com.wmstool.wmstool.models.StockIdentifier;
 import com.wmstool.wmstool.repositories.ProductRepository;
 
 @Component
@@ -153,6 +156,71 @@ public class StockServiceUtilities {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Update stockIdentifier status for three process
+	 */
+	public void updateStockIdentifierInfo(String updateType, StockIdentifier stockIdentifier, String outStockReason,
+			String adjustmentString, String editor) {
+		switch (updateType) {
+		case "ship":
+			stockIdentifier.setExist(false);
+			stockIdentifier.setEliminateType("0");
+			stockIdentifier.setEliminateReason(outStockReason);
+			stockIdentifier.setEliminateDate(LocalDate.now().toString());
+			stockIdentifier.setOutStock(true);
+			stockIdentifier.setOutStockAt(LocalDateTime.now());
+			break;
+		case "waitToShrink":
+			stockIdentifier.setWaitToShrink(true);
+			stockIdentifier.setOutStock(true);
+			stockIdentifier.setOutStockAt(LocalDateTime.now());
+			break;
+		case "shrink":
+			stockIdentifier.setExist(false);
+			stockIdentifier.setEliminateType("1");
+			stockIdentifier.setEliminateDate(LocalDate.now().toString());
+			stockIdentifier.setEliminateReason(outStockReason);
+			stockIdentifier.setAdjustment(adjustmentString);
+			break;
+		default:
+			break;
+		}
+
+		stockIdentifier.setUpdatedBy(editor);
+	}
+
+	/**
+	 * Roll-back stockIdentifier status for three process
+	 */
+	public void rollbackIdentifierInfo(String rollbackType, StockIdentifier stockIdentifier, String editor) {
+		switch (rollbackType) {
+		case "ship":
+			stockIdentifier.setExist(true);
+			stockIdentifier.setEliminateType(null);
+			stockIdentifier.setEliminateReason(null);
+			stockIdentifier.setEliminateDate(null);
+			stockIdentifier.setOutStock(false);
+			stockIdentifier.setOutStockAt(null);
+			break;
+		case "waitToShrink":
+			stockIdentifier.setWaitToShrink(false);
+			stockIdentifier.setOutStock(false);
+			stockIdentifier.setOutStockAt(null);
+			break;
+		case "shrink":
+			stockIdentifier.setExist(true);
+			stockIdentifier.setEliminateDate(null);
+			stockIdentifier.setEliminateReason(null);
+			stockIdentifier.setEliminateType(null);
+			stockIdentifier.setAdjustment(null);
+			break;
+		default:
+			break;
+		}
+
+		stockIdentifier.setUpdatedBy(editor);
 	}
 
 }

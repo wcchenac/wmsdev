@@ -19,12 +19,14 @@ import com.wmstool.wmstool.models.InStockOrderRecord;
 import com.wmstool.wmstool.models.Product;
 import com.wmstool.wmstool.models.StockIdentifier;
 import com.wmstool.wmstool.models.StockInfo;
+import com.wmstool.wmstool.models.TransactionRecord;
 import com.wmstool.wmstool.models.payloads.ProductInformation;
 import com.wmstool.wmstool.models.payloads.QueryProductNoResponse;
 import com.wmstool.wmstool.repositories.InStockOrderRepo;
 import com.wmstool.wmstool.repositories.ProductRepository;
 import com.wmstool.wmstool.repositories.StockIdentifierRepo;
 import com.wmstool.wmstool.repositories.StockInfoRepository;
+import com.wmstool.wmstool.repositories.TransactionRecordRepo;
 import com.wmstool.wmstool.services.HistoryService;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
@@ -45,6 +47,9 @@ public class QueryStockFunction {
 	private InStockOrderRepo inStockOrderRepo;
 
 	@Autowired
+	private TransactionRecordRepo transactionRecordRepo;
+
+	@Autowired
 	private HistoryService historyService;
 
 	@Autowired
@@ -62,15 +67,6 @@ public class QueryStockFunction {
 		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, true),
 				getProductsByProductNo(productNo));
 	}
-
-//	/**
-//	 * Return a response containing information for certain productNo fetching from
-//	 * second db and a list of StockInfoes with certain productNo fetching from
-//	 * first db
-//	 */
-//	public QueryProductNoResponse findStockInfoByProductNo(String productNo) {
-//		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, false));
-//	}
 
 	/**
 	 * Return a response containing information for certain productNo fetching from
@@ -95,6 +91,18 @@ public class QueryStockFunction {
 					// TODO: data not found exception
 					identifier -> result.add(stockInfoRepository.findByStockIdentifierId(identifier.getId()).get()));
 		}
+
+		return result;
+	}
+
+	// TODO
+	public List<HistoryTreeNode> findByPeriodTransactionRecord(String productNo) {
+		List<HistoryTreeNode> result = new ArrayList<>();
+
+		transactionRecordRepo.findTop5ByProductNoAndTransactionTypeOrderByCreatedAtDesc(productNo, "SKO")
+				.forEach(transaction -> {
+					result.add(historyService.createHistoryTreeByIdentifierId(transaction.getStockIdentifierId()));
+				});
 
 		return result;
 	}

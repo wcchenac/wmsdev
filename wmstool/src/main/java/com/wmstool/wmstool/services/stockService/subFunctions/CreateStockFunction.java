@@ -171,6 +171,12 @@ public class CreateStockFunction {
 
 			// use stockIdentifier & inStockRequest to create stockInfo, then add into list
 			StockInfo result = new StockInfo(resIdentifier, inStockRequest, Editor);
+
+			// if in-stock by shrink, then record shrink date
+			if (condition.equals(InStockType_Shrink)) {
+				result.setShrinkAt(LocalDate.now().toString());
+			}
+
 			resultList.add(result);
 
 			// new stock not from InStockType_Shrink should be saved in InStockOrderRepo

@@ -2,7 +2,7 @@ package com.wmstool.wmstool.services.stockService.subFunctions;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -89,13 +89,7 @@ public class ModifyStockFunction {
 		outStockRequestRepo.save(outStockRequest);
 
 		// Update related information in StockIdentifier
-		res.setExist(false);
-		res.setEliminateType("0");
-		res.setEliminateReason(shipRequest.getReason());
-		res.setEliminateDate(LocalDate.now().toString());
-		res.setOutStock(true);
-		res.setOutStockAt(LocalDateTime.now());
-		res.setUpdatedBy(Editor);
+		stockServiceUtilities.updateStockIdentifierInfo("ship", res, shipRequest.getReason(), null, Editor);
 
 		// Create TransactionRecord for ship and save it
 		TransactionRecord transactionRecord = new TransactionRecord(res, Editor);
@@ -108,12 +102,12 @@ public class ModifyStockFunction {
 		p.setQuantity("-" + p.getQuantity());
 		stockServiceUtilities.updateProductQuantity(res.getProductNo(), p);
 	}
-	
+
 	/**
 	 * Mark stockIdentifiers ship status given by shipRequest list
 	 */
-	public void letStockIdentifiersAreShiped(List<ShipRequest>shipRequests) {
-		shipRequests.forEach(shipRequest-> {
+	public void letStockIdentifiersAreShiped(List<ShipRequest> shipRequests) {
+		shipRequests.forEach(shipRequest -> {
 			letStockIdentifierisShiped(shipRequest);
 		});
 	}
@@ -129,13 +123,7 @@ public class ModifyStockFunction {
 				.getFullName();
 
 		// Update relative information in StockIdentifier
-		resIdentifier.setExist(true);
-		resIdentifier.setEliminateType(null);
-		resIdentifier.setEliminateReason(null);
-		resIdentifier.setEliminateDate(null);
-		resIdentifier.setOutStock(false);
-		resIdentifier.setOutStockAt(null);
-		resIdentifier.setUpdatedBy(Editor);
+		stockServiceUtilities.rollbackIdentifierInfo("ship", resIdentifier, Editor);
 
 		// Set relative status in OutStockRequest
 		// TODO: data not found exception
@@ -168,10 +156,7 @@ public class ModifyStockFunction {
 		OutStockRequest outStockRequest = new OutStockRequest(resIdentifier, resInfo,
 				resIdentifier.getType().equals("雜項") ? "分裝" : "減肥", Editor);
 
-		resIdentifier.setWaitToShrink(true);
-		resIdentifier.setOutStock(true);
-		resIdentifier.setOutStockAt(LocalDateTime.now());
-		resIdentifier.setUpdatedBy(Editor);
+		stockServiceUtilities.updateStockIdentifierInfo("waitToShrink", resIdentifier, null, null, Editor);
 		// TODO: avoid multiple click
 
 		// Set extra information in OutStockRequest
@@ -199,10 +184,7 @@ public class ModifyStockFunction {
 		resOutStockRequest.setUpdatedBy(Editor);
 
 		// Update relative information in StockIdentifier
-		resIdentifier.setWaitToShrink(false);
-		resIdentifier.setOutStock(false);
-		resIdentifier.setOutStockAt(null);
-		resIdentifier.setUpdatedBy(Editor);
+		stockServiceUtilities.rollbackIdentifierInfo("waitToShrink", resIdentifier, Editor);
 	}
 
 	/**
@@ -253,12 +235,7 @@ public class ModifyStockFunction {
 		String Editor = ((UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal())
 				.getFullName();
 
-		oldIdentifier.setExist(false);
-		oldIdentifier.setEliminateType("1");
-		oldIdentifier.setEliminateDate(LocalDate.now().toString());
-		oldIdentifier.setEliminateReason("減肥");
-		oldIdentifier.setAdjustment(adjustmentString);
-		oldIdentifier.setUpdatedBy(Editor);
+		stockServiceUtilities.updateStockIdentifierInfo("shrink", oldIdentifier, "減肥", adjustmentString, Editor);
 
 		// Create TransactionRecord for oldStock shrink and save it
 		TransactionRecord transactionRecord = new TransactionRecord(oldIdentifier, Editor);
@@ -266,7 +243,7 @@ public class ModifyStockFunction {
 		transactionRecord.setOperator("-1");
 		transactionRecord.setTransactionType("SKO");
 
-		transactionRecordRepo.save(transactionRecord);
+		TransactionRecord resTR = transactionRecordRepo.save(transactionRecord);
 
 		String productNo = oldIdentifier.getProductNo();
 		String unit = oldIdentifier.getUnit();
@@ -282,6 +259,7 @@ public class ModifyStockFunction {
 		// Create StockAllocationRecord object
 		// and output to record file when allocation != 0
 		if (allocation != 0) {
+			List<StockAllocationRecord> stockAllocationRecords = new ArrayList<>();
 			String unitReference = productBaseUnitRetrieve(productNo);
 
 			// Create StockAllocationRecord, and save
@@ -289,6 +267,7 @@ public class ModifyStockFunction {
 
 			stockAllocationRecord.setQuantity(allocationString);
 			stockAllocationRecord.setIssuedByStockIdentifier(oldIdentifier.getId());
+			stockAllocationRecord.setIssuedByTransactionRecord(resTR.getId());
 
 			// If oldIdentifier unit != unitReference, do quantity conversion
 			if (unitReference.equals(unit)) {
@@ -297,16 +276,19 @@ public class ModifyStockFunction {
 				stockAllocationRecord.setRealQuantity(String.format("%.2f", allocation * 3.0));
 			}
 
+			stockAllocationRecords.add(stockAllocationRecord);
+
 			stockAllocationRecordRepo.save(stockAllocationRecord);
 
 			// Output to file
 			String allocationFileName = stockAllocateRecordExcelHelper.createNewFile(now);
-			stockAllocateRecordExcelHelper.modifyExisting(stockAllocationRecord, now, allocationFileName);
+			stockAllocateRecordExcelHelper.modifyExisting(stockAllocationRecords, now, allocationFileName);
 		}
 
 		// Create StockAdjustmentRecord object
 		// and output to record file when adjustment != 0
 		if (adjustment != 0) {
+			List<StockAdjustmentRecord> stockAdjustmentRecords = new ArrayList<>();
 			String unitReference = productBaseUnitRetrieve(productNo);
 
 			// Create StocAdjustmnetRecord, and save
@@ -314,6 +296,7 @@ public class ModifyStockFunction {
 
 			stockAdjustmentRecord.setQuantity(adjustmentString);
 			stockAdjustmentRecord.setIssuedByStockIdentifier(oldIdentifier.getId());
+			stockAdjustmentRecord.setIssuedByTransactionRecord(resTR.getId());
 
 			// If oldIdentifier unit != unitReference, do quantity conversion
 			if (unitReference.equals(unit)) {
@@ -322,11 +305,13 @@ public class ModifyStockFunction {
 				stockAdjustmentRecord.setRealQuantity(String.format("%.2f", adjustment * 3.0));
 			}
 
+			stockAdjustmentRecords.add(stockAdjustmentRecord);
+
 			stockAdjustmentRecordRepo.save(stockAdjustmentRecord);
 
 			// Output to file
 			String adjustmentFileName = stockAdjustRecordExcelHelper.createNewFile(now);
-			stockAdjustRecordExcelHelper.modifyExisting(stockAdjustmentRecord, now, adjustmentFileName);
+			stockAdjustRecordExcelHelper.modifyExisting(stockAdjustmentRecords, now, adjustmentFileName);
 		}
 	}
 

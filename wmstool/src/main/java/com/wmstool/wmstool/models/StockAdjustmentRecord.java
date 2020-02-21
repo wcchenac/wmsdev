@@ -28,6 +28,8 @@ public class StockAdjustmentRecord {
 
 	private Long issuedByStockIdentifier;
 
+	private Long issuedByTransactionRecord;
+
 	private LocalDateTime createdAt;
 
 	private LocalDateTime updatedAt;
@@ -95,6 +97,14 @@ public class StockAdjustmentRecord {
 
 	public void setIssuedByStockIdentifier(Long issuedByStockIdentifier) {
 		this.issuedByStockIdentifier = issuedByStockIdentifier;
+	}
+
+	public Long getIssuedByTransactionRecord() {
+		return issuedByTransactionRecord;
+	}
+
+	public void setIssuedByTransactionRecord(Long issuedByTransactionRecord) {
+		this.issuedByTransactionRecord = issuedByTransactionRecord;
 	}
 
 	public LocalDateTime getCreatedAt() {

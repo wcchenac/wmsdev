@@ -1,22 +1,22 @@
 package com.wmstool.wmstool.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import com.wmstool.wmstool.models.TransactionRecord;
 
 @Repository
-public interface TransactionRecordRepo
-		extends JpaRepository<TransactionRecord, Long>, JpaSpecificationExecutor<TransactionRecord> {
+public interface TransactionRecordRepo extends JpaRepository<TransactionRecord, Long> {
 
 	Optional<TransactionRecord> findByStockIdentifierIdAndTransactionType(Long stockIdentifierId,
 			String transactionType);
 
-	Optional<TransactionRecord> findByStockIdentifierId(Long stockIdentifierId);
+	void deleteByStockIdentifierIdAndTransactionType(Long stockIdentifierId, String transactionType);
 
-	void deleteByStockIdentifierId(Long stockIdentifierId);
+	List<TransactionRecord> findTop5ByProductNoAndTransactionTypeOrderByCreatedAtDesc(String productNo,
+			String transactionType);
 
 }
