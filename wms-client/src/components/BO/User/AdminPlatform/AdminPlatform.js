@@ -3,6 +3,7 @@ import UserRegister from "./UserRegister";
 import UserManagement from "./UserManagement/UserManagement";
 import InStockByImportFile from "./InStockByImportFile";
 import ScheduleMission from "./ScheduleMission";
+import ShrinkRollback from "./ShrinkRollback/ShrinkRollback";
 
 class AdminPlatform extends Component {
   constructor() {
@@ -17,8 +18,8 @@ class AdminPlatform extends Component {
     this.setState({ functionSelection: e.target.name });
   }
 
-  renderSubFunction(functionSelection) {
-    switch (functionSelection) {
+  renderSubFunction() {
+    switch (this.state.functionSelection) {
       case "userRegister":
         return <UserRegister />;
       case "userManagement":
@@ -27,14 +28,14 @@ class AdminPlatform extends Component {
         return <InStockByImportFile />;
       case "scheduleMission":
         return <ScheduleMission />;
+      case "shrinkRollback":
+        return <ShrinkRollback />;
       default:
         break;
     }
   }
 
   render() {
-    const { functionSelection } = this.state;
-
     return (
       <div>
         <div className="platform">
@@ -71,6 +72,13 @@ class AdminPlatform extends Component {
                 </button>
                 <button
                   className="btn btn-info btn-block"
+                  name="shrinkRollback"
+                  onClick={this.buttonClick}
+                >
+                  減肥回朔
+                </button>
+                <button
+                  className="btn btn-info btn-block"
                   name="scheduleMission"
                   onClick={this.buttonClick}
                 >
@@ -78,9 +86,7 @@ class AdminPlatform extends Component {
                 </button>
               </div>
               <div className="col-10">
-                <div style={{ height: "80vh" }}>
-                  {this.renderSubFunction(functionSelection)}
-                </div>
+                <div style={{ height: "80vh" }}>{this.renderSubFunction()}</div>
               </div>
             </div>
           </div>

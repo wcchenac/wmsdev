@@ -84,7 +84,7 @@ class UserRegister extends Component {
 
   render() {
     return (
-      <div className="userRegister">
+      <div className="container">
         <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
           <div style={{ height: "80vh" }}>
             <div className="row justify-content-center">

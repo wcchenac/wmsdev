@@ -68,63 +68,60 @@ class UserManagement extends Component {
 
   render() {
     return (
-      <div className="userManagement">
-        <div className="container">
-          <button
-            className="btn btn-sm btn-primary"
-            onClick={this.handleQueryUser}
-          >
-            讀取員工清單
-          </button>
-          <hr />
-          <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
-            <div className="scrollbar-70">
-              {this.state.isQuery ? (
-                <div>
-                  <MaterialTable
-                    title="員工清單"
-                    columns={[
-                      { title: "員工編號", field: "employeeId" },
-                      { title: "姓名", field: "fullName" },
-                      { title: "權限", field: "role" }
-                    ]}
-                    icons={tableIcons}
-                    data={this.props.queryResult}
-                    actions={[
-                      {
-                        icon: tableIcons.Edit,
-                        tooltip: "Edit User",
-                        onClick: (event, rowData) =>
-                          this.handleEditClick(rowData)
-                      },
-                      {
-                        icon: tableIcons.Delete,
-                        tooltip: "Delete User",
-                        onClick: (event, rowData) => {
-                          this.handleDeleteSubmit(rowData.employeeId);
-                        }
+      <div className="container">
+        <button
+          className="btn btn-sm btn-primary"
+          onClick={this.handleQueryUser}
+        >
+          讀取員工清單
+        </button>
+        <hr />
+        <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
+          <div className="scrollbar-70">
+            {this.state.isQuery ? (
+              <div>
+                <MaterialTable
+                  title="員工清單"
+                  columns={[
+                    { title: "員工編號", field: "employeeId" },
+                    { title: "姓名", field: "fullName" },
+                    { title: "權限", field: "role" }
+                  ]}
+                  icons={tableIcons}
+                  data={this.props.queryResult}
+                  actions={[
+                    {
+                      icon: tableIcons.Edit,
+                      tooltip: "Edit User",
+                      onClick: (event, rowData) => this.handleEditClick(rowData)
+                    },
+                    {
+                      icon: tableIcons.Delete,
+                      tooltip: "Delete User",
+                      onClick: (event, rowData) => {
+                        this.handleDeleteSubmit(rowData.employeeId);
                       }
-                    ]}
-                    options={{
-                      filtering: true,
-                      draggable: false,
-                      pageSize: 10,
-                      pageSizeOptions: [10, 20]
-                    }}
+                    }
+                  ]}
+                  options={{
+                    filtering: true,
+                    draggable: false,
+                    pageSize: 10,
+                    pageSizeOptions: [10, 20]
+                  }}
+                />
+                {this.state.modalShow ? (
+                  <EditModal
+                    show={this.state.modalShow}
+                    userInfo={this.state.data}
+                    handleModalClose={this.handleModalClose}
+                    handleUpdateSubmit={this.handleUpdateSubmit}
                   />
-                  {this.state.modalShow ? (
-                    <EditModal
-                      show={this.state.modalShow}
-                      userInfo={this.state.data}
-                      handleModalClose={this.handleModalClose}
-                      handleUpdateSubmit={this.handleUpdateSubmit}
-                    />
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          </LoadingOverlay>
-        </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </LoadingOverlay>
       </div>
     );
   }

@@ -2,7 +2,8 @@ import React, { Component } from "react";
 
 class TreeDataNode extends Component {
   render() {
-    const { stockIdentifier } = this.props;
+    const { stockInfo } = this.props;
+    const { stockIdentifier } = this.props.stockInfo;
 
     return (
       <div
@@ -30,13 +31,16 @@ class TreeDataNode extends Component {
         </p>
         <p className="mb-0">
           貨號/批號:
-          {stockIdentifier.productNo}/{stockIdentifier.lotNo}, 型態:
+          {stockIdentifier.productNo}/{stockIdentifier.lotNo}, 型態:{" "}
           {stockIdentifier.type}, 數量/單位: {stockIdentifier.quantity}
           {stockIdentifier.unit}
         </p>
+        <p className="mb-0">
+          瑕疵: {stockInfo.defect}, 記錄: {stockInfo.record}
+        </p>
         {stockIdentifier.exist ? null : (
           <p className="mb-0">
-            出庫日期: {stockIdentifier.eliminateDate}, 出庫原因:
+            出庫日期: {stockIdentifier.eliminateDate}, 出庫原因:{" "}
             {stockIdentifier.eliminateReason}
             {stockIdentifier.eliminateType === "1" &&
             stockIdentifier.adjustment !== null

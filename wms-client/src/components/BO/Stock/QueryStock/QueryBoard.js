@@ -86,7 +86,7 @@ class QueryBoard extends Component {
       <div className="query_stockInfo">
         <div className="container">
           <div className="row">
-            <div className="col-md-6">
+            <div className="col-md-auto">
               <QueryProductInformation
                 productNo={productNo}
                 onSubmit={this.onSubmit}

@@ -5,11 +5,11 @@ class QueryProductInformation extends Component {
     return (
       <React.Fragment>
         <form onSubmit={this.props.onSubmit}>
-          <div className="form-group row">
+          <div className="form-group row mb-0">
             <label className="col-md-auto col-form-label text-center">
               貨號查詢
             </label>
-            <div className="col-md-8">
+            <div className="col-md-6">
               <input
                 type="text"
                 name="productNo"

@@ -213,6 +213,51 @@ export const batchCreateStockInfoesForShrink = shrinkStockRequest => async dispa
   }
 };
 
+export const getShrinkRollbackList = productNo => async dispatch => {
+  try {
+    const res = await API.get(
+      `/api/stock/queryStock/shrinkRollback/${productNo}`
+    );
+
+    dispatch({
+      type: GET_StockInfoes,
+      payload: res.data
+    });
+
+    return res;
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
+export const shrinkRollback = (
+  stockIdentifierId,
+  productNo
+) => async dispatch => {
+  try {
+    await API.patch(`/api/stock/shrinkStock/rollback/${stockIdentifierId}`);
+
+    const res = await API.get(
+      `/api/stock/queryStock/shrinkRollback/${productNo}`
+    );
+
+    dispatch({
+      type: GET_StockInfoes,
+      payload: res.data
+    });
+
+    return res;
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
 export const updateStockInfo = updateInfoRequest => async dispatch => {
   try {
     let result = await API.patch("/api/stock/updateStock", updateInfoRequest);

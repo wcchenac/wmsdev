@@ -11,6 +11,8 @@ import "react-sortable-tree/style.css";
 import SortableTree from "react-sortable-tree";
 import TreeDataNode from "./TreeDataNode";
 
+const dayRangeSetting = 180;
+
 class StockHistoryBoard extends Component {
   constructor() {
     super();
@@ -43,9 +45,26 @@ class StockHistoryBoard extends Component {
   }
 
   transversalForTreeData(raw) {
+    // if (raw.nodes.length === 0) {
+    //   return {
+    //     title: <TreeDataNode stockIdentifier={raw.stockIdentifier} />,
+    //     children: []
+    //   };
+    // }
+
+    // let children = [];
+
+    // raw.nodes.forEach(object => {
+    //   children.push(this.transversalForTreeData(object));
+    // });
+
+    // return {
+    //   title: <TreeDataNode stockIdentifier={raw.stockIdentifier} />,
+    //   children: children
+    // };
     if (raw.nodes.length === 0) {
       return {
-        title: <TreeDataNode stockIdentifier={raw.stockIdentifier} />,
+        title: <TreeDataNode stockInfo={raw.stockInfo} />,
         children: []
       };
     }
@@ -57,7 +76,7 @@ class StockHistoryBoard extends Component {
     });
 
     return {
-      title: <TreeDataNode stockIdentifier={raw.stockIdentifier} />,
+      title: <TreeDataNode stockInfo={raw.stockInfo} />,
       children: children
     };
   }
@@ -101,7 +120,9 @@ class StockHistoryBoard extends Component {
     });
   }
 
-  contentAlgorithm(isQuery, treeData) {
+  contentAlgorithm() {
+    const { isQuery, treeData } = this.state;
+
     if (!isQuery) {
       return null;
     } else {
@@ -122,7 +143,7 @@ class StockHistoryBoard extends Component {
           <div style={{ height: "70vh" }}>
             <SortableTree
               treeData={treeData}
-              rowHeight={100}
+              rowHeight={130}
               onChange={treeData => this.setState({ treeData })}
               canDrag={false}
             />
@@ -133,13 +154,13 @@ class StockHistoryBoard extends Component {
   }
 
   render() {
-    const { isLoading, isQuery, treeData, startDate, endDate } = this.state;
+    const { isLoading, startDate, endDate } = this.state;
 
     return (
       <div className="stockHistoryBoard">
         <div className="container">
           <div className="row">
-            <div className="col-md-6">
+            <div className="col-md-auto">
               <QueryProductInformation
                 value={this.state.productNo}
                 onChange={this.handleProductNoChange}
@@ -153,7 +174,7 @@ class StockHistoryBoard extends Component {
                 endDate={endDate}
                 handleStartDateSelection={this.handleStartDateSelection}
                 handleEndDateSelection={this.handleEndDateSelection}
-                dayRange={180}
+                dayRange={dayRangeSetting}
               />
             </div>
             <div className="col-md-auto">
@@ -165,7 +186,7 @@ class StockHistoryBoard extends Component {
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <div className="scrollbar-70" style={{ height: "75vh" }}>
-              {this.contentAlgorithm(isQuery, treeData)}
+              {this.contentAlgorithm()}
             </div>
           </LoadingOverlay>
         </div>
