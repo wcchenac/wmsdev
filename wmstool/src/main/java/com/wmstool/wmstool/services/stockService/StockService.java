@@ -20,6 +20,7 @@ import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
 import com.wmstool.wmstool.services.stockService.subFunctions.CompareStockFunction;
 import com.wmstool.wmstool.services.stockService.subFunctions.CreateStockFunction;
+import com.wmstool.wmstool.services.stockService.subFunctions.DeleteStockFunction;
 import com.wmstool.wmstool.services.stockService.subFunctions.ModifyStockFunction;
 import com.wmstool.wmstool.services.stockService.subFunctions.OutStockRequestFunction;
 import com.wmstool.wmstool.services.stockService.subFunctions.QueryOrderFunction;
@@ -41,6 +42,9 @@ public class StockService {
 
 	@Autowired
 	private CreateStockFunction createStockFunction;
+
+	@Autowired
+	private DeleteStockFunction deleteStockFunction;
 
 	@Autowired
 	private OutStockRequestFunction outStockRequestFunction;
@@ -167,6 +171,16 @@ public class StockService {
 	 */
 	public void shrinkStock(ShrinkStockRequest shrinkStockRequest) throws IOException {
 		modifyStockFunction.shrinkStock(shrinkStockRequest);
+	}
+
+	// TODO
+	public List<HistoryTreeNode> getShrinkRollbackList(String productNo) {
+		return queryStockFunction.findByPeriodTransactionRecord(productNo);
+	}
+
+	// TODO
+	public void rollbackShrinkStock(long stockIdentifierId) {
+		deleteStockFunction.rollbackShrink(stockIdentifierId);
 	}
 
 	/**

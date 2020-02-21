@@ -12,4 +12,6 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
 
 	Optional<History> findByCurrentIdentifierId(long id);
 
+	void deleteByCurrentIdentifierId(long id);
+
 }
