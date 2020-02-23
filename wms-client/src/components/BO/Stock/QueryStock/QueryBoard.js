@@ -9,6 +9,7 @@ import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import ShowProductQuantity from "../Utilities/ShowProductQuantity";
+import ToolbarForNextPrev from "../Utilities/ToolbarForNextPrev";
 
 class QueryBoard extends Component {
   constructor() {
@@ -17,12 +18,15 @@ class QueryBoard extends Component {
       isLoading: false,
       isQuery: false,
       productNo: "",
+      prevProduct: "",
+      nextProduct: "",
       productInfo: {},
       stockInfoes: [],
       stockQuantity: {}
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+    this.handleFutureProductQuery = this.handleFutureProductQuery.bind(this);
   }
 
   onChange(e) {
@@ -41,9 +45,25 @@ class QueryBoard extends Component {
     });
   }
 
+  handleFutureProductQuery(e) {
+    e.preventDefault();
+    let select = e.target.value;
+
+    this.setState({ isLoading: true }, () => {
+      this.props.getStockInfoesBasic(select).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false, isQuery: true });
+        }
+      });
+    });
+  }
+
   componentDidUpdate(prevProps) {
     if (this.props.stockInfo.stockInfoes !== prevProps.stockInfo.stockInfoes) {
       this.setState({
+        productNo: this.props.stockInfo.stockInfoes.information.productNo,
+        prevProduct: this.props.stockInfo.stockInfoes.prevProduct,
+        nextProduct: this.props.stockInfo.stockInfoes.nextProduct,
         productInfo: this.props.stockInfo.stockInfoes.information,
         stockInfoes: this.props.stockInfo.stockInfoes.result,
         stockQuantity: this.props.stockInfo.stockInfoes.productList
@@ -51,7 +71,17 @@ class QueryBoard extends Component {
     }
   }
 
-  contentAlgorithm(isQuery, stockInfoes, stockQuantity) {
+  contentAlgorithm() {
+    const {
+      isQuery,
+      productNo,
+      prevProduct,
+      nextProduct,
+      productInfo,
+      stockInfoes,
+      stockQuantity
+    } = this.state;
+
     if (!isQuery) {
       return null;
     } else {
@@ -60,8 +90,26 @@ class QueryBoard extends Component {
       } else {
         return (
           <div>
+            <div className="row">
+              <div className="col-md-auto mr-auto">
+                <ShowProductInformation
+                  isBasic={true}
+                  isQuery={isQuery}
+                  productNo={productNo}
+                  productInfo={productInfo}
+                />
+              </div>
+              <div className="col-md-auto">
+                <ToolbarForNextPrev
+                  handleFutureProductQuery={this.handleFutureProductQuery}
+                  prevProduct={prevProduct}
+                  nextProduct={nextProduct}
+                />
+              </div>
+            </div>
+            <br />
             <ShowProductQuantity stockQuantity={stockQuantity} />
-            <hr />
+            <br />
             <StockInfoContainer
               typeValidation={stockQuantity[0].type === "雜項"}
               stockInfoes={stockInfoes}
@@ -73,14 +121,7 @@ class QueryBoard extends Component {
   }
 
   render() {
-    const {
-      isLoading,
-      isQuery,
-      productNo,
-      productInfo,
-      stockInfoes,
-      stockQuantity
-    } = this.state;
+    const { isLoading, productNo } = this.state;
 
     return (
       <div className="query_stockInfo">
@@ -93,20 +134,10 @@ class QueryBoard extends Component {
                 onChange={this.onChange}
               />
             </div>
-            <div className="col-md-auto mr-2">
-              <ShowProductInformation
-                isBasic={true}
-                isQuery={isQuery}
-                productNo={productNo}
-                productInfo={productInfo}
-              />
-            </div>
           </div>
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div style={{ height: "80vh" }}>
-              {this.contentAlgorithm(isQuery, stockInfoes, stockQuantity)}
-            </div>
+            <div style={{ height: "80vh" }}>{this.contentAlgorithm()}</div>
           </LoadingOverlay>
         </div>
       </div>

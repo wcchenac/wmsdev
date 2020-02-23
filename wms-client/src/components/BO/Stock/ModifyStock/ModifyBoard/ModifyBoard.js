@@ -19,6 +19,7 @@ import { Spinner } from "../../../../Others/Spinner";
 import ShowProductQuantity from "../../Utilities/ShowProductQuantity";
 import { Button } from "react-bootstrap";
 import BatchShipModal from "./BatchShipModal";
+import ToolbarForNextPrev from "../../Utilities/ToolbarForNextPrev";
 
 const equal = require("fast-deep-equal");
 
@@ -30,6 +31,8 @@ class ModifyBoard extends Component {
       isQuery: false,
       modlaShow: false,
       productNo: "",
+      prevProduct: "",
+      nextProduct: "",
       productInfo: {},
       stockInfoes: [],
       stockQuantity: {}
@@ -45,6 +48,7 @@ class ModifyBoard extends Component {
     this.handleStockInfoUpdate = this.handleStockInfoUpdate.bind(this);
     this.handleModalShow = this.handleModalShow.bind(this);
     this.handleModalClose = this.handleModalClose.bind(this);
+    this.handleFutureProductQuery = this.handleFutureProductQuery.bind(this);
   }
 
   onChange(e) {
@@ -55,6 +59,19 @@ class ModifyBoard extends Component {
     e.preventDefault();
     this.setState({ isLoading: true }, () => {
       this.props.getStockInfoes(this.state.productNo).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false, isQuery: true });
+        }
+      });
+    });
+  }
+
+  handleFutureProductQuery(e) {
+    e.preventDefault();
+    let select = e.target.value;
+
+    this.setState({ isLoading: true }, () => {
+      this.props.getStockInfoes(select).then(response => {
         if (response.status === 200) {
           this.setState({ isLoading: false, isQuery: true });
         }
@@ -132,6 +149,9 @@ class ModifyBoard extends Component {
   componentDidUpdate(prevProps) {
     if (!equal(this.props.queryResult, prevProps.queryResult)) {
       this.setState({
+        productNo: this.props.queryResult.stockInfoes.information.productNo,
+        prevProduct: this.props.queryResult.stockInfoes.prevProduct,
+        nextProduct: this.props.queryResult.stockInfoes.nextProduct,
         productInfo: this.props.queryResult.stockInfoes.information,
         stockInfoes: this.props.queryResult.stockInfoes.result,
         stockQuantity: this.props.queryResult.stockInfoes.productList
@@ -139,7 +159,17 @@ class ModifyBoard extends Component {
     }
   }
 
-  contentAlgorithm(isQuery, stockInfoes, stockQuantity) {
+  contentAlgorithm() {
+    const {
+      isQuery,
+      productNo,
+      prevProduct,
+      nextProduct,
+      productInfo,
+      stockInfoes,
+      stockQuantity
+    } = this.state;
+
     if (!isQuery) {
       return null;
     } else {
@@ -148,8 +178,45 @@ class ModifyBoard extends Component {
       } else {
         return (
           <div>
+            <div className="row">
+              <div className="col-md-auto mr-2">
+                <ShowProductInformation
+                  isBasic={false}
+                  isQuery={isQuery}
+                  productNo={productNo}
+                  productInfo={productInfo}
+                />
+              </div>
+              <div className="col-md-auto mr-auto">
+                <button
+                  className="btn btn-primary"
+                  disabled={
+                    !isQuery ||
+                    productNo.toUpperCase() !== productInfo.productNo ||
+                    stockInfoes.length === 0 ||
+                    stockInfoes[0].stockIdentifier.type === "雜項"
+                  }
+                  data-toggle="modal"
+                  data-target="#outStockRequest"
+                >
+                  拉貨要求
+                </button>
+                <OutStockModal
+                  productNo={productNo.toUpperCase()}
+                  handleOutStockRequestSubmit={this.handleOutStockRequestSubmit}
+                />
+              </div>
+              <div className="col-md-auto">
+                <ToolbarForNextPrev
+                  handleFutureProductQuery={this.handleFutureProductQuery}
+                  prevProduct={prevProduct}
+                  nextProduct={nextProduct}
+                />
+              </div>
+            </div>
+            <br />
             <ShowProductQuantity stockQuantity={stockQuantity} />
-            <hr />
+            <br />
             <div className="container">
               <div className="row justify-content-end">
                 <Button variant="info" size="sm" onClick={this.handleModalShow}>
@@ -182,14 +249,7 @@ class ModifyBoard extends Component {
   }
 
   render() {
-    const {
-      isLoading,
-      isQuery,
-      productNo,
-      productInfo,
-      stockInfoes,
-      stockQuantity
-    } = this.state;
+    const { isLoading, productNo } = this.state;
 
     return (
       <div className="modify_stockInfo">
@@ -202,39 +262,10 @@ class ModifyBoard extends Component {
                 onChange={this.onChange}
               />
             </div>
-            <div className="col-md-auto mr-2">
-              <ShowProductInformation
-                isBasic={false}
-                isQuery={isQuery}
-                productNo={productNo}
-                productInfo={productInfo}
-              />
-            </div>
-            <div className="col-md-auto">
-              <button
-                className="btn btn-primary"
-                disabled={
-                  !isQuery ||
-                  productNo.toUpperCase() !== productInfo.productNo ||
-                  stockInfoes.length === 0 ||
-                  stockInfoes[0].stockIdentifier.type === "雜項"
-                }
-                data-toggle="modal"
-                data-target="#outStockRequest"
-              >
-                拉貨要求
-              </button>
-              <OutStockModal
-                productNo={productNo.toUpperCase()}
-                handleOutStockRequestSubmit={this.handleOutStockRequestSubmit}
-              />
-            </div>
           </div>
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div style={{ height: "80vh" }}>
-              {this.contentAlgorithm(isQuery, stockInfoes, stockQuantity)}
-            </div>
+            <div style={{ height: "80vh" }}>{this.contentAlgorithm()}</div>
           </LoadingOverlay>
         </div>
       </div>
