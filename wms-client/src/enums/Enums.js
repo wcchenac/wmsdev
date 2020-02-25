@@ -22,7 +22,7 @@ export const ColorOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 //         AssembleClothBoard-ClothContainer-ClothInfo/
 //         ShrinkBoard-ModifyRequestBoard-ModifyRequestContainer-ModifyRequestInfo
 export const DefectOptions = [
-  { label: "無", value: "無" },
+  { label: "無", value: "" },
   { label: "GA", value: "GA" },
   { label: "GB", value: "GB" },
   { label: "GC", value: "GC" },

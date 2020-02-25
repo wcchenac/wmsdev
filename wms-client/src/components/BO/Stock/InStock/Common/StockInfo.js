@@ -8,6 +8,7 @@ import {
   DefectOptions
 } from "../../../../../enums/Enums";
 import ShipModal from "../../Utilities/ShipModal";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 
 class StockInfo extends Component {
   constructor(props) {
@@ -189,12 +190,22 @@ class StockInfo extends Component {
         </td>
         <td>
           <div className="form-check mt-2 ml-2">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              value={stockInfo.directShip}
-              onChange={this.onShipCheck}
-            />
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id={`tooltip-${this.props.index}`}>
+                  {stockInfo.outStockReason}
+                </Tooltip>
+              }
+            >
+              <input
+                type="checkbox"
+                className="form-check-input"
+                value={stockInfo.directShip}
+                checked={stockInfo.outStockReason !== ""}
+                onChange={this.onShipCheck}
+              />
+            </OverlayTrigger>
           </div>
           {stockInfo.directShip && this.state.modalShow ? (
             <ShipModal

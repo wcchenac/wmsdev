@@ -40,7 +40,7 @@ class StockInfoContainer extends PureComponent {
       quantity: "",
       unit: waitHandleStatus[type].unit,
       color: "1",
-      defect: [{ label: "無", value: "無" }],
+      defect: [{ label: "無", value: "" }],
       record: "",
       remark: "",
       inStockType: this.props.type,

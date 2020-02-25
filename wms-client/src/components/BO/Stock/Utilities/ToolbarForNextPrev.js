@@ -10,7 +10,9 @@ class ToolbarForNextPrev extends Component {
           variant="secondary"
           value={this.props.prevProduct}
           onClick={this.props.handleFutureProductQuery}
-          disabled={this.props.prevProduct === null}
+          disabled={
+            this.props.prevProduct === null || this.props.prevProduct === ""
+          }
         >
           上一筆
         </Button>
@@ -18,7 +20,9 @@ class ToolbarForNextPrev extends Component {
           variant="secondary"
           value={this.props.nextProduct}
           onClick={this.props.handleFutureProductQuery}
-          disabled={this.props.nextProduct === null}
+          disabled={
+            this.props.nextProduct === null || this.props.nextProduct === ""
+          }
         >
           下一筆
         </Button>

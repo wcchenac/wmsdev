@@ -188,7 +188,7 @@ export function defectIndexMapper(string) {
   let index = undefined;
 
   switch (string) {
-    case "無":
+    case "":
       index = 0;
       break;
     case "GA":

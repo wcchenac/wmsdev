@@ -20,6 +20,7 @@ import ShowProductQuantity from "../../Utilities/ShowProductQuantity";
 import { Button } from "react-bootstrap";
 import BatchShipModal from "./BatchShipModal";
 import ToolbarForNextPrev from "../../Utilities/ToolbarForNextPrev";
+import { copy } from "../../../../../utilities/DeepCopy";
 
 const equal = require("fast-deep-equal");
 
@@ -147,7 +148,10 @@ class ModifyBoard extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (!equal(this.props.queryResult, prevProps.queryResult)) {
+    if (
+      !equal(this.props.queryResult, prevProps.queryResult) &&
+      this.props.queryResult.stockInfoes.information.productNo !== null
+    ) {
       this.setState({
         productNo: this.props.queryResult.stockInfoes.information.productNo,
         prevProduct: this.props.queryResult.stockInfoes.prevProduct,
@@ -160,15 +164,7 @@ class ModifyBoard extends Component {
   }
 
   contentAlgorithm() {
-    const {
-      isQuery,
-      productNo,
-      prevProduct,
-      nextProduct,
-      productInfo,
-      stockInfoes,
-      stockQuantity
-    } = this.state;
+    const { isQuery, stockInfoes, stockQuantity } = this.state;
 
     if (!isQuery) {
       return null;
@@ -177,44 +173,7 @@ class ModifyBoard extends Component {
         return <QueryResponseWithNoStock />;
       } else {
         return (
-          <div>
-            <div className="row">
-              <div className="col-md-auto mr-2">
-                <ShowProductInformation
-                  isBasic={false}
-                  isQuery={isQuery}
-                  productNo={productNo}
-                  productInfo={productInfo}
-                />
-              </div>
-              <div className="col-md-auto mr-auto">
-                <button
-                  className="btn btn-primary"
-                  disabled={
-                    !isQuery ||
-                    productNo.toUpperCase() !== productInfo.productNo ||
-                    stockInfoes.length === 0 ||
-                    stockInfoes[0].stockIdentifier.type === "雜項"
-                  }
-                  data-toggle="modal"
-                  data-target="#outStockRequest"
-                >
-                  拉貨要求
-                </button>
-                <OutStockModal
-                  productNo={productNo.toUpperCase()}
-                  handleOutStockRequestSubmit={this.handleOutStockRequestSubmit}
-                />
-              </div>
-              <div className="col-md-auto">
-                <ToolbarForNextPrev
-                  handleFutureProductQuery={this.handleFutureProductQuery}
-                  prevProduct={prevProduct}
-                  nextProduct={nextProduct}
-                />
-              </div>
-            </div>
-            <br />
+          <React.Fragment>
             <ShowProductQuantity stockQuantity={stockQuantity} />
             <br />
             <div className="container">
@@ -242,14 +201,22 @@ class ModifyBoard extends Component {
               handleShrink={this.handleShrink}
               handleStockInfoUpdate={this.handleStockInfoUpdate}
             />
-          </div>
+          </React.Fragment>
         );
       }
     }
   }
 
   render() {
-    const { isLoading, productNo } = this.state;
+    const {
+      isLoading,
+      isQuery,
+      productNo,
+      prevProduct,
+      nextProduct,
+      productInfo,
+      stockInfoes
+    } = this.state;
 
     return (
       <div className="modify_stockInfo">
@@ -265,7 +232,50 @@ class ModifyBoard extends Component {
           </div>
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div style={{ height: "80vh" }}>{this.contentAlgorithm()}</div>
+            <div style={{ height: "80vh" }}>
+              <div>
+                <div className="row">
+                  <div className="col-md-auto mr-2">
+                    <ShowProductInformation
+                      isBasic={false}
+                      isQuery={isQuery}
+                      productNo={productNo}
+                      productInfo={productInfo}
+                    />
+                  </div>
+                  <div className="col-md-auto mr-auto">
+                    <button
+                      className="btn btn-primary"
+                      disabled={
+                        !isQuery ||
+                        productNo.toUpperCase() !== productInfo.productNo ||
+                        stockInfoes.length === 0 ||
+                        stockInfoes[0].stockIdentifier.type === "雜項"
+                      }
+                      data-toggle="modal"
+                      data-target="#outStockRequest"
+                    >
+                      拉貨要求
+                    </button>
+                    <OutStockModal
+                      productNo={productNo.toUpperCase()}
+                      handleOutStockRequestSubmit={
+                        this.handleOutStockRequestSubmit
+                      }
+                    />
+                  </div>
+                  <div className="col-md-auto">
+                    <ToolbarForNextPrev
+                      handleFutureProductQuery={this.handleFutureProductQuery}
+                      prevProduct={prevProduct}
+                      nextProduct={nextProduct}
+                    />
+                  </div>
+                </div>
+                <br />
+                {this.contentAlgorithm()}
+              </div>
+            </div>
           </LoadingOverlay>
         </div>
       </div>

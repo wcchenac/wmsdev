@@ -47,9 +47,7 @@ class ModifyRequestBoard extends Component {
       quantity: "",
       unit: this.state.oldStockInfo.stockIdentifier.unit,
       color: this.state.oldStockInfo.color,
-      defect: defectStringTransToOptions(
-        this.state.oldStockInfo.stockIdentifier.defect
-      ),
+      defect: defectStringTransToOptions(this.state.oldStockInfo.defect),
       record: "",
       remark: "",
       inStockType: "shrink",

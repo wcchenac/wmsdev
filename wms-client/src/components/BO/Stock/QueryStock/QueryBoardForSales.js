@@ -58,7 +58,10 @@ class QueryBoardForSales extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.stockInfo.stockInfoes !== prevProps.stockInfo.stockInfoes) {
+    if (
+      this.props.stockInfo.stockInfoes !== prevProps.stockInfo.stockInfoes &&
+      this.props.stockInfo.stockInfoes.information.productNo !== null
+    ) {
       this.setState({
         productNo: this.props.stockInfo.stockInfoes.information.productNo,
         prevProduct: this.props.stockInfo.stockInfoes.prevProduct,
@@ -71,15 +74,7 @@ class QueryBoardForSales extends Component {
   }
 
   contentAlgorithm() {
-    const {
-      isQuery,
-      productNo,
-      prevProduct,
-      nextProduct,
-      productInfo,
-      stockInfoes,
-      stockQuantity
-    } = this.state;
+    const { isQuery, stockInfoes, stockQuantity } = this.state;
 
     if (!isQuery) {
       return null;
@@ -88,38 +83,28 @@ class QueryBoardForSales extends Component {
         return <QueryResponseWithNoStock />;
       } else {
         return (
-          <div>
-            <div className="row">
-              <div className="col-md-auto mr-auto">
-                <ShowProductInformation
-                  isBasic={false}
-                  isQuery={isQuery}
-                  productNo={productNo}
-                  productInfo={productInfo}
-                />
-              </div>
-              <div className="col-md-auto">
-                <ToolbarForNextPrev
-                  handleFutureProductQuery={this.handleFutureProductQuery}
-                  prevProduct={prevProduct}
-                  nextProduct={nextProduct}
-                />
-              </div>
-            </div>
+          <React.Fragment>
             <ShowProductQuantity stockQuantity={stockQuantity} />
             <br />
             <StockInfoContainer
               typeValidation={stockQuantity[0].type === "雜項"}
               stockInfoes={stockInfoes}
             />
-          </div>
+          </React.Fragment>
         );
       }
     }
   }
 
   render() {
-    const { isLoading, productNo } = this.state;
+    const {
+      isLoading,
+      isQuery,
+      productNo,
+      prevProduct,
+      nextProduct,
+      productInfo
+    } = this.state;
 
     return (
       <div className="query_stockInfo">
@@ -135,7 +120,29 @@ class QueryBoardForSales extends Component {
           </div>
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div style={{ height: "80vh" }}>{this.contentAlgorithm()}</div>
+            <div style={{ height: "80vh" }}>
+              <div>
+                <div className="row">
+                  <div className="col-md-auto mr-auto">
+                    <ShowProductInformation
+                      isBasic={false}
+                      isQuery={isQuery}
+                      productNo={productNo}
+                      productInfo={productInfo}
+                    />
+                  </div>
+                  <div className="col-md-auto">
+                    <ToolbarForNextPrev
+                      handleFutureProductQuery={this.handleFutureProductQuery}
+                      prevProduct={prevProduct}
+                      nextProduct={nextProduct}
+                    />
+                  </div>
+                </div>
+                <br />
+                {this.contentAlgorithm()}
+              </div>
+            </div>
           </LoadingOverlay>
         </div>
       </div>
