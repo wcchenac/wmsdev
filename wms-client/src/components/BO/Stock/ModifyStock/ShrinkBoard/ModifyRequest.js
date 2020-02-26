@@ -2,7 +2,11 @@ import React, { Component } from "react";
 import classnames from "classnames";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
-import { UnitOptions, DefectOptions } from "../../../../../enums/Enums";
+import {
+  UnitOptions,
+  DefectOptions,
+  StockIdentifierType
+} from "../../../../../enums/Enums";
 import ShipModal from "../../Utilities/ShipModal";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 
@@ -65,8 +69,8 @@ class ModifyRequest extends Component {
                 defaultValue={stockInfo.type}
                 onChange={this.handleChange}
               >
-                <option value="整支">整支</option>
-                <option value="板卷">板卷</option>
+                <option value={StockIdentifierType.roll}>整支</option>
+                <option value={StockIdentifierType.board}>板卷</option>
               </select>
             </div>
           )}

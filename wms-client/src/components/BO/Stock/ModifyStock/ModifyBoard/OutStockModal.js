@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import classnames from "classnames";
+import { StockIdentifierType } from "../../../../../enums/Enums";
 import { copy } from "../../../../../utilities/DeepCopy";
 import { updateStockInfoCopy } from "../../Utilities/StockInfoHelperMethods";
 
@@ -15,7 +16,7 @@ class OutStockModal extends Component {
     return {
       outStockRequest: {
         productNo: this.props.productNo,
-        type: "整支",
+        type: StockIdentifierType.roll,
         quantity1: "",
         quantity2: "",
         unit: "碼",
@@ -125,11 +126,11 @@ class OutStockModal extends Component {
                       <select
                         className="custom-select"
                         name="type"
-                        defaultValue="整支"
+                        defaultValue={StockIdentifierType.roll}
                         onChange={this.handleRequestChange}
                       >
-                        <option value="整支">整支</option>
-                        <option value="板卷">板卷</option>
+                        <option value={StockIdentifierType.roll}>整支</option>
+                        <option value={StockIdentifierType.board}>板卷</option>
                       </select>
                     </div>
                   </div>

@@ -10,6 +10,7 @@ import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import ShowProductQuantity from "../Utilities/ShowProductQuantity";
 import ToolbarForNextPrev from "../Utilities/ToolbarForNextPrev";
+import { StockIdentifierType } from "../../../../enums/Enums";
 
 class QueryBoardForSales extends Component {
   constructor() {
@@ -87,7 +88,9 @@ class QueryBoardForSales extends Component {
             <ShowProductQuantity stockQuantity={stockQuantity} />
             <br />
             <StockInfoContainer
-              typeValidation={stockQuantity[0].type === "雜項"}
+              typeValidation={
+                stockQuantity[0].type === StockIdentifierType.hardware
+              }
               stockInfoes={stockInfoes}
             />
           </React.Fragment>

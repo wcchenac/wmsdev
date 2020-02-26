@@ -1,4 +1,4 @@
-import { DefectOptions } from "../../../../enums/Enums";
+import { DefectOptions, StockIdentifierType } from "../../../../enums/Enums";
 
 // accumulate the total quantity by type
 export function quantityAccumulate(stockInfoes) {
@@ -57,13 +57,13 @@ export function quantityAccumulate(stockInfoes) {
   let item = 0.0;
 
   for (let i = 0; i < stockInfoes.length; i += 1) {
-    if (stockInfoes[i].type === "整支") {
+    if (stockInfoes[i].type === StockIdentifierType.roll) {
       roll += parseFloat(stockInfoes[i].quantity);
     }
-    if (stockInfoes[i].type === "板卷") {
+    if (stockInfoes[i].type === StockIdentifierType.board) {
       board += parseFloat(stockInfoes[i].quantity);
     }
-    if (stockInfoes[i].type === "雜項") {
+    if (stockInfoes[i].type === StockIdentifierType.hardware) {
       item += parseFloat(stockInfoes[i].quantity);
     }
   }

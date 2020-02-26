@@ -20,7 +20,7 @@ import ShowProductQuantity from "../../Utilities/ShowProductQuantity";
 import { Button } from "react-bootstrap";
 import BatchShipModal from "./BatchShipModal";
 import ToolbarForNextPrev from "../../Utilities/ToolbarForNextPrev";
-import { copy } from "../../../../../utilities/DeepCopy";
+import { StockIdentifierType } from "../../../../../enums/Enums";
 
 const equal = require("fast-deep-equal");
 
@@ -172,6 +172,9 @@ class ModifyBoard extends Component {
       if (stockInfoes.length === 0) {
         return <QueryResponseWithNoStock />;
       } else {
+        let typeValidation =
+          stockInfoes[0].stockIdentifier.type === StockIdentifierType.hardware;
+
         return (
           <React.Fragment>
             <ShowProductQuantity stockQuantity={stockQuantity} />
@@ -187,15 +190,13 @@ class ModifyBoard extends Component {
                   show
                   handleModalClose={this.handleModalClose}
                   handleShipList={this.handleShipList}
-                  typeValidation={
-                    stockInfoes[0].stockIdentifier.type === "雜項"
-                  }
+                  typeValidation={typeValidation}
                   data={this.infoSimplify()}
                 />
               ) : null}
             </div>
             <StockInfoContainer
-              typeValidation={stockInfoes[0].stockIdentifier.type === "雜項"}
+              typeValidation={typeValidation}
               stockInfoes={stockInfoes}
               handleShip={this.handleShip}
               handleShrink={this.handleShrink}
@@ -250,7 +251,8 @@ class ModifyBoard extends Component {
                         !isQuery ||
                         productNo.toUpperCase() !== productInfo.productNo ||
                         stockInfoes.length === 0 ||
-                        stockInfoes[0].stockIdentifier.type === "雜項"
+                        stockInfoes[0].stockIdentifier.type ===
+                          StockIdentifierType.hardware
                       }
                       data-toggle="modal"
                       data-target="#outStockRequest"
