@@ -15,6 +15,8 @@ public class ShrinkStockRequest {
 
 	private Float adjustment;
 
+	private String shrinkType;
+
 	public long getOldStockIdentifierId() {
 		return oldStockIdentifierId;
 	}
@@ -45,6 +47,14 @@ public class ShrinkStockRequest {
 
 	public void setAdjustment(Float adjustment) {
 		this.adjustment = adjustment;
+	}
+
+	public String getShrinkType() {
+		return shrinkType;
+	}
+
+	public void setShrinkType(String shrinkType) {
+		this.shrinkType = shrinkType;
 	}
 
 }
