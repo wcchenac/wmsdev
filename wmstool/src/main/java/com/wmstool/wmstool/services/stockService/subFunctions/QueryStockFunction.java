@@ -3,7 +3,9 @@ package com.wmstool.wmstool.services.stockService.subFunctions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -19,7 +21,6 @@ import com.wmstool.wmstool.models.InStockOrderRecord;
 import com.wmstool.wmstool.models.Product;
 import com.wmstool.wmstool.models.StockIdentifier;
 import com.wmstool.wmstool.models.StockInfo;
-import com.wmstool.wmstool.models.TransactionRecord;
 import com.wmstool.wmstool.models.payloads.ProductInformation;
 import com.wmstool.wmstool.models.payloads.QueryProductNoResponse;
 import com.wmstool.wmstool.repositories.InStockOrderRepo;
@@ -65,7 +66,7 @@ public class QueryStockFunction {
 	 */
 	public QueryProductNoResponse findBasicStockInfoByProductNo(String productNo) {
 		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, true),
-				getProductsByProductNo(productNo));
+				getProductsByProductNo(productNo), nearByProductNo(productNo));
 	}
 
 	/**
@@ -75,7 +76,7 @@ public class QueryStockFunction {
 	 */
 	public QueryProductNoResponse findStockInfoByProductNoWithQuantity(String productNo) {
 		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, false),
-				getProductsByProductNo(productNo));
+				getProductsByProductNo(productNo), nearByProductNo(productNo));
 	}
 
 	/**
@@ -145,6 +146,22 @@ public class QueryStockFunction {
 		});
 
 		return resultOfHistoryTree;
+	}
+
+	/**
+	 * Return the previous/next productNo in a sorted all-product list at first DB
+	 */
+	private Map<String, String> nearByProductNo(String productNo) {
+		Map<String, String> result = new HashMap<>();
+		List<String> productList = productRepository.getAllProducts();
+		int target = productList.indexOf(productNo);
+		int prev = (target - 1) < 0 ? -1 : (target - 1);
+		int next = (target + 1) > productList.size() - 1 ? -1 : (target + 1);
+
+		result.put("prev", prev == -1 ? null : productList.get(prev));
+		result.put("next", next == -1 ? null : productList.get(next));
+
+		return result;
 	}
 
 	/**

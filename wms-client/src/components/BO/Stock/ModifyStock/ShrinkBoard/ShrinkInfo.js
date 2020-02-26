@@ -1,24 +1,15 @@
 import React, { Component } from "react";
+import { StockIdentifierType } from "../../../../../enums/Enums";
 
 class ShrinkInfo extends Component {
   constructor(props) {
     super(props);
-    this.onTypeExchangeClick = this.onTypeExchangeClick.bind(this);
-    this.onSameTypeClick = this.onSameTypeClick.bind(this);
-    this.onHardwareModifyClick = this.onHardwareModifyClick.bind(this);
+    this.onModifyClick = this.onModifyClick.bind(this);
     this.onCancelShrinkClick = this.onCancelShrinkClick.bind(this);
   }
 
-  onTypeExchangeClick() {
-    this.props.onModifyClick("typeExchange", this.props.stockInfo);
-  }
-
-  onSameTypeClick() {
-    this.props.onModifyClick("sameTypeModify", this.props.stockInfo);
-  }
-
-  onHardwareModifyClick() {
-    this.props.onModifyClick("hardwareModify", this.props.stockInfo);
+  onModifyClick(e) {
+    this.props.onModifyClick(e.target.value, this.props.stockInfo);
   }
 
   onCancelShrinkClick() {
@@ -26,14 +17,15 @@ class ShrinkInfo extends Component {
   }
 
   actionButtonAlgorithm(type) {
-    if (type === "整支") {
+    if (type === StockIdentifierType.roll) {
       return (
         <React.Fragment>
           <td>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={this.onTypeExchangeClick}
+              value="typeExchange"
+              onClick={this.onModifyClick}
             >
               板卷異動
             </button>
@@ -42,7 +34,8 @@ class ShrinkInfo extends Component {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={this.onSameTypeClick}
+              value="sameTypeModify"
+              onClick={this.onModifyClick}
             >
               整支異動
             </button>
@@ -50,14 +43,15 @@ class ShrinkInfo extends Component {
         </React.Fragment>
       );
     }
-    if (type === "板卷") {
+    if (type === StockIdentifierType.board) {
       return (
         <React.Fragment>
           <td>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={this.onTypeExchangeClick}
+              value="typeExchange"
+              onClick={this.onModifyClick}
             >
               板卷異動
             </button>
@@ -66,14 +60,15 @@ class ShrinkInfo extends Component {
         </React.Fragment>
       );
     }
-    if (type === "雜項") {
+    if (type === StockIdentifierType.hardware) {
       return (
         <React.Fragment>
           <td>
             <button
               type="button"
               className="btn btn-primary"
-              onClick={this.onHardwareModifyClick}
+              value="hardwareModify"
+              onClick={this.onModifyClick}
             >
               雜項異動
             </button>
@@ -85,7 +80,10 @@ class ShrinkInfo extends Component {
   }
 
   cancelButtonAlgorithm(type) {
-    if (type === "整支" || type === "板卷") {
+    if (
+      type === StockIdentifierType.roll ||
+      type === StockIdentifierType.board
+    ) {
       return (
         <React.Fragment>
           <button
@@ -98,7 +96,7 @@ class ShrinkInfo extends Component {
         </React.Fragment>
       );
     }
-    if (type === "雜項") {
+    if (type === StockIdentifierType.hardware) {
       return (
         <React.Fragment>
           <button
@@ -147,14 +145,18 @@ class ShrinkInfo extends Component {
           </button>
         </td>
         <td>
-          <button className="btn-customize" disabled>
-            {stockInfo.color}
-          </button>
+          {stockIdentifier.type === StockIdentifierType.hardware ? null : (
+            <button className="btn-customize" disabled>
+              {stockInfo.color}
+            </button>
+          )}
         </td>
         <td>
-          <button className="btn-customize" disabled>
-            {stockInfo.defect}
-          </button>
+          {stockIdentifier.type === StockIdentifierType.hardware ? null : (
+            <button className="btn-customize" disabled>
+              {stockInfo.defect}
+            </button>
+          )}
         </td>
         {actionButtonContent}
         <td>{cancelButtonContent}</td>

@@ -39,11 +39,19 @@ public class StockAllocationRecord {
 	public StockAllocationRecord() {
 	}
 
-	public StockAllocationRecord(String productNo, String unit) {
+	public StockAllocationRecord(String productNo, String unit, String shrinkType) {
 		this.productNo = productNo;
 		this.unit = unit;
-		this.INGWN = "AB";
-		this.OUTGWN = "AD";
+
+		if (shrinkType.equals("RB")) {
+			this.INGWN = "AB";
+			this.OUTGWN = "AD";
+		}
+
+		if (shrinkType.equals("BR")) {
+			this.INGWN = "AD";
+			this.OUTGWN = "AB";
+		}
 	}
 
 	public Long getId() {

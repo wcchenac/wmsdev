@@ -1,3 +1,10 @@
+// StockIdentifier Type
+export const StockIdentifierType = {
+  board: "板卷",
+  roll: "整支",
+  hardware: "雜項"
+};
+
 // Used at ModifyBoard-ClothInfo-OutStockModal
 export const StoreList = [
   "中壢門市",
@@ -22,7 +29,7 @@ export const ColorOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 //         AssembleClothBoard-ClothContainer-ClothInfo/
 //         ShrinkBoard-ModifyRequestBoard-ModifyRequestContainer-ModifyRequestInfo
 export const DefectOptions = [
-  { label: "無", value: "無" },
+  { label: "無", value: "" },
   { label: "GA", value: "GA" },
   { label: "GB", value: "GB" },
   { label: "GC", value: "GC" },
@@ -34,7 +41,6 @@ export const DefectOptions = [
 ];
 
 // Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo
-// the index is same as db
 export const UnitOptions = [
   "碼",
   "尺",
@@ -72,4 +78,13 @@ export const RoleOption = {
   業務: "ROLE_Sales",
   庫存相關人員: "ROLE_Operator",
   管理員: "ROLE_Admin"
+};
+
+// Use at ModifyRequestBoard
+export const ShrinkType = {
+  RtoR: "RR",
+  RtoB: "RB",
+  BtoB: "BB",
+  BtoR: "BR",
+  HtoH: "HH"
 };

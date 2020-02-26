@@ -17,7 +17,7 @@ export default class ShowProductInformation extends Component {
           data-toggle="modal"
           data-target="#picture"
         >
-          詳細資料
+          貨號資料
         </button>
         <div
           className="modal fade"

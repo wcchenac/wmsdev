@@ -9,6 +9,8 @@ import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import ShowProductQuantity from "../Utilities/ShowProductQuantity";
+import ToolbarForNextPrev from "../Utilities/ToolbarForNextPrev";
+import { StockIdentifierType } from "../../../../enums/Enums";
 
 class QueryBoardForSales extends Component {
   constructor() {
@@ -17,12 +19,15 @@ class QueryBoardForSales extends Component {
       isLoading: false,
       isQuery: false,
       productNo: "",
+      prevProduct: "",
+      nextProduct: "",
       productInfo: {},
       stockInfoes: [],
       stockQuantity: {}
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+    this.handleFutureProductQuery = this.handleFutureProductQuery.bind(this);
   }
 
   onChange(e) {
@@ -40,9 +45,28 @@ class QueryBoardForSales extends Component {
     });
   }
 
+  handleFutureProductQuery(e) {
+    e.preventDefault();
+    let select = e.target.value;
+
+    this.setState({ isLoading: true }, () => {
+      this.props.getStockInfoesBasic(select).then(response => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false, isQuery: true });
+        }
+      });
+    });
+  }
+
   componentDidUpdate(prevProps) {
-    if (this.props.stockInfo.stockInfoes !== prevProps.stockInfo.stockInfoes) {
+    if (
+      this.props.stockInfo.stockInfoes !== prevProps.stockInfo.stockInfoes &&
+      this.props.stockInfo.stockInfoes.information.productNo !== null
+    ) {
       this.setState({
+        productNo: this.props.stockInfo.stockInfoes.information.productNo,
+        prevProduct: this.props.stockInfo.stockInfoes.prevProduct,
+        nextProduct: this.props.stockInfo.stockInfoes.nextProduct,
         productInfo: this.props.stockInfo.stockInfoes.information,
         stockInfoes: this.props.stockInfo.stockInfoes.result,
         stockQuantity: this.props.stockInfo.stockInfoes.productList
@@ -50,7 +74,9 @@ class QueryBoardForSales extends Component {
     }
   }
 
-  contentAlgorithm(isQuery, stockInfoes, stockQuantity) {
+  contentAlgorithm() {
+    const { isQuery, stockInfoes, stockQuantity } = this.state;
+
     if (!isQuery) {
       return null;
     } else {
@@ -58,14 +84,16 @@ class QueryBoardForSales extends Component {
         return <QueryResponseWithNoStock />;
       } else {
         return (
-          <div>
+          <React.Fragment>
             <ShowProductQuantity stockQuantity={stockQuantity} />
-            <hr />
+            <br />
             <StockInfoContainer
-              typeValidation={stockQuantity[0].type === "雜項"}
+              typeValidation={
+                stockQuantity[0].type === StockIdentifierType.hardware
+              }
               stockInfoes={stockInfoes}
             />
-          </div>
+          </React.Fragment>
         );
       }
     }
@@ -76,9 +104,9 @@ class QueryBoardForSales extends Component {
       isLoading,
       isQuery,
       productNo,
-      productInfo,
-      stockInfoes,
-      stockQuantity
+      prevProduct,
+      nextProduct,
+      productInfo
     } = this.state;
 
     return (
@@ -92,19 +120,31 @@ class QueryBoardForSales extends Component {
                 onChange={this.onChange}
               />
             </div>
-            <div className="col-md-auto mr-2">
-              <ShowProductInformation
-                isBasic={false}
-                isQuery={isQuery}
-                productNo={productNo}
-                productInfo={productInfo}
-              />
-            </div>
           </div>
           <hr />
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <div style={{ height: "80vh" }}>
-              {this.contentAlgorithm(isQuery, stockInfoes, stockQuantity)}
+              <div>
+                <div className="row">
+                  <div className="col-md-auto mr-auto">
+                    <ShowProductInformation
+                      isBasic={false}
+                      isQuery={isQuery}
+                      productNo={productNo}
+                      productInfo={productInfo}
+                    />
+                  </div>
+                  <div className="col-md-auto">
+                    <ToolbarForNextPrev
+                      handleFutureProductQuery={this.handleFutureProductQuery}
+                      prevProduct={prevProduct}
+                      nextProduct={nextProduct}
+                    />
+                  </div>
+                </div>
+                <br />
+                {this.contentAlgorithm()}
+              </div>
             </div>
           </LoadingOverlay>
         </div>

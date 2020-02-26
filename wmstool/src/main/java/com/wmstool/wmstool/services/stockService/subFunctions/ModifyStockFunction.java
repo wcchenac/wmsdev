@@ -227,6 +227,7 @@ public class ModifyStockFunction {
 		float adjustment = shrinkStockRequest.getAdjustment();
 		String allocationString = String.format("%.2f", allocation);
 		String adjustmentString = String.format("%.2f", adjustment);
+		String shrinkType = shrinkStockRequest.getShrinkType();
 
 		// find old stockIdentifier, and set to not exist
 		// TODO: data not found exception
@@ -263,7 +264,7 @@ public class ModifyStockFunction {
 			String unitReference = productBaseUnitRetrieve(productNo);
 
 			// Create StockAllocationRecord, and save
-			StockAllocationRecord stockAllocationRecord = new StockAllocationRecord(productNo, unit);
+			StockAllocationRecord stockAllocationRecord = new StockAllocationRecord(productNo, unit, shrinkType);
 
 			stockAllocationRecord.setQuantity(allocationString);
 			stockAllocationRecord.setIssuedByStockIdentifier(oldIdentifier.getId());
@@ -292,7 +293,7 @@ public class ModifyStockFunction {
 			String unitReference = productBaseUnitRetrieve(productNo);
 
 			// Create StocAdjustmnetRecord, and save
-			StockAdjustmentRecord stockAdjustmentRecord = new StockAdjustmentRecord(productNo, unit);
+			StockAdjustmentRecord stockAdjustmentRecord = new StockAdjustmentRecord(productNo, unit, shrinkType);
 
 			stockAdjustmentRecord.setQuantity(adjustmentString);
 			stockAdjustmentRecord.setIssuedByStockIdentifier(oldIdentifier.getId());

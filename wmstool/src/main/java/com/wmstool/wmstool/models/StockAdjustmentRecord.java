@@ -37,10 +37,25 @@ public class StockAdjustmentRecord {
 	public StockAdjustmentRecord() {
 	}
 
-	public StockAdjustmentRecord(String productNo, String unit) {
+	public StockAdjustmentRecord(String productNo, String unit, String shrinkType) {
 		this.productNo = productNo;
 		this.unit = unit;
-		this.GWN = "AB";
+
+		switch (shrinkType) {
+		case "RR":
+		case "BR":
+			this.GWN = "AD";
+			break;
+		case "BB":
+		case "RB":
+			this.GWN = "AB";
+			break;
+		case "HH":
+			this.GWN = "AP";
+		default:
+			break;
+		}
+
 	}
 
 	public Long getId() {

@@ -2,8 +2,13 @@ import React, { Component } from "react";
 import classnames from "classnames";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
-import { UnitOptions, DefectOptions } from "../../../../../enums/Enums";
+import {
+  UnitOptions,
+  DefectOptions,
+  StockIdentifierType
+} from "../../../../../enums/Enums";
 import ShipModal from "../../Utilities/ShipModal";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 
 class ModifyRequest extends Component {
   constructor(props) {
@@ -64,8 +69,8 @@ class ModifyRequest extends Component {
                 defaultValue={stockInfo.type}
                 onChange={this.handleChange}
               >
-                <option value="整支">整支</option>
-                <option value="板卷">板卷</option>
+                <option value={StockIdentifierType.roll}>整支</option>
+                <option value={StockIdentifierType.board}>板卷</option>
               </select>
             </div>
           )}
@@ -146,21 +151,33 @@ class ModifyRequest extends Component {
         </td>
         <td>
           <div className="form-check mt-2 ml-2">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              value={stockInfo.directShip}
-              onChange={this.onShipCheck}
-            />
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id={`tooltip-${this.props.index}`}>
+                  {stockInfo.outStockReason}
+                </Tooltip>
+              }
+            >
+              <input
+                type="checkbox"
+                className="form-check-input"
+                value={stockInfo.directShip}
+                checked={stockInfo.outStockReason !== ""}
+                onChange={this.onShipCheck}
+              />
+            </OverlayTrigger>
           </div>
-          <ShipModal
-            outStockReason={stockInfo.outStockReason}
-            onChange={this.handleChange}
-            onReansonButtonChange={this.onReansonButtonChange}
-            onShipClick={this.handleModalClose}
-            handleModalClose={this.handleModalClose}
-            show={stockInfo.directShip && this.state.modalShow}
-          />
+          {stockInfo.directShip && this.state.modalShow ? (
+            <ShipModal
+              outStockReason={stockInfo.outStockReason}
+              onChange={this.handleChange}
+              onReansonButtonChange={this.onReansonButtonChange}
+              onShipClick={this.handleModalClose}
+              handleModalClose={this.handleModalClose}
+              show
+            />
+          ) : null}
         </td>
       </tr>
     );

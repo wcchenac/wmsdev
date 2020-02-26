@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import StockInfoContainer from "./StockInfoContainer";
+import { StockIdentifierType } from "../../../../../enums/Enums";
 
 const equal = require("fast-deep-equal");
 
@@ -61,7 +62,7 @@ class EditBoard extends PureComponent {
                 Object.keys(
                   this.props.waitHandleStatus[object.productNo]
                 ).pop(),
-                "雜項"
+                StockIdentifierType.hardware
               );
 
               return (

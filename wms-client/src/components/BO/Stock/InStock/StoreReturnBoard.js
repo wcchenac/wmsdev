@@ -38,6 +38,7 @@ class StoreReturnBoard extends Component {
     this.handleInStockRequestSubmit = this.handleInStockRequestSubmit.bind(
       this
     );
+    this.handleSelectionClick = this.handleSelectionClick.bind(this);
   }
 
   getInitialize() {
@@ -116,6 +117,19 @@ class StoreReturnBoard extends Component {
       ...this.state.selectedProductNoList[index],
       selected: checked
     };
+
+    this.setState({
+      selectedProductNoList: copyList
+    });
+  }
+
+  handleSelectionClick(e) {
+    const copyList = [...this.state.selectedProductNoList];
+    let value = e.target.value === "true";
+
+    copyList.forEach(object => {
+      object.selected = value;
+    });
 
     this.setState({
       selectedProductNoList: copyList
@@ -237,6 +251,7 @@ class StoreReturnBoard extends Component {
                     waitHandleStatus={waitHandleStatus}
                     selectedProductNoList={selectedProductNoList}
                     handleCheckBoxSelected={this.handleCheckBoxSelected}
+                    handleSelectionClick={this.handleSelectionClick}
                   />
                 </div>
               </TabPane>
