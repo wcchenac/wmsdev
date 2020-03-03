@@ -70,8 +70,8 @@ class InStockByImportFile extends Component {
       <div className="container">
         <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
           <div style={{ height: "80vh" }}>
-            <div className="row">
-              <div className="offset-md-3 col-md-6">
+            <div className="row justify-content-center">
+              <div className="col-md-6">
                 <div className="form-group files">
                   <label>上傳制式檔案(副檔名: xlsx)</label>
                   <input
@@ -89,7 +89,7 @@ class InStockByImportFile extends Component {
                   className="btn btn-success btn-block"
                   onClick={this.onClickHandler}
                 >
-                  Upload
+                  上傳
                 </button>
               </div>
             </div>

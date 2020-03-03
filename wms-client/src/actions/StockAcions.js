@@ -11,7 +11,8 @@ import {
   CANCEL_SHRINK,
   GET_OutStockRequests,
   UPDATE_StockInfo,
-  UPDATE_Errors
+  UPDATE_Errors,
+  CREATE_FILE
 } from "./types";
 
 export const getInStockOrder = inStockOrderNo => async dispatch => {
@@ -357,4 +358,21 @@ export const getProductHistory = request => async dispatch => {
 
 export const missionTrigger = async (periodType, fn) => {
   return await API.get(`/api/stock/stockManagement/${periodType}/${fn}`);
+};
+
+export const getAllCategory = () => async dispatch => {
+  const res = await API.get("/api/stock/queryStock/categoryList");
+
+  dispatch({
+    type: GET_StockInfoes,
+    payload: res.data
+  });
+};
+
+export const findCategoryDetails = category => async dispatch => {
+  dispatch({
+    type: CREATE_FILE
+  });
+
+  return await API.get(`/api/stock/queryStock/category/${category}`);
 };
