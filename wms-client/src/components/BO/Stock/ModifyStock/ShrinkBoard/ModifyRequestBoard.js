@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { StockIdentifierType, ShrinkType } from "../../../../../enums/Enums";
 import ModifyRequestContainer from "./ModifyRequestContainer";
 import { copy } from "../../../../../utilities/DeepCopy";
 import {
@@ -18,7 +19,9 @@ class ModifyRequestBoard extends Component {
       modalShow: false,
       oldStockInfo: this.props.stockInfo,
       newStockInfoes: [],
-      typeValidation: this.props.stockInfo.stockIdentifier.type === "雜項",
+      typeValidation:
+        this.props.stockInfo.stockIdentifier.type ===
+        StockIdentifierType.hardware,
       assignRowNum: 0
     };
     this.handleBackClick = this.handleBackClick.bind(this);
@@ -47,9 +50,7 @@ class ModifyRequestBoard extends Component {
       quantity: "",
       unit: this.state.oldStockInfo.stockIdentifier.unit,
       color: this.state.oldStockInfo.color,
-      defect: defectStringTransToOptions(
-        this.state.oldStockInfo.stockIdentifier.defect
-      ),
+      defect: defectStringTransToOptions(this.state.oldStockInfo.defect),
       record: "",
       remark: "",
       inStockType: "shrink",
@@ -61,13 +62,13 @@ class ModifyRequestBoard extends Component {
       }
     };
     if (typeExchange) {
-      initialContent["type"] = "板卷";
+      initialContent["type"] = StockIdentifierType.board;
     }
     if (sameTypeModify) {
-      initialContent["type"] = "整支";
+      initialContent["type"] = StockIdentifierType.roll;
     }
     if (hardwareModify) {
-      initialContent["type"] = "雜項";
+      initialContent["type"] = StockIdentifierType.hardware;
     }
 
     return initialContent;
@@ -137,8 +138,8 @@ class ModifyRequestBoard extends Component {
       let childQuantity = parseFloat(newStockInfoes[i].quantity);
       totalQuantity += childQuantity;
 
-      // allcation occurs when "整支" change to "板卷"
-      if (equal(oldType, "整支") && equal(newStockInfoes[i].type, "板卷")) {
+      // allocation occurs when newType not equals to oldType
+      if (!equal(oldType, newStockInfoes[i].type)) {
         allocation += childQuantity;
         typeDifference = true;
       }
@@ -146,17 +147,35 @@ class ModifyRequestBoard extends Component {
 
     let adjustment = totalQuantity - oldTotalLength;
 
-    return typeDifference
-      ? {
-          adjustment: Math.round10(adjustment, -1),
-          totalQuantity: totalQuantity,
-          allocation: Math.round10(allocation - adjustment, -1)
-        }
-      : {
-          adjustment: Math.round10(adjustment, -1),
-          totalQuantity: totalQuantity,
-          allocation: 0
-        };
+    let result = {
+      adjustment: Math.round10(adjustment, -1),
+      totalQuantity: totalQuantity
+    };
+
+    if (typeDifference) {
+      result["allocation"] = Math.round10(allocation, -1);
+
+      if (oldType === StockIdentifierType.board) {
+        result["shrinkType"] = ShrinkType.BtoR;
+      }
+      if (oldType === StockIdentifierType.roll) {
+        result["shrinkType"] = ShrinkType.RtoB;
+      }
+    } else {
+      result["allocation"] = 0;
+
+      if (oldType === StockIdentifierType.board) {
+        result["shrinkType"] = ShrinkType.BtoB;
+      }
+      if (oldType === StockIdentifierType.roll) {
+        result["shrinkType"] = ShrinkType.RtoR;
+      }
+      if (oldType === StockIdentifierType.hardware) {
+        result["shrinkType"] = ShrinkType.HtoH;
+      }
+    }
+
+    return result;
   }
 
   handleModalClose() {
@@ -228,10 +247,9 @@ class ModifyRequestBoard extends Component {
     });
   }
 
-  handleSubmitClick() {
+  handleSubmitClick(infoLengthCalculation) {
     const { oldStockInfo, newStockInfoes, typeValidation } = this.state;
     let stockInfoesCopy = copy(newStockInfoes);
-    let infoLengthCalculation = this.infoLengthCalculation();
 
     if (!typeValidation) {
       joinInfoesDefectArray(stockInfoesCopy);
@@ -241,7 +259,8 @@ class ModifyRequestBoard extends Component {
       oldStockIdentifierId: oldStockInfo.stockIdentifier.id,
       inStockRequests: stockInfoesCopy,
       allocation: infoLengthCalculation.allocation,
-      adjustment: infoLengthCalculation.adjustment
+      adjustment: infoLengthCalculation.adjustment,
+      shrinkType: infoLengthCalculation.shrinkType
     };
 
     this.props.handleModifyRequestSubmit(shrinkStockRequest);
@@ -288,39 +307,6 @@ class ModifyRequestBoard extends Component {
     });
   }
 
-  modalContent() {
-    let infoLengthCalculation = this.infoLengthCalculation();
-
-    if (infoLengthCalculation.adjustment === 0) {
-      return (
-        <React.Fragment>
-          <p>減肥前後總數量相符，是否確認送出？</p>
-        </React.Fragment>
-      );
-    } else if (
-      Math.abs(infoLengthCalculation.adjustment) >
-      infoLengthCalculation.totalQuantity * 0.03
-    ) {
-      return (
-        <React.Fragment>
-          <p>
-            減肥前後總數量不符，且差異量大於平常值(差異量：
-            {infoLengthCalculation.adjustment} 碼)，是否確認送出？
-          </p>
-        </React.Fragment>
-      );
-    } else {
-      return (
-        <React.Fragment>
-          <p>
-            減肥前後總數量不符，差異量： {infoLengthCalculation.adjustment}{" "}
-            碼，是否確認送出？
-          </p>
-        </React.Fragment>
-      );
-    }
-  }
-
   checkLengthAlgorithm(stockInfoes) {
     var isLengthChecked = false;
 
@@ -348,7 +334,7 @@ class ModifyRequestBoard extends Component {
       assignRowNum
     } = this.state;
     let isLengthChecked = this.checkLengthAlgorithm(newStockInfoes);
-    let modalContent = this.modalContent();
+    let infoLengthCalculation = modalShow ? this.infoLengthCalculation() : null;
 
     return (
       <div className="stock_info">
@@ -468,12 +454,14 @@ class ModifyRequestBoard extends Component {
                 handleShipCheck={this.handleShipCheck}
                 handleReasonButton={this.handleReasonButton}
               />
-              <ShrinkConfirmModal
-                show={modalShow}
-                modalContent={modalContent}
-                handleModalClose={this.handleModalClose}
-                handleSubmitClick={this.handleSubmitClick}
-              />
+              {modalShow ? (
+                <ShrinkConfirmModal
+                  show
+                  infoLengthCalculation={infoLengthCalculation}
+                  handleModalClose={this.handleModalClose}
+                  handleSubmitClick={this.handleSubmitClick}
+                />
+              ) : null}
             </div>
           )}
           <hr />

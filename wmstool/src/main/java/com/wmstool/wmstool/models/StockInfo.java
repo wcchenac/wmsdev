@@ -36,6 +36,8 @@ public class StockInfo {
 
 	private String remark;
 
+	private String shrinkAt;
+
 	private String storedAt;
 
 	@Column(updatable = false)
@@ -109,6 +111,14 @@ public class StockInfo {
 
 	public void setRemark(String remark) {
 		this.remark = remark;
+	}
+
+	public String getShrinkAt() {
+		return shrinkAt;
+	}
+
+	public void setShrinkAt(String shrinkAt) {
+		this.shrinkAt = shrinkAt;
 	}
 
 	public String getStoredAt() {

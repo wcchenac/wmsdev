@@ -116,6 +116,28 @@ public class StockController {
 		}
 	}
 
+	// TODO: roll-back shrink
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
+	@PatchMapping("/shrinkStock/rollback/{stockIdentifierId}")
+	public ResponseEntity<?> rollbackShrinkStock(@PathVariable long stockIdentifierId) {
+		try {
+			stockService.rollbackShrinkStock(stockIdentifierId);
+
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	// TODO
+	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
+	@GetMapping("/queryStock/shrinkRollback/{productNo}")
+	public ResponseEntity<?> getShrinkRollbackList(@PathVariable String productNo) {
+		return new ResponseEntity<>(stockService.getShrinkRollbackList(productNo.toUpperCase()), HttpStatus.OK);
+	}
+
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PatchMapping("/shipStock")
 	public ResponseEntity<?> letStockIndentifierIsShiped(@Valid @RequestBody ShipRequest shipRequest) {
@@ -131,7 +153,7 @@ public class StockController {
 
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-	
+
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@PatchMapping("/shipStock/rollback/{stockIdentifierId}")
 	public ResponseEntity<?> letStockIndentifierisNotShiped(@PathVariable long stockIdentifierId) {

@@ -129,6 +129,14 @@ class InformationModal extends Component {
                   {stockInfo.defect}
                 </label>
               </div>
+              <div className="form-group row mb-0">
+                <label className="col-6 col-form-label text-center">
+                  減肥日期
+                </label>
+                <label className="col-6 col-form-label">
+                  {stockInfo.shrinkAt}
+                </label>
+              </div>
             </React.Fragment>
           )}
           <div className="form-group row mb-0">

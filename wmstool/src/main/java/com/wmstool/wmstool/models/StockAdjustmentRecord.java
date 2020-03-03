@@ -28,6 +28,8 @@ public class StockAdjustmentRecord {
 
 	private Long issuedByStockIdentifier;
 
+	private Long issuedByTransactionRecord;
+
 	private LocalDateTime createdAt;
 
 	private LocalDateTime updatedAt;
@@ -35,10 +37,25 @@ public class StockAdjustmentRecord {
 	public StockAdjustmentRecord() {
 	}
 
-	public StockAdjustmentRecord(String productNo, String unit) {
+	public StockAdjustmentRecord(String productNo, String unit, String shrinkType) {
 		this.productNo = productNo;
 		this.unit = unit;
-		this.GWN = "AB";
+
+		switch (shrinkType) {
+		case "RR":
+		case "BR":
+			this.GWN = "AD";
+			break;
+		case "BB":
+		case "RB":
+			this.GWN = "AB";
+			break;
+		case "HH":
+			this.GWN = "AP";
+		default:
+			break;
+		}
+
 	}
 
 	public Long getId() {
@@ -95,6 +112,14 @@ public class StockAdjustmentRecord {
 
 	public void setIssuedByStockIdentifier(Long issuedByStockIdentifier) {
 		this.issuedByStockIdentifier = issuedByStockIdentifier;
+	}
+
+	public Long getIssuedByTransactionRecord() {
+		return issuedByTransactionRecord;
+	}
+
+	public void setIssuedByTransactionRecord(Long issuedByTransactionRecord) {
+		this.issuedByTransactionRecord = issuedByTransactionRecord;
 	}
 
 	public LocalDateTime getCreatedAt() {

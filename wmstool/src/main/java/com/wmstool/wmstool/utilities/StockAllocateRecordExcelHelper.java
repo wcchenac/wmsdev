@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -67,10 +68,49 @@ public class StockAllocateRecordExcelHelper {
 	}
 
 	/**
+	 * For shrink roll-back process, re-create a excel from template excel which is
+	 * named by current date formated in "yyyyMMdd" pattern
+	 */
+	public String deleteAndCreateNewFile(LocalDate now) throws IOException {
+		String parentDir = folderPath + seperator + "STKALLT";
+		String templateFile = parentDir + seperator + "StockAllocateRecordTemplate" + filetype;
+
+		// Read template file
+		Workbook workbook = WorkbookFactory.create(new File(templateFile));
+
+		// Define directory & filename and create files
+		String fileNameNoDir = filenamePrefix + now.format(dtf_yyyyMMdd) + filetype;
+		String fileFullName = parentDir + seperator + now.getYear() + seperator + now.getMonthValue() + seperator
+				+ fileNameNoDir;
+		File f = new File(fileFullName);
+
+		if (f.exists()) {
+			f.delete();
+		}
+
+		f.getParentFile().mkdirs();
+
+		try {
+			f.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		// Output template content to certain file
+		FileOutputStream fos = new FileOutputStream(f);
+		workbook.write(fos);
+
+		workbook.close();
+		fos.close();
+
+		return fileNameNoDir;
+	}
+
+	/**
 	 * Using given stockAllocationRecord information to update the given filename
 	 * excel
 	 */
-	public void modifyExisting(StockAllocationRecord stockAllocationRecord, LocalDate now, String fileName)
+	public void modifyExisting(List<StockAllocationRecord> stockAllocationRecords, LocalDate now, String fileName)
 			throws IOException {
 		String parentDir = folderPath + seperator + "STKALLT";
 
@@ -92,37 +132,42 @@ public class StockAllocateRecordExcelHelper {
 
 		// get last row in file, and set value & style into cells under last row
 		int lastRow = sheet.getLastRowNum() + 1;
-		Row row = sheet.createRow(lastRow);
 
-		row.setRowStyle(rowStyle);
+		for (StockAllocationRecord stockAllocationRecord : stockAllocationRecords) {
+			Row row = sheet.createRow(lastRow);
 
-		// INGWN
-		Cell cell = row.createCell(1);
-		cell.setCellValue(stockAllocationRecord.getINGWN());
+			row.setRowStyle(rowStyle);
 
-		// PROD
-		cell = row.createCell(2);
-		cell.setCellValue(stockAllocationRecord.getProductNo());
+			// INGWN
+			Cell cell = row.createCell(1);
+			cell.setCellValue(stockAllocationRecord.getINGWN());
 
-		// SERIAL
-		cell = row.createCell(6);
-		cell.setCellValue(lastRow - 1);
+			// PROD
+			cell = row.createCell(2);
+			cell.setCellValue(stockAllocationRecord.getProductNo());
 
-		// QTY
-		cell = row.createCell(8);
-		cell.setCellValue(stockAllocationRecord.getQuantity());
+			// SERIAL
+			cell = row.createCell(6);
+			cell.setCellValue(lastRow - 1);
 
-		// UNIT
-		cell = row.createCell(9);
-		cell.setCellValue("02");
+			// QTY
+			cell = row.createCell(8);
+			cell.setCellValue(stockAllocationRecord.getQuantity());
 
-		// REALQTY
-		cell = row.createCell(10);
-		cell.setCellValue(stockAllocationRecord.getRealQuantity());
+			// UNIT
+			cell = row.createCell(9);
+			cell.setCellValue("02");
 
-		// OUTGWN
-		cell = row.createCell(15);
-		cell.setCellValue(stockAllocationRecord.getOUTGWN());
+			// REALQTY
+			cell = row.createCell(10);
+			cell.setCellValue(stockAllocationRecord.getRealQuantity());
+
+			// OUTGWN
+			cell = row.createCell(15);
+			cell.setCellValue(stockAllocationRecord.getOUTGWN());
+
+			lastRow += 1;
+		}
 
 		// close input stream
 		fis.close();

@@ -3,7 +3,9 @@ package com.wmstool.wmstool.services.stockService.subFunctions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -25,6 +27,7 @@ import com.wmstool.wmstool.repositories.InStockOrderRepo;
 import com.wmstool.wmstool.repositories.ProductRepository;
 import com.wmstool.wmstool.repositories.StockIdentifierRepo;
 import com.wmstool.wmstool.repositories.StockInfoRepository;
+import com.wmstool.wmstool.repositories.TransactionRecordRepo;
 import com.wmstool.wmstool.services.HistoryService;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
@@ -45,6 +48,9 @@ public class QueryStockFunction {
 	private InStockOrderRepo inStockOrderRepo;
 
 	@Autowired
+	private TransactionRecordRepo transactionRecordRepo;
+
+	@Autowired
 	private HistoryService historyService;
 
 	@Autowired
@@ -60,17 +66,8 @@ public class QueryStockFunction {
 	 */
 	public QueryProductNoResponse findBasicStockInfoByProductNo(String productNo) {
 		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, true),
-				getProductsByProductNo(productNo));
+				getProductsByProductNo(productNo), nearByProductNo(productNo));
 	}
-
-//	/**
-//	 * Return a response containing information for certain productNo fetching from
-//	 * second db and a list of StockInfoes with certain productNo fetching from
-//	 * first db
-//	 */
-//	public QueryProductNoResponse findStockInfoByProductNo(String productNo) {
-//		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, false));
-//	}
 
 	/**
 	 * Return a response containing information for certain productNo fetching from
@@ -79,7 +76,7 @@ public class QueryStockFunction {
 	 */
 	public QueryProductNoResponse findStockInfoByProductNoWithQuantity(String productNo) {
 		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, false),
-				getProductsByProductNo(productNo));
+				getProductsByProductNo(productNo), nearByProductNo(productNo));
 	}
 
 	/**
@@ -95,6 +92,18 @@ public class QueryStockFunction {
 					// TODO: data not found exception
 					identifier -> result.add(stockInfoRepository.findByStockIdentifierId(identifier.getId()).get()));
 		}
+
+		return result;
+	}
+
+	// TODO
+	public List<HistoryTreeNode> findByPeriodTransactionRecord(String productNo) {
+		List<HistoryTreeNode> result = new ArrayList<>();
+
+		transactionRecordRepo.findTop5ByProductNoAndTransactionTypeOrderByCreatedAtDesc(productNo, "SKO")
+				.forEach(transaction -> {
+					result.add(historyService.createHistoryTreeByIdentifierId(transaction.getStockIdentifierId()));
+				});
 
 		return result;
 	}
@@ -137,6 +146,22 @@ public class QueryStockFunction {
 		});
 
 		return resultOfHistoryTree;
+	}
+
+	/**
+	 * Return the previous/next productNo in a sorted all-product list at first DB
+	 */
+	private Map<String, String> nearByProductNo(String productNo) {
+		Map<String, String> result = new HashMap<>();
+		List<String> productList = productRepository.getAllProducts();
+		int target = productList.indexOf(productNo);
+		int prev = (target - 1) < 0 ? -1 : (target - 1);
+		int next = (target + 1) > productList.size() - 1 ? -1 : (target + 1);
+
+		result.put("prev", prev == -1 ? null : productList.get(prev));
+		result.put("next", next == -1 ? null : productList.get(next));
+
+		return result;
 	}
 
 	/**

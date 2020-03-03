@@ -3,36 +3,31 @@ package com.wmstool.wmstool.utilities;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.wmstool.wmstool.models.StockIdentifier;
+import com.wmstool.wmstool.models.StockInfo;
 
 public class HistoryTreeNode {
 
-	private StockIdentifier stockIdentifier;
+	private StockInfo stockInfo;
 
 	private List<HistoryTreeNode> nodes = new ArrayList<>();
 
 	public HistoryTreeNode() {
 	}
 
-	public StockIdentifier getStockIdentifier() {
-		return stockIdentifier;
-	}
-
-	public void setStockIdentifier(StockIdentifier stockIdentifier) {
-		this.stockIdentifier = stockIdentifier;
-	}
-
 	public List<HistoryTreeNode> getNodes() {
 		return nodes;
 	}
 
-	public void setNodes(List<HistoryTreeNode> nodes) {
-		this.nodes = nodes;
+	public StockInfo getStockInfo() {
+		return stockInfo;
 	}
 
-	@Override
-	public String toString() {
-		return "HistoryTreeNode [clothInfo=" + stockIdentifier + ", nodes=" + nodes + "]";
+	public void setStockInfo(StockInfo stockInfo) {
+		this.stockInfo = stockInfo;
+	}
+
+	public void setNodes(List<HistoryTreeNode> nodes) {
+		this.nodes = nodes;
 	}
 
 }

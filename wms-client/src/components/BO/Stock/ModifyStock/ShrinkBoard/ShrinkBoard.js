@@ -46,7 +46,12 @@ class ShrinkBoard extends Component {
   }
 
   handleGoBack() {
-    this.setState({ typeExchange: false, sameTypeModify: false });
+    this.setState({
+      typeExchange: false,
+      sameTypeModify: false,
+      hardwareModify: false,
+      stockInfo: {}
+    });
   }
 
   onModifyClick(type, stockInfo) {
