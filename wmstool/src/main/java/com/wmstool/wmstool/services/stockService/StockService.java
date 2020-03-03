@@ -1,7 +1,9 @@
 package com.wmstool.wmstool.services.stockService;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.transaction.Transactional;
 
@@ -244,5 +246,19 @@ public class StockService {
 	 */
 	public void syncProductCategory() {
 		compareStockFunction.syncProductCategory();
+	}
+
+	/**
+	 * Return a response containing all category in designed structure
+	 */
+	public List<Map<String, String>> getAllCategory() {
+		return queryStockFunction.getAllCategory();
+	}
+
+	/**
+	 * Collect all stock by certain category and output to an excel file
+	 */
+	public void collectCategoyDetails(String category) throws FileNotFoundException, IOException {
+		queryStockFunction.findCategoryDetails(category);
 	}
 }

@@ -1,5 +1,7 @@
 package com.wmstool.wmstool.services.stockService.subFunctions;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import com.wmstool.wmstool.repositories.StockIdentifierRepo;
 import com.wmstool.wmstool.repositories.StockInfoRepository;
 import com.wmstool.wmstool.repositories.TransactionRecordRepo;
 import com.wmstool.wmstool.services.HistoryService;
+import com.wmstool.wmstool.utilities.CategoryDetailExcelHelper;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
 @Component
@@ -37,6 +40,10 @@ public class QueryStockFunction {
 	@Autowired
 	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
+
+	@Autowired
+	@Qualifier("WmstoolEntityManagerFactory")
+	private EntityManagerFactory emf_wms;
 
 	@Autowired
 	private StockIdentifierRepo stockIdentifierRepo;
@@ -56,8 +63,12 @@ public class QueryStockFunction {
 	@Autowired
 	private ProductRepository productRepository;
 
-	private final String queryBasicProductInfoSQLStatement = "SELECT CODE, CNAME, SPEC, PACKDESC, ADDTYPE, PICTURE FROM dbo.PRODUCT WHERE CODE= ?1";
-	private final String queryProductInfoSQLStatement = "SELECT x.CODE, x.CNAME, x.SPEC, x.SUPP, y.CNAME SUPPNAME, x.PRODDESC, x.USERFLD1, x.DESCRIP, x.PACKDESC, x.ADDTYPE, x.PICTURE, x.CCOST FROM dbo.PRODUCT x INNER JOIN dbo.SUPPLIER y ON x.SUPP = y.CODE WHERE x.CODE= ?1";
+	@Autowired
+	private CategoryDetailExcelHelper categoryDetailExcelHelper;
+
+	private final String queryBasicProductInfoSQLStatement = "SELECT * FROM dbo.BasicProdutctInfo WHERE CODE= ?1";
+	private final String queryProductInfoSQLStatement = "SELECT * FROM dbo.ProdutctInfo WHERE CODE= ?1";
+	private final String queryCategoryDetailSQLStatement = "SELECT * FROM wms.categorydetail WHERE category= ?1";
 
 	/**
 	 * Return a response containing 'less' information for certain productNo
@@ -96,7 +107,10 @@ public class QueryStockFunction {
 		return result;
 	}
 
-	// TODO
+	/**
+	 * Return a list of HistoryTreeNode composed of top 5 transaction records with
+	 * SKO type ordered by create time
+	 */
 	public List<HistoryTreeNode> findByPeriodTransactionRecord(String productNo) {
 		List<HistoryTreeNode> result = new ArrayList<>();
 
@@ -146,6 +160,37 @@ public class QueryStockFunction {
 		});
 
 		return resultOfHistoryTree;
+	}
+
+	/**
+	 * Return a category list
+	 */
+	public List<Map<String, String>> getAllCategory() {
+		List<Map<String, String>> result = new ArrayList<>();
+
+		for (String category : productRepository.getAllCategory()) {
+			Map<String, String> temp = new HashMap<>();
+
+			temp.put("label", category);
+			temp.put("value", category);
+
+			result.add(temp);
+		}
+
+		return result;
+	}
+
+	// TODO: output category results, carefully dealing with JVM heap space
+	/**
+	 * Return a filename, and the file is composed of pictures, existed stock, based
+	 * on a certain category
+	 */
+	public void findCategoryDetails(String category) throws FileNotFoundException, IOException {
+		EntityManager em = emf_wms.createEntityManager();
+		Query q = em.createNativeQuery(queryCategoryDetailSQLStatement);
+		q.setParameter(1, category);
+
+		categoryDetailExcelHelper.outputCategoryResult(category, q.getResultList());
 	}
 
 	/**
