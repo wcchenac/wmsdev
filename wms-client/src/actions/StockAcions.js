@@ -367,6 +367,8 @@ export const getAllCategory = () => async dispatch => {
     type: GET_StockInfoes,
     payload: res.data
   });
+
+  return res;
 };
 
 export const findCategoryDetails = category => async dispatch => {

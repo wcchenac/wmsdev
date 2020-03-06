@@ -275,9 +275,34 @@ class ModifyRequestBoard extends Component {
     e.preventDefault();
 
     const stockInfoesCopy = [...this.state.newStockInfoes];
+    const { newStockInfoes } = this.state;
+    let newStockInfo;
+
+    if (newStockInfoes.length === 0) {
+      newStockInfo = this.modifyRequestInitialContent();
+    } else {
+      newStockInfo = {
+        productNo: this.state.oldStockInfo.stockIdentifier.productNo,
+        lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
+        type: newStockInfoes[newStockInfoes.length - 1].type,
+        quantity: "",
+        unit: newStockInfoes[newStockInfoes.length - 1].unit,
+        color: newStockInfoes[newStockInfoes.length - 1].color,
+        defect: newStockInfoes[newStockInfoes.length - 1].defect,
+        record: this.state.oldStockInfo.record,
+        remark: "",
+        inStockType: "shrink",
+        directShip: false,
+        outStockReason: "",
+        parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
+        errors: {
+          quantity: ""
+        }
+      };
+    }
 
     for (let i = 0; i < this.state.assignRowNum; i += 1) {
-      stockInfoesCopy.push(this.modifyRequestInitialContent());
+      stockInfoesCopy.push(newStockInfo);
     }
 
     this.setState({ assignRowNum: 0, newStockInfoes: stockInfoesCopy });

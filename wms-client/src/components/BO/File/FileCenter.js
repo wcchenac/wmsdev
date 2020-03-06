@@ -1,8 +1,12 @@
 import React, { Component } from "react";
-import FlieContainer from "./FileContainer";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import FileContainer from "./FileContainer";
+import FileContainerForCategory from "./FileContainerForCategory";
 import {
-  queryCategoryTodayFile,
-  queryCategoryIntervalFiles,
+  queryFileCategoryTodayFile,
+  queryFileCategoryIntervalFiles,
+  queryCategoryDetailList,
   downloadFile
 } from "../../../actions/FileActions";
 import LoadingOverlay from "react-loading-overlay";
@@ -14,21 +18,27 @@ class FileCenter extends Component {
     this.state = {
       isLoading: false,
       filenames: {
-        adjustment: {},
-        allocation: {},
-        dailyComparison: {}
+        adjustment: [],
+        allocation: [],
+        dailyComparison: [],
+        categoryDetail: []
       }
     };
-    this.handleCategoryCurrentQuery = this.handleCategoryCurrentQuery.bind(
+    this.handleFileCategoryCurrentQuery = this.handleFileCategoryCurrentQuery.bind(
       this
     );
-    this.handleCategoryPeriodQuery = this.handleCategoryPeriodQuery.bind(this);
+    this.handleFileCategoryPeriodQuery = this.handleFileCategoryPeriodQuery.bind(
+      this
+    );
+    this.createCategoryDetailFilename = this.createCategoryDetailFilename.bind(
+      this
+    );
     this.handleDownloadClick = this.handleDownloadClick.bind(this);
   }
 
-  handleCategoryCurrentQuery(fileCatagory) {
+  handleFileCategoryCurrentQuery(fileCatagory) {
     this.setState({ isLoading: true }, () => {
-      queryCategoryTodayFile(fileCatagory)
+      queryFileCategoryTodayFile(fileCatagory)
         .then(res => {
           if (res.status === 200) {
             this.setState({
@@ -46,9 +56,9 @@ class FileCenter extends Component {
     });
   }
 
-  handleCategoryPeriodQuery(fileCatagory, startDate, endDate) {
+  handleFileCategoryPeriodQuery(fileCatagory, startDate, endDate) {
     this.setState({ isLoading: true }, () => {
-      queryCategoryIntervalFiles(fileCatagory, startDate, endDate)
+      queryFileCategoryIntervalFiles(fileCatagory, startDate, endDate)
         .then(res => {
           if (res.status === 200) {
             this.setState({
@@ -66,6 +76,21 @@ class FileCenter extends Component {
     });
   }
 
+  createCategoryDetailFilename(selectedOptions) {
+    const filenamePrefix = "CategoryDetail-";
+    const fileType = ".xls";
+
+    let result = [];
+
+    selectedOptions.forEach(option => {
+      result.push(filenamePrefix + option + fileType);
+    });
+
+    this.setState({
+      filenames: { ...this.state.filenames, categoryDetail: result }
+    });
+  }
+
   handleDownloadClick(e) {
     downloadFile(e.target.name, e.target.value);
   }
@@ -78,6 +103,7 @@ class FileCenter extends Component {
     const dailyComparisonFileType = "dailyComparison";
     const allocationFileType = "allocation";
     const adjustmentFileType = "adjustment";
+    const categoryDetailFileType = "categoryDetail";
 
     return (
       <div className="fileCenter">
@@ -88,34 +114,62 @@ class FileCenter extends Component {
             <div style={{ height: "80vh" }}>
               <div className="row">
                 <div className="col-6">
-                  <FlieContainer
+                  <FileContainer
                     filenames={filenames.allocation}
                     containerTitle={allocationTitle}
                     fileType={allocationFileType}
-                    handleCategoryCurrentQuery={this.handleCategoryCurrentQuery}
-                    handleCategoryPeriodQuery={this.handleCategoryPeriodQuery}
+                    handleFileCategoryCurrentQuery={
+                      this.handleFileCategoryCurrentQuery
+                    }
+                    handleFileCategoryPeriodQuery={
+                      this.handleFileCategoryPeriodQuery
+                    }
                     downloadFile={this.handleDownloadClick}
                   />
                 </div>
                 <div className="col-6">
-                  <FlieContainer
+                  <FileContainer
                     filenames={filenames.adjustment}
                     containerTitle={adjustmentTitle}
                     fileType={adjustmentFileType}
-                    handleCategoryCurrentQuery={this.handleCategoryCurrentQuery}
-                    handleCategoryPeriodQuery={this.handleCategoryPeriodQuery}
+                    handleFileCategoryCurrentQuery={
+                      this.handleFileCategoryCurrentQuery
+                    }
+                    handleFileCategoryPeriodQuery={
+                      this.handleFileCategoryPeriodQuery
+                    }
                     downloadFile={this.handleDownloadClick}
                   />
                 </div>
               </div>
+              <hr />
               <div className="row">
                 <div className="col-6">
-                  <FlieContainer
+                  <FileContainer
                     filenames={filenames.dailyComparison}
                     containerTitle={dailyComparisonTitle}
                     fileType={dailyComparisonFileType}
-                    handleCategoryCurrentQuery={this.handleCategoryCurrentQuery}
-                    handleCategoryPeriodQuery={this.handleCategoryPeriodQuery}
+                    handleFileCategoryCurrentQuery={
+                      this.handleFileCategoryCurrentQuery
+                    }
+                    handleFileCategoryPeriodQuery={
+                      this.handleFileCategoryPeriodQuery
+                    }
+                    downloadFile={this.handleDownloadClick}
+                  />
+                </div>
+              </div>
+              <hr />
+              <div className="row">
+                <div className="col-6">
+                  <FileContainerForCategory
+                    queryCategoryDetailList={this.props.queryCategoryDetailList}
+                    createCategoryDetailFilename={
+                      this.createCategoryDetailFilename
+                    }
+                    fileType={categoryDetailFileType}
+                    categoryList={this.props.categoryList}
+                    filenames={filenames.categoryDetail}
                     downloadFile={this.handleDownloadClick}
                   />
                 </div>
@@ -128,4 +182,15 @@ class FileCenter extends Component {
   }
 }
 
-export default FileCenter;
+FileCenter.propTypes = {
+  categoryList: PropTypes.array,
+  queryCategoryDetailList: PropTypes.func.isRequired
+};
+
+const mapStateToProps = state => ({
+  categoryList: state.stockInfo.stockInfoes
+});
+
+export default connect(mapStateToProps, {
+  queryCategoryDetailList
+})(FileCenter);

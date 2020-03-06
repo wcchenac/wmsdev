@@ -20,8 +20,8 @@ class ShipModalBody extends Component {
             />
           </div>
         </div>
-        <div className="row  justify-content-end">
-          <div className="col-md-8">
+        <div className="row">
+          <div className="offset-md-4 col-md-6">
             {StoreList.map((store, index) => (
               <button
                 type="button"

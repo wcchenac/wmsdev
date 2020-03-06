@@ -7,15 +7,15 @@ export const StockIdentifierType = {
 
 // Used at ModifyBoard-ClothInfo-OutStockModal
 export const StoreList = [
-  "中壢門市",
-  "新竹門市",
-  "台中門市",
-  "嘉義門市",
-  "台南門市",
-  "鼎山門市",
-  "中山門市",
-  "屏東門市",
-  "西門門市"
+  "中壢",
+  "新竹",
+  "台中",
+  "嘉義",
+  "台南",
+  "鼎山",
+  "中山",
+  "屏東",
+  "西門"
 ];
 
 // Used at ModifyBoard-ClothInfo-OutStockModal
