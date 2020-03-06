@@ -66,9 +66,11 @@ public class QueryStockFunction {
 	@Autowired
 	private CategoryDetailExcelHelper categoryDetailExcelHelper;
 
-	private final String queryBasicProductInfoSQLStatement = "SELECT * FROM dbo.BasicProdutctInfo WHERE CODE= ?1";
-	private final String queryProductInfoSQLStatement = "SELECT * FROM dbo.ProdutctInfo WHERE CODE= ?1";
+	private final String queryBasicProductInfoSQLStatement = "SELECT * FROM dbo.BasicProductInfo WHERE CODE= ?1";
+	private final String queryProductInfoSQLStatement = "SELECT * FROM dbo.ProductInfo WHERE CODE= ?1";
 	private final String queryCategoryDetailSQLStatement = "SELECT * FROM wms.categorydetail WHERE category= ?1";
+	private final String queryProductInfoForCategoryDetailSQLStatement = "SELECT CODE, SUPP, SUPPNAME, CNAME, CCOST, DESCRIP FROM dbo.ProductInfo WHERE CLAS=?1";
+	private final String querySaleRecordsForCategoryDetailSQLStatement = "SELECT * FROM wms.salerecords WHERE category = ?1";
 
 	/**
 	 * Return a response containing 'less' information for certain productNo
@@ -180,17 +182,29 @@ public class QueryStockFunction {
 		return result;
 	}
 
-	// TODO: output category results, carefully dealing with JVM heap space
 	/**
 	 * Return a filename, and the file is composed of pictures, existed stock, based
 	 * on a certain category
 	 */
 	public void findCategoryDetails(String category) throws FileNotFoundException, IOException {
-		EntityManager em = emf_wms.createEntityManager();
-		Query q = em.createNativeQuery(queryCategoryDetailSQLStatement);
-		q.setParameter(1, category);
+		EntityManager em_wms = emf_wms.createEntityManager();
+		EntityManager em = emf.createEntityManager();
 
-		categoryDetailExcelHelper.outputCategoryResult(category, q.getResultList());
+		// query remain stock which belong to certain category
+		Query q_stockResult = em_wms.createNativeQuery(queryCategoryDetailSQLStatement);
+		q_stockResult.setParameter(1, category);
+
+		// query product information of all productNo which belong to certain category
+		Query q_prodInfo = em.createNativeQuery(queryProductInfoForCategoryDetailSQLStatement);
+		q_prodInfo.setParameter(1, category);
+
+		// query sale records of all productNo which belong to certain category
+		Query q_saleRecords = em_wms.createNativeQuery(querySaleRecordsForCategoryDetailSQLStatement);
+		q_saleRecords.setParameter(1, category);
+
+		categoryDetailExcelHelper.outputCategoryResult(category, q_stockResult.getResultList(),
+				collectProdInfoForCategoryDetail(q_prodInfo.getResultList()),
+				summarySaleRecords(q_saleRecords.getResultList()));
 	}
 
 	/**
@@ -306,4 +320,67 @@ public class QueryStockFunction {
 		}
 	}
 
+	/**
+	 * Helper method for collecting required product information
+	 */
+	private Map<String, String[]> collectProdInfoForCategoryDetail(List<?> produtctInfo) {
+		Map<String, String[]> result = new HashMap<>();
+
+		for (Object row : produtctInfo) {
+			Object[] cells = (Object[]) row;
+
+			String[] temp = { cells[1].toString(), cells[2].toString(), cells[3].toString(), cells[4].toString(),
+					cells[5].toString() };
+
+			result.put(cells[0].toString(), temp);
+		}
+
+		return result;
+	}
+
+	// TODO sum quantity by reason
+	/**
+	 * Helper method for sale records summary and store into a structured map
+	 * {productNo: { reason : { quantity: "", unit : "" }}}
+	 */
+	private Map<String, Map<String, Map<String, String>>> summarySaleRecords(List<?> saleRecords) {
+		Map<String, Map<String, Map<String, String>>> result = new HashMap<>();
+
+		for (Object row : saleRecords) {
+			Object[] cells = (Object[]) row;
+			String productNo = cells[0].toString();
+			String reason = cells[1].toString();
+			String quantity = cells[2].toString();
+			String unit = cells[3].toString();
+
+			if (!result.containsKey(productNo)) {
+				Map<String, Map<String, String>> reason_property = new HashMap<>();
+				Map<String, String> property = new HashMap<>();
+
+				property.put("quantity", quantity);
+				property.put("unit", unit);
+
+				reason_property.put(reason, property);
+				result.put(productNo, reason_property);
+			} else {
+				Map<String, Map<String, String>> temp_reason_property = result.get(productNo);
+
+				if (!temp_reason_property.containsKey(reason)) {
+					Map<String, String> property = new HashMap<>();
+
+					property.put("quantity", quantity);
+					property.put("unit", unit);
+
+					temp_reason_property.put(reason, property);
+				} else {
+					Map<String, String> temp_property = temp_reason_property.get(reason);
+
+					temp_property.put("quantity", String.format("%.2f",
+							Double.parseDouble(temp_property.get("quantity")) + Double.parseDouble(quantity)));
+				}
+			}
+		}
+
+		return result;
+	}
 }
