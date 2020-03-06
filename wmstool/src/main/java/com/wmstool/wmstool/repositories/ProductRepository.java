@@ -16,7 +16,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
 	List<Product> findByProductNo(String productNo);
 
-	@Query(nativeQuery = true, value = "Select Distinct productNo From product Order By productNo Asc;")
+	@Query(nativeQuery = true, value = "Select Distinct productNo From product Order By productNo;")
 	List<String> getAllProducts();
+
+	@Query(nativeQuery = true, value = "Select Distinct category From product Order By category")
+	List<String> getAllCategory();
 
 }

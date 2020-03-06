@@ -35,11 +35,11 @@ public class CompareStockFunction {
 	@Autowired
 	private FullStockComparisonExcelHelper fullStockComparisonExcelHelper;
 
-	private final String queryProductCQTYAndUnitSQLStatement = "SELECT x.PROD, x.GWN, x.CQTY, y.UNIT FROM dbo.PRODQTY x INNER JOIN dbo.PRODUCT y ON y.CODE = x.PROD WHERE x.GWN='AB' OR x.GWN='AC' OR x.GWN='AD' OR x.GWN='AE' OR x.GWN='AP'";
+	private final String queryProductCQTYAndUnitSQLStatement = "SELECT * FROM dbo.ProductCQTYUNIT";
 	private final String queryProductCategoryStatement = "SELECT CODE, CLAS FROM dbo.PRODUCT";
 
 	/**
-	 * Weakly stock quantity comparison between 2 databases
+	 * Fully stock quantity comparison between 2 databases
 	 */
 	public void stockFullyComparison() throws IOException {
 		LocalDate now = LocalDate.now();
@@ -189,7 +189,7 @@ public class CompareStockFunction {
 	}
 
 	/**
-	 * Sync Product category information from 1st to 2nd
+	 * Sync Product category information from 2nd to 1st
 	 */
 	public void syncProductCategory() {
 		EntityManager em = emf.createEntityManager();
@@ -206,9 +206,10 @@ public class CompareStockFunction {
 
 		// Get product list from 1st db
 		productRepository.findAll().forEach(productType -> {
-			String targetCategory = product_class.get(productType.getProductNo());
+			String productNo = productType.getProductNo();
+			String targetCategory = product_class.containsKey(productNo) ? product_class.get(productNo) : "未分類";
 
-			if (!productType.getCategory().equals(targetCategory))
+			if (productType.getCategory() == null || !productType.getCategory().equals(targetCategory))
 				productType.setCategory(targetCategory);
 		});
 	}

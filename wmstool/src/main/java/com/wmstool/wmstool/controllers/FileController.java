@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletContext;
 
@@ -44,11 +45,13 @@ public class FileController {
 	private static final String SubFolder_STKADST = "STKADST";
 	private static final String SubFolder_STKALLT = "STKALLT";
 	private static final String SubFolder_DailyCompare = "StockComparisonResult";
+	private static final String SubFolder_CategoryDetail = "CategoryDetail";
 
 	private static final String File_Category_OutStockList = "outStockList";
 	private static final String File_Category_Adjustment = "adjustment";
 	private static final String File_Category_Allocation = "allocation";
 	private static final String File_Category_DailyCompare = "dailyComparison";
+	private static final String File_Category_CategoryDetail = "categoryDetail";
 
 	private static final String FilenamePrefix_Allocation = "StockAllocateRecord-";
 	private static final String FilenamePrefix_Adjustment = "StockAdjustRecord-";
@@ -76,6 +79,9 @@ public class FileController {
 			break;
 		case File_Category_DailyCompare:
 			subFolderName = SubFolder_DailyCompare;
+			break;
+		case File_Category_CategoryDetail:
+			subFolderName = SubFolder_CategoryDetail;
 			break;
 		default:
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -135,6 +141,12 @@ public class FileController {
 		}
 	}
 
+	@GetMapping("query/categoryList")
+	public ResponseEntity<?> queryCategoryList() {
+		return new ResponseEntity<List<Map<String, String>>>(
+				fileService.findExistedCategory(folderPath + seperator + SubFolder_CategoryDetail), HttpStatus.OK);
+	}
+
 	@PostMapping("/import/inStockFile")
 	public ResponseEntity<?> importStockRecord(@RequestParam(name = "files") MultipartFile[] multipartFiles) {
 		try {
@@ -173,6 +185,8 @@ public class FileController {
 		case File_Category_DailyCompare:
 			return fileName.substring(index + 1, index + 5) + seperator
 					+ String.valueOf(Integer.parseInt(fileName.substring(index + 5, index + 7))) + seperator + fileName;
+		case File_Category_CategoryDetail:
+			return fileName;
 		default:
 			return null;
 		}

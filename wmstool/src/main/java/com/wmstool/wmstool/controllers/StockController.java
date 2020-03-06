@@ -257,4 +257,24 @@ public class StockController {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
+
+	@GetMapping("/queryStock/categoryList")
+	public ResponseEntity<?> getAllCategory() {
+		try {
+			return new ResponseEntity<>(stockService.getAllCategory(), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@GetMapping("/queryStock/category/{category}")
+	public ResponseEntity<?> collectCategoryDetails(@PathVariable String category) {
+		try {
+			stockService.collectCategoyDetails(category);
+
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
 }

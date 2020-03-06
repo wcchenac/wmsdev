@@ -215,7 +215,7 @@ class InformationModal extends Component {
                 <label className="col-6 col-form-label text-center">瑕疵</label>
                 <div className="col-6">
                   <Select
-                    closeMenuOnSelect={false}
+                    closeMenuOnSelect
                     components={animatedComponents}
                     defaultValue={stockInfo.defect}
                     isMulti

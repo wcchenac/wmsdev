@@ -1,5 +1,7 @@
 package com.wmstool.wmstool.services.stockService.subFunctions;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import com.wmstool.wmstool.repositories.StockIdentifierRepo;
 import com.wmstool.wmstool.repositories.StockInfoRepository;
 import com.wmstool.wmstool.repositories.TransactionRecordRepo;
 import com.wmstool.wmstool.services.HistoryService;
+import com.wmstool.wmstool.utilities.CategoryDetailExcelHelper;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
 @Component
@@ -37,6 +40,10 @@ public class QueryStockFunction {
 	@Autowired
 	@Qualifier("dataDbEntityManagerFactory")
 	private EntityManagerFactory emf;
+
+	@Autowired
+	@Qualifier("WmstoolEntityManagerFactory")
+	private EntityManagerFactory emf_wms;
 
 	@Autowired
 	private StockIdentifierRepo stockIdentifierRepo;
@@ -56,8 +63,14 @@ public class QueryStockFunction {
 	@Autowired
 	private ProductRepository productRepository;
 
-	private final String queryBasicProductInfoSQLStatement = "SELECT CODE, CNAME, SPEC, PACKDESC, ADDTYPE, PICTURE FROM dbo.PRODUCT WHERE CODE= ?1";
-	private final String queryProductInfoSQLStatement = "SELECT x.CODE, x.CNAME, x.SPEC, x.SUPP, y.CNAME SUPPNAME, x.PRODDESC, x.USERFLD1, x.DESCRIP, x.PACKDESC, x.ADDTYPE, x.PICTURE, x.CCOST FROM dbo.PRODUCT x INNER JOIN dbo.SUPPLIER y ON x.SUPP = y.CODE WHERE x.CODE= ?1";
+	@Autowired
+	private CategoryDetailExcelHelper categoryDetailExcelHelper;
+
+	private final String queryBasicProductInfoSQLStatement = "SELECT * FROM dbo.BasicProductInfo WHERE CODE= ?1";
+	private final String queryProductInfoSQLStatement = "SELECT * FROM dbo.ProductInfo WHERE CODE= ?1";
+	private final String queryCategoryDetailSQLStatement = "SELECT * FROM wms.categorydetail WHERE category= ?1";
+	private final String queryProductInfoForCategoryDetailSQLStatement = "SELECT CODE, SUPP, SUPPNAME, CNAME, CCOST, DESCRIP FROM dbo.ProductInfo WHERE CLAS=?1";
+	private final String querySaleRecordsForCategoryDetailSQLStatement = "SELECT * FROM wms.salerecords WHERE category = ?1";
 
 	/**
 	 * Return a response containing 'less' information for certain productNo
@@ -96,7 +109,10 @@ public class QueryStockFunction {
 		return result;
 	}
 
-	// TODO
+	/**
+	 * Return a list of HistoryTreeNode composed of top 5 transaction records with
+	 * SKO type ordered by create time
+	 */
 	public List<HistoryTreeNode> findByPeriodTransactionRecord(String productNo) {
 		List<HistoryTreeNode> result = new ArrayList<>();
 
@@ -146,6 +162,49 @@ public class QueryStockFunction {
 		});
 
 		return resultOfHistoryTree;
+	}
+
+	/**
+	 * Return a category list
+	 */
+	public List<Map<String, String>> getAllCategory() {
+		List<Map<String, String>> result = new ArrayList<>();
+
+		for (String category : productRepository.getAllCategory()) {
+			Map<String, String> temp = new HashMap<>();
+
+			temp.put("label", category);
+			temp.put("value", category);
+
+			result.add(temp);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Return a filename, and the file is composed of pictures, existed stock, based
+	 * on a certain category
+	 */
+	public void findCategoryDetails(String category) throws FileNotFoundException, IOException {
+		EntityManager em_wms = emf_wms.createEntityManager();
+		EntityManager em = emf.createEntityManager();
+
+		// query remain stock which belong to certain category
+		Query q_stockResult = em_wms.createNativeQuery(queryCategoryDetailSQLStatement);
+		q_stockResult.setParameter(1, category);
+
+		// query product information of all productNo which belong to certain category
+		Query q_prodInfo = em.createNativeQuery(queryProductInfoForCategoryDetailSQLStatement);
+		q_prodInfo.setParameter(1, category);
+
+		// query sale records of all productNo which belong to certain category
+		Query q_saleRecords = em_wms.createNativeQuery(querySaleRecordsForCategoryDetailSQLStatement);
+		q_saleRecords.setParameter(1, category);
+
+		categoryDetailExcelHelper.outputCategoryResult(category, q_stockResult.getResultList(),
+				collectProdInfoForCategoryDetail(q_prodInfo.getResultList()),
+				summarySaleRecords(q_saleRecords.getResultList()));
 	}
 
 	/**
@@ -261,4 +320,67 @@ public class QueryStockFunction {
 		}
 	}
 
+	/**
+	 * Helper method for collecting required product information
+	 */
+	private Map<String, String[]> collectProdInfoForCategoryDetail(List<?> produtctInfo) {
+		Map<String, String[]> result = new HashMap<>();
+
+		for (Object row : produtctInfo) {
+			Object[] cells = (Object[]) row;
+
+			String[] temp = { cells[1].toString(), cells[2].toString(), cells[3].toString(), cells[4].toString(),
+					cells[5].toString() };
+
+			result.put(cells[0].toString(), temp);
+		}
+
+		return result;
+	}
+
+	// TODO sum quantity by reason
+	/**
+	 * Helper method for sale records summary and store into a structured map
+	 * {productNo: { reason : { quantity: "", unit : "" }}}
+	 */
+	private Map<String, Map<String, Map<String, String>>> summarySaleRecords(List<?> saleRecords) {
+		Map<String, Map<String, Map<String, String>>> result = new HashMap<>();
+
+		for (Object row : saleRecords) {
+			Object[] cells = (Object[]) row;
+			String productNo = cells[0].toString();
+			String reason = cells[1].toString();
+			String quantity = cells[2].toString();
+			String unit = cells[3].toString();
+
+			if (!result.containsKey(productNo)) {
+				Map<String, Map<String, String>> reason_property = new HashMap<>();
+				Map<String, String> property = new HashMap<>();
+
+				property.put("quantity", quantity);
+				property.put("unit", unit);
+
+				reason_property.put(reason, property);
+				result.put(productNo, reason_property);
+			} else {
+				Map<String, Map<String, String>> temp_reason_property = result.get(productNo);
+
+				if (!temp_reason_property.containsKey(reason)) {
+					Map<String, String> property = new HashMap<>();
+
+					property.put("quantity", quantity);
+					property.put("unit", unit);
+
+					temp_reason_property.put(reason, property);
+				} else {
+					Map<String, String> temp_property = temp_reason_property.get(reason);
+
+					temp_property.put("quantity", String.format("%.2f",
+							Double.parseDouble(temp_property.get("quantity")) + Double.parseDouble(quantity)));
+				}
+			}
+		}
+
+		return result;
+	}
 }
