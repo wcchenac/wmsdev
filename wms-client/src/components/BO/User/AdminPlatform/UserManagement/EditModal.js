@@ -8,11 +8,19 @@ class EditModal extends Component {
     super(props);
     this.state = {
       editMode: false,
-      userInfo: this.props.userInfo
+      userInfo: this.roleTranslate(this.props.userInfo)
     };
     this.handleEditMode = this.handleEditMode.bind(this);
     this.handleInfoChange = this.handleInfoChange.bind(this);
     this.handleUpdateSubmit = this.handleUpdateSubmit.bind(this);
+  }
+
+  roleTranslate(userInfo) {
+    let userInfoCopy = copy(userInfo);
+
+    userInfoCopy["role"] = RoleOption[userInfo.role];
+
+    return userInfoCopy;
   }
 
   handleEditMode() {
@@ -95,7 +103,6 @@ class EditModal extends Component {
               className="form-control"
               placeholder="新密碼"
               name="newPassword"
-              value={userInfo.newPassword}
               onChange={this.handleInfoChange}
             />
           </div>
@@ -106,7 +113,7 @@ class EditModal extends Component {
             <select
               name="role"
               className="custom-select"
-              defaultValue=""
+              defaultValue={userInfo.role}
               onChange={this.handleInfoChange}
             >
               {Object.keys(RoleOption).map((title, index) => (

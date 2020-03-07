@@ -87,9 +87,14 @@ export const deleteUser = employeeId => async dispatch => {
 
 export const updateUser = updateInfoRequest => async dispatch => {
   try {
-    await API.patch("/api/user/adminManagement/user/update", updateInfoRequest);
+    let res;
 
-    const res = await API.get("/api/user/adminManagement/user/userList");
+    await API.patch(
+      "/api/user/adminManagement/user/update",
+      updateInfoRequest
+    ).then(async response => {
+      res = await API.get("/api/user/adminManagement/user/userList");
+    });
 
     dispatch({
       type: UPDATE_User,
