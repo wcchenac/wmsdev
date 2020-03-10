@@ -21,44 +21,47 @@ class StockInfo extends Component {
     this.setState({ modalShow: false });
   }
 
-  handleSubmitClick() {
+  handleSubmitClick(idList) {
     this.setState({ modalShow: false }, () => {
-      this.props.handleShrinkRollback(
-        this.props.object.stockInfo.stockIdentifier.id
-      );
+      this.props.handleInStockRollback(idList);
     });
   }
 
+  totalQuantity() {
+    const { list } = this.props;
+    let totalQuantity = 0;
+    let unit = list[0].stockIdentifier.unit;
+
+    list.forEach(object => {
+      totalQuantity += parseFloat(object.stockIdentifier.quantity);
+    });
+
+    return {
+      totalQuantity: Math.round(totalQuantity * 100) / 100,
+      unit: unit
+    };
+  }
+
   render() {
-    const { object } = this.props;
+    const { productNo, list } = this.props;
     const { modalShow } = this.state;
+    let content = this.totalQuantity();
 
     return (
       <tr>
         <td>
           <button className="btn-customize" disabled>
-            {object.stockInfo.stockIdentifier.productNo}
+            {productNo}
           </button>
         </td>
         <td>
           <button className="btn-customize" disabled>
-            {object.stockInfo.stockIdentifier.lotNo}
+            {content.totalQuantity + content.unit}
           </button>
         </td>
         <td>
           <button className="btn-customize" disabled>
-            {object.stockInfo.stockIdentifier.type}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {object.stockInfo.stockIdentifier.quantity +
-              object.stockInfo.stockIdentifier.unit}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {object.stockInfo.stockIdentifier.eliminateDate}
+            {list.length}
           </button>
         </td>
         <td>
@@ -67,7 +70,7 @@ class StockInfo extends Component {
           </Button>
           {modalShow ? (
             <RollbackModal
-              object={object}
+              list={list}
               show
               handleModalClose={this.handleModalClose}
               handleSubmitClick={this.handleSubmitClick}

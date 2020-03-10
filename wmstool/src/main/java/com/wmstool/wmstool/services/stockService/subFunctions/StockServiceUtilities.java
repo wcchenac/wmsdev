@@ -69,6 +69,7 @@ public class StockServiceUtilities {
 			p.setType(product.getType());
 			p.setQuantity(product.getQuantity());
 			p.setUnit(product.getUnit());
+			p.setCategory("未分類");
 
 			productRepository.save(p);
 		}

@@ -1,7 +1,9 @@
 package com.wmstool.wmstool.services.stockService;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.transaction.Transactional;
 
@@ -99,6 +101,22 @@ public class StockService {
 	}
 
 	/**
+	 * Collect all inStockRecord with certain orderType/orderNo, and return result
+	 * with structure {productNo: StockInfo list}
+	 */
+	public Map<String, List<StockInfo>> getInStockRollbackList(String orderType, String orderNo) {
+		return queryStockFunction.getInStockRollbackList(orderType, orderNo);
+	}
+
+	/**
+	 * Delete related
+	 * StockIdentifier/StockIdentifierInfo/InStockRecord/TransactionRecord/History
+	 */
+	public void inStockRollback(List<Long> identifierIdList) {
+		deleteStockFunction.rollbackInStock(identifierIdList);
+	}
+
+	/**
 	 * Return a response containing 'less' information for certain productNo
 	 * fetching from second db and a list of StockInfoes with certain productNo
 	 * fetching from first db
@@ -173,12 +191,17 @@ public class StockService {
 		modifyStockFunction.shrinkStock(shrinkStockRequest);
 	}
 
-	// TODO
+	/**
+	 * Return the last 5 shrink HistoryTreeNode with given productNo
+	 */
 	public List<HistoryTreeNode> getShrinkRollbackList(String productNo) {
 		return queryStockFunction.findByPeriodTransactionRecord(productNo);
 	}
 
-	// TODO
+	/**
+	 * Delete related
+	 * StockIdentifier/StockIdentifierInfo/TransactionRecord/AdjustmentRecord/AllocationRecord/History
+	 */
 	public void rollbackShrinkStock(long stockIdentifierId) {
 		deleteStockFunction.rollbackShrink(stockIdentifierId);
 	}
@@ -244,5 +267,19 @@ public class StockService {
 	 */
 	public void syncProductCategory() {
 		compareStockFunction.syncProductCategory();
+	}
+
+	/**
+	 * Return a response containing all category in designed structure
+	 */
+	public List<Map<String, String>> getAllCategory() {
+		return queryStockFunction.getAllCategory();
+	}
+
+	/**
+	 * Collect all stock by certain category and output to an excel file
+	 */
+	public void collectCategoyDetails(String category) throws FileNotFoundException, IOException {
+		queryStockFunction.findCategoryDetails(category);
 	}
 }

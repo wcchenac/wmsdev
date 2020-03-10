@@ -5,7 +5,7 @@ import { dayOfStart, dayOfEnd } from "../Stock/Utilities/DateUtils";
 
 const NotFoundMessage = "File Not Found";
 
-class FlieContainer extends Component {
+class FileContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -21,7 +21,7 @@ class FlieContainer extends Component {
   }
 
   onCurrentClick() {
-    this.props.handleCategoryCurrentQuery(this.props.fileType);
+    this.props.handleFileCategoryCurrentQuery(this.props.fileType);
   }
 
   handleStartDateSelection(date) {
@@ -36,7 +36,7 @@ class FlieContainer extends Component {
     let startDate = this.state.startDate.toJSON().substring(0, 19);
     let endDate = this.state.endDate.toJSON().substring(0, 19);
 
-    this.props.handleCategoryPeriodQuery(
+    this.props.handleFileCategoryPeriodQuery(
       this.props.fileType,
       startDate,
       endDate
@@ -138,4 +138,4 @@ class FlieContainer extends Component {
   }
 }
 
-export default FlieContainer;
+export default FileContainer;

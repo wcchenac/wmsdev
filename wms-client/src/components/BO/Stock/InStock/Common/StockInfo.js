@@ -166,7 +166,7 @@ class StockInfo extends Component {
             </td>
             <td>
               <Select
-                closeMenuOnSelect={false}
+                closeMenuOnSelect
                 components={animatedComponents}
                 defaultValue={stockInfo.defect}
                 isMulti

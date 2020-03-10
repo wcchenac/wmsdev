@@ -4,6 +4,8 @@ import UserManagement from "./UserManagement/UserManagement";
 import InStockByImportFile from "./InStockByImportFile";
 import ScheduleMission from "./ScheduleMission";
 import ShrinkRollback from "./ShrinkRollback/ShrinkRollback";
+import StockCategory from "./StockCategory";
+import InStockRollback from "./InStockRollback/InStockRollback";
 
 class AdminPlatform extends Component {
   constructor() {
@@ -28,8 +30,12 @@ class AdminPlatform extends Component {
         return <InStockByImportFile />;
       case "scheduleMission":
         return <ScheduleMission />;
+      case "inStockRollback":
+        return <InStockRollback />;
       case "shrinkRollback":
         return <ShrinkRollback />;
+      case "stockCategory":
+        return <StockCategory />;
       default:
         break;
     }
@@ -72,10 +78,24 @@ class AdminPlatform extends Component {
                 </button>
                 <button
                   className="btn btn-info btn-block"
+                  name="inStockRollback"
+                  onClick={this.buttonClick}
+                >
+                  入庫回朔
+                </button>
+                <button
+                  className="btn btn-info btn-block"
                   name="shrinkRollback"
                   onClick={this.buttonClick}
                 >
                   減肥回朔
+                </button>
+                <button
+                  className="btn btn-info btn-block"
+                  name="stockCategory"
+                  onClick={this.buttonClick}
+                >
+                  庫存類別
                 </button>
                 <button
                   className="btn btn-info btn-block"

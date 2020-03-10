@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.transaction.Transactional;
 
@@ -100,6 +102,40 @@ public class FileService {
 			break;
 		default:
 			break;
+		}
+
+		if (resultList.isEmpty()) {
+			resultList.add("File Not Found");
+		}
+
+		return resultList;
+	}
+
+	/**
+	 * Return already existed category
+	 */
+	public List<Map<String, String>> findExistedCategory(String parentDir) {
+		List<Map<String, String>> resultList = new ArrayList<>();
+		File f = new File(parentDir);
+
+		for (String x : f.list()) {
+			String category = x.substring(x.indexOf("-") + 1, x.indexOf(filetype));
+
+			Map<String, String> temp = new HashMap<>();
+
+			temp.put("label", category);
+			temp.put("value", category);
+
+			resultList.add(temp);
+		}
+
+		if (resultList.isEmpty()) {
+			Map<String, String> temp = new HashMap<>();
+
+			temp.put("label", "File Not Found");
+			temp.put("value", "File Not Found");
+
+			resultList.add(temp);
 		}
 
 		return resultList;

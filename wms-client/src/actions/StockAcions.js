@@ -11,7 +11,8 @@ import {
   CANCEL_SHRINK,
   GET_OutStockRequests,
   UPDATE_StockInfo,
-  UPDATE_Errors
+  UPDATE_Errors,
+  CREATE_FILE
 } from "./types";
 
 export const getInStockOrder = inStockOrderNo => async dispatch => {
@@ -213,6 +214,55 @@ export const batchCreateStockInfoesForShrink = shrinkStockRequest => async dispa
   }
 };
 
+export const getInStockRollbackList = (
+  orderType,
+  orderNo
+) => async dispatch => {
+  try {
+    const res = await API.get(
+      `/api/stock/queryStock/inStockRollback?orderType=${orderType}&orderNo=${orderNo}`
+    );
+
+    dispatch({
+      type: GET_StockInfoes,
+      payload: res.data
+    });
+
+    return res;
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
+export const inStockRollback = (
+  idList,
+  orderType,
+  orderNo
+) => async dispatch => {
+  try {
+    await API.patch("/api/stock/inStocks/rollback", idList);
+
+    const res = await API.get(
+      `/api/stock/queryStock/inStockRollback?orderType=${orderType}&orderNo=${orderNo}`
+    );
+
+    dispatch({
+      type: GET_StockInfoes,
+      payload: res.data
+    });
+
+    return res;
+  } catch (err) {
+    dispatch({
+      type: GET_Errors,
+      payload: err.response
+    });
+  }
+};
+
 export const getShrinkRollbackList = productNo => async dispatch => {
   try {
     const res = await API.get(
@@ -357,4 +407,23 @@ export const getProductHistory = request => async dispatch => {
 
 export const missionTrigger = async (periodType, fn) => {
   return await API.get(`/api/stock/stockManagement/${periodType}/${fn}`);
+};
+
+export const getAllCategory = () => async dispatch => {
+  const res = await API.get("/api/stock/queryStock/categoryList");
+
+  dispatch({
+    type: GET_StockInfoes,
+    payload: res.data
+  });
+
+  return res;
+};
+
+export const findCategoryDetails = category => async dispatch => {
+  dispatch({
+    type: CREATE_FILE
+  });
+
+  return await API.get(`/api/stock/queryStock/category/${category}`);
 };

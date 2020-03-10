@@ -154,9 +154,34 @@ class StockInfoContainer extends PureComponent {
     e.preventDefault();
 
     let stockInfoesCopy = copy(this.state.stockInfoes);
+    const { stockInfoes } = this.state;
+    let newStockInfo;
+
+    if (stockInfoes.length === 0) {
+      newStockInfo = this.initialInfoContent();
+    } else {
+      newStockInfo = {
+        productNo: this.props.productNo,
+        lotNo: stockInfoes[stockInfoes.length - 1].lotNo,
+        type: stockInfoes[stockInfoes.length - 1].type,
+        quantity: "",
+        unit: stockInfoes[stockInfoes.length - 1].unit,
+        color: stockInfoes[stockInfoes.length - 1].color,
+        defect: stockInfoes[stockInfoes.length - 1].defect,
+        record: "",
+        remark: "",
+        inStockType: this.props.type,
+        orderNo: this.props.orderNo,
+        directShip: false,
+        outStockReason: "",
+        errors: {
+          quantity: ""
+        }
+      };
+    }
 
     for (let i = 0; i < this.state.assignRowNum; i += 1) {
-      stockInfoesCopy.push(this.initialInfoContent());
+      stockInfoesCopy.push(newStockInfo);
     }
 
     this.setState({ assignRowNum: 0, stockInfoes: stockInfoesCopy });
