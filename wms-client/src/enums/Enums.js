@@ -88,3 +88,12 @@ export const ShrinkType = {
   BtoR: "BR",
   HtoH: "HH"
 };
+
+// Use at InStockRollback
+export const OrderType = {
+  "請選擇...": "",
+  進貨單: "normal",
+  組裝單: "assemble",
+  退貨單: "customerReturn",
+  調撥單: "storeReturn"
+};
