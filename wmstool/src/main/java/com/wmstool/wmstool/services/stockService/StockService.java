@@ -101,6 +101,22 @@ public class StockService {
 	}
 
 	/**
+	 * Collect all inStockRecord with certain orderType/orderNo, and return result
+	 * with structure {productNo: StockInfo list}
+	 */
+	public Map<String, List<StockInfo>> getInStockRollbackList(String orderType, String orderNo) {
+		return queryStockFunction.getInStockRollbackList(orderType, orderNo);
+	}
+
+	/**
+	 * Delete related
+	 * StockIdentifier/StockIdentifierInfo/InStockRecord/TransactionRecord/History
+	 */
+	public void inStockRollback(List<Long> identifierIdList) {
+		deleteStockFunction.rollbackInStock(identifierIdList);
+	}
+
+	/**
 	 * Return a response containing 'less' information for certain productNo
 	 * fetching from second db and a list of StockInfoes with certain productNo
 	 * fetching from first db
@@ -175,12 +191,17 @@ public class StockService {
 		modifyStockFunction.shrinkStock(shrinkStockRequest);
 	}
 
-	// TODO
+	/**
+	 * Return the last 5 shrink HistoryTreeNode with given productNo
+	 */
 	public List<HistoryTreeNode> getShrinkRollbackList(String productNo) {
 		return queryStockFunction.findByPeriodTransactionRecord(productNo);
 	}
 
-	// TODO
+	/**
+	 * Delete related
+	 * StockIdentifier/StockIdentifierInfo/TransactionRecord/AdjustmentRecord/AllocationRecord/History
+	 */
 	public void rollbackShrinkStock(long stockIdentifierId) {
 		deleteStockFunction.rollbackShrink(stockIdentifierId);
 	}
