@@ -69,7 +69,7 @@ public class QueryStockFunction {
 	private final String queryBasicProductInfoSQLStatement = "SELECT * FROM dbo.BasicProductInfo WHERE CODE= ?1";
 	private final String queryProductInfoSQLStatement = "SELECT * FROM dbo.ProductInfo WHERE CODE= ?1";
 	private final String queryCategoryDetailSQLStatement = "SELECT * FROM wms.categorydetail WHERE category= ?1";
-	private final String queryProductInfoForCategoryDetailSQLStatement = "SELECT CODE, SUPP, SUPPNAME, CNAME, CCOST, DESCRIP FROM dbo.ProductInfo WHERE CLAS=?1";
+	private final String queryProductInfoForCategoryDetailSQLStatement = "SELECT CODE, SUPP, SUPPNAME, CCOST, CNAME, DESCRIP FROM dbo.ProductInfo WHERE CLAS=?1";
 	private final String querySaleRecordsForCategoryDetailSQLStatement = "SELECT * FROM wms.salerecords WHERE category = ?1";
 
 	/**
@@ -105,6 +105,35 @@ public class QueryStockFunction {
 					// TODO: data not found exception
 					identifier -> result.add(stockInfoRepository.findByStockIdentifierId(identifier.getId()).get()));
 		}
+
+		return result;
+	}
+
+	/**
+	 * Collect all inStockRecord with certain orderType/orderNo, and return result
+	 * with structure {productNo: StockInfo list}
+	 */
+	public Map<String, List<StockInfo>> getInStockRollbackList(String orderType, String orderNo) {
+		Map<String, List<StockInfo>> result = new HashMap<>();
+		List<InStockOrderRecord> processedRecords = inStockOrderRepo.findByInStockTypeAndInStockOrderNo(orderType,
+				orderNo);
+
+		if (processedRecords.size() == 0) {
+			return result;
+		}
+
+		processedRecords.forEach(record -> {
+			if (!result.containsKey(record.getProductNo())) {
+				List<StockInfo> tempList = new ArrayList<>();
+
+				tempList.add(stockInfoRepository.findByStockIdentifierId(record.getStockIdentifierId()).get());
+
+				result.put(record.getProductNo(), tempList);
+			} else {
+				result.get(record.getProductNo())
+						.add(stockInfoRepository.findByStockIdentifierId(record.getStockIdentifierId()).get());
+			}
+		});
 
 		return result;
 	}
@@ -338,7 +367,6 @@ public class QueryStockFunction {
 		return result;
 	}
 
-	// TODO sum quantity by reason
 	/**
 	 * Helper method for sale records summary and store into a structured map
 	 * {productNo: { reason : { quantity: "", unit : "" }}}

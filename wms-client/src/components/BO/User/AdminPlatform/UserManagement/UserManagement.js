@@ -43,7 +43,7 @@ class UserManagement extends Component {
   }
 
   handleModalClose() {
-    this.setState({ modalShow: false });
+    this.setState({ modalShow: false, data: {} });
   }
 
   handleUpdateSubmit(updateUserRequest) {
@@ -112,7 +112,7 @@ class UserManagement extends Component {
                 />
                 {this.state.modalShow ? (
                   <EditModal
-                    show={this.state.modalShow}
+                    show
                     userInfo={this.state.data}
                     handleModalClose={this.handleModalClose}
                     handleUpdateSubmit={this.handleUpdateSubmit}

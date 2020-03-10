@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -76,11 +75,25 @@ public class StockController {
 		}
 	}
 
-	// TODO: rollbackInStock
 	@PreAuthorize("hasAnyRole('ROLE_Admin')")
-	@DeleteMapping("/inStocks/rollback")
-	public ResponseEntity<?> rollbackInStock(@RequestParam(value = "id") long stockIdentifier) {
-		return null;
+	@GetMapping("/queryStock/inStockRollback")
+	public ResponseEntity<?> getInStockRollbackList(@RequestParam(value = "orderType") String orderType,
+			@RequestParam(value = "orderNo") String orderNo) {
+		return new ResponseEntity<>(stockService.getInStockRollbackList(orderType, orderNo), HttpStatus.OK);
+	}
+
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
+	@PatchMapping("/inStocks/rollback")
+	public ResponseEntity<?> rollbackInStock(@RequestBody List<Long> identifierIdList) {
+		try {
+			stockService.inStockRollback(identifierIdList);
+
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
@@ -116,7 +129,6 @@ public class StockController {
 		}
 	}
 
-	// TODO: roll-back shrink
 	@PreAuthorize("hasAnyRole('ROLE_Admin')")
 	@PatchMapping("/shrinkStock/rollback/{stockIdentifierId}")
 	public ResponseEntity<?> rollbackShrinkStock(@PathVariable long stockIdentifierId) {
@@ -131,7 +143,6 @@ public class StockController {
 		}
 	}
 
-	// TODO
 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
 	@GetMapping("/queryStock/shrinkRollback/{productNo}")
 	public ResponseEntity<?> getShrinkRollbackList(@PathVariable String productNo) {

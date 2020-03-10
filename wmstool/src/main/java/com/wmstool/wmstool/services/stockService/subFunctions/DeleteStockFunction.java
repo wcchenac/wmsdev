@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.persistence.criteria.Predicate;
 
@@ -16,11 +17,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.wmstool.wmstool.models.History;
+import com.wmstool.wmstool.models.InStockOrderRecord;
 import com.wmstool.wmstool.models.Product;
 import com.wmstool.wmstool.models.StockAdjustmentRecord;
 import com.wmstool.wmstool.models.StockAllocationRecord;
 import com.wmstool.wmstool.models.StockIdentifier;
+import com.wmstool.wmstool.models.StockInfo;
+import com.wmstool.wmstool.models.TransactionRecord;
 import com.wmstool.wmstool.repositories.HistoryRepository;
+import com.wmstool.wmstool.repositories.InStockOrderRepo;
 import com.wmstool.wmstool.repositories.StockAdjustmentRecordRepo;
 import com.wmstool.wmstool.repositories.StockAllocationRecordRepo;
 import com.wmstool.wmstool.repositories.StockIdentifierRepo;
@@ -38,6 +43,9 @@ public class DeleteStockFunction {
 
 	@Autowired
 	private StockInfoRepository stockInfoRepository;
+
+	@Autowired
+	private InStockOrderRepo inStockOrderRepo;
 
 	@Autowired
 	private TransactionRecordRepo transactionRecordRepo;
@@ -60,33 +68,53 @@ public class DeleteStockFunction {
 	@Autowired
 	private HistoryRepository historyRepository;
 
-//	public boolean rollbackInStock(long stockIdentifierId) {
-//		Optional<StockInfo> resInfo = stockInfoRepository.findByStockIdentifierId(stockIdentifierId);
-//		Optional<TransactionRecord> resTrans = transactionRecordRepo.findByStockIdentifierId(stockIdentifierId);
-//		Optional<InStockOrderRecord> resInStockOrder = inStockOrderRepo.findByStockIdentifierId(stockIdentifierId);
-//		Optional<StockIdentifier> resIdentifier = stockIdentifierRepo.findById(stockIdentifierId);
-//
-//		if (resInfo.isPresent() && resTrans.isPresent() && resInStockOrder.isPresent() && resIdentifier.isPresent()) {
-//			stockInfoRepository.deleteByStockIdentifierId(stockIdentifierId);
-//			transactionRecordRepo.deleteByStockIdentifierId(stockIdentifierId);
-//			inStockOrderRepo.deleteByStockIdentifierId(stockIdentifierId);
-//			stockIdentifierRepo.deleteById(stockIdentifierId);
-//
-//			// TODO: history rollback
-//
-//			Product p = new Product(resIdentifier.get());
-//
-//			p.setQuantity("-" + p.getQuantity());
-//
-//			stockServiceUtilities.updateProductQuantity(p.getProductNo(), p);
-//
-//			return true;
-//		} else {
-//			return false;
-//		}
-//	}
+	/**
+	 * Take in identifier list to roll-back inStock process
+	 */
+	public boolean rollbackInStock(List<Long> stockIdentifierIdList) {
+		try {
+			Map<String, Map<String, Map<String, String>>> productResult = new HashMap<>();
 
-	// TODO: roll-back shrink process
+			for (long stockIdentifierId : stockIdentifierIdList) {
+				Optional<StockInfo> resInfo = stockInfoRepository.findByStockIdentifierId(stockIdentifierId);
+				Optional<TransactionRecord> resTrans = transactionRecordRepo
+						.findByStockIdentifierIdAndOperator(stockIdentifierId, "1");
+				Optional<InStockOrderRecord> resInStockOrder = inStockOrderRepo
+						.findByStockIdentifierId(stockIdentifierId);
+				Optional<StockIdentifier> resIdentifier = stockIdentifierRepo.findById(stockIdentifierId);
+				Optional<History> resHistory = historyRepository.findByCurrentIdentifierId(stockIdentifierId);
+
+				if (resInfo.isPresent() && resTrans.isPresent() && resInStockOrder.isPresent()
+						&& resIdentifier.isPresent() && resHistory.isPresent()) {
+					stockInfoRepository.deleteByStockIdentifierId(stockIdentifierId);
+					transactionRecordRepo.deleteByStockIdentifierIdAndOperator(stockIdentifierId, "1");
+					inStockOrderRepo.deleteByStockIdentifierId(stockIdentifierId);
+					stockIdentifierRepo.deleteById(stockIdentifierId);
+					historyRepository.deleteByCurrentIdentifierId(stockIdentifierId);
+
+					Product p = new Product(resIdentifier.get());
+
+					p.setQuantity("-" + p.getQuantity());
+
+					stockServiceUtilities.contentCollector(p, productResult);
+				} else {
+					throw new Exception("Data error! Some necessary data are not found");
+				}
+			}
+
+			stockServiceUtilities.updateProductQuantityWithList(productResult);
+
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return false;
+		}
+	}
+
+	/**
+	 * Take in certain identifierId to roll-back shrink process
+	 */
 	public boolean rollbackShrink(long oldStockIdentifierId) {
 		try {
 			Map<String, Map<String, Map<String, String>>> productResult = new HashMap<>();
@@ -157,6 +185,9 @@ public class DeleteStockFunction {
 		}
 	}
 
+	/**
+	 * Re-generate allocation/adjustment record files
+	 */
 	private void generateNewFile() throws IOException {
 		LocalDate now = LocalDate.now();
 		LocalDateTime startTime = LocalDateTime.of(now, LocalTime.MIN);

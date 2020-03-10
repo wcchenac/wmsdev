@@ -143,29 +143,49 @@ public class CategoryDetailExcelHelper {
 		int lastRow = sheet.getLastRowNum();
 		File f = new File(picturePath);
 		String[] productInfo = productInfoMap.get(productNo);
-		final String[] productTable = { "廠商代碼", "廠商名稱", "品名", "成本", "價格異動" };
-		final String[] tableHeader = { "貨號", "批號", "型態", "數量", "單位", "色號", "瑕疵", "備註", "記錄", "進貨方式", "母批進貨日期", "分類" };
+		final String[] productTable_Left = { "品名", "價格異動" };
+		final String[] productTable_Right = { "廠商代碼", "廠商名稱", "成本" };
+		final String[] tableHeader = { "貨號", "批號", "型態", "數量", "單位", "色號", "瑕疵", "備註", "記錄", "進貨方式", "母批進貨日期" };
 		Row row;
 		Cell cell;
 
 		// Add product information
-		for (int i = 0; i < productInfo.length; i += 1) {
+		for (int i = 0; i < productTable_Right.length; i += 1) {
 			row = sheet.createRow(lastRow + 4 + i);
 
-			// product info header
-			cell = row.createCell(6);
-			cell.setCellValue(productTable[i]);
+			if (i < productTable_Left.length) {
+				// product info header(Left part)
+				cell = row.createCell(7);
+				cell.setCellValue(productTable_Left[i]);
+				cell.setCellStyle(rowStyle);
+
+				// left content
+				cell = row.createCell(8);
+				cell.setCellValue(productInfo[i + 3]);
+				cell.setCellStyle(rowStyle);
+				cell = row.createCell(9);
+				cell.setCellStyle(rowStyle);
+				cell = row.createCell(10);
+				cell.setCellStyle(rowStyle);
+
+				// merge cell
+				sheet.addMergedRegion(new CellRangeAddress(lastRow + 4 + i, lastRow + 4 + i, 8, 10));
+			}
+
+			// product info header(Right part)
+			cell = row.createCell(11);
+			cell.setCellValue(productTable_Right[i]);
 			cell.setCellStyle(rowStyle);
 
-			// content
-			cell = row.createCell(7);
+			// right content
+			cell = row.createCell(12);
 			cell.setCellValue(productInfo[i]);
 			cell.setCellStyle(rowStyle);
-			cell = row.createCell(8);
+			cell = row.createCell(13);
 			cell.setCellStyle(rowStyle);
 
 			// merge cell
-			sheet.addMergedRegion(new CellRangeAddress(lastRow + 4 + i, lastRow + 4 + i, 7, 8));
+			sheet.addMergedRegion(new CellRangeAddress(lastRow + 4 + i, lastRow + 4 + i, 12, 13));
 		}
 
 		// Add picture
@@ -204,7 +224,7 @@ public class CategoryDetailExcelHelper {
 		Row row = sheet.createRow(lastRow + 1);
 		Cell cell;
 
-		for (int i = 0; i < stockCells.length; i += 1) {
+		for (int i = 0; i < stockCells.length - 1; i += 1) {
 			cell = row.createCell(i);
 
 			if (stockCells[i] != null) {
