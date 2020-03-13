@@ -122,12 +122,12 @@ class StockInfoContainer extends PureComponent {
     });
   }
 
-  handleShipCheck(e, i) {
+  handleShipCheck(checked, i) {
     const copyList = [...this.state.stockInfoes];
 
-    copyList[i].directShip = e.target.checked;
+    copyList[i].directShip = checked;
 
-    if (!e.target.checked) {
+    if (!checked) {
       copyList[i].outStockReason = "";
     }
 
@@ -136,10 +136,10 @@ class StockInfoContainer extends PureComponent {
     });
   }
 
-  handleReasonButton(e, i) {
+  handleReasonButton(value, i) {
     const copyList = [...this.state.stockInfoes];
 
-    copyList[i].outStockReason = e.target.value;
+    copyList[i].outStockReason = value;
 
     this.setState({
       stockInfoes: copyList

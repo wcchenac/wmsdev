@@ -308,12 +308,12 @@ class ModifyRequestBoard extends Component {
     this.setState({ assignRowNum: 0, newStockInfoes: stockInfoesCopy });
   }
 
-  handleShipCheck(e, i) {
+  handleShipCheck(checked, i) {
     const copyList = [...this.state.newStockInfoes];
 
-    copyList[i].directShip = e.target.checked;
+    copyList[i].directShip = checked;
 
-    if (!e.target.checked) {
+    if (!checked) {
       copyList[i].outStockReason = "";
     }
 
@@ -322,10 +322,10 @@ class ModifyRequestBoard extends Component {
     });
   }
 
-  handleReasonButton(e, i) {
+  handleReasonButton(value, i) {
     const copyList = [...this.state.newStockInfoes];
 
-    copyList[i].outStockReason = e.target.value;
+    copyList[i].outStockReason = value;
 
     this.setState({
       newStockInfoes: copyList

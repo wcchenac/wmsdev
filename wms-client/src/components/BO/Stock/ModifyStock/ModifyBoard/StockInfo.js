@@ -11,6 +11,7 @@ class StockInfo extends Component {
       outStockReason: ""
     };
     this.onShipClick = this.onShipClick.bind(this);
+    this.onCancleShipClick = this.onCancleShipClick.bind(this);
     this.onShrinkClick = this.onShrinkClick.bind(this);
     this.onChange = this.onChange.bind(this);
     this.handleReasonButton = this.handleReasonButton.bind(this);
@@ -24,8 +25,13 @@ class StockInfo extends Component {
       reason: this.state.outStockReason
     };
 
-    this.props.handleShip(shipRequest);
-    this.setState({ modalShow: false });
+    this.setState({ modalShow: false }, () => {
+      this.props.handleShip(shipRequest);
+    });
+  }
+
+  onCancleShipClick() {
+    this.setState({ modalShow: false, outStockReason: "" });
   }
 
   onShrinkClick() {
@@ -73,6 +79,7 @@ class StockInfo extends Component {
               onChange={this.onChange}
               onReansonButtonChange={this.handleReasonButton}
               onShipClick={this.onShipClick}
+              onCancleShipClick={this.onCancleShipClick}
               handleModalClose={this.handleModalClose}
             />
           ) : null}

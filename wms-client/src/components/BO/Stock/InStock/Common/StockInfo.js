@@ -10,6 +10,8 @@ import {
 } from "../../../../../enums/Enums";
 import ShipModal from "../../Utilities/ShipModal";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import CheckBoxRoundedIcon from "@material-ui/icons/CheckBoxRounded";
+import CheckBoxOutlineBlankRoundedIcon from "@material-ui/icons/CheckBoxOutlineBlankRounded";
 
 class StockInfo extends Component {
   constructor(props) {
@@ -20,7 +22,9 @@ class StockInfo extends Component {
     this.onChange = this.onChange.bind(this);
     this.onDefectChange = this.onDefectChange.bind(this);
     this.onShipCheck = this.onShipCheck.bind(this);
+    this.onCancleShipClick = this.onCancleShipClick.bind(this);
     this.onReansonButtonChange = this.onReansonButtonChange.bind(this);
+    this.handleModalOpen = this.handleModalOpen.bind(this);
     this.handleModalClose = this.handleModalClose.bind(this);
   }
 
@@ -32,13 +36,27 @@ class StockInfo extends Component {
     this.props.handleDefectChange(selectedOptions, this.props.index);
   }
 
-  onShipCheck(e) {
-    this.setState({ modalShow: true });
-    this.props.handleShipCheck(e, this.props.index);
+  onShipCheck() {
+    this.setState({ modalShow: false }, () => {
+      this.props.handleShipCheck(
+        this.props.stockInfo.outStockReason !== "",
+        this.props.index
+      );
+    });
+  }
+
+  onCancleShipClick() {
+    this.setState({ modalShow: false }, () => {
+      this.props.handleShipCheck(false, this.props.index);
+    });
   }
 
   onReansonButtonChange(e) {
-    this.props.handleReasonButton(e, this.props.index);
+    this.props.handleReasonButton(e.target.value, this.props.index);
+  }
+
+  handleModalOpen() {
+    this.setState({ modalShow: true });
   }
 
   handleModalClose() {
@@ -190,7 +208,7 @@ class StockInfo extends Component {
           </div>
         </td>
         <td>
-          <div className="form-check mt-2 ml-2">
+          <div className="form-group mt-1 ml-1">
             <OverlayTrigger
               placement="bottom"
               overlay={
@@ -199,21 +217,22 @@ class StockInfo extends Component {
                 </Tooltip>
               }
             >
-              <input
-                type="checkbox"
-                className="form-check-input"
-                value={stockInfo.directShip}
-                checked={stockInfo.outStockReason !== ""}
-                onChange={this.onShipCheck}
-              />
+              {stockInfo.outStockReason !== "" ? (
+                <CheckBoxRoundedIcon onClick={this.onCancleShipClick} />
+              ) : (
+                <CheckBoxOutlineBlankRoundedIcon
+                  onClick={this.handleModalOpen}
+                />
+              )}
             </OverlayTrigger>
           </div>
-          {stockInfo.directShip && this.state.modalShow ? (
+          {this.state.modalShow ? (
             <ShipModal
               outStockReason={stockInfo.outStockReason}
               onChange={this.onChange}
               onReansonButtonChange={this.onReansonButtonChange}
-              onShipClick={this.handleModalClose}
+              onShipClick={this.onShipCheck}
+              onCancleShipClick={this.onCancleShipClick}
               handleModalClose={this.handleModalClose}
               show
             />
