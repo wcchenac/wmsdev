@@ -197,14 +197,14 @@ class StockInfoContainer extends PureComponent {
     this.props.handleInStockRequestSubmit(e, this.props.index, stockInfoesCopy);
   }
 
-  checkFormAlgorithm(stockInfoes, quantitySum, waitHandleStatus) {
+  checkFormAlgorithm(stockInfoes, typeList, quantitySum, waitHandleStatus) {
     var isFormValid = false;
 
     if (stockInfoes.length === 0) {
       return isFormValid;
     }
 
-    // check form has errors ro invalid value
+    // check form has errors or invalid value
     for (let i = 0; i < stockInfoes.length; i += 1) {
       if (
         stockInfoes[i].errors.quantity === "" &&
@@ -217,25 +217,30 @@ class StockInfoContainer extends PureComponent {
       }
     }
 
-    // there are at most two types for one productNo
-    let quantityValid = [false, false];
+    let quantityValid = { 雜項: false, 整支: false, 板卷: false };
 
     // check input total quantity is same as waitHandleStatus
-    Object.keys(waitHandleStatus).forEach((type, index) => {
+    typeList.forEach(type => {
       if (
         parseFloat(waitHandleStatus[type].quantity) ===
         parseFloat(quantitySum[type])
       ) {
-        quantityValid[index] = true;
+        quantityValid[type] = true;
       } else {
-        quantityValid[index] = false;
+        quantityValid[type] = false;
       }
     });
 
-    // isFormValid is absoulutely true, as comparing waitHandleStatus/quantitySum
-    // if there is no type satisify the criteria, return false
-    // if there is a type which has the same quantity in both waitHandleStatus and quantitySum return true
-    return quantityValid[0] || quantityValid[1];
+    // every type in waitHandleStatus must to meet the equation
+    // "quantitySum[type] equal to waitHandleStatus[type].quantity"
+    // otherwise, return false
+    if (typeList.length === 1) {
+      return quantityValid[typeList[0]];
+    } else if (typeList.length === 2) {
+      return quantityValid["板卷"] && quantityValid["整支"];
+    } else {
+      return false;
+    }
   }
 
   render() {
@@ -247,9 +252,11 @@ class StockInfoContainer extends PureComponent {
       typeValidation,
       waitHandleStatus
     } = this.props;
+    const typeList = Object.keys(waitHandleStatus);
     const quantitySum = quantityAccumulate(stockInfoes);
     const isFormValid = this.checkFormAlgorithm(
       stockInfoes,
+      typeList,
       quantitySum,
       waitHandleStatus
     );
@@ -386,6 +393,7 @@ class StockInfoContainer extends PureComponent {
                   typeValidation={typeValidation}
                   stockInfo={stockInfo}
                   errors={stockInfo.errors}
+                  typeList={typeList}
                   handleInfoChange={this.handleInfoChange}
                   handleDefectChange={this.handleDefectChange}
                   handleShipCheck={this.handleShipCheck}

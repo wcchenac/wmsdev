@@ -5,8 +5,7 @@ import makeAnimated from "react-select/animated";
 import {
   UnitOptions,
   ColorOptions,
-  DefectOptions,
-  StockIdentifierType
+  DefectOptions
 } from "../../../../../enums/Enums";
 import ShipModal from "../../Utilities/ShipModal";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
@@ -111,9 +110,11 @@ class StockInfo extends Component {
                 value={stockInfo.type}
                 onChange={this.onChange}
               >
-                <option value="">請選擇...</option>
-                <option value={StockIdentifierType.roll}>整支</option>
-                <option value={StockIdentifierType.board}>板卷</option>
+                {this.props.typeList.map((type, index) => (
+                  <option key={index} value={type}>
+                    {type}
+                  </option>
+                ))}
               </select>
             </div>
           )}
