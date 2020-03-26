@@ -21,7 +21,11 @@ class ShipModal extends Component {
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={this.props.handleModalClose}>
+          <Button
+            variant="secondary"
+            onClick={this.props.onCancleShipClick}
+            value=""
+          >
             取消
           </Button>
           <Button

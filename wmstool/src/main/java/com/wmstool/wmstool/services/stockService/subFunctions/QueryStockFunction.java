@@ -295,17 +295,17 @@ public class QueryStockFunction {
 			productInformation.setProductNo(nullValueHelper(cells[0].toString()));
 			productInformation.setcName(nullValueHelper(cells[1].toString()));
 			productInformation.setSpec(nullValueHelper(cells[2].toString()));
+			productInformation.setDescrip(nullValueHelper(cells[3].toString()));
 
 			if (basicMode) {
-				productInformation.setPackDesc(nullValueHelper(cells[3].toString()));
-				productInformation.setAddType(addTypeMappingHelper(Integer.parseInt(cells[4].toString())));
-				productInformation.setPicture(nullValueHelper(cells[5].toString()));
+				productInformation.setPackDesc(nullValueHelper(cells[4].toString()));
+				productInformation.setAddType(addTypeMappingHelper(Integer.parseInt(cells[5].toString())));
+				productInformation.setPicture(nullValueHelper(cells[6].toString()));
 			} else {
-				productInformation.setSupp(nullValueHelper(cells[3].toString()));
-				productInformation.setSuppName(nullValueHelper(cells[4].toString()));
-				productInformation.setProdDesc(nullValueHelper(cells[5].toString()));
-				productInformation.setUserField1(nullValueHelper(cells[6].toString()));
-				productInformation.setDescrip(nullValueHelper(cells[7].toString()));
+				productInformation.setSupp(nullValueHelper(cells[4].toString()));
+				productInformation.setSuppName(nullValueHelper(cells[5].toString()));
+				productInformation.setProdDesc(nullValueHelper(cells[6].toString()));
+				productInformation.setUserField1(nullValueHelper(cells[7].toString()));
 				productInformation.setPackDesc(nullValueHelper(cells[8].toString()));
 				productInformation.setAddType(addTypeMappingHelper(Integer.parseInt(cells[9].toString())));
 				productInformation.setPicture(nullValueHelper(cells[10].toString()));

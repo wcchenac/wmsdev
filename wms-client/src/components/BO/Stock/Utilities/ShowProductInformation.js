@@ -92,6 +92,14 @@ export default class ShowProductInformation extends Component {
                             {productInfo.addType}
                           </label>
                         </div>
+                        <div className="form-group row">
+                          <label className="col-5 col-form-label text-right">
+                            價格異動:
+                          </label>
+                          <label className="col-7 col-form-label">
+                            {productInfo.descrip}
+                          </label>
+                        </div>
                         {isBasic ? null : (
                           <React.Fragment>
                             <div className="form-group row">
@@ -116,14 +124,6 @@ export default class ShowProductInformation extends Component {
                               </label>
                               <label className="col-7 col-form-label">
                                 {productInfo.prodDesc}
-                              </label>
-                            </div>
-                            <div className="form-group row">
-                              <label className="col-5 col-form-label text-right">
-                                價格異動:
-                              </label>
-                              <label className="col-7 col-form-label">
-                                {productInfo.descrip}
                               </label>
                             </div>
                             <div className="form-group row">
