@@ -248,12 +248,10 @@ class ModifyRequestBoard extends Component {
   }
 
   handleSubmitClick(infoLengthCalculation) {
-    const { oldStockInfo, newStockInfoes, typeValidation } = this.state;
+    const { oldStockInfo, newStockInfoes } = this.state;
     let stockInfoesCopy = copy(newStockInfoes);
 
-    if (!typeValidation) {
-      joinInfoesDefectArray(stockInfoesCopy);
-    }
+    joinInfoesDefectArray(stockInfoesCopy);
 
     let shrinkStockRequest = {
       oldStockIdentifierId: oldStockInfo.stockIdentifier.id,
