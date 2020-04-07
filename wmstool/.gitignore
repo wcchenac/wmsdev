@@ -32,4 +32,4 @@ build/
 
 ### misc
 .DS_Store
-.properties
+/src/main/resources/*.properties
