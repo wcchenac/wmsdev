@@ -22,15 +22,14 @@ import BatchShipModal from "./BatchShipModal";
 import ToolbarForNextPrev from "../../Utilities/ToolbarForNextPrev";
 import { StockIdentifierType } from "../../../../../enums/Enums";
 
-const equal = require("fast-deep-equal");
-
 class ModifyBoard extends Component {
   constructor() {
     super();
     this.state = {
       isLoading: false,
       isQuery: false,
-      modlaShow: false,
+      modalShow_BatchShip: false,
+      modalShow_OutStock: false,
       productNo: "",
       prevProduct: "",
       nextProduct: "",
@@ -47,8 +46,12 @@ class ModifyBoard extends Component {
     this.handleShipList = this.handleShipList.bind(this);
     this.handleShrink = this.handleShrink.bind(this);
     this.handleStockInfoUpdate = this.handleStockInfoUpdate.bind(this);
-    this.handleModalShow = this.handleModalShow.bind(this);
-    this.handleModalClose = this.handleModalClose.bind(this);
+    this.handleModalShow_BatchShip = this.handleModalShow_BatchShip.bind(this);
+    this.handleModalClose_BatchShip = this.handleModalClose_BatchShip.bind(
+      this
+    );
+    this.handleModalShow_OutStock = this.handleModalShow_OutStock.bind(this);
+    this.handleModalClose_OutStock = this.handleModalClose_OutStock.bind(this);
     this.handleFutureProductQuery = this.handleFutureProductQuery.bind(this);
   }
 
@@ -84,7 +87,7 @@ class ModifyBoard extends Component {
     this.setState({ isLoading: true }, () => {
       this.props.createOutStockRequest(outStockRequest).then(response => {
         if (response.status === 200) {
-          this.setState({ isLoading: false });
+          this.setState({ isLoading: false, modalShow_OutStock: false });
         }
       });
     });
@@ -94,7 +97,7 @@ class ModifyBoard extends Component {
     this.setState({ isLoading: true }, () => {
       this.props.stockIdentifierIsShiped(shipRequest).then(response => {
         if (response.status === 200) {
-          this.setState({ isLoading: false });
+          this.setState({ isLoading: false, modalShow_BatchShip: false });
         }
       });
     });
@@ -105,7 +108,7 @@ class ModifyBoard extends Component {
       this.props
         .stockIdentifiersAreShiped(this.state.productNo, shipRequests)
         .then(response => {
-          this.setState({ isLoading: false, modalShow: false });
+          this.setState({ isLoading: false, modalShow_BatchShip: false });
         });
     });
   }
@@ -130,12 +133,20 @@ class ModifyBoard extends Component {
     });
   }
 
-  handleModalClose() {
-    this.setState({ modalShow: false });
+  handleModalClose_BatchShip() {
+    this.setState({ modalShow_BatchShip: false });
   }
 
-  handleModalShow() {
-    this.setState({ modalShow: true });
+  handleModalShow_BatchShip() {
+    this.setState({ modalShow_BatchShip: true });
+  }
+
+  handleModalClose_OutStock() {
+    this.setState({ modalShow_OutStock: false });
+  }
+
+  handleModalShow_OutStock() {
+    this.setState({ modalShow_OutStock: true });
   }
 
   infoSimplify() {
@@ -149,7 +160,7 @@ class ModifyBoard extends Component {
 
   componentDidUpdate(prevProps) {
     if (
-      !equal(this.props.queryResult, prevProps.queryResult) &&
+      this.props.queryResult !== prevProps.queryResult &&
       this.props.queryResult.stockInfoes.information.productNo !== null
     ) {
       this.setState({
@@ -179,16 +190,21 @@ class ModifyBoard extends Component {
           <React.Fragment>
             <ShowProductQuantity stockQuantity={stockQuantity} />
             <br />
-            <div className="container">
-              <div className="row justify-content-end">
-                <Button variant="info" size="sm" onClick={this.handleModalShow}>
+            <div className="row">
+              <div className="col-md-auto mr-auto" />
+              <div className="col-md-auto">
+                <Button
+                  variant="info"
+                  size="sm"
+                  onClick={this.handleModalShow_BatchShip}
+                >
                   批量出庫
                 </Button>
               </div>
-              {this.state.modalShow ? (
+              {this.state.modalShow_BatchShip ? (
                 <BatchShipModal
                   show
-                  handleModalClose={this.handleModalClose}
+                  handleModalClose={this.handleModalClose_BatchShip}
                   handleShipList={this.handleShipList}
                   typeValidation={typeValidation}
                   data={this.infoSimplify()}
@@ -218,6 +234,11 @@ class ModifyBoard extends Component {
       productInfo,
       stockInfoes
     } = this.state;
+    let outStockRequestValidate =
+      !isQuery ||
+      productNo.toUpperCase() !== productInfo.productNo ||
+      stockInfoes.length === 0 ||
+      stockInfoes[0].stockIdentifier.type === StockIdentifierType.hardware;
 
     return (
       <div className="modify_stockInfo">
@@ -245,26 +266,23 @@ class ModifyBoard extends Component {
                     />
                   </div>
                   <div className="col-md-auto mr-auto">
-                    <button
-                      className="btn btn-primary"
-                      disabled={
-                        !isQuery ||
-                        productNo.toUpperCase() !== productInfo.productNo ||
-                        stockInfoes.length === 0 ||
-                        stockInfoes[0].stockIdentifier.type ===
-                          StockIdentifierType.hardware
-                      }
-                      data-toggle="modal"
-                      data-target="#outStockRequest"
+                    <Button
+                      variant="primary"
+                      disabled={outStockRequestValidate}
+                      onClick={this.handleModalShow_OutStock}
                     >
                       拉貨要求
-                    </button>
-                    <OutStockModal
-                      productNo={productNo.toUpperCase()}
-                      handleOutStockRequestSubmit={
-                        this.handleOutStockRequestSubmit
-                      }
-                    />
+                    </Button>
+                    {this.state.modalShow_OutStock ? (
+                      <OutStockModal
+                        show
+                        handleModalClose={this.handleModalClose_OutStock}
+                        productNo={productNo.toUpperCase()}
+                        handleOutStockRequestSubmit={
+                          this.handleOutStockRequestSubmit
+                        }
+                      />
+                    ) : null}
                   </div>
                   <div className="col-md-auto">
                     <ToolbarForNextPrev

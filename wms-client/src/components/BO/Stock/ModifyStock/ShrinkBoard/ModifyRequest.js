@@ -5,7 +5,7 @@ import makeAnimated from "react-select/animated";
 import {
   UnitOptions,
   DefectOptions,
-  StockIdentifierType
+  StockIdentifierType,
 } from "../../../../../enums/Enums";
 import ShipModal from "../../Utilities/ShipModal";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
@@ -16,7 +16,7 @@ class ModifyRequest extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      modalShow: false
+      modalShow: false,
     };
     this.handleChange = this.handleChange.bind(this);
     this.onDefectChange = this.onDefectChange.bind(this);
@@ -98,7 +98,7 @@ class ModifyRequest extends Component {
             <input
               type="text"
               className={classnames("form-control", {
-                "is-invalid": stockInfo.errors.quantity
+                "is-invalid": stockInfo.errors.quantity,
               })}
               placeholder="數量"
               name="quantity"
@@ -170,6 +170,7 @@ class ModifyRequest extends Component {
         <td>
           <div className="form-group mt-1 ml-1">
             <OverlayTrigger
+              key={this.props.index}
               placement="bottom"
               overlay={
                 <Tooltip id={`tooltip-${this.props.index}`}>

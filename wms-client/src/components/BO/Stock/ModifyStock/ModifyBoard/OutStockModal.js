@@ -1,5 +1,6 @@
 import React, { Component } from "react";
-import classnames from "classnames";
+import { Modal, Button, Form, Row, Col, InputGroup } from "react-bootstrap";
+import Switch from "@material-ui/core/Switch";
 import { StockIdentifierType } from "../../../../../enums/Enums";
 import { copy } from "../../../../../utilities/DeepCopy";
 import { updateStockInfoCopy } from "../../Utilities/StockInfoHelperMethods";
@@ -8,19 +9,21 @@ class OutStockModal extends Component {
   constructor(props) {
     super(props);
     this.state = this.initialState();
+    this.handleAssignMode = this.handleAssignMode.bind(this);
     this.handleRequestChange = this.handleRequestChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   initialState() {
     return {
+      assignMode: false,
       outStockRequest: {
         productNo: this.props.productNo,
         type: StockIdentifierType.roll,
+        quantity: "隨意",
         quantity1: "",
         quantity2: "",
         unit: "碼",
-        user: "",
         reason: "",
         errors: {
           quantity1: "",
@@ -32,8 +35,13 @@ class OutStockModal extends Component {
 
   componentDidUpdate(prevProps) {
     if (this.props.productNo !== prevProps.productNo) {
-      this.setState(this.initialState());
+      let initialState = this.initialState();
+      this.setState(initialState);
     }
+  }
+
+  handleAssignMode() {
+    this.setState({ assignMode: !this.state.assignMode });
   }
 
   handleRequestChange(e) {
@@ -42,20 +50,25 @@ class OutStockModal extends Component {
 
     updateStockInfoCopy(outStockRequestsCopy, name, value);
 
+    if (this.state.assignMode) {
+      outStockRequestsCopy.quantity = "隨意";
+    }
+
     this.setState({ outStockRequest: outStockRequestsCopy });
   }
 
   handleSubmit() {
-    const { outStockRequest } = this.state;
+    const { assignMode, outStockRequest } = this.state;
     const newOutStockRequest = {
       productNo: outStockRequest.productNo,
       type: outStockRequest.type,
-      quantity:
-        "約" + outStockRequest.quantity1 + "~" + outStockRequest.quantity2,
       unit: outStockRequest.unit,
-      user: outStockRequest.user,
       reason: outStockRequest.reason
     };
+
+    newOutStockRequest["quantity"] = assignMode
+      ? "約" + outStockRequest.quantity1 + "~" + outStockRequest.quantity2
+      : outStockRequest.quantity;
 
     this.props.handleOutStockRequestSubmit(newOutStockRequest);
   }
@@ -63,168 +76,183 @@ class OutStockModal extends Component {
   checkFormAlgorithm(outStockRequest) {
     var isFormValid = false;
 
-    if (
-      outStockRequest.errors.quantity1 === "" &&
-      outStockRequest.quantity1 > 0 &&
-      outStockRequest.errors.quantity2 === "" &&
-      outStockRequest.quantity2 > 0 &&
-      outStockRequest.reason !== ""
-    ) {
-      isFormValid = true;
+    if (this.state.assignMode) {
+      if (
+        outStockRequest.errors.quantity1 === "" &&
+        outStockRequest.quantity1 > 0 &&
+        outStockRequest.errors.quantity2 === "" &&
+        outStockRequest.quantity2 > 0 &&
+        outStockRequest.reason !== ""
+      ) {
+        isFormValid = true;
+      } else {
+        isFormValid = false;
+      }
     } else {
-      isFormValid = false;
+      if (outStockRequest.reason !== "") {
+        isFormValid = true;
+      }
     }
 
     return isFormValid;
   }
 
   render() {
-    const { outStockRequest } = this.state;
+    const { assignMode, outStockRequest } = this.state;
     const { errors } = this.state.outStockRequest;
     let isFormValid = this.checkFormAlgorithm(outStockRequest);
 
     return (
-      <div
-        className="modal fade"
-        id="outStockRequest"
-        tabIndex="-1"
-        role="dialog"
-        aria-labelledby="content"
-        aria-hidden="true"
+      <Modal
+        centered
+        show={this.props.show}
+        onHide={this.props.handleModalClose}
       >
-        <div className="modal-dialog modal-dialog-centered" role="document">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">拉貨要求</h5>
-              <button
-                type="button"
-                className="close"
-                data-dismiss="modal"
-                aria-label="Close"
-              >
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="container">
-                <form>
-                  <div className="form-group row">
-                    <label className="col-4 col-form-label">貨號</label>
-                    <div className="col-8">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="productNo"
-                        value={outStockRequest.productNo}
-                        disabled
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-4 col-form-label">型態</label>
-                    <div className="col-8">
-                      <select
-                        className="custom-select"
-                        name="type"
-                        defaultValue={StockIdentifierType.roll}
-                        onChange={this.handleRequestChange}
-                      >
-                        <option value={StockIdentifierType.roll}>整支</option>
-                        <option value={StockIdentifierType.board}>板卷</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-4 col-form-label">數量</label>
-                    <div className="col-4">
-                      <div className="input-group">
-                        <div className="input-group-prepend">
-                          <div className="input-group-text">約</div>
-                        </div>
-                        <input
+        <Modal.Header closeButton>
+          <Modal.Title>拉貨要求</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="container">
+            <Form>
+              <Form.Group as={Row}>
+                <Form.Label column md={4}>
+                  貨號
+                </Form.Label>
+                <Col md={8}>
+                  <Form.Control
+                    type="text"
+                    name="productNo"
+                    value={outStockRequest.productNo}
+                    disabled
+                  />
+                </Col>
+              </Form.Group>
+              <Form.Group as={Row}>
+                <Form.Label column md={4}>
+                  型態
+                </Form.Label>
+                <Col md={8}>
+                  <Form.Control
+                    as="select"
+                    name="type"
+                    defaultValue={StockIdentifierType.roll}
+                    onChange={this.handleRequestChange}
+                  >
+                    {Object.keys(StockIdentifierType).map((type, index) => (
+                      <option key={index} value={StockIdentifierType[type]}>
+                        {StockIdentifierType[type]}
+                      </option>
+                    ))}
+                  </Form.Control>
+                </Col>
+              </Form.Group>
+              <Form.Group as={Row}>
+                <Form.Label column md={2}>
+                  數量
+                </Form.Label>
+                <Col md={2}>
+                  <Switch
+                    color="primary"
+                    name="assignMode"
+                    checked={assignMode}
+                    onChange={this.handleAssignMode}
+                  />
+                </Col>
+                {assignMode ? (
+                  <React.Fragment>
+                    <Col md={4}>
+                      <InputGroup>
+                        <InputGroup.Prepend>
+                          <InputGroup.Text>約</InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <Form.Control
                           type="text"
-                          className={classnames("form-control", {
-                            "is-invalid": errors.quantity1
-                          })}
-                          placeholder="數量"
                           name="quantity1"
+                          placeholder="數量"
                           onChange={this.handleRequestChange}
+                          isInvalid={errors.quantity1}
                         />
                         {errors.quantity1 && (
-                          <div className="invalid-feedback">
+                          <Form.Control.Feedback type="invalid">
                             {errors.quantity1}
-                          </div>
+                          </Form.Control.Feedback>
                         )}
-                      </div>
-                    </div>
-                    <label className="col-1 col-form-label">~</label>
-                    <div className="col-3">
-                      <input
+                      </InputGroup>
+                    </Col>
+                    <Form.Label column md={1}>
+                      ~
+                    </Form.Label>
+                    <Col md={3}>
+                      <Form.Control
                         type="text"
-                        className={classnames("form-control", {
-                          "is-invalid": errors.quantity2
-                        })}
-                        placeholder="數量"
                         name="quantity2"
+                        placeholder="數量"
                         onChange={this.handleRequestChange}
+                        isInvalid={errors.quantity2}
                       />
                       {errors.quantity2 && (
-                        <div className="invalid-feedback">
+                        <Form.Control.Feedback type="invalid">
                           {errors.quantity2}
-                        </div>
+                        </Form.Control.Feedback>
                       )}
-                    </div>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-4 col-form-label">單位</label>
-                    <div className="col-8">
-                      <select
-                        className="custom-select"
-                        name="unit"
-                        defaultValue="碼"
-                        onChange={this.handleRequestChange}
-                      >
-                        <option value="碼">碼</option>
-                        <option value="尺">尺</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="form-group row">
-                    <label className="col-4 col-form-label">出庫原因</label>
-                    <div className="col-8">
-                      <input
-                        type="text"
-                        name="outStockReason"
-                        placeholder="請輸入出庫原因"
-                        className="form-control"
-                        onChange={this.handleRequestChange}
-                      />
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-dismiss="modal"
-              >
-                取消
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-dismiss="modal"
-                onClick={this.handleSubmit}
-                disabled={!isFormValid}
-              >
-                儲存至明細
-              </button>
-            </div>
+                    </Col>
+                  </React.Fragment>
+                ) : (
+                  <Col md={8}>
+                    <Form.Control
+                      type="text"
+                      name="quantity"
+                      value={outStockRequest.quantity}
+                      disabled
+                    />
+                  </Col>
+                )}
+              </Form.Group>
+              <Form.Group as={Row}>
+                <Form.Label column md={4}>
+                  單位
+                </Form.Label>
+                <Col md={8}>
+                  <Form.Control
+                    as="select"
+                    name="unit"
+                    defaultValue="碼"
+                    onChange={this.handleRequestChange}
+                  >
+                    <option value="碼">碼</option>
+                    <option value="尺">尺</option>
+                  </Form.Control>
+                </Col>
+              </Form.Group>
+              <Form.Group as={Row}>
+                <Form.Label column md={4}>
+                  出庫原因
+                </Form.Label>
+                <Col md={8}>
+                  <Form.Control
+                    type="text"
+                    name="outStockReason"
+                    placeholder="請輸入出庫原因"
+                    onChange={this.handleRequestChange}
+                  />
+                </Col>
+              </Form.Group>
+            </Form>
           </div>
-        </div>
-      </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={this.props.handleModalClose}>
+            取消
+          </Button>
+          <Button
+            variant="primary"
+            disabled={!isFormValid}
+            onClick={this.handleSubmit}
+          >
+            儲存至明細
+          </Button>
+        </Modal.Footer>
+      </Modal>
     );
   }
 }

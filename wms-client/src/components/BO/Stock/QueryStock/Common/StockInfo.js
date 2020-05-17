@@ -18,6 +18,7 @@ class StockInfo extends Component {
             <td>{stockInfo.defect}</td>
           </React.Fragment>
         )}
+        <td>{stockInfo.remark}</td>
         <td>{stockIdentifier.firstInStockAt}</td>
       </tr>
     );

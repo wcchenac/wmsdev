@@ -4,18 +4,19 @@ import { copy } from "../../../../../utilities/DeepCopy";
 import {
   quantityAccumulate,
   updateStockInfoesCopy,
-  joinInfoesDefectArray
+  joinInfoesDefectArray,
 } from "../../Utilities/StockInfoHelperMethods";
 import ToolbarForAddDeleteSubmit from "../../Utilities/ToolbarForAddDeleteSubmit";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
+import { DefectOptions } from "../../../../../enums/Enums";
 
 class StockInfoContainer extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
       assignRowNum: 0,
-      stockInfoes: []
+      stockInfoes: [this.initialInfoContent()],
     };
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
     this.handleDeleteDataClick = this.handleDeleteDataClick.bind(this);
@@ -40,7 +41,7 @@ class StockInfoContainer extends PureComponent {
       quantity: "",
       unit: waitHandleStatus[type].unit,
       color: "1",
-      defect: [{ label: "無", value: "" }],
+      defect: [DefectOptions[0]],
       record: "",
       remark: "",
       inStockType: this.props.type,
@@ -48,8 +49,8 @@ class StockInfoContainer extends PureComponent {
       directShip: false,
       outStockReason: "",
       errors: {
-        quantity: ""
-      }
+        quantity: "",
+      },
     };
     if (typeValidation) {
       newStockInfo["color"] = "";
@@ -81,13 +82,13 @@ class StockInfoContainer extends PureComponent {
         directShip: false,
         outStockReason: "",
         errors: {
-          quantity: ""
-        }
+          quantity: "",
+        },
       };
     }
 
     this.setState({
-      stockInfoes: [...this.state.stockInfoes, newStockInfo]
+      stockInfoes: [...this.state.stockInfoes, newStockInfo],
     });
   }
 
@@ -97,7 +98,7 @@ class StockInfoContainer extends PureComponent {
     stockInfoesCopy.splice(stockInfoesCopy.length - 1, 1);
 
     this.setState({
-      stockInfoes: stockInfoesCopy
+      stockInfoes: stockInfoesCopy,
     });
   }
 
@@ -108,7 +109,7 @@ class StockInfoContainer extends PureComponent {
     updateStockInfoesCopy(stockInfoesCopy, name, value, i);
 
     this.setState({
-      stockInfoes: stockInfoesCopy
+      stockInfoes: stockInfoesCopy,
     });
   }
 
@@ -118,7 +119,7 @@ class StockInfoContainer extends PureComponent {
     copyList[i].defect = selectedOptions;
 
     this.setState({
-      stockInfoes: copyList
+      stockInfoes: copyList,
     });
   }
 
@@ -132,7 +133,7 @@ class StockInfoContainer extends PureComponent {
     }
 
     this.setState({
-      stockInfoes: copyList
+      stockInfoes: copyList,
     });
   }
 
@@ -142,7 +143,7 @@ class StockInfoContainer extends PureComponent {
     copyList[i].outStockReason = value;
 
     this.setState({
-      stockInfoes: copyList
+      stockInfoes: copyList,
     });
   }
 
@@ -175,8 +176,8 @@ class StockInfoContainer extends PureComponent {
         directShip: false,
         outStockReason: "",
         errors: {
-          quantity: ""
-        }
+          quantity: "",
+        },
       };
     }
 
@@ -220,7 +221,7 @@ class StockInfoContainer extends PureComponent {
     let quantityValid = { 雜項: false, 整支: false, 板卷: false };
 
     // check input total quantity is same as waitHandleStatus
-    typeList.forEach(type => {
+    typeList.forEach((type) => {
       if (
         parseFloat(waitHandleStatus[type].quantity) ===
         parseFloat(quantitySum[type])
@@ -250,7 +251,7 @@ class StockInfoContainer extends PureComponent {
       index,
       productNo,
       typeValidation,
-      waitHandleStatus
+      waitHandleStatus,
     } = this.props;
     const typeList = Object.keys(waitHandleStatus);
     const quantitySum = quantityAccumulate(stockInfoes);
