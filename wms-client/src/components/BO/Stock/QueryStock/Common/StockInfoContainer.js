@@ -13,22 +13,24 @@ class StockInfoContainer extends Component {
               <tr>
                 {typeValidation ? (
                   <React.Fragment>
-                    <th style={{ width: "20%" }}>貨號</th>
+                    <th style={{ width: "15%" }}>貨號</th>
                     <th style={{ width: "15%" }}>批號</th>
                     <th style={{ width: "15%" }}>型態</th>
                     <th style={{ width: "15%" }}>數量</th>
                     <th style={{ width: "15%" }}>單位</th>
-                    <th style={{ width: "20%" }}>進貨日期</th>
+                    <th style={{ width: "10%" }}>註解</th>
+                    <th style={{ width: "15%" }}>進貨日期</th>
                   </React.Fragment>
                 ) : (
                   <React.Fragment>
-                    <th style={{ width: "20%" }}>貨號</th>
+                    <th style={{ width: "15%" }}>貨號</th>
                     <th style={{ width: "10%" }}>批號</th>
                     <th style={{ width: "10%" }}>型態</th>
                     <th style={{ width: "10%" }}>數量</th>
                     <th style={{ width: "10%" }}>單位</th>
-                    <th style={{ width: "10%" }}>色號</th>
-                    <th style={{ width: "15%" }}>瑕疵</th>
+                    <th style={{ width: "7%" }}>色號</th>
+                    <th style={{ width: "13%" }}>瑕疵</th>
+                    <th style={{ width: "10%" }}>註解</th>
                     <th style={{ width: "15%" }}>進貨日期</th>
                   </React.Fragment>
                 )}
