@@ -3,12 +3,12 @@ import { GET_StockInfoes } from "./types";
 
 export const downloadFile = (fileCategory, filename) => {
   API.get(`api/file/download/${fileCategory}/${filename}`, {
-    responseType: "blob"
-  }).then(response => {
+    responseType: "blob",
+  }).then((response) => {
     const url = window.URL.createObjectURL(
       new Blob([response.data], {
         type: response.headers["content-type"],
-        encoding: "UTF-8"
+        encoding: "UTF-8",
       })
     );
     const link = document.createElement("a");
@@ -23,7 +23,7 @@ export const downloadFile = (fileCategory, filename) => {
   });
 };
 
-export const queryFileCategoryTodayFile = async fileCategory => {
+export const queryFileCategoryTodayFile = async (fileCategory) => {
   return await API.get(`/api/file/query/${fileCategory}/today`);
 };
 
@@ -37,16 +37,20 @@ export const queryFileCategoryIntervalFiles = async (
   );
 };
 
-export const inStockByImportFile = async files => {
+export const inStockByImportFile = async (files) => {
   return await API.post("api/file/import/inStockFile", files);
 };
 
-export const queryCategoryDetailList = () => async dispatch => {
+export const setWHByImportFile = async (files) => {
+  return await API.post("api/file/import/setWHFile", files);
+};
+
+export const queryCategoryDetailList = () => async (dispatch) => {
   const res = await API.get("api/file/query/categoryList");
 
   dispatch({
     type: GET_StockInfoes,
-    payload: res.data
+    payload: res.data,
   });
 
   return res;
