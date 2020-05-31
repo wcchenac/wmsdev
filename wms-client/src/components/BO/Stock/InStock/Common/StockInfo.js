@@ -210,23 +210,23 @@ class StockInfo extends Component {
         </td>
         <td>
           <div className="form-group mt-1 ml-1">
-            <OverlayTrigger
-              key={this.props.index}
-              placement="bottom"
-              overlay={
-                <Tooltip id={`tooltip-${this.props.index}`}>
-                  {stockInfo.outStockReason}
-                </Tooltip>
-              }
-            >
-              {stockInfo.outStockReason !== "" ? (
+            {stockInfo.outStockReason !== "" ? (
+              <OverlayTrigger
+                key={this.props.index}
+                overlay={
+                  <Tooltip
+                    id={`tooltip-${this.props.index}`}
+                    placement="bottom"
+                  >
+                    {stockInfo.outStockReason}
+                  </Tooltip>
+                }
+              >
                 <CheckBoxRoundedIcon onClick={this.onCancleShipClick} />
-              ) : (
-                <CheckBoxOutlineBlankRoundedIcon
-                  onClick={this.handleModalOpen}
-                />
-              )}
-            </OverlayTrigger>
+              </OverlayTrigger>
+            ) : (
+              <CheckBoxOutlineBlankRoundedIcon onClick={this.handleModalOpen} />
+            )}
           </div>
           {this.state.modalShow ? (
             <ShipModal
