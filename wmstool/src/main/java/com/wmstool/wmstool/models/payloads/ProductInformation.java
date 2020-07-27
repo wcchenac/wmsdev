@@ -26,6 +26,12 @@ public class ProductInformation {
 
 	private String cCost;
 
+	private String cCCCODE;
+
+	private String eNAME;
+
+	private String eSPEC;
+
 	public String getProductNo() {
 		return productNo;
 	}
@@ -122,4 +128,27 @@ public class ProductInformation {
 		this.cCost = cCost;
 	}
 
+	public String getcCCCODE() {
+		return cCCCODE;
+	}
+
+	public void setcCCCODE(String cCCCODE) {
+		this.cCCCODE = cCCCODE;
+	}
+
+	public String geteNAME() {
+		return eNAME;
+	}
+
+	public void seteNAME(String eNAME) {
+		this.eNAME = eNAME;
+	}
+
+	public String geteSPEC() {
+		return eSPEC;
+	}
+
+	public void seteSPEC(String eSPEC) {
+		this.eSPEC = eSPEC;
+	}
 }
