@@ -7,24 +7,30 @@ import { RoleOption } from "../../../enums/Enums";
 const SecuredRouteLvL2 = ({ component: Component, user, ...otherProps }) => (
   <Route
     {...otherProps}
-    render={props => {
+    render={(props) => {
       if (!user.validToken) {
         return <Redirect to="/login" />;
+      } else {
+        switch (user.user.role.authority) {
+          case RoleOption["業務"]:
+          case RoleOption["庫存相關人員"]:
+          case RoleOption["管理員"]:
+            return <Component {...props} />;
+          case RoleOption["一般人員/門市"]:
+          default:
+            return <Redirect to="/" />; // unauthorized page
+        }
       }
-      if (user.user.role.authority !== RoleOption["業務"]) {
-        return <Redirect to="/" />; // unauthorized page
-      }
-      return <Component {...props} />;
     }}
   />
 );
 
 SecuredRouteLvL2.propTypes = {
-  user: PropTypes.object.isRequired
+  user: PropTypes.object.isRequired,
 };
 
-const mapStateToProps = state => ({
-  user: state.user
+const mapStateToProps = (state) => ({
+  user: state.user,
 });
 
 export default connect(mapStateToProps)(SecuredRouteLvL2);

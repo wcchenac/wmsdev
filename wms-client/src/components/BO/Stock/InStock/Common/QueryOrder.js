@@ -8,7 +8,7 @@ class QueryOrder extends Component {
     return (
       <div className="col-md-12">
         <form onSubmit={this.props.handleQueryOrderSubmit}>
-          <div className="form-group row">
+          <div className="form-group row mb-0">
             <label className="col-md-auto col-form-label text-center">
               {type + "單號查詢"}
             </label>
@@ -18,7 +18,7 @@ class QueryOrder extends Component {
                 name="orderNo"
                 placeholder={"請輸入" + type + "單號"}
                 className={classnames("form-control", {
-                  "is-invalid": this.props.isOrderValid === false
+                  "is-invalid": this.props.isOrderValid === false,
                 })}
                 onChange={this.props.handleOrderNo}
               />

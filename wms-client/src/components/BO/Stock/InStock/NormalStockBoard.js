@@ -7,11 +7,11 @@ import SelectionBoard from "./Common/SelectionBoard";
 import EditBoard from "./Common/EditBoard";
 import {
   getInStockOrder,
-  batchCreateStockInfoes
+  batchCreateStockInfoes,
 } from "../../../../actions/StockAcions";
 import {
   checkWaitHandleStatusCompletion,
-  checkWaitHandleProductStatus
+  checkWaitHandleProductStatus,
 } from "../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../utilities/IsEmpty";
 import LoadingOverlay from "react-loading-overlay";
@@ -27,7 +27,7 @@ class NormalStockBoard extends Component {
       key: 1,
       currentOrderStatus: {},
       waitHandleStatus: {},
-      selectedProductNoList: []
+      selectedProductNoList: [],
     };
     this.getInitialize = this.getInitialize.bind(this);
     this.handlePrevStep = this.handlePrevStep.bind(this);
@@ -52,7 +52,7 @@ class NormalStockBoard extends Component {
       key: 1,
       currentOrderStatus: {},
       waitHandleStatus: {},
-      selectedProductNoList: []
+      selectedProductNoList: [],
     });
   }
 
@@ -69,7 +69,7 @@ class NormalStockBoard extends Component {
               waitHandleStatus[element.toString()]
             ),
             index: index,
-            isSubmitted: false
+            isSubmitted: false,
           });
         });
 
@@ -83,13 +83,13 @@ class NormalStockBoard extends Component {
 
   handlePrevStep() {
     this.setState({
-      key: this.state.key - 1
+      key: this.state.key - 1,
     });
   }
 
   handleNextStep() {
     this.setState({
-      key: this.state.key + 1
+      key: this.state.key + 1,
     });
   }
 
@@ -101,7 +101,7 @@ class NormalStockBoard extends Component {
     e.preventDefault();
 
     this.setState({ isLoading: true }, () => {
-      this.props.getInStockOrder(this.state.orderNo).then(response => {
+      this.props.getInStockOrder(this.state.orderNo).then((response) => {
         if (response.status === 200) {
           this.setState({ isLoading: false });
         }
@@ -115,11 +115,11 @@ class NormalStockBoard extends Component {
 
     copyList[index] = {
       ...this.state.selectedProductNoList[index],
-      selected: checked
+      selected: checked,
     };
 
     this.setState({
-      selectedProductNoList: copyList
+      selectedProductNoList: copyList,
     });
   }
 
@@ -127,12 +127,12 @@ class NormalStockBoard extends Component {
     const copyList = [...this.state.selectedProductNoList];
     let value = e.target.value === "true";
 
-    copyList.forEach(object => {
+    copyList.forEach((object) => {
       object.selected = value;
     });
 
     this.setState({
-      selectedProductNoList: copyList
+      selectedProductNoList: copyList,
     });
   }
 
@@ -141,16 +141,16 @@ class NormalStockBoard extends Component {
     const copyList = [...this.state.selectedProductNoList];
 
     this.setState({ isLoading: true }, () => {
-      this.props.batchCreateStockInfoes(inStockRequests).then(res => {
+      this.props.batchCreateStockInfoes(inStockRequests).then((res) => {
         if (res.status === 200) {
           copyList[index] = {
             ...this.state.selectedProductNoList[index],
-            isSubmitted: true
+            isSubmitted: true,
           };
 
           this.setState({
             isLoading: false,
-            selectedProductNoList: copyList
+            selectedProductNoList: copyList,
           });
         }
       });
@@ -166,9 +166,9 @@ class NormalStockBoard extends Component {
           currentOrderStatus: this.props.queryInStockOrderResult.stockInfoes
             .currentStatus,
           waitHandleStatus: this.props.queryInStockOrderResult.stockInfoes
-            .waitHandleStatus
+            .waitHandleStatus,
         },
-        function() {
+        function () {
           if (
             isEmpty(this.state.currentOrderStatus) ||
             checkWaitHandleStatusCompletion(this.state.waitHandleStatus)
@@ -194,7 +194,7 @@ class NormalStockBoard extends Component {
       isOrderValid,
       waitHandleStatus,
       selectedProductNoList,
-      key
+      key,
     } = this.state;
 
     return (
@@ -281,15 +281,15 @@ NormalStockBoard.propTypes = {
   queryInStockOrderResult: PropTypes.object.isRequired,
   getInStockOrder: PropTypes.func.isRequired,
   batchCreateStockInfoes: PropTypes.func.isRequired,
-  errors: PropTypes.object.isRequired
+  errors: PropTypes.object.isRequired,
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   queryInStockOrderResult: state.stockInfo,
-  errors: state.errors
+  errors: state.errors,
 });
 
 export default connect(mapStateToProps, {
   getInStockOrder,
-  batchCreateStockInfoes
+  batchCreateStockInfoes,
 })(NormalStockBoard);

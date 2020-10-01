@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wmstool.wmstool.models.History;
 import com.wmstool.wmstool.models.OutStockRequest;
 import com.wmstool.wmstool.models.StockInfo;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
@@ -38,7 +39,7 @@ public class StockController {
 	@Autowired
 	private StockService stockService;
 
-	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
+	@PreAuthorize("hasAnyRole('ROLE_Normal', 'ROLE_Operator','ROLE_Admin')")
 	@GetMapping("/queryOrder/{orderType}/{orderNo}")
 	public ResponseEntity<?> getOrderContent(@PathVariable(value = "orderType") String orderType,
 			@PathVariable(value = "orderNo") String orderNo) {
@@ -46,6 +47,7 @@ public class StockController {
 		final String OrderType_Assemble = "assemble";
 		final String OrderType_CustomerReturn = "customerReturn";
 		final String OrderType_StoreReturn = "storeReturn";
+		final String OrderType_OutStockToStore = "outStockToStore";
 
 		switch (orderType) {
 		case OrderType_InStock:
@@ -56,6 +58,8 @@ public class StockController {
 			return new ResponseEntity<>(stockService.queryCustomerReturnOrder(orderNo), HttpStatus.OK);
 		case OrderType_StoreReturn:
 			return new ResponseEntity<>(stockService.queryStoreReturnOrder(orderNo), HttpStatus.OK);
+		case OrderType_OutStockToStore:
+			return new ResponseEntity<>(stockService.queryOutStockToStoreOrder(orderNo), HttpStatus.OK);
 		default:
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
@@ -102,7 +106,7 @@ public class StockController {
 		return new ResponseEntity<>(stockService.updateStockInfo(updateInfoRequest), HttpStatus.OK);
 	}
 
-	@PreAuthorize("hasAnyRole('ROLE_Normal','ROLE_Operator','ROLE_Admin')")
+	@PreAuthorize("hasAnyRole('ROLE_Normal', 'ROLE_Sales', 'ROLE_Operator','ROLE_Admin')")
 	@GetMapping("/queryStock/query/2/{productNo}")
 	public ResponseEntity<?> getStockInfoListBasic(@PathVariable String productNo) {
 		return new ResponseEntity<>(stockService.findBasicStockInfoByProductNo(productNo.toUpperCase()), HttpStatus.OK);
@@ -111,7 +115,7 @@ public class StockController {
 	@PreAuthorize("hasAnyRole('ROLE_Sales','ROLE_Operator','ROLE_Admin')")
 	@GetMapping("/queryStock/query/1/{productNo}")
 	public ResponseEntity<?> getStockInfoList(@PathVariable String productNo) {
-		return new ResponseEntity<>(stockService.findStockInfoByProductNoWithQuantity(productNo.toUpperCase()),
+		return new ResponseEntity<>(stockService.findDetailStockInfoByProductNo(productNo.toUpperCase()),
 				HttpStatus.OK);
 	}
 
@@ -235,7 +239,7 @@ public class StockController {
 		}
 	}
 
-	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
+	@PreAuthorize("hasAnyRole('ROLE_Sales', 'ROLE_Operator','ROLE_Admin')")
 	@GetMapping("/queryStock/history/{productNo}")
 	public ResponseEntity<?> getHistoryTree(@PathVariable String productNo,
 			@RequestParam(value = "startDate") String start, @RequestParam(value = "endDate") String end) {
@@ -243,6 +247,7 @@ public class StockController {
 				stockService.findPeriodStockIdentifierHistory(productNo.toUpperCase(), start, end), HttpStatus.OK);
 	}
 
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
 	@GetMapping("/stockManagement/daily/stockCompare")
 	public ResponseEntity<?> dailyStockComparison() {
 		try {
@@ -256,6 +261,7 @@ public class StockController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
 	@GetMapping("/stockManagement/weekly/syncProductCategory")
 	public ResponseEntity<?> syncProductCategory() {
 		try {
@@ -269,6 +275,7 @@ public class StockController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
 	@GetMapping("/queryStock/categoryList")
 	public ResponseEntity<?> getAllCategory() {
 		try {
@@ -278,12 +285,35 @@ public class StockController {
 		}
 	}
 
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
 	@GetMapping("/queryStock/category/{category}")
 	public ResponseEntity<?> collectCategoryDetails(@PathVariable String category) {
 		try {
 			stockService.collectCategoyDetails(category);
 
 			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	// ------ under test function ------
+
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
+	@GetMapping("/test")
+	public ResponseEntity<?> test(@RequestParam(value = "id") long id) {
+		try {
+			return new ResponseEntity<History>(stockService.findById(id), HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@PreAuthorize("hasAnyRole('ROLE_Admin')")
+	@PatchMapping("/test/updateHistory")
+	public ResponseEntity<?> testUpdate(@RequestParam(value = "id") long id) {
+		try {
+			return new ResponseEntity<History>(stockService.updateById(id), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}

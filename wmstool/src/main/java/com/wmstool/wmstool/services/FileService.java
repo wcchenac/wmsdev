@@ -158,18 +158,16 @@ public class FileService {
 				InStockRequest inStockRequest = new InStockRequest();
 
 				inStockRequest.setProductNo(row.getCell(0).toString());
-				if (row.getCell(1) != null) {
-					inStockRequest.setLotNo(row.getCell(1).toString());
-				}
+				inStockRequest.setLotNo(row.getCell(1) != null ? row.getCell(1).toString() : "");
 				inStockRequest.setType(row.getCell(2).toString());
 				inStockRequest.setQuantity(row.getCell(3).toString());
 				inStockRequest.setUnit(row.getCell(4).toString());
 				inStockRequest.setColor((int) Double.parseDouble(row.getCell(5).toString()));
-				inStockRequest.setDefect(row.getCell(6).toString());
-				if (row.getCell(7) != null) {
-					inStockRequest.setRemark(row.getCell(7).toString());
-				}
-				inStockRequest.setInStockType("fileImport");
+				inStockRequest.setDefect(row.getCell(6) != null ? row.getCell(6).toString() : "");
+				inStockRequest.setRemark(row.getCell(7) != null ? row.getCell(7).toString() : "");
+				inStockRequest.setRecord(row.getCell(8) != null ? row.getCell(8).toString() : "");
+				inStockRequest.setInStockType(row.getCell(9).toString());
+				inStockRequest.setOrderNo(row.getCell(10) != null ? row.getCell(10).toString() : "");
 
 				requestList.add(inStockRequest);
 			}

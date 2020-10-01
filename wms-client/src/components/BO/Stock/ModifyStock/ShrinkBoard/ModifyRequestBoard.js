@@ -5,7 +5,7 @@ import { copy } from "../../../../../utilities/DeepCopy";
 import {
   updateStockInfoesCopy,
   joinInfoesDefectArray,
-  defectStringTransToOptions
+  defectStringTransToOptions,
 } from "../../Utilities/StockInfoHelperMethods";
 import ToolbarForAddDeleteSubmit from "../../Utilities/ToolbarForAddDeleteSubmit";
 import ShrinkConfirmModal from "./ShrinkConfirmModal";
@@ -18,11 +18,14 @@ class ModifyRequestBoard extends Component {
     this.state = {
       modalShow: false,
       oldStockInfo: this.props.stockInfo,
-      newStockInfoes: [],
+      newStockInfoes: [
+        this.modifyRequestInitialContent(),
+        this.modifyRequestInitialContent(),
+      ],
       typeValidation:
         this.props.stockInfo.stockIdentifier.type ===
         StockIdentifierType.hardware,
-      assignRowNum: 0
+      assignRowNum: 0,
     };
     this.handleBackClick = this.handleBackClick.bind(this);
     this.handleNewDataClick = this.handleNewDataClick.bind(this);
@@ -45,21 +48,21 @@ class ModifyRequestBoard extends Component {
   modifyRequestInitialContent() {
     const { typeExchange, sameTypeModify, hardwareModify } = this.props;
     let initialContent = {
-      productNo: this.state.oldStockInfo.stockIdentifier.productNo,
-      lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
+      productNo: this.props.stockInfo.stockIdentifier.productNo,
+      lotNo: this.props.stockInfo.stockIdentifier.lotNo,
       quantity: "",
-      unit: this.state.oldStockInfo.stockIdentifier.unit,
-      color: this.state.oldStockInfo.color,
-      defect: defectStringTransToOptions(this.state.oldStockInfo.defect),
+      unit: this.props.stockInfo.stockIdentifier.unit,
+      color: this.props.stockInfo.color,
+      defect: defectStringTransToOptions(this.props.stockInfo.defect),
       record: "",
       remark: "",
       inStockType: "shrink",
       directShip: false,
       outStockReason: "",
-      parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
+      parentId: this.props.stockInfo.stockIdentifier.id, // for history use
       errors: {
-        quantity: ""
-      }
+        quantity: "",
+      },
     };
     if (typeExchange) {
       initialContent["type"] = StockIdentifierType.board;
@@ -77,7 +80,7 @@ class ModifyRequestBoard extends Component {
   infoLengthCalculation() {
     // 閉包函數 十進位近似值
     // cite from https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Reference/Global_Objects/Math/round
-    (function() {
+    (function () {
       /**
        * Decimal adjustment of a number.
        *
@@ -109,19 +112,19 @@ class ModifyRequestBoard extends Component {
 
       // Decimal round
       if (!Math.round10) {
-        Math.round10 = function(value, exp) {
+        Math.round10 = function (value, exp) {
           return decimalAdjust("round", value, exp);
         };
       }
       // Decimal floor
       if (!Math.floor10) {
-        Math.floor10 = function(value, exp) {
+        Math.floor10 = function (value, exp) {
           return decimalAdjust("floor", value, exp);
         };
       }
       // Decimal ceil
       if (!Math.ceil10) {
-        Math.ceil10 = function(value, exp) {
+        Math.ceil10 = function (value, exp) {
           return decimalAdjust("ceil", value, exp);
         };
       }
@@ -149,7 +152,7 @@ class ModifyRequestBoard extends Component {
 
     let result = {
       adjustment: Math.round10(adjustment, -1),
-      totalQuantity: totalQuantity
+      totalQuantity: totalQuantity,
     };
 
     if (typeDifference) {
@@ -194,27 +197,27 @@ class ModifyRequestBoard extends Component {
       newStockInfo = this.modifyRequestInitialContent();
     } else {
       newStockInfo = {
-        productNo: this.state.oldStockInfo.stockIdentifier.productNo,
-        lotNo: this.state.oldStockInfo.stockIdentifier.lotNo,
+        productNo: this.props.stockInfo.stockIdentifier.productNo,
+        lotNo: this.props.stockInfo.stockIdentifier.lotNo,
         type: newStockInfoes[newStockInfoes.length - 1].type,
         quantity: "",
         unit: newStockInfoes[newStockInfoes.length - 1].unit,
         color: newStockInfoes[newStockInfoes.length - 1].color,
         defect: newStockInfoes[newStockInfoes.length - 1].defect,
-        record: this.state.oldStockInfo.record,
+        record: this.props.stockInfo.record,
         remark: "",
         inStockType: "shrink",
         directShip: false,
         outStockReason: "",
-        parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
+        parentId: this.props.stockInfo.stockIdentifier.id, // for history use
         errors: {
-          quantity: ""
-        }
+          quantity: "",
+        },
       };
     }
 
     this.setState({
-      newStockInfoes: [...this.state.newStockInfoes, newStockInfo]
+      newStockInfoes: [...this.state.newStockInfoes, newStockInfo],
     });
   }
 
@@ -224,7 +227,7 @@ class ModifyRequestBoard extends Component {
     stockInfoesCopy.splice(stockInfoesCopy.length - 1, 1);
 
     this.setState({
-      newStockInfoes: stockInfoesCopy
+      newStockInfoes: stockInfoesCopy,
     });
   }
 
@@ -243,24 +246,22 @@ class ModifyRequestBoard extends Component {
     copyList[i].defect = selectedOptions;
 
     this.setState({
-      newStockInfoes: copyList
+      newStockInfoes: copyList,
     });
   }
 
   handleSubmitClick(infoLengthCalculation) {
-    const { oldStockInfo, newStockInfoes, typeValidation } = this.state;
+    const { oldStockInfo, newStockInfoes } = this.state;
     let stockInfoesCopy = copy(newStockInfoes);
 
-    if (!typeValidation) {
-      joinInfoesDefectArray(stockInfoesCopy);
-    }
+    joinInfoesDefectArray(stockInfoesCopy);
 
     let shrinkStockRequest = {
       oldStockIdentifierId: oldStockInfo.stockIdentifier.id,
       inStockRequests: stockInfoesCopy,
       allocation: infoLengthCalculation.allocation,
       adjustment: infoLengthCalculation.adjustment,
-      shrinkType: infoLengthCalculation.shrinkType
+      shrinkType: infoLengthCalculation.shrinkType,
     };
 
     this.props.handleModifyRequestSubmit(shrinkStockRequest);
@@ -296,8 +297,8 @@ class ModifyRequestBoard extends Component {
         outStockReason: "",
         parentId: this.state.oldStockInfo.stockIdentifier.id, // for history use
         errors: {
-          quantity: ""
-        }
+          quantity: "",
+        },
       };
     }
 
@@ -308,27 +309,27 @@ class ModifyRequestBoard extends Component {
     this.setState({ assignRowNum: 0, newStockInfoes: stockInfoesCopy });
   }
 
-  handleShipCheck(e, i) {
+  handleShipCheck(checked, i) {
     const copyList = [...this.state.newStockInfoes];
 
-    copyList[i].directShip = e.target.checked;
+    copyList[i].directShip = checked;
 
-    if (!e.target.checked) {
+    if (!checked) {
       copyList[i].outStockReason = "";
     }
 
     this.setState({
-      newStockInfoes: copyList
+      newStockInfoes: copyList,
     });
   }
 
-  handleReasonButton(e, i) {
+  handleReasonButton(value, i) {
     const copyList = [...this.state.newStockInfoes];
 
-    copyList[i].outStockReason = e.target.value;
+    copyList[i].outStockReason = value;
 
     this.setState({
-      newStockInfoes: copyList
+      newStockInfoes: copyList,
     });
   }
 
@@ -356,7 +357,7 @@ class ModifyRequestBoard extends Component {
       oldStockInfo,
       newStockInfoes,
       typeValidation,
-      assignRowNum
+      assignRowNum,
     } = this.state;
     let isLengthChecked = this.checkLengthAlgorithm(newStockInfoes);
     let infoLengthCalculation = modalShow ? this.infoLengthCalculation() : null;
