@@ -53,4 +53,17 @@ public class HistoryService {
 		return source;
 	}
 
+	public History findById(Long id) {
+		return historyRepo.findById(id).get();
+	}
+
+	public History save(Long id) {
+		History tmp = historyRepo.findById(id).get();
+
+		Long[] a = { 80757L, 80758L, 80759L, 80760L, 80762L, 80764L, 80765L };
+
+		tmp.setChildrenIdentifierId(a);
+
+		return historyRepo.save(tmp);
+	}
 }

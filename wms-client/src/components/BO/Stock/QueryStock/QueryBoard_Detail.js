@@ -12,7 +12,7 @@ import ShowProductQuantity from "../Utilities/ShowProductQuantity";
 import ToolbarForNextPrev from "../Utilities/ToolbarForNextPrev";
 import { StockIdentifierType } from "../../../../enums/Enums";
 
-class QueryBoardForSales extends Component {
+class QueryBoard_Detail extends Component {
   constructor() {
     super();
     this.state = {
@@ -23,7 +23,7 @@ class QueryBoardForSales extends Component {
       nextProduct: "",
       productInfo: {},
       stockInfoes: [],
-      stockQuantity: {}
+      stockQuantity: {},
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
@@ -36,8 +36,9 @@ class QueryBoardForSales extends Component {
 
   onSubmit(e) {
     e.preventDefault();
+
     this.setState({ isLoading: true }, () => {
-      this.props.getStockInfoes(this.state.productNo).then(response => {
+      this.props.getStockInfoes(this.state.productNo).then((response) => {
         if (response.status === 200) {
           this.setState({ isLoading: false, isQuery: true });
         }
@@ -50,7 +51,7 @@ class QueryBoardForSales extends Component {
     let select = e.target.value;
 
     this.setState({ isLoading: true }, () => {
-      this.props.getStockInfoesBasic(select).then(response => {
+      this.props.getStockInfoesBasic(select).then((response) => {
         if (response.status === 200) {
           this.setState({ isLoading: false, isQuery: true });
         }
@@ -69,7 +70,7 @@ class QueryBoardForSales extends Component {
         nextProduct: this.props.stockInfo.stockInfoes.nextProduct,
         productInfo: this.props.stockInfo.stockInfoes.information,
         stockInfoes: this.props.stockInfo.stockInfoes.result,
-        stockQuantity: this.props.stockInfo.stockInfoes.productList
+        stockQuantity: this.props.stockInfo.stockInfoes.productList,
       });
     }
   }
@@ -106,7 +107,7 @@ class QueryBoardForSales extends Component {
       productNo,
       prevProduct,
       nextProduct,
-      productInfo
+      productInfo,
     } = this.state;
 
     return (
@@ -153,13 +154,13 @@ class QueryBoardForSales extends Component {
   }
 }
 
-QueryBoardForSales.propTypes = {
+QueryBoard_Detail.propTypes = {
   stockInfo: PropTypes.object.isRequired,
-  getStockInfoes: PropTypes.func.isRequired
+  getStockInfoes: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = state => ({
-  stockInfo: state.stockInfo
+const mapStateToProps = (state) => ({
+  stockInfo: state.stockInfo,
 });
 
-export default connect(mapStateToProps, { getStockInfoes })(QueryBoardForSales);
+export default connect(mapStateToProps, { getStockInfoes })(QueryBoard_Detail);

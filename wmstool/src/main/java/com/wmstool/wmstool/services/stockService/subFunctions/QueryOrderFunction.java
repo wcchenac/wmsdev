@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.wmstool.wmstool.models.InStockOrderRecord;
+import com.wmstool.wmstool.models.payloads.ProductInformation;
 import com.wmstool.wmstool.models.payloads.QueryOrderResponse;
 import com.wmstool.wmstool.repositories.InStockOrderRepo;
 
@@ -42,6 +43,7 @@ public class QueryOrderFunction {
 	private final String assembleOrderAndProductUnitSQLStatement = "SELECT * FROM dbo.AssembleOrder WHERE CODE = ?1";
 	private final String customerReturnOrderSQLStatement = "SELECT * FROM dbo.CustomerReturnOrder WHERE CODE= ?1";
 	private final String storeReturnOrderSQLStatement = "SELECT * FROM dbo.StoreReturnOrder WHERE CODE= ?1";
+	private final String outStockToStoreOrderSQLStatement = "SELECT * FROM dbo.OutStockToStoreOrder WHERE OrderNo = ?1 Order By SERIAL";
 
 	/**
 	 * Return a response containing current 'in-stock' order content fetching from
@@ -94,6 +96,35 @@ public class QueryOrderFunction {
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = deriveWaitHandleStatus(currentOrderStatus,
 				prevOrderStatus);
 		return new QueryOrderResponse(currentOrderStatus, waitHandleStatus);
+	}
+
+	/**
+	 * Return a response of 'OutStockToStore' order content fetching from second db
+	 */
+	public List<ProductInformation> queryOutStockToStoreOrder(String outStockToStoreOrderNo) {
+		List<ProductInformation> ret = new ArrayList<>();
+		EntityManager em = emf.createEntityManager();
+
+		Query q = em.createNativeQuery(outStockToStoreOrderSQLStatement);
+		q.setParameter(1, outStockToStoreOrderNo);
+		List<?> resultList = q.getResultList();
+
+		if (!resultList.isEmpty()) {
+			resultList.forEach(row -> {
+				Object[] cells = (Object[]) row;
+				ProductInformation productInformation = new ProductInformation();
+
+				productInformation.setProductNo(QueryStockFunction.nullValueHelper(cells[0].toString()));
+				productInformation.setcName(QueryStockFunction.nullValueHelper(cells[1].toString()));
+				productInformation.setcCCCODE(QueryStockFunction.nullValueHelper(cells[2].toString()));
+				productInformation.setSpec(QueryStockFunction.nullValueHelper(cells[3].toString()));
+				productInformation.setPackDesc(QueryStockFunction.nullValueHelper(cells[4].toString()));
+
+				ret.add(productInformation);
+			});
+		}
+
+		return ret;
 	}
 
 	/**
@@ -331,5 +362,4 @@ public class QueryOrderFunction {
 
 		return waitHandleStatus;
 	}
-
 }

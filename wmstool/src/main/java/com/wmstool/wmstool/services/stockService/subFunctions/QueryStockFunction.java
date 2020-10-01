@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import com.wmstool.wmstool.models.History;
 import com.wmstool.wmstool.models.InStockOrderRecord;
 import com.wmstool.wmstool.models.Product;
 import com.wmstool.wmstool.models.StockIdentifier;
@@ -87,7 +88,7 @@ public class QueryStockFunction {
 	 * second db and a list of StockInfoes with certain productNo fetching from
 	 * first db and current total quantity
 	 */
-	public QueryProductNoResponse findStockInfoByProductNoWithQuantity(String productNo) {
+	public QueryProductNoResponse findDetailStockInfoByProductNo(String productNo) {
 		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, false),
 				getProductsByProductNo(productNo), nearByProductNo(productNo));
 	}
@@ -301,6 +302,9 @@ public class QueryStockFunction {
 				productInformation.setPackDesc(nullValueHelper(cells[4].toString()));
 				productInformation.setAddType(addTypeMappingHelper(Integer.parseInt(cells[5].toString())));
 				productInformation.setPicture(nullValueHelper(cells[6].toString()));
+				productInformation.setcCCCODE(nullValueHelper(cells[7].toString()));
+				productInformation.seteNAME(nullValueHelper(cells[8].toString()));
+				productInformation.seteSPEC(nullValueHelper(cells[9].toString()));
 			} else {
 				productInformation.setSupp(nullValueHelper(cells[4].toString()));
 				productInformation.setSuppName(nullValueHelper(cells[5].toString()));
@@ -310,6 +314,9 @@ public class QueryStockFunction {
 				productInformation.setAddType(addTypeMappingHelper(Integer.parseInt(cells[9].toString())));
 				productInformation.setPicture(nullValueHelper(cells[10].toString()));
 				productInformation.setcCost(nullValueHelper(cells[11].toString()));
+				productInformation.setcCCCODE(nullValueHelper(cells[13].toString()));
+				productInformation.seteNAME(nullValueHelper(cells[14].toString()));
+				productInformation.seteSPEC(nullValueHelper(cells[15].toString()));
 			}
 		}
 
@@ -319,7 +326,7 @@ public class QueryStockFunction {
 	/**
 	 * Helper method for mapping empty String to a meaningful value
 	 */
-	private String nullValueHelper(String input) {
+	public static String nullValueHelper(String input) {
 		if (input.equals("")) {
 			return "無資料";
 		} else {
@@ -410,5 +417,13 @@ public class QueryStockFunction {
 		}
 
 		return result;
+	}
+
+	public History findById(Long id) {
+		return historyService.findById(id);
+	}
+
+	public History updateById(Long id) {
+		return historyService.save(id);
 	}
 }

@@ -136,6 +136,32 @@ export default class ShowProductInformation extends Component {
                             </div>
                           </React.Fragment>
                         )}
+                        <div className="form-group row">
+                          <label className="col-5 col-form-label text-right">
+                            大牌品名:
+                          </label>
+                          <label className="col-7 col-form-label">
+                            {productInfo.cCCCODE}
+                          </label>
+                        </div>
+                        {/** 
+                        <div className="form-group row">
+                          <label className="col-5 col-form-label text-right">
+                            備註1:
+                          </label>
+                          <label className="col-7 col-form-label">
+                            {productInfo.eNAME}
+                          </label>
+                        </div>
+                        <div className="form-group row">
+                          <label className="col-5 col-form-label text-right">
+                            備註2:
+                          </label>
+                          <label className="col-7 col-form-label">
+                            {productInfo.eSPEC}
+                          </label>
+                        </div>
+                        */}
                       </div>
                     </div>
                   </div>

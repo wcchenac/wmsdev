@@ -9,7 +9,7 @@ class ScheduleMission extends Component {
   constructor() {
     super();
     this.state = {
-      isLoading: false
+      isLoading: false,
     };
     this.handleMissionTrigger = this.handleMissionTrigger.bind(this);
   }
@@ -18,7 +18,7 @@ class ScheduleMission extends Component {
     let arr = e.target.name.split("-");
 
     this.setState({ isLoading: true }, () => {
-      missionTrigger(arr[0], arr[1]).then(res => {
+      missionTrigger(arr[0], arr[1]).then((res) => {
         this.setState({ isLoading: false });
         toast.success("Misson Complete");
       });
@@ -38,11 +38,19 @@ class ScheduleMission extends Component {
               每日比對
             </button>
             <button
-              className="btn btn-primary"
+              className="btn btn-primary mr-2"
               name="weekly-syncProductCategory"
               onClick={this.handleMissionTrigger}
             >
               貨號類別同步
+            </button>
+            <button
+              className="btn btn-primary"
+              name="weekly-syncProductCategory"
+              // onClick={this.handleMissionTrigger}
+              disabled
+            >
+              貨號品名同步
             </button>
           </div>
           <ToastContainer />

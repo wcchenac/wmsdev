@@ -10,11 +10,13 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.wmstool.wmstool.models.History;
 import com.wmstool.wmstool.models.OutStockRequest;
 import com.wmstool.wmstool.models.StockInfo;
 import com.wmstool.wmstool.models.payloads.HandleListResponse;
 import com.wmstool.wmstool.models.payloads.InStockRequest;
 import com.wmstool.wmstool.models.payloads.OutStockUpdateRequest;
+import com.wmstool.wmstool.models.payloads.ProductInformation;
 import com.wmstool.wmstool.models.payloads.QueryOrderResponse;
 import com.wmstool.wmstool.models.payloads.QueryProductNoResponse;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
@@ -87,6 +89,13 @@ public class StockService {
 	}
 
 	/**
+	 * Return a response of 'OutStockToStore' order content fetching from second db
+	 */
+	public List<ProductInformation> queryOutStockToStoreOrder(String outStockToStoreOrderNo) {
+		return queryOrderFunction.queryOutStockToStoreOrder(outStockToStoreOrderNo);
+	}
+
+	/**
 	 * Save inStockRequest in List as StockInfo/InStockOrderRecord to first db
 	 */
 	public void createStockInfoes(List<InStockRequest> inStockRequests) {
@@ -130,8 +139,8 @@ public class StockService {
 	 * second db and a list of StockInfoes with certain productNo fetching from
 	 * first db and current total quantity
 	 */
-	public QueryProductNoResponse findStockInfoByProductNoWithQuantity(String productNo) {
-		return queryStockFunction.findStockInfoByProductNoWithQuantity(productNo);
+	public QueryProductNoResponse findDetailStockInfoByProductNo(String productNo) {
+		return queryStockFunction.findDetailStockInfoByProductNo(productNo);
 	}
 
 	/**
@@ -281,5 +290,13 @@ public class StockService {
 	 */
 	public void collectCategoyDetails(String category) throws FileNotFoundException, IOException {
 		queryStockFunction.findCategoryDetails(category);
+	}
+
+	public History updateById(Long id) {
+		return queryStockFunction.findById(id);
+	}
+
+	public History findById(Long id) {
+		return queryStockFunction.updateById(id);
 	}
 }

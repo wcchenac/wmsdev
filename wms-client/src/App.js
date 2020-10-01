@@ -13,15 +13,18 @@ import ModifyBoard from "./components/BO/Stock/ModifyStock/ModifyBoard/ModifyBoa
 import ShrinkBoard from "./components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkBoard";
 import OutStockRequestList from "./components/BO/Stock/OutStockList/OutStockRequestList";
 import QueryBoard from "./components/BO/Stock/QueryStock/QueryBoard";
-import QueryBoardForSales from "./components/BO/Stock/QueryStock/QueryBoardForSales";
+import QueryBoard_Detail from "./components/BO/Stock/QueryStock/QueryBoard_Detail";
+import QueryOutStockToStore from "./components/BO/Stock/QueryStock/QueryOutStockToStore";
 import FileCenter from "./components/BO/File/FileCenter";
 import StockHistoryBoard from "./components/BO/Stock/StockHistory/StockHistoryBoard";
 import Login from "./components/BO/User/Login";
 import AdminPlatform from "./components/BO/User/AdminPlatform/AdminPlatform";
 import SecuredRouteLvH from "./components/Others/securities/SecuredRouteLvH";
-import SecuredRouteLvM from "./components/Others/securities/SecuredRouteLvM";
+import SecuredRouteLvM1 from "./components/Others/securities/SecuredRouteLvM1";
+import SecuredRouteLvM2 from "./components/Others/securities/SecuredRouteLvM2";
 import SecuredRouteLvL1 from "./components/Others/securities/SecuredRouteLvL1";
 import SecuredRouteLvL2 from "./components/Others/securities/SecuredRouteLvL2";
+import SecuredRouteLvL3 from "./components/Others/securities/SecuredRouteLvL3";
 import localStorageValidate from "./utilities/LocalStorageValidate";
 
 function App() {
@@ -34,22 +37,22 @@ function App() {
           <Header />
           <Switch>
             <Route exact path="/login" component={Login} />
-            <SecuredRouteLvM
+            <SecuredRouteLvM1
               exact
               path="/stock/1/1"
               component={NormalStockBoard}
             />
-            <SecuredRouteLvM
+            <SecuredRouteLvM1
               exact
               path="/stock/1/2"
               component={AssembleStockBoard}
             />
-            <SecuredRouteLvM
+            <SecuredRouteLvM1
               exact
               path="/stock/1/3"
               component={CustomerReturnBoard}
             />
-            <SecuredRouteLvM
+            <SecuredRouteLvM1
               exact
               path="/stock/1/4"
               component={StoreReturnBoard}
@@ -58,21 +61,26 @@ function App() {
             <SecuredRouteLvL2
               exact
               path="/stock/2/2"
-              component={QueryBoardForSales}
+              component={QueryBoard_Detail}
             />
-            <SecuredRouteLvM exact path="/stock/3/1" component={ModifyBoard} />
-            <SecuredRouteLvM exact path="/stock/3/2" component={ShrinkBoard} />
-            <SecuredRouteLvM
+            <SecuredRouteLvL3
+              exact
+              path="/stock/2/3"
+              component={QueryOutStockToStore}
+            />
+            <SecuredRouteLvM1 exact path="/stock/3/1" component={ModifyBoard} />
+            <SecuredRouteLvM1 exact path="/stock/3/2" component={ShrinkBoard} />
+            <SecuredRouteLvM1
               exact
               path="/stock/4"
               component={OutStockRequestList}
             />
-            <SecuredRouteLvM
+            <SecuredRouteLvM2
               exact
               path="/stock/5"
               component={StockHistoryBoard}
             />
-            <SecuredRouteLvM exact path="/files" component={FileCenter} />
+            <SecuredRouteLvH exact path="/files" component={FileCenter} />
             <SecuredRouteLvH exact path="/admin" component={AdminPlatform} />
           </Switch>
         </div>

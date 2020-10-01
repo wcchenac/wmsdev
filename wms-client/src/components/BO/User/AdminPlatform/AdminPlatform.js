@@ -6,12 +6,13 @@ import ScheduleMission from "./ScheduleMission";
 import ShrinkRollback from "./ShrinkRollback/ShrinkRollback";
 import StockCategory from "./StockCategory";
 import InStockRollback from "./InStockRollback/InStockRollback";
+import SetWarehouse from "./SetWarehouse";
 
 class AdminPlatform extends Component {
   constructor() {
     super();
     this.state = {
-      functionSelection: ""
+      functionSelection: "",
     };
     this.buttonClick = this.buttonClick.bind(this);
   }
@@ -36,6 +37,8 @@ class AdminPlatform extends Component {
         return <ShrinkRollback />;
       case "stockCategory":
         return <StockCategory />;
+      case "settingWH":
+        return <SetWarehouse />;
       default:
         break;
     }
@@ -51,7 +54,7 @@ class AdminPlatform extends Component {
                 className="col-2"
                 style={{
                   borderRadius: "5px",
-                  backgroundColor: "papayawhip"
+                  backgroundColor: "papayawhip",
                 }}
               >
                 <p className="h5 text-center mt-2">功能列表</p>
@@ -96,6 +99,14 @@ class AdminPlatform extends Component {
                   onClick={this.buttonClick}
                 >
                   庫存類別
+                </button>
+                <button
+                  className="btn btn-info btn-block"
+                  name="settingWH"
+                  onClick={this.buttonClick}
+                  disabled
+                >
+                  設定倉別
                 </button>
                 <button
                   className="btn btn-info btn-block"

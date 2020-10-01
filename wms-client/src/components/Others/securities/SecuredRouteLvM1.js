@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import { RoleOption } from "../../../enums/Enums";
 
-const SecuredRouteLvL1 = ({ component: Component, user, ...otherProps }) => (
+const SecuredRouteLvM1 = ({ component: Component, user, ...otherProps }) => (
   <Route
     {...otherProps}
     render={(props) => {
@@ -12,11 +12,11 @@ const SecuredRouteLvL1 = ({ component: Component, user, ...otherProps }) => (
         return <Redirect to="/login" />;
       } else {
         switch (user.user.role.authority) {
-          case RoleOption["一般人員/門市"]:
-            return <Component {...props} />;
-          case RoleOption["業務"]:
           case RoleOption["庫存相關人員"]:
           case RoleOption["管理員"]:
+            return <Component {...props} />;
+          case RoleOption["一般人員/門市"]:
+          case RoleOption["業務"]:
           default:
             return <Redirect to="/" />; // unauthorized page
         }
@@ -25,7 +25,7 @@ const SecuredRouteLvL1 = ({ component: Component, user, ...otherProps }) => (
   />
 );
 
-SecuredRouteLvL1.propTypes = {
+SecuredRouteLvM1.propTypes = {
   user: PropTypes.object.isRequired,
 };
 
@@ -33,4 +33,4 @@ const mapStateToProps = (state) => ({
   user: state.user,
 });
 
-export default connect(mapStateToProps)(SecuredRouteLvL1);
+export default connect(mapStateToProps)(SecuredRouteLvM1);

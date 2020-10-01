@@ -31,6 +31,10 @@ public class Product {
 
 	private String safeQuantity;
 
+	private String cName;
+
+	private String whType;
+
 	@JsonIgnore
 	private boolean isBypass = false; // set true for no loner exist
 
@@ -99,6 +103,22 @@ public class Product {
 
 	public void setSafeQuantity(String safeQuantity) {
 		this.safeQuantity = safeQuantity;
+	}
+
+	public String getcName() {
+		return cName;
+	}
+
+	public void setcName(String cName) {
+		this.cName = cName;
+	}
+
+	public String getWhType() {
+		return whType;
+	}
+
+	public void setWhType(String whType) {
+		this.whType = whType;
 	}
 
 	public boolean isBypass() {
