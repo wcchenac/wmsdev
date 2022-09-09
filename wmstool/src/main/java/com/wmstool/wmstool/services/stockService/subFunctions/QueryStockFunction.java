@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Query;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,6 +164,7 @@ public class QueryStockFunction {
 		LocalDateTime startDateTime = LocalDateTime.parse(start, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
 		LocalDateTime endDateTime = LocalDateTime.parse(end, DateTimeFormatter.ISO_LOCAL_DATE_TIME).plusHours(8);
 
+		// get InStockRecords created between startTime and endTime
 		Specification<InStockOrderRecord> specification = (Specification<InStockOrderRecord>) (root, query,
 				criteriaBuilder) -> {
 			List<Predicate> predicatesList = new ArrayList<>();
@@ -182,13 +184,41 @@ public class QueryStockFunction {
 
 			return criteriaBuilder.and(predicatesList.toArray(predicates));
 		};
-
 		List<InStockOrderRecord> resultOfInStockOrderRecord = inStockOrderRepo.findAll(specification);
+		
+		// get StockInfos newer than startTime
+		Specification<StockInfo> specification1 = (Specification<StockInfo>) (root, query, criteriaBuilder) -> {
+			Join<StockInfo, StockIdentifier> join = root.join("stockIdentifier");
+			List<Predicate> predicatesList = new ArrayList<>();
+
+			Predicate productNoPredicate = criteriaBuilder.equal(join.get("productNo"), productNo);
+			predicatesList.add(productNoPredicate);
+
+			if (startDateTime != null && endDateTime != null) {
+				Predicate startFromPredicate = criteriaBuilder.greaterThanOrEqualTo(join.get("createdAt"),
+						startDateTime);
+				predicatesList.add(startFromPredicate);
+			}
+
+			query.orderBy(criteriaBuilder.asc(join.get("createdAt")));
+
+			Predicate[] predicates = new Predicate[predicatesList.size()];
+
+			return criteriaBuilder.and(predicatesList.toArray(predicates));
+		};
+		List<StockInfo> resultOfStockInfo = stockInfoRepository.findAll(specification1);
+		
+		// TODO: handle if resultOfStockInfo.size() == 0
+		Map<Long, StockInfo> idInfoMap = new HashMap<>();
+		resultOfStockInfo.forEach(info -> {
+			idInfoMap.put(info.getStockIdentifier().getId(), info);
+		});
+
 		List<HistoryTreeNode> resultOfHistoryTree = new ArrayList<>();
 
 		resultOfInStockOrderRecord.forEach(inStockOrderRecord -> {
-			resultOfHistoryTree
-					.add(historyService.createHistoryTreeByIdentifierId(inStockOrderRecord.getStockIdentifierId()));
+			resultOfHistoryTree.add(historyService
+					.createHistoryTreeByRootIdentifierId(inStockOrderRecord.getStockIdentifierId(), idInfoMap));
 		});
 
 		return resultOfHistoryTree;
