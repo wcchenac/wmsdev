@@ -14,14 +14,14 @@ class TreeDataNode extends Component {
                 display: "inline-block",
                 borderRadius: 10,
                 color: "black",
-                padding: "0px 5px"
+                padding: "0px 5px",
               }
             : {
                 backgroundColor: "lightgray",
                 display: "inline-block",
                 borderRadius: 10,
                 color: "black",
-                padding: "0px 5px"
+                padding: "0px 5px",
               }
         }
       >
@@ -36,7 +36,8 @@ class TreeDataNode extends Component {
           {stockIdentifier.unit}
         </p>
         <p className="mb-0">
-          瑕疵: {stockInfo.defect}, 記錄: {stockInfo.record}
+          瑕疵: {stockInfo.defect}, 色號: {stockInfo.color}, 記錄:{" "}
+          {stockInfo.record}
         </p>
         {stockIdentifier.exist ? null : (
           <p className="mb-0">
