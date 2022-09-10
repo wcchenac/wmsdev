@@ -8,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.wmstool.wmstool.models.enums.RoleName;
 
 @Entity
 public class Role {

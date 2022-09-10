@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.gson.Gson;
 import com.wmstool.wmstool.models.History;
 import com.wmstool.wmstool.models.StockInfo;
 import com.wmstool.wmstool.repositories.HistoryRepository;
@@ -64,13 +65,13 @@ public class HistoryService {
 
 		return source;
 	}
-	
+
 	private HistoryTreeNode collectDataForTreeByRootId(long rootId, Map<Long, StockInfo> idInfoMap) {
 		// TODO: data not found exception
 		List<History> mine = historyRepo.findByRootIdentifierId(rootId);
 		Map<Long, History> mineMap = new HashMap<>();
 		mine.forEach(history -> mineMap.put(history.getCurrentIdentifierId(), history));
-		
+
 		History root = mineMap.get(rootId);
 		Long[] childrenId = root.getChildrenIdentifierId();
 
@@ -96,8 +97,9 @@ public class HistoryService {
 
 		return source;
 	}
-	
-	private HistoryTreeNode _collectDataForTreeByRootId(long childId, Map<Long, History> mineMap, Map<Long, StockInfo> idInfoMap) {
+
+	private HistoryTreeNode _collectDataForTreeByRootId(long childId, Map<Long, History> mineMap,
+			Map<Long, StockInfo> idInfoMap) {
 		History root = mineMap.get(childId);
 		Long[] childrenId = root.getChildrenIdentifierId();
 
@@ -128,12 +130,18 @@ public class HistoryService {
 		return historyRepo.findById(id).get();
 	}
 
-	public History save(Long id) {
+	public String findByRootIdentifierId(Long id) {
+		List<History> list = historyRepo.findByRootIdentifierId(id);
+		return new Gson().toJson(list);
+	}
+
+	public History updateById(Long id, String childs) {
 		History tmp = historyRepo.findById(id).get();
 
-		Long[] a = { 80757L, 80758L, 80759L, 80760L, 80762L, 80764L, 80765L };
+		String[] split = childs.split(",");
+		Long[] ids = Arrays.stream(split).map(s -> Long.valueOf(s)).collect(Collectors.toList()).toArray(new Long[0]);
 
-		tmp.setChildrenIdentifierId(a);
+		tmp.setChildrenIdentifierId(ids);
 
 		return historyRepo.save(tmp);
 	}

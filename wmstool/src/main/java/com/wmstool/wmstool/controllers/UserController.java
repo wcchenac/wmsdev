@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wmstool.wmstool.models.Role;
-import com.wmstool.wmstool.models.RoleName;
 import com.wmstool.wmstool.models.User;
+import com.wmstool.wmstool.models.enums.RoleName;
 import com.wmstool.wmstool.models.payloads.ApiResponse;
 import com.wmstool.wmstool.models.payloads.JwtAuthenticationResponse;
 import com.wmstool.wmstool.models.payloads.LoginRequest;

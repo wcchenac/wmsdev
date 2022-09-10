@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.wmstool.wmstool.models.InStockOrderRecord;
+import com.wmstool.wmstool.models.enums.EInstockType;
 import com.wmstool.wmstool.models.payloads.ProductInformation;
 import com.wmstool.wmstool.models.payloads.QueryOrderResponse;
 import com.wmstool.wmstool.repositories.InStockOrderRepo;
@@ -34,11 +35,6 @@ public class QueryOrderFunction {
 	@Autowired
 	private StockServiceUtilities stockServiceUtilities;
 
-	private final String InStockType_Normal = "normal";
-	private final String InStockType_Assemble = "assemble";
-	private final String InStockType_CustomerReturn = "customerReturn";
-	private final String InStockType_StoreReturn = "storeReturn";
-
 	private final String inStockOrderSQLStatement = "SELECT * FROM dbo.InstockOrder WHERE CODE= ?1";
 	private final String assembleOrderAndProductUnitSQLStatement = "SELECT * FROM dbo.AssembleOrder WHERE CODE = ?1";
 	private final String customerReturnOrderSQLStatement = "SELECT * FROM dbo.CustomerReturnOrder WHERE CODE= ?1";
@@ -51,7 +47,7 @@ public class QueryOrderFunction {
 	 */
 	public QueryOrderResponse queryInStockOrder(String inStockOrderNo) {
 		Map<String, Map<String, Map<String, String>>> currentOrderStatus = getInStockOrderContent(inStockOrderNo);
-		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(InStockType_Normal,
+		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(EInstockType.Normal.type(),
 				inStockOrderNo);
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = deriveWaitHandleStatus(currentOrderStatus,
 				prevOrderStatus);
@@ -64,7 +60,7 @@ public class QueryOrderFunction {
 	 */
 	public QueryOrderResponse queryAssembleOrder(String assembleOrderNo) {
 		Map<String, Map<String, Map<String, String>>> currentOrderStatus = getAssembleOrderContent(assembleOrderNo);
-		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(InStockType_Assemble,
+		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(EInstockType.Assemble.type(),
 				assembleOrderNo);
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = deriveWaitHandleStatus(currentOrderStatus,
 				prevOrderStatus);
@@ -77,7 +73,8 @@ public class QueryOrderFunction {
 	 */
 	public QueryOrderResponse queryCustomerReturnOrder(String returnOrderNo) {
 		Map<String, Map<String, Map<String, String>>> currentOrderStatus = getCustomerReturnOrderContent(returnOrderNo);
-		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(InStockType_CustomerReturn,
+		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(
+				EInstockType.CustomerReturn.type(),
 				returnOrderNo);
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = deriveWaitHandleStatus(currentOrderStatus,
 				prevOrderStatus);
@@ -91,7 +88,7 @@ public class QueryOrderFunction {
 	public QueryOrderResponse queryStoreReturnOrder(String returnOrderNo) {
 		// TODO: modify to getStoreReturnOrderContent
 		Map<String, Map<String, Map<String, String>>> currentOrderStatus = getStoreReturnOrderContent(returnOrderNo);
-		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(InStockType_StoreReturn,
+		Map<String, Map<String, Map<String, String>>> prevOrderStatus = getOrderRecord(EInstockType.StoreReturn.type(),
 				returnOrderNo);
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = deriveWaitHandleStatus(currentOrderStatus,
 				prevOrderStatus);
@@ -313,22 +310,22 @@ public class QueryOrderFunction {
 		String unit = inStockOrderRecord.getUnit();
 
 		switch (unit) {
-		case "尺":
-			quantity = String.format("%.2f", Double.parseDouble(quantity) / 3.0);
-			unit = "碼";
-			inStockOrderRecord.setQuantity(quantity);
-			inStockOrderRecord.setUnit(unit);
+			case "尺":
+				quantity = String.format("%.2f", Double.parseDouble(quantity) / 3.0);
+				unit = "碼";
+				inStockOrderRecord.setQuantity(quantity);
+				inStockOrderRecord.setUnit(unit);
 
-			return inStockOrderRecord;
-		case "打":
-			quantity = String.format("%d", Integer.parseInt(quantity) * 12);
-			unit = "個";
-			inStockOrderRecord.setQuantity(quantity);
-			inStockOrderRecord.setUnit(unit);
+				return inStockOrderRecord;
+			case "打":
+				quantity = String.format("%d", Integer.parseInt(quantity) * 12);
+				unit = "個";
+				inStockOrderRecord.setQuantity(quantity);
+				inStockOrderRecord.setUnit(unit);
 
-			return inStockOrderRecord;
-		default:
-			return inStockOrderRecord;
+				return inStockOrderRecord;
+			default:
+				return inStockOrderRecord;
 		}
 	}
 
@@ -349,8 +346,8 @@ public class QueryOrderFunction {
 		}.getType();
 		Map<String, Map<String, Map<String, String>>> waitHandleStatus = gson.fromJson(mapString, typeOfMap);
 
-		// when prevStatus map has same productNo and type as waitHandleStatus map, the
-		// calculation arises
+		// when prevStatus map has same productNo and type as waitHandleStatus map,
+		// the calculation arises
 		waitHandleStatus.keySet().forEach(productNo -> waitHandleStatus.get(productNo).keySet().forEach(type -> {
 			if (prevStatus.get(productNo) != null && prevStatus.get(productNo).get(type) != null) {
 				waitHandleStatus.get(productNo).get(type).put("quantity",

@@ -27,6 +27,7 @@ import com.wmstool.wmstool.models.payloads.OutStockUpdateRequest;
 import com.wmstool.wmstool.models.payloads.ShipRequest;
 import com.wmstool.wmstool.models.payloads.ShrinkStockRequest;
 import com.wmstool.wmstool.models.payloads.UpdateInfoRequest;
+import com.wmstool.wmstool.services.HistoryService;
 import com.wmstool.wmstool.services.stockService.StockService;
 import com.wmstool.wmstool.utilities.HistoryTreeNode;
 
@@ -39,6 +40,9 @@ public class StockController {
 	@Autowired
 	private StockService stockService;
 
+	@Autowired
+	private HistoryService historyService;
+
 	@PreAuthorize("hasAnyRole('ROLE_Normal', 'ROLE_Operator','ROLE_Admin')")
 	@GetMapping("/queryOrder/{orderType}/{orderNo}")
 	public ResponseEntity<?> getOrderContent(@PathVariable(value = "orderType") String orderType,
@@ -50,18 +54,18 @@ public class StockController {
 		final String OrderType_OutStockToStore = "outStockToStore";
 
 		switch (orderType) {
-		case OrderType_InStock:
-			return new ResponseEntity<>(stockService.queryInStockOrder(orderNo), HttpStatus.OK);
-		case OrderType_Assemble:
-			return new ResponseEntity<>(stockService.queryAssembleOrder(orderNo), HttpStatus.OK);
-		case OrderType_CustomerReturn:
-			return new ResponseEntity<>(stockService.queryCustomerReturnOrder(orderNo), HttpStatus.OK);
-		case OrderType_StoreReturn:
-			return new ResponseEntity<>(stockService.queryStoreReturnOrder(orderNo), HttpStatus.OK);
-		case OrderType_OutStockToStore:
-			return new ResponseEntity<>(stockService.queryOutStockToStoreOrder(orderNo), HttpStatus.OK);
-		default:
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			case OrderType_InStock:
+				return new ResponseEntity<>(stockService.queryInStockOrder(orderNo), HttpStatus.OK);
+			case OrderType_Assemble:
+				return new ResponseEntity<>(stockService.queryAssembleOrder(orderNo), HttpStatus.OK);
+			case OrderType_CustomerReturn:
+				return new ResponseEntity<>(stockService.queryCustomerReturnOrder(orderNo), HttpStatus.OK);
+			case OrderType_StoreReturn:
+				return new ResponseEntity<>(stockService.queryStoreReturnOrder(orderNo), HttpStatus.OK);
+			case OrderType_OutStockToStore:
+				return new ResponseEntity<>(stockService.queryOutStockToStoreOrder(orderNo), HttpStatus.OK);
+			default:
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -297,23 +301,22 @@ public class StockController {
 		}
 	}
 
-	// ------ under test function ------
-
 	@PreAuthorize("hasAnyRole('ROLE_Admin')")
-	@GetMapping("/test")
-	public ResponseEntity<?> test(@RequestParam(value = "id") long id) {
+	@GetMapping("/queryStock/history/{id}")
+	public ResponseEntity<?> getHistoryStructure(@RequestParam(value = "id") long id) {
 		try {
-			return new ResponseEntity<History>(stockService.findById(id), HttpStatus.OK);
+			return new ResponseEntity<String>(historyService.findByRootIdentifierId(id), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	@PreAuthorize("hasAnyRole('ROLE_Admin')")
-	@PatchMapping("/test/updateHistory")
-	public ResponseEntity<?> testUpdate(@RequestParam(value = "id") long id) {
+	@PatchMapping("/queryStock/updateHistory")
+	public ResponseEntity<?> testUpdate(@RequestParam(value = "id") long id,
+			@RequestParam(value = "childs") String childs) {
 		try {
-			return new ResponseEntity<History>(stockService.updateById(id), HttpStatus.OK);
+			return new ResponseEntity<History>(historyService.updateById(id, childs), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}

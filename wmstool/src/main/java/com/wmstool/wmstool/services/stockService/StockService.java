@@ -10,7 +10,6 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.wmstool.wmstool.models.History;
 import com.wmstool.wmstool.models.OutStockRequest;
 import com.wmstool.wmstool.models.StockInfo;
 import com.wmstool.wmstool.models.payloads.HandleListResponse;
@@ -290,13 +289,5 @@ public class StockService {
 	 */
 	public void collectCategoyDetails(String category) throws FileNotFoundException, IOException {
 		queryStockFunction.findCategoryDetails(category);
-	}
-
-	public History updateById(Long id) {
-		return queryStockFunction.findById(id);
-	}
-
-	public History findById(Long id) {
-		return queryStockFunction.updateById(id);
 	}
 }

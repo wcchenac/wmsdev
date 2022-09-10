@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-import com.wmstool.wmstool.models.History;
 import com.wmstool.wmstool.models.InStockOrderRecord;
 import com.wmstool.wmstool.models.Product;
 import com.wmstool.wmstool.models.StockIdentifier;
@@ -80,8 +79,7 @@ public class QueryStockFunction {
 	 * fetching from first db
 	 */
 	public QueryProductNoResponse findBasicStockInfoByProductNo(String productNo) {
-		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, true),
-				getProductsByProductNo(productNo), nearByProductNo(productNo));
+		return _findStockInfoByProductNo(productNo, true);
 	}
 
 	/**
@@ -90,7 +88,11 @@ public class QueryStockFunction {
 	 * first db and current total quantity
 	 */
 	public QueryProductNoResponse findDetailStockInfoByProductNo(String productNo) {
-		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, false),
+		return _findStockInfoByProductNo(productNo, false);
+	}
+
+	private QueryProductNoResponse _findStockInfoByProductNo(String productNo, boolean bMode) {
+		return new QueryProductNoResponse(getStockInfoByProductNo(productNo), getProductNoInfo(productNo, bMode),
 				getProductsByProductNo(productNo), nearByProductNo(productNo));
 	}
 
@@ -185,7 +187,7 @@ public class QueryStockFunction {
 			return criteriaBuilder.and(predicatesList.toArray(predicates));
 		};
 		List<InStockOrderRecord> resultOfInStockOrderRecord = inStockOrderRepo.findAll(specification);
-		
+
 		// get StockInfos newer than startTime
 		Specification<StockInfo> specification1 = (Specification<StockInfo>) (root, query, criteriaBuilder) -> {
 			Join<StockInfo, StockIdentifier> join = root.join("stockIdentifier");
@@ -207,7 +209,7 @@ public class QueryStockFunction {
 			return criteriaBuilder.and(predicatesList.toArray(predicates));
 		};
 		List<StockInfo> resultOfStockInfo = stockInfoRepository.findAll(specification1);
-		
+
 		// TODO: handle if resultOfStockInfo.size() == 0
 		Map<Long, StockInfo> idInfoMap = new HashMap<>();
 		resultOfStockInfo.forEach(info -> {
@@ -357,11 +359,7 @@ public class QueryStockFunction {
 	 * Helper method for mapping empty String to a meaningful value
 	 */
 	public static String nullValueHelper(String input) {
-		if (input.equals("")) {
-			return "無資料";
-		} else {
-			return input;
-		}
+		return input.equals("") ? "無資料" : input;
 	}
 
 	/**
@@ -371,18 +369,18 @@ public class QueryStockFunction {
 		String addType = "";
 
 		switch (value) {
-		case 0:
-			return addType = "無";
-		case 1:
-			return addType = "可追加";
-		case 2:
-			return addType = "不可追加";
-		case 3:
-			return addType = "暫缺貨";
-		case 4:
-			return addType = "無貨";
-		default:
-			return addType;
+			case 0:
+				return addType = "無";
+			case 1:
+				return addType = "可追加";
+			case 2:
+				return addType = "不可追加";
+			case 3:
+				return addType = "暫缺貨";
+			case 4:
+				return addType = "無貨";
+			default:
+				return addType;
 		}
 	}
 
@@ -447,13 +445,5 @@ public class QueryStockFunction {
 		}
 
 		return result;
-	}
-
-	public History findById(Long id) {
-		return historyService.findById(id);
-	}
-
-	public History updateById(Long id) {
-		return historyService.save(id);
 	}
 }

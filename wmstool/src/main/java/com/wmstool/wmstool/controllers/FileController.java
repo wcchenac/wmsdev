@@ -68,23 +68,23 @@ public class FileController {
 		String subFolderName = "";
 
 		switch (fileCategory) {
-		case File_Category_Allocation:
-			subFolderName = SubFolder_STKALLT;
-			break;
-		case File_Category_Adjustment:
-			subFolderName = SubFolder_STKADST;
-			break;
-		case File_Category_OutStockList:
-			subFolderName = SubFolder_OutStockList;
-			break;
-		case File_Category_DailyCompare:
-			subFolderName = SubFolder_DailyCompare;
-			break;
-		case File_Category_CategoryDetail:
-			subFolderName = SubFolder_CategoryDetail;
-			break;
-		default:
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			case File_Category_Allocation:
+				subFolderName = SubFolder_STKALLT;
+				break;
+			case File_Category_Adjustment:
+				subFolderName = SubFolder_STKADST;
+				break;
+			case File_Category_OutStockList:
+				subFolderName = SubFolder_OutStockList;
+				break;
+			case File_Category_DailyCompare:
+				subFolderName = SubFolder_DailyCompare;
+				break;
+			case File_Category_CategoryDetail:
+				subFolderName = SubFolder_CategoryDetail;
+				break;
+			default:
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
 		try {
@@ -108,17 +108,17 @@ public class FileController {
 	@GetMapping("/query/{fileCategory}/today")
 	public ResponseEntity<?> queryCategoryTodayFile(@PathVariable String fileCategory) {
 		switch (fileCategory) {
-		case File_Category_Allocation:
-			return new ResponseEntity<String>(fileService.findTodayFile(fileCategory,
-					folderPath + seperator + SubFolder_STKALLT, FilenamePrefix_Allocation), HttpStatus.OK);
-		case File_Category_Adjustment:
-			return new ResponseEntity<String>(fileService.findTodayFile(fileCategory,
-					folderPath + seperator + SubFolder_STKADST, FilenamePrefix_Adjustment), HttpStatus.OK);
-		case File_Category_DailyCompare:
-			return new ResponseEntity<String>(fileService.findTodayFile(fileCategory,
-					folderPath + seperator + SubFolder_DailyCompare, FilenamePrefix_DailyCompare), HttpStatus.OK);
-		default:
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			case File_Category_Allocation:
+				return new ResponseEntity<String>(fileService.findTodayFile(fileCategory,
+						folderPath + seperator + SubFolder_STKALLT, FilenamePrefix_Allocation), HttpStatus.OK);
+			case File_Category_Adjustment:
+				return new ResponseEntity<String>(fileService.findTodayFile(fileCategory,
+						folderPath + seperator + SubFolder_STKADST, FilenamePrefix_Adjustment), HttpStatus.OK);
+			case File_Category_DailyCompare:
+				return new ResponseEntity<String>(fileService.findTodayFile(fileCategory,
+						folderPath + seperator + SubFolder_DailyCompare, FilenamePrefix_DailyCompare), HttpStatus.OK);
+			default:
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -126,18 +126,20 @@ public class FileController {
 	public ResponseEntity<?> queryCategoryIntervalFiles(@PathVariable String fileCategory,
 			@RequestParam(value = "startDate") String start, @RequestParam(value = "endDate") String end) {
 		switch (fileCategory) {
-		case File_Category_Allocation:
-			return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
-					folderPath + seperator + SubFolder_STKALLT, FilenamePrefix_Allocation, start, end), HttpStatus.OK);
-		case File_Category_Adjustment:
-			return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
-					folderPath + seperator + SubFolder_STKADST, FilenamePrefix_Adjustment, start, end), HttpStatus.OK);
-		case File_Category_DailyCompare:
-			return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
-					folderPath + seperator + SubFolder_DailyCompare, FilenamePrefix_DailyCompare, start, end),
-					HttpStatus.OK);
-		default:
-			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			case File_Category_Allocation:
+				return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
+						folderPath + seperator + SubFolder_STKALLT, FilenamePrefix_Allocation, start, end),
+						HttpStatus.OK);
+			case File_Category_Adjustment:
+				return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
+						folderPath + seperator + SubFolder_STKADST, FilenamePrefix_Adjustment, start, end),
+						HttpStatus.OK);
+			case File_Category_DailyCompare:
+				return new ResponseEntity<List<String>>(fileService.findPeriodFiles(fileCategory,
+						folderPath + seperator + SubFolder_DailyCompare, FilenamePrefix_DailyCompare, start, end),
+						HttpStatus.OK);
+			default:
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -179,16 +181,17 @@ public class FileController {
 		int index = fileName.indexOf("-");
 
 		switch (fileCategory) {
-		case File_Category_Allocation:
-		case File_Category_Adjustment:
-		case File_Category_OutStockList:
-		case File_Category_DailyCompare:
-			return fileName.substring(index + 1, index + 5) + seperator
-					+ String.valueOf(Integer.parseInt(fileName.substring(index + 5, index + 7))) + seperator + fileName;
-		case File_Category_CategoryDetail:
-			return fileName;
-		default:
-			return null;
+			case File_Category_Allocation:
+			case File_Category_Adjustment:
+			case File_Category_OutStockList:
+			case File_Category_DailyCompare:
+				return fileName.substring(index + 1, index + 5) + seperator
+						+ String.valueOf(Integer.parseInt(fileName.substring(index + 5, index + 7))) + seperator
+						+ fileName;
+			case File_Category_CategoryDetail:
+				return fileName;
+			default:
+				return null;
 		}
 
 	}

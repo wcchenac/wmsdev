@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -16,8 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.wmstool.wmstool.models.Role;
-import com.wmstool.wmstool.models.RoleName;
 import com.wmstool.wmstool.models.User;
+import com.wmstool.wmstool.models.enums.RoleName;
 import com.wmstool.wmstool.models.payloads.LoginRequest;
 import com.wmstool.wmstool.models.payloads.UpdateUserRequest;
 import com.wmstool.wmstool.repositories.RoleRepository;
@@ -73,10 +74,13 @@ public class UserService {
 
 	// Return true if update process success; otherwise, return false
 	public boolean updateUserInfo(UpdateUserRequest updateUserRequest) {
-		// TODO: data not found
 		try {
-			User user = userRepository.findByEmployeeId(updateUserRequest.getEmployeeId()).get();
+			Optional<User> optUser = userRepository.findByEmployeeId(updateUserRequest.getEmployeeId());
+			if (!optUser.isPresent()) {
+				return false;
+			}
 
+			User user = optUser.get();
 			if (updateUserRequest.getNewPassword() != null) {
 				user.setPassword(passwordEncoder.encode(updateUserRequest.getNewPassword()));
 			}
@@ -86,6 +90,8 @@ public class UserService {
 			if (!RoleName.valueOf(updateUserRequest.getRole()).equals(user.getRole().getRole())) {
 				user.setRole(roleRepository.findByRole(RoleName.valueOf(updateUserRequest.getRole())).get());
 			}
+
+			userRepository.save(user);
 
 			return true;
 		} catch (Exception e) {
@@ -104,16 +110,13 @@ public class UserService {
 
 	private String rolenameResolve(Role role) {
 		switch (role.getRole()) {
-		case ROLE_Admin:
-			return "管理員";
-		case ROLE_Normal:
-			return "一般人員/門市";
-		case ROLE_Operator:
-			return "庫存相關人員";
-		case ROLE_Sales:
-			return "業務";
-		default:
-			return "ERROR";
+			case ROLE_Admin:
+			case ROLE_Normal:
+			case ROLE_Operator:
+			case ROLE_Sales:
+				return role.getRole().canme();
+			default:
+				return "ERROR";
 		}
 	}
 }
