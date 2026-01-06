@@ -1,0 +1,182 @@
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RoleOption } from "../../../../enums/Enums";
+import { registerUser } from "../../../../actions/UserActions";
+import LoadingOverlay from "react-loading-overlay-ts";
+import { Spinner } from "../../../Others/Spinner";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { RootState } from "../../../../store";
+
+interface UserRegisterState {
+  isLoading: boolean;
+  employeeId: string;
+  fullName: string;
+  password: string;
+  role: string;
+  errors: Record<string, string>;
+}
+
+const initialState: UserRegisterState = {
+  isLoading: false,
+  employeeId: "",
+  fullName: "",
+  password: "",
+  role: "",
+  errors: {}
+};
+
+const UserRegister: React.FC = () => {
+  const [state, setState] = useState<UserRegisterState>(initialState);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dispatch = useDispatch<any>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const errors = useSelector((s: RootState) => s.errors) as any;
+
+  useEffect(() => {
+    if (errors) {
+      setState((prev) => ({ ...prev, errors }));
+    }
+  }, [errors]);
+
+  const userKeyInChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+    setState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+
+    const { employeeId, fullName, password, role } = state;
+
+    const registration = {
+      employeeId,
+      fullName,
+      password,
+      role,
+      username: employeeId,
+      confirmPassword: password
+    };
+
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    dispatch(registerUser(registration))
+      .then(() => {
+        setState(initialState);
+        toast.success("register success");
+      })
+      .catch(() => {
+        setState((prev) => ({ ...prev, isLoading: false }));
+        toast.error("register fail");
+      });
+  };
+
+  const submissionValidate = (): boolean => {
+    const { employeeId, fullName, password, role } = state;
+    return !(employeeId !== "" && fullName !== "" && password !== "" && role !== "");
+  };
+
+  return (
+    <div className="container">
+      <LoadingOverlay active={state.isLoading} spinner={<Spinner />}>
+        <div style={{ height: "80vh" }}>
+          <div className="row justify-content-center">
+            <div
+              className="col-4"
+              style={{ border: "1px solid black", borderRadius: "5px" }}
+            >
+              <div className="mt-2 mb-2">
+                <p className="h5 text-center mb-3">註冊新員工</p>
+                <form onSubmit={handleSubmit}>
+                  <div className="form-group row">
+                    <label htmlFor="employeeId" className="col-4 col-form-label">
+                      員工編號
+                    </label>
+                    <div className="col-8">
+                      <input
+                        type="text"
+                        id="employeeId"
+                        name="employeeId"
+                        className="form-control"
+                        placeholder="員工編號"
+                        value={state.employeeId}
+                        onChange={userKeyInChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group row">
+                    <label htmlFor="fullName" className="col-4 col-form-label">
+                      姓名
+                    </label>
+                    <div className="col-8">
+                      <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        className="form-control"
+                        placeholder="姓名"
+                        value={state.fullName}
+                        onChange={userKeyInChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group row">
+                    <label htmlFor="password" className="col-4 col-form-label">
+                      密碼
+                    </label>
+                    <div className="col-8">
+                      <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        className="form-control"
+                        placeholder="密碼"
+                        value={state.password}
+                        onChange={userKeyInChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group row">
+                    <label htmlFor="role" className="col-4 col-form-label">
+                      權限
+                    </label>
+                    <div className="col-8">
+                      <select
+                        id="role"
+                        name="role"
+                        className="custom-select"
+                        value={state.role}
+                        onChange={userKeyInChange}
+                      >
+                        {Object.keys(RoleOption).map((title, index) => (
+                          <option key={index} value={RoleOption[title]}>
+                            {title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="row justify-content-center">
+                    <div className="col-6">
+                      <button
+                        type="submit"
+                        className="btn btn-primary btn-block"
+                        disabled={submissionValidate()}
+                      >
+                        註冊
+                      </button>
+                    </div>
+                  </div>
+                </form>
+                <div className="form-group">
+                  <ToastContainer />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </LoadingOverlay>
+    </div>
+  );
+};
+
+export default UserRegister;
