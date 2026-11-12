@@ -1,0 +1,10 @@
+.git
+**/.git
+**/node_modules
+**/build
+**/storybook-static
+**/coverage
+wmstool/target
+**/.env
+**/.env.local
+**/.env.*.local
