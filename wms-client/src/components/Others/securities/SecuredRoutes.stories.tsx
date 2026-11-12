@@ -15,10 +15,15 @@ function ProtectedPage() {
 }
 
 function AccessSwitch({
-  route: RouteComponent,
+  route,
 }: {
-  route: React.ComponentType<Record<string, unknown>>;
+  route: React.ElementType;
 }) {
+  const RouteComponent = route as React.ComponentType<{
+    exact?: boolean;
+    path?: string;
+    component: React.ComponentType;
+  }>;
   return (
     <Switch>
       <RouteComponent exact path="/secure" component={ProtectedPage} />
@@ -44,9 +49,14 @@ const secureParameters = {
   router: { initialEntries: ["/secure"] },
 };
 
+type SessionArgs = {
+  validToken?: boolean;
+  authority?: string;
+};
+
 const meta = {
   title: "Security/SecuredRoutes",
-  component: SecuredRouteLvH,
+  component: SecuredRouteLvH as unknown as React.ComponentType<SessionArgs>,
   decorators: [withStore],
   parameters: secureParameters,
   args: {
@@ -60,7 +70,7 @@ const meta = {
       options: Object.values(RoleOption).filter(Boolean),
     },
   },
-} satisfies Meta<typeof SecuredRouteLvH>;
+} satisfies Meta<SessionArgs>;
 
 export default meta;
 

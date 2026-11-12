@@ -1,4 +1,4 @@
-import API from "../utilities/API";
+import API from "../utilities/apiClient";
 import {
   SET_Current_User,
   GET_UserList,
