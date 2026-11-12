@@ -1,0 +1,44 @@
+name: wms
+
+services:
+  mock:
+    build:
+      context: ./mock
+    image: wms-mock:local
+    environment:
+      PORT: "8080"
+      TZ: UTC
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+    image: wms-frontend:local
+    environment:
+      BACKEND_UPSTREAM: http://mock:8080
+      API_BASE_URL: ""
+    ports:
+      - "3000:80"
+    depends_on:
+      mock:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
