@@ -19,7 +19,7 @@ const booleanActionPayload = payload => {
   }
 };
 
-export default function(state = initialState, action) {
+function userReducer(state = initialState, action) {
   switch (action.type) {
     case SET_Current_User:
       return {
@@ -42,3 +42,5 @@ export default function(state = initialState, action) {
       return state;
   }
 }
+
+export default userReducer;

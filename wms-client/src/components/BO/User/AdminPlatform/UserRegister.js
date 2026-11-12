@@ -3,7 +3,6 @@ import { RoleOption } from "../../../../enums/Enums";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
-import classnames from "classnames";
 import { registerUser } from "../../../../actions/UserActions";
 import LoadingOverlay from "react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";

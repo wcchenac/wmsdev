@@ -4,7 +4,7 @@ const initialState = {
   outStockRequests: {}
 };
 
-export default function(state = initialState, action) {
+function outStockRequestReducer(state = initialState, action) {
   switch (action.type) {
     case GET_OutStockRequests:
       return {
@@ -15,3 +15,5 @@ export default function(state = initialState, action) {
       return state;
   }
 }
+
+export default outStockRequestReducer;

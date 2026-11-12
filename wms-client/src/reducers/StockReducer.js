@@ -14,7 +14,7 @@ const initialState = {
   stockInfo: {}
 };
 
-export default function(state = initialState, action) {
+function stockReducer(state = initialState, action) {
   switch (action.type) {
     case GET_Order:
     case GET_StockInfoes:
@@ -51,3 +51,5 @@ export default function(state = initialState, action) {
       return state;
   }
 }
+
+export default stockReducer;
