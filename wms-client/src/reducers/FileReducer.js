@@ -2,7 +2,7 @@ import { CREATE_FILE } from "../actions/types";
 
 const initialState = {};
 
-export default function(state = initialState, action) {
+function fileReducer(state = initialState, action) {
   switch (action.type) {
     case CREATE_FILE:
       return state;
@@ -10,3 +10,5 @@ export default function(state = initialState, action) {
       return state;
   }
 }
+
+export default fileReducer;
