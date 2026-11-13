@@ -85,6 +85,7 @@ const pages = [
       fireEvent.change(container.querySelector('select[name=orderType]')!, { target: { name: 'orderType', value: 'assemble' } });
       fireEvent.change(container.querySelector('input[name=orderNo]')!, { target: { name: 'orderNo', value: 'IN999' } });
     },
+    '/api/stock/queryStock/inStockRollback?orderType=assemble&orderNo=IN999',
   ],
   [
     '減肥回朔 (ShrinkRollback)',
@@ -102,10 +103,11 @@ const pages = [
     (container: HTMLElement) => {
       fireEvent.change(container.querySelector('#productNo-search')!, { target: { name: 'productNo', value: 'CF9999' } });
     },
+    '/api/stock/queryStock/shrinkRollback/CF9999',
   ],
 ] as const;
 
-describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList, editSearch) => {
+describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList, editSearch, editedListUrl) => {
   const renderAndQuery = async () => {
     const view = render(
       <Provider store={createStore(rootReducer, applyMiddleware(thunk))}>
@@ -156,6 +158,8 @@ describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList,
       fireEvent.submit(container.querySelector('form')!);
     });
     await settle();
+    // B was really queried (so this is not just the "edited but never queried" case).
+    expect(API.get).toHaveBeenNthCalledWith(2, editedListUrl);
     expect(screen.getByTestId('list')).toHaveTextContent(JSON.stringify(staleList));
     vi.mocked(API.patch).mockRejectedValue(badRequest());
     vi.mocked(API.get).mockResolvedValue({ status: 200, data: currentList });
