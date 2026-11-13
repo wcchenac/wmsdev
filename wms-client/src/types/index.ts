@@ -239,7 +239,11 @@ export interface OutStockRequestCreate {
 /** PATCH /api/stock/updateStock (backend UpdateInfoRequest). */
 export interface UpdateStockInfoRequest {
   id?: number;
-  color?: string;
+  /**
+   * Backend int. Unchanged, it is the number the backend sent (e.g. 2); picked again in the
+   * color select, it is the option's string value (e.g. "3").
+   */
+  color?: number | string;
   /** Selected defects joined as "GA/GB". */
   defect?: string;
   record?: string;
