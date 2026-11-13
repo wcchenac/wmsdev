@@ -125,7 +125,7 @@ function checkFormAlgorithm(
   typeList.forEach((type) => {
     if (
       parseFloat(waitHandleStatus[type].quantity as string) ===
-      parseFloat(quantitySum[type] as unknown as string)
+      quantitySum[type]
     ) {
       quantityValid[type] = true;
     } else {
@@ -207,7 +207,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
     setStockInfoes((prevStockInfoes) => {
       const stockInfoesCopy = copy(prevStockInfoes);
       const { name, value } = event.target;
-      updateStockInfoesCopy(stockInfoesCopy as unknown as Parameters<typeof updateStockInfoesCopy>[0], name as Parameters<typeof updateStockInfoesCopy>[1], value, i);
+      updateStockInfoesCopy(stockInfoesCopy, name, value, i);
       return stockInfoesCopy;
     });
   }, []);
@@ -303,11 +303,11 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
   }, [stockInfoes, handleInStockRequestSubmit, index]);
 
   const typeList = Object.keys(waitHandleStatus);
-  const quantitySum = quantityAccumulate(stockInfoes as unknown as Parameters<typeof quantityAccumulate>[0]);
+  const quantitySum: QuantitySum = quantityAccumulate(stockInfoes);
   const isFormValid = checkFormAlgorithm(
     stockInfoes,
     typeList,
-    quantitySum as unknown as QuantitySum,
+    quantitySum,
     waitHandleStatus
   );
 
@@ -374,7 +374,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
                       type="text"
                       className="form-control"
                       name="quantity_handled"
-                      value={(quantitySum as unknown as Record<string, number>)[typeKey]?.toString() || "0"}
+                      value={quantitySum[typeKey]?.toString() || "0"}
                       readOnly
                     />
                   </div>

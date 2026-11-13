@@ -65,8 +65,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
     const { name, value } = e.target;
     setStockInfo((prev) => {
       const infoCopy = copy(prev) as StockInfoWithDefectOptions;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      updateStockInfoCopy(infoCopy as any, name, value);
+      updateStockInfoCopy(infoCopy, name, value);
       return infoCopy;
     });
   }, []);
@@ -83,8 +82,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
     const updateInfoRequest: UpdateStockInfoRequest = {
       id: stockInfo.id,
       color: stockInfo.color,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      defect: joinInfoDefectArray(stockInfo as any),
+      defect: joinInfoDefectArray({ defect: stockInfo.defect }),
       record: stockInfo.record,
       remark: stockInfo.remark
     };
@@ -232,7 +230,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                     defaultValue={stockInfo.defect}
                     isMulti
                     name="defect"
-                    options={DefectOptions as unknown as DefectOption[]}
+                    options={[...DefectOptions]}
                     onChange={handleDefectChange}
                   />
                 </div>

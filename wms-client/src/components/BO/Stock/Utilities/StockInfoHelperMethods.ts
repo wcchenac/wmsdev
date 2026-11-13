@@ -25,10 +25,31 @@ interface StockInfo extends StockInfoBase {
   defect: (DefectOption | undefined)[];
 }
 
-interface QuantityAccumulateResult {
-  整支: number;
-  板卷: number;
-  雜項: number;
+/** Total quantity per stock type. */
+export type QuantityAccumulateResult = Record<"整支" | "板卷" | "雜項", number>;
+
+/** The fields quantityAccumulate reads from a row. */
+export interface QuantityRow {
+  type?: string;
+  quantity: string | number;
+}
+
+/**
+ * The fields updateStockInfoesCopy writes. In-stock (入庫) and shrink (減肥) form rows both
+ * have these.
+ */
+export interface EditableStockRow {
+  lotNo?: string;
+  type?: string;
+  quantity: string;
+  unit?: string;
+  color?: string;
+  record?: string;
+  remark?: string;
+  outStockReason?: string;
+  errors: {
+    quantity?: string;
+  };
 }
 
 // Parse a row's quantity for totals. A quantity that is still empty (or not yet
@@ -59,7 +80,7 @@ export function exceedsRowCountLimit(value: string | number): boolean {
 }
 
 // accumulate the total quantity by type
-export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulateResult {
+export function quantityAccumulate(stockInfoes: ReadonlyArray<QuantityRow>): QuantityAccumulateResult {
   let roll = 0.0;
   let board = 0.0;
   let item = 0.0;
@@ -83,20 +104,12 @@ export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulate
   };
 }
 
-type StockInfoField =
-  | "lotNo"
-  | "type"
-  | "quantity"
-  | "unit"
-  | "color"
-  | "record"
-  | "remark"
-  | "outStockReason";
 
 // update the value at stockInfoesCopy[i].[name]
 export function updateStockInfoesCopy(
-  stockInfoesCopy: StockInfo[],
-  name: StockInfoField,
+  stockInfoesCopy: EditableStockRow[],
+  // A form field's name; fields other than the ones below are ignored.
+  name: string,
   value: string,
   i: number
 ): void {

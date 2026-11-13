@@ -176,8 +176,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
         setNewStockInfoes(prev => {
             const newStockInfoesCopy = copy(prev) as NewStockInfoItem[];
             const { name, value } = request.target;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            updateStockInfoesCopy(newStockInfoesCopy as any, name as any, value, i);
+            updateStockInfoesCopy(newStockInfoesCopy, name, value, i);
             return newStockInfoesCopy;
         });
     }, []);

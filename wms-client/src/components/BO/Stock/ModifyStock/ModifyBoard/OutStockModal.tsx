@@ -88,8 +88,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
 
     setOutStockRequest(prevRequest => {
       const outStockRequestsCopy = copy(prevRequest) as OutStockRequestState;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      updateStockInfoCopy(outStockRequestsCopy as any, name, value);
+      updateStockInfoCopy(outStockRequestsCopy, name, value);
 
       if (assignMode) {
         outStockRequestsCopy.quantity = "\u96a8\u610f";
