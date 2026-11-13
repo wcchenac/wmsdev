@@ -289,6 +289,22 @@ def test_import_blank_rows_between_data(operator, db, golden):
     golden.add("db", db_state(db, ["stockidentifier"]))
 
 
+def test_import_text_cells_starting_with_equals(operator, db, golden):
+    """POI's Cell.toString() drops the '=' only for formula cells (it prints the formula);
+    a text cell that starts with '=' keeps it."""
+    book = openpyxl.Workbook()
+    sheet = book.active
+    assert sheet is not None
+    sheet.append(IMPORT_HEADER)
+    sheet.append(["CF1001", "L01", "整支", "50", "碼", 0, None, "=A區", None, "fileImport", None])
+    sheet["H2"].data_type = "s"  # 備註: text that starts with '=', not a formula
+    sheet["I2"] = '="記錄"'      # 記錄: a real formula
+    buf = io.BytesIO()
+    book.save(buf)
+    golden.response("import", _post(operator, "equals.xlsx", buf.getvalue()))
+    golden.add("stockinfo", rows(db, "SELECT remark, record FROM stockinfo"))
+
+
 def test_import_java_number_grammar(operator, db, golden):
     """Full-width digits: Integer.parseInt accepts them, Double.parseDouble does not."""
     def row(quantity, unit, color: object = 0, product="CF1001"):
