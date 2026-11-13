@@ -26,6 +26,14 @@ async (page) => {
   await step('13-instock-step2-checked', async () => { const cb = page.locator('main input[type=checkbox]'); const n = await cb.count(); for (let k = 0; k < Math.min(n, 3); k++) await cb.nth(k).check({ force: true }); });
   await step('14-instock-step3', async () => { await page.locator('main').getByRole('button', { name: '下一步' }).first().click({ timeout: 5000 }); await page.waitForTimeout(600); });
   await step('15-instock-step3-tab2', async () => { await page.locator('main .nav-tabs .nav-link').nth(1).click({ timeout: 5000 }); await page.waitForTimeout(600); });
+  await step('18a-customer-empty', async () => go('/stock/1/3'));
+  await step('18b-customer-step1', async () => { const i = page.locator('input[name=orderNo]'); await i.fill('CR2026001'); await i.press('Enter'); await page.waitForTimeout(1200); });
+  await step('18c-customer-step2', async () => { await clickText('Step 2 - 選擇入庫貨號'); const cb = page.locator('main input[type=checkbox]'); const n = await cb.count(); for (let k = 0; k < Math.min(n, 3); k++) await cb.nth(k).check({ force: true }); });
+  await step('18d-customer-step3', async () => { await page.locator('main').getByRole('button', { name: '下一步' }).first().click({ timeout: 5000 }); await page.waitForTimeout(600); });
+  await step('19a-store-empty', async () => go('/stock/1/4'));
+  await step('19b-store-step1', async () => { const i = page.locator('input[name=orderNo]'); await i.fill('SR2026001'); await i.press('Enter'); await page.waitForTimeout(1200); });
+  await step('19c-store-step2', async () => { await clickText('Step 2 - 選擇入庫貨號'); const cb = page.locator('main input[type=checkbox]'); const n = await cb.count(); for (let k = 0; k < Math.min(n, 3); k++) await cb.nth(k).check({ force: true }); });
+  await step('19d-store-step3', async () => { await page.locator('main').getByRole('button', { name: '下一步' }).first().click({ timeout: 5000 }); await page.waitForTimeout(600); });
   await step('16-nav-instock-open', async () => { await go('/'); await page.locator('nav').getByRole('button', { name: '入庫作業' }).click(); await page.waitForTimeout(500); });
   await step('17-nav-modify-open', async () => { await page.locator('nav').getByRole('button', { name: '庫存異動作業' }).click(); await page.waitForTimeout(500); });
   await step('20-query-stock', async () => { await go('/stock/2/2'); await queryProduct('CF1001'); });
