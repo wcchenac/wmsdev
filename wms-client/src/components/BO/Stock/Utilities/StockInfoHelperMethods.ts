@@ -43,7 +43,7 @@ export interface EditableStockRow {
   type?: string;
   quantity: string;
   unit?: string;
-  color?: string;
+  color?: number | string;
   record?: string;
   remark?: string;
   outStockReason?: string;

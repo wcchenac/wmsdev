@@ -20,7 +20,8 @@ export interface NewStockInfoItem {
     type?: string;
     quantity: string;
     unit: string;
-    color: string;
+    /** Starts as the original stock's number; the color select sets a string. */
+    color: number | string;
     defect: (DefectOption | undefined)[];
     record: string;
     remark: string;

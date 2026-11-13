@@ -65,7 +65,8 @@ export interface StockIdentifier {
 export interface StockInfo {
   id?: number;
   stockIdentifier?: StockIdentifier;
-  color?: string;
+  /** Backend int (e.g. 2); a form that edits it may hold the select's string value ("3"). */
+  color?: number | string;
   defect?: string | DefectOption[];
   shrinkAt?: string;
   remark?: string;
@@ -205,7 +206,8 @@ export interface ShrinkStockInStockRequest {
   type?: string;
   quantity: string;
   unit: string;
-  color: string;
+  /** Backend int: the original stock's number, or the select's string value once picked. */
+  color: number | string;
   defect: string | DefectOption[];
   record: string;
   remark: string;
