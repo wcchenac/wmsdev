@@ -23,14 +23,14 @@ const ScheduleMission: React.FC = () => {
       <LoadingOverlay active={isLoading} spinner={<Spinner />}>
         <div style={{ height: "80vh" }}>
           <button
-            className="btn btn-primary mr-2"
+            className="btn btn-primary me-2"
             name="daily-stockCompare"
             onClick={handleMissionTrigger}
           >
             每日比對
           </button>
           <button
-            className="btn btn-primary mr-2"
+            className="btn btn-primary me-2"
             name="weekly-syncProductCategory"
             onClick={handleMissionTrigger}
           >

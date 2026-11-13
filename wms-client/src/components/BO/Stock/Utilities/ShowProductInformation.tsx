@@ -108,7 +108,7 @@ const ShowProductInformation: React.FC<ShowProductInformationProps> = ({
               }}
             >
               <h5 className="modal-title" style={{ fontWeight: 'var(--font-weight-semibold)' }}>
-                <i className="fa fa-cube mr-2" aria-hidden="true" />
+                <i className="fa fa-cube me-2" aria-hidden="true" />
                 產品詳細資料
               </h5>
               <button

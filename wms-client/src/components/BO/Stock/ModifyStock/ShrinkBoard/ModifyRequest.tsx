@@ -182,7 +182,7 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                 </div>
             </td>
             <td>
-                <div className="form-group mt-1 ml-1">
+                <div className="form-group mt-1 ms-1">
                     {stockInfo.outStockReason !== '' ? (
                         <OverlayTrigger
                             key={index}

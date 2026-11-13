@@ -34,7 +34,7 @@ const ShipModalBody: React.FC<ShipModalBodyProps> = ({
           {StoreList.map((store, index) => (
             <button
               type="button"
-              className="btn btn-outline-info mr-1 mb-1"
+              className="btn btn-outline-info me-1 mb-1"
               key={index}
               value={store}
               onClick={onReansonButtonChange}
@@ -58,7 +58,7 @@ const ShipModalBody: React.FC<ShipModalBodyProps> = ({
           {OutStockOtherReason.map((reason, index) => (
             <button
               type="button"
-              className="btn btn-outline-info mr-1 mb-1"
+              className="btn btn-outline-info me-1 mb-1"
               key={index}
               value={reason}
               onClick={onReansonButtonChange}

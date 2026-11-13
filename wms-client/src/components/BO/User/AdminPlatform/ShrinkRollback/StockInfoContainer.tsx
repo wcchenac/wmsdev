@@ -17,19 +17,19 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
         <thead className="thead-dark">
           <tr>
             <th style={{ width: "20%" }}>
-              <div className="pl-3">貨號</div>
+              <div className="ps-3">貨號</div>
             </th>
             <th style={{ width: "10%" }}>
-              <div className="pl-2">批號</div>
+              <div className="ps-2">批號</div>
             </th>
             <th style={{ width: "10%" }}>
-              <div className="pl-2">型態</div>
+              <div className="ps-2">型態</div>
             </th>
             <th style={{ width: "20%" }}>
-              <div className="pl-2">數量/單位</div>
+              <div className="ps-2">數量/單位</div>
             </th>
             <th style={{ width: "20%" }}>
-              <div className="pl-2">減肥日期</div>
+              <div className="ps-2">減肥日期</div>
             </th>
             <th style={{ width: "20%" }}></th>
           </tr>

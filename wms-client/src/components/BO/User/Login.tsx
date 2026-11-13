@@ -137,7 +137,7 @@ const Login: React.FC = () => {
                     >
                       員工編號
                       <span
-                        className="text-danger ml-1"
+                        className="text-danger ms-1"
                         aria-hidden="true"
                       >
                         *
@@ -185,7 +185,7 @@ const Login: React.FC = () => {
                     >
                       密碼
                       <span
-                        className="text-danger ml-1"
+                        className="text-danger ms-1"
                         aria-hidden="true"
                       >
                         *

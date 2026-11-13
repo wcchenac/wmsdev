@@ -160,7 +160,7 @@ const EditModal: React.FC<EditModalProps> = ({
       <Modal.Header closeButton>
         <Modal.Title>
           <div className="row">
-            <div className="col-md-auto mr-auto">
+            <div className="col-md-auto me-auto">
               <p className="h5 mb-0 mt-2">更新員工資料</p>
             </div>
             <div className="col-md-auto">

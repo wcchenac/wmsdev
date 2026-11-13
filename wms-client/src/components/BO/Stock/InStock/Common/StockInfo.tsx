@@ -254,7 +254,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
         </div>
       </td>
       <td>
-        <div className="form-group mt-1 ml-1" style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}>
+        <div className="form-group mt-1 ms-1" style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}>
           {stockInfo.outStockReason !== "" ? (
             <OverlayTrigger
               key={index}

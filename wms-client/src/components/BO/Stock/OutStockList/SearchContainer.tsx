@@ -172,19 +172,19 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
                     />
                   </th>
                   <th style={{ width: "20%" }}>
-                    <div className="pl-2">貨號</div>
+                    <div className="ps-2">貨號</div>
                   </th>
                   <th style={{ width: "8%" }}>
-                    <div className="pl-2">型態</div>
+                    <div className="ps-2">型態</div>
                   </th>
                   <th style={{ width: "13%" }}>
-                    <div className="pl-2">數量</div>
+                    <div className="ps-2">數量</div>
                   </th>
                   <th style={{ width: "8%" }}>
-                    <div className="pl-2">單位</div>
+                    <div className="ps-2">單位</div>
                   </th>
                   <th style={{ width: "17%" }}>
-                    <div className="pl-1">出庫原因</div>
+                    <div className="ps-1">出庫原因</div>
                   </th>
                   <th style={{ width: "13%" }}>開單人員</th>
                   <th style={{ width: "15%" }}>倉別</th>

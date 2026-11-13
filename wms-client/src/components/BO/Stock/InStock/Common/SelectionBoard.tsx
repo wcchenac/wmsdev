@@ -61,9 +61,9 @@ const SelectionBoard: React.FC<SelectionBoardProps> = ({
       </div>
       <p className="h5 text-center">{type + "單號: " + orderNo}</p>
       <p className="h5 text-center">含有以下貨號，請選擇此次欲入庫貨號</p>
-      <div className="row justify-content-end">
+      <div className="d-flex justify-content-end">
         <Button
-          className="mr-2"
+          className="me-2"
           variant="info"
           value="true"
           onClick={handleSelectionClick}

@@ -15,7 +15,7 @@ const HeaderUserFunctions: React.FC<HeaderUserFunctionsProps> = ({
 }) => {
   const userUnauthencated = (
     <React.Fragment>
-      <ul className="navbar-nav ml-auto">
+      <ul className="navbar-nav ms-auto">
         <li className="nav-item">
           <NavLink className="nav-link" to="/login">
             登入
@@ -27,7 +27,7 @@ const HeaderUserFunctions: React.FC<HeaderUserFunctionsProps> = ({
 
   const userAuthencated = (
     <React.Fragment>
-      <ul className="navbar-nav ml-auto">
+      <ul className="navbar-nav ms-auto">
         <li className="nav-item">
           <NavLink className="nav-link" to="/login">
             <i className="fa fa-user-circle-o fa-lg me-1"></i>

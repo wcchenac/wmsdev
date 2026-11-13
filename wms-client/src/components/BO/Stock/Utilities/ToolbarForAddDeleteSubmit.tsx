@@ -29,7 +29,7 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
         <div className="col-md-auto">
           <button
             type="button"
-            className="btn btn-primary mr-2"
+            className="btn btn-primary me-2"
             onClick={onAddClick}
             disabled={isLoading}
           >
@@ -37,20 +37,20 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
           </button>
           <button
             type="button"
-            className="btn btn-primary mr-2"
+            className="btn btn-primary me-2"
             onClick={onDeleteClick}
             disabled={deleteDisabled || isLoading}
           >
             刪除最後一列
           </button>
         </div>
-        <div className="col-md-auto mr-auto">
+        <div className="col-md-auto me-auto">
           <form className="form-inline" onSubmit={handleRowNumSubmit}>
-            <label className="form-label mr-2">新增複數列數</label>
+            <label className="form-label me-2">新增複數列數</label>
 
             <input
               type="text"
-              className="form-control col-3 mr-2"
+              className="form-control col-3 me-2"
               placeholder="輸入列數"
               name="assignRowNum"
               value={assignRowNum}
@@ -70,7 +70,7 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
           >
             {isLoading ? (
               <span
-                className="spinner-border spinner-border-sm mr-2"
+                className="spinner-border spinner-border-sm me-2"
                 role="status"
                 aria-hidden="true"
               ></span>

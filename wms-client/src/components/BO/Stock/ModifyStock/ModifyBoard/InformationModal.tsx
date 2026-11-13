@@ -325,7 +325,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
               詳細資料
               <button
                 type="button"
-                className="btn btn-sm btn-outline-light ml-auto"
+                className="btn btn-sm btn-outline-light ms-auto"
                 onClick={handleEditMode}
                 style={{
                   display: 'inline-flex',
@@ -341,7 +341,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
             </h5>
             <button
               type="button"
-              className="close ml-2"
+              className="close ms-2"
               data-dismiss="modal"
               aria-label="Close"
               style={{ color: 'var(--color-white)', opacity: 0.8 }}

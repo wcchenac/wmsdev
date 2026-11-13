@@ -3,7 +3,7 @@ import { NavLink } from "react-router";
 
 const HeaderNormal: React.FC = () => (
   <React.Fragment>
-    <ul className="navbar-nav mr-auto">
+    <ul className="navbar-nav me-auto">
       <li className="nav-item">
         <NavLink className="nav-link" to="/stock/2/1">
           庫存查詢

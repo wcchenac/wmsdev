@@ -39,19 +39,19 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
             {typeValidation ? (
               <React.Fragment>
                 <th style={{ width: "20%" }}>
-                  <div className="pl-3">{"\u8ca8\u865f"}</div>
+                  <div className="ps-3">{"\u8ca8\u865f"}</div>
                 </th>
                 <th style={{ width: "8%" }}>
-                  <div className="pl-1">{"\u6279\u865f"}</div>
+                  <div className="ps-1">{"\u6279\u865f"}</div>
                 </th>
                 <th style={{ width: "10%" }}>
-                  <div className="pl-2">{"\u578b\u614b"}</div>
+                  <div className="ps-2">{"\u578b\u614b"}</div>
                 </th>
                 <th style={{ width: "10%" }}>
-                  <div className="pl-2">{"\u6578\u91cf/\u55ae\u4f4d"}</div>
+                  <div className="ps-2">{"\u6578\u91cf/\u55ae\u4f4d"}</div>
                 </th>
                 <th style={{ width: "15%" }}>
-                  <div className="pl-2">{"\u9032\u8ca8\u65e5\u671f"}</div>
+                  <div className="ps-2">{"\u9032\u8ca8\u65e5\u671f"}</div>
                 </th>
                 <th style={{ width: "15%" }}>{"\u8a3b\u89e3"}</th>
                 <th style={{ width: "22%" }} />
@@ -59,23 +59,23 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
             ) : (
               <React.Fragment>
                 <th style={{ width: "15%" }}>
-                  <div className="pl-3">{"\u8ca8\u865f"}</div>
+                  <div className="ps-3">{"\u8ca8\u865f"}</div>
                 </th>
                 <th style={{ width: "8%" }}>
-                  <div className="pl-1">{"\u6279\u865f"}</div>
+                  <div className="ps-1">{"\u6279\u865f"}</div>
                 </th>
                 <th style={{ width: "7%" }}>
-                  <div className="pl-2">{"\u578b\u614b"}</div>
+                  <div className="ps-2">{"\u578b\u614b"}</div>
                 </th>
                 <th style={{ width: "10%" }}>
-                  <div className="pl-1">{"\u6578\u91cf/\u55ae\u4f4d"}</div>
+                  <div className="ps-1">{"\u6578\u91cf/\u55ae\u4f4d"}</div>
                 </th>
                 <th style={{ width: "5%" }}>{"\u8272\u865f"}</th>
                 <th style={{ width: "8%" }}>
-                  <div className="pl-2">{"\u7461\u75b5"}</div>
+                  <div className="ps-2">{"\u7461\u75b5"}</div>
                 </th>
                 <th style={{ width: "12%" }}>
-                  <div className="pl-2">{"\u9032\u8ca8\u65e5\u671f"}</div>
+                  <div className="ps-2">{"\u9032\u8ca8\u65e5\u671f"}</div>
                 </th>
                 <th style={{ width: "13%" }}>{"\u8a3b\u89e3"}</th>
                 <th style={{ width: "22%" }} />

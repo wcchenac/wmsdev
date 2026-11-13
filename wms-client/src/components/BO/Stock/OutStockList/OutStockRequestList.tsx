@@ -230,7 +230,7 @@ const OutStockRequestList: React.FC = () => {
                 fontSize: 'clamp(1rem, 2.5vw, 1.5rem)',
               }}
             >
-              <i className="fa fa-truck mr-2" style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
+              <i className="fa fa-truck me-2" style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
               拉貨明細表
             </h4>
             <p
@@ -299,7 +299,7 @@ const OutStockRequestList: React.FC = () => {
               marginBottom: 'var(--spacing-3)',
             }}
           >
-            <i className="fa fa-users mr-2" style={{ color: 'var(--color-info)' }} aria-hidden="true" />
+            <i className="fa fa-users me-2" style={{ color: 'var(--color-info)' }} aria-hidden="true" />
             使用者篩選
           </h6>
           <UserSelection

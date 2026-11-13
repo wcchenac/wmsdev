@@ -154,7 +154,7 @@ const QueryBoard_Detail: React.FC = () => {
           <div style={{ height: "80vh" }}>
             <div>
               <div className="row">
-                <div className="col-md-auto mr-auto">
+                <div className="col-md-auto me-auto">
                   <ShowProductInformation
                     isBasic={false}
                     isQuery={isQuery}

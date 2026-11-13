@@ -29,27 +29,27 @@ const ShrinkInfoContainer: React.FC<ShrinkInfoContainerProps> = ({
                 <thead className="thead-dark">
                     <tr>
                         <th style={{ width: '18%' }}>
-                            <div className="pl-3">貨號</div>
+                            <div className="ps-3">貨號</div>
                         </th>
                         <th style={{ width: '8%' }}>
-                            <div className="pl-1">批號</div>
+                            <div className="ps-1">批號</div>
                         </th>
                         <th style={{ width: '8%' }}>
                             {' '}
-                            <div className="pl-2">型態</div>
+                            <div className="ps-2">型態</div>
                         </th>
                         <th style={{ width: '9%' }}>
                             {' '}
-                            <div className="pl-1">數量</div>
+                            <div className="ps-1">數量</div>
                         </th>
                         <th style={{ width: '8%' }}>
                             {' '}
-                            <div className="pl-1">單位</div>
+                            <div className="ps-1">單位</div>
                         </th>
                         <th style={{ width: '7.5%' }}>色號</th>
                         <th style={{ width: '9%' }}>
                             {' '}
-                            <div className="pl-2">瑕疵</div>
+                            <div className="ps-2">瑕疵</div>
                         </th>
                         <th style={{ width: '10.5%' }} />
                         <th style={{ width: '10.5%' }} />

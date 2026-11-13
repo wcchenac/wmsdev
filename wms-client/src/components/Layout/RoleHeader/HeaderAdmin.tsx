@@ -3,7 +3,7 @@ import { NavLink } from "react-router";
 
 const HeaderAdmin: React.FC = () => (
   <React.Fragment>
-    <ul className="navbar-nav mr-auto">
+    <ul className="navbar-nav me-auto">
       <li className="nav-item dropdown">
         <button
           type="button"

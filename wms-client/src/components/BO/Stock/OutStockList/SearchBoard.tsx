@@ -200,7 +200,7 @@ class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
           <div className="row justify-content-end">
             <div className="col-md-auto">
               <button
-                className="btn btn-primary mr-2"
+                className="btn btn-primary me-2"
                 disabled={this.submitValidation()}
                 onClick={this.onSubmitClick}
               >

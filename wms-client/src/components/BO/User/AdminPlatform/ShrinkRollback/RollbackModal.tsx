@@ -62,25 +62,25 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
           <thead className="thead-dark">
             <tr>
               <th>
-                <div className="pl-3">貨號</div>
+                <div className="ps-3">貨號</div>
               </th>
               <th>
-                <div className="pl-1">批號</div>
+                <div className="ps-1">批號</div>
               </th>
               <th>
-                <div className="pl-2">型態</div>
+                <div className="ps-2">型態</div>
               </th>
               <th>
-                <div className="pl-2">數量/單位</div>
+                <div className="ps-2">數量/單位</div>
               </th>
               <th>
-                <div className="pl-1">瑕疵</div>
+                <div className="ps-1">瑕疵</div>
               </th>
               <th>
-                <div className="pl-1">記錄</div>
+                <div className="ps-1">記錄</div>
               </th>
               <th>
-                <div className="pl-2">備註</div>
+                <div className="ps-2">備註</div>
               </th>
             </tr>
           </thead>

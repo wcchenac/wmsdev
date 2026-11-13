@@ -17,7 +17,7 @@ const meta = {
   decorators: [
     (Story) => (
       <AppNavbar>
-        <div className="ml-auto d-flex">{/* spacer so the user links sit on the right */}</div>
+        <div className="ms-auto d-flex">{/* spacer so the user links sit on the right */}</div>
         <Story />
       </AppNavbar>
     ),

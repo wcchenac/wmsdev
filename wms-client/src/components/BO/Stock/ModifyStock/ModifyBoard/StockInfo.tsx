@@ -83,14 +83,14 @@ const StockInfo: React.FC<StockInfoProps> = ({
         <React.Fragment>
           <Button
             variant="primary"
-            className="mr-2"
+            className="me-2"
             onClick={onShrinkClick}
           >
             {typeVal ? "\u5206\u88dd" : "\u6e1b\u80a5"}
           </Button>
           <Button
             variant="primary"
-            className="mr-2"
+            className="me-2"
             onClick={handleModalShow}
           >
             {"\u51fa\u5eab"}
@@ -110,7 +110,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
       );
     } else {
       return (
-        <button type="button" className="btn btn-secondary mr-2" disabled>
+        <button type="button" className="btn btn-secondary me-2" disabled>
           {typeVal ? "\u5206\u88dd\u8655\u7406\u4e2d" : "\u6e1b\u80a5\u8655\u7406\u4e2d"}
         </button>
       );
@@ -171,7 +171,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
       </td>
       <td>
         <button
-          className="btn btn-primary mr-2"
+          className="btn btn-primary me-2"
           data-toggle="modal"
           data-target={"#detailInfo-" + index}
         >

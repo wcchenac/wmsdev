@@ -272,7 +272,7 @@ const ModifyBoard: React.FC = () => {
         <ShowProductQuantity stockQuantity={stockQuantity} />
         <br />
         <div className="row">
-          <div className="col-md-auto mr-auto" />
+          <div className="col-md-auto me-auto" />
           <div className="col-md-auto">
             <Button
               variant="info"
@@ -320,7 +320,7 @@ const ModifyBoard: React.FC = () => {
           <div style={{ height: "80vh" }}>
             <div>
               <div className="row">
-                <div className="col-md-auto mr-2">
+                <div className="col-md-auto me-2">
                   <ShowProductInformation
                     isBasic={false}
                     isQuery={isQuery}
@@ -329,7 +329,7 @@ const ModifyBoard: React.FC = () => {
                     productInfo={productInfo as any}
                   />
                 </div>
-                <div className="col-md-auto mr-auto">
+                <div className="col-md-auto me-auto">
                   <Button
                     variant="primary"
                     disabled={outStockRequestValidate}
