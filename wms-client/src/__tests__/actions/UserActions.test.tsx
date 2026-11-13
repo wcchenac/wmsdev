@@ -108,10 +108,11 @@ describe('UserActions', () => {
         // expected error
       }
 
+      // Only the generic message is stored, not the body (see RegisterUserErrors.test).
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
         type: types.GET_Errors,
-        payload: errorData
+        payload: { message: '註冊失敗' }
       });
     });
   });

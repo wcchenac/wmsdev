@@ -20,16 +20,20 @@ interface DecodedToken extends User {
   exp: number;
 }
 
+/**
+ * Registers a user. On failure it stores only the generic message: UserRegister shows no
+ * messages from the store (just its own 「register fail」 toast), and the response body can
+ * be a Spring error body with the exception text. The error is rethrown for the page.
+ */
 export const registerUser =
   (newUser: RegisterUserRequest) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       return await API.post("/api/user/adminManagement/user/register", newUser);
     } catch (err) {
-      const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
-        payload: error.response?.data || { message: "註冊失敗" },
+        payload: { message: "註冊失敗" },
       });
       throw err;
     }
