@@ -18,8 +18,8 @@ describe('IsEmpty - isEmpty function', () => {
       expect(isEmpty(Object.create(null))).toBe(true);
     });
 
-    test('returns true for new Object()', () => {
-      expect(isEmpty(new Object())).toBe(true);
+    test('returns true for an object from the Object constructor', () => {
+      expect(isEmpty(Object())).toBe(true);
     });
   });
 

@@ -18,16 +18,6 @@ interface MockHeaderUserFunctionsProps {
   logout: () => void;
 }
 
-interface StoreState {
-  user: {
-    validToken: boolean;
-    user: {
-      fullName?: string;
-      role?: string | { authority: string };
-    };
-  };
-}
-
 // Mock child components
 vi.mock('../../../components/Layout/HeaderStockFunctions', () => ({ default: (() => {
   return function MockHeaderStockFunctions(props: MockHeaderStockFunctionsProps): JSX.Element {
@@ -223,7 +213,7 @@ describe('Header', () => {
       // Mock window.location.href assignment
       const locationHrefSpy = vi.fn();
       Object.defineProperty(window, 'location', {
-        value: { href: '', set href(value: string) { locationHrefSpy(value); } },
+        value: { get href() { return ''; }, set href(value: string) { locationHrefSpy(value); } },
         writable: true,
         configurable: true
       });

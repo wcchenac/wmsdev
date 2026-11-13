@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode, MouseEvent } from "react";
+import React, { useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningIcon from "@mui/icons-material/Warning";
@@ -48,21 +48,24 @@ const Alert: React.FC<AlertProps> = ({
 }) => {
   const [visible, setVisible] = useState(true);
 
+  // Keep the latest onDismiss without making handleDismiss change identity,
+  // so a parent re-render does not restart the autoClose timer.
+  const onDismissRef = useRef(onDismiss);
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
+
+  const handleDismiss = useCallback(() => {
+    setVisible(false);
+    onDismissRef.current?.();
+  }, []);
+
   useEffect(() => {
     if (autoClose > 0) {
-      const timer = setTimeout(() => {
-        handleDismiss();
-      }, autoClose);
+      const timer = setTimeout(handleDismiss, autoClose);
       return () => clearTimeout(timer);
     }
-  }, [autoClose]);
-
-  const handleDismiss = () => {
-    setVisible(false);
-    if (onDismiss) {
-      onDismiss();
-    }
-  };
+  }, [autoClose, handleDismiss]);
 
   if (!visible) return null;
 

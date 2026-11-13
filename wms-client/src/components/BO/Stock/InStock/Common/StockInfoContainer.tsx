@@ -6,8 +6,6 @@ import {
   updateStockInfoesCopy,
 } from "../../Utilities/StockInfoHelperMethods";
 import ToolbarForAddDeleteSubmit from "../../Utilities/ToolbarForAddDeleteSubmit";
-import LoadingOverlay from "react-loading-overlay-ts";
-import { Spinner } from "../../../../Others/Spinner";
 import { DefectOptions, DefectOption } from "../../../../../enums/Enums";
 import { MultiValue } from "react-select";
 

@@ -48,6 +48,8 @@ const QueryBoard: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isQuery, setIsQuery] = useState<boolean>(false);
   const [productNo, setProductNo] = useState<string>("");
+  // Product number of the last query; the input above may be edited afterwards.
+  const [queriedProductNo, setQueriedProductNo] = useState<string>("");
   const [prevProduct, setPrevProduct] = useState<string>("");
   const [nextProduct, setNextProduct] = useState<string>("");
   const [productInfo, setProductInfo] = useState<ProductInfo>({} as ProductInfo);
@@ -67,6 +69,7 @@ const QueryBoard: React.FC = () => {
       reduxStockInfoes.information.productNo !== null
     ) {
       setProductNo(reduxStockInfoes.information.productNo || "");
+      setQueriedProductNo(reduxStockInfoes.information.productNo || "");
       setPrevProduct(reduxStockInfoes.prevProduct || "");
       setNextProduct(reduxStockInfoes.nextProduct || "");
       setProductInfo(reduxStockInfoes.information);
@@ -86,6 +89,7 @@ const QueryBoard: React.FC = () => {
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setIsLoading(true);
+      setQueriedProductNo(productNo);
 
       dispatch(getStockInfoesBasic(productNo)).then((response: { status: number }) => {
         if (response.status === 200) {
@@ -103,6 +107,7 @@ const QueryBoard: React.FC = () => {
       const select = (e.target as HTMLButtonElement).value;
 
       setIsLoading(true);
+      setQueriedProductNo(select);
 
       dispatch(getStockInfoesBasic(select)).then((response: { status: number }) => {
         if (response.status === 200) {
@@ -119,7 +124,7 @@ const QueryBoard: React.FC = () => {
       return null;
     } else {
       if (stockInfoes.length === 0) {
-        return <QueryResponseWithNoStock productNo={productNo} onRetry={undefined} />;
+        return <QueryResponseWithNoStock productNo={queriedProductNo} onRetry={undefined} />;
       } else {
         return (
           <React.Fragment>
@@ -135,7 +140,7 @@ const QueryBoard: React.FC = () => {
         );
       }
     }
-  }, [isQuery, stockInfoes, stockQuantity]);
+  }, [isQuery, stockInfoes, stockQuantity, queriedProductNo]);
 
   return (
     <div className="query_stockInfo">

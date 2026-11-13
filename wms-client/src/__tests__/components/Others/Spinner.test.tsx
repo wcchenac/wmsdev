@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, RenderResult } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Spinner } from '../../../components/Others/Spinner';
 
 interface MockThreeDotsProps {

@@ -15,7 +15,7 @@ import ModifyBoard from "./components/BO/Stock/ModifyStock/ModifyBoard/ModifyBoa
 import ShrinkBoard from "./components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkBoard";
 import OutStockRequestList from "./components/BO/Stock/OutStockList/OutStockRequestList";
 import QueryBoard from "./components/BO/Stock/QueryStock/QueryBoard";
-import QueryBoard_Detail from "./components/BO/Stock/QueryStock/QueryBoard_Detail";
+import QueryBoardDetail from "./components/BO/Stock/QueryStock/QueryBoard_Detail";
 import QueryOutStockToStore from "./components/BO/Stock/QueryStock/QueryOutStockToStore";
 import FileCenter from "./components/BO/File/FileCenter";
 import StockHistoryBoard from "./components/BO/Stock/StockHistory/StockHistoryBoard";
@@ -79,7 +79,7 @@ function App() {
                 path="/stock/2/2"
                 element={
                   <ProtectedRoute level="L2">
-                    <QueryBoard_Detail />
+                    <QueryBoardDetail />
                   </ProtectedRoute>
                 }
               />
