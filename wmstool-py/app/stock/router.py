@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app.db import get_session
 from app.javacompat import java_is_blank
 from app.security.auth import require_roles
-from app.stock import moves, orders, queries, shrink
+from app.stock import history, moves, orders, queries, shrink
 from app.stock.intake import InStockItem, create_stock_infoes
 from app.stock.serializers import history_json, out_stock_request_json
 from app.users.schemas import NotBlank
@@ -114,6 +114,20 @@ def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = 
     except Exception:
         return _bad_request(session, "shrinkStock")
     return Response(status_code=200)
+
+
+@router.patch("/shrinkStock/rollback/{stockIdentifierId}")
+def shrink_stock_rollback(stockIdentifierId: int, request: Request,
+                          session: Session = Depends(get_session)) -> Response:
+    principal = admin(request)
+    shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)  # Java ignores the result
+    return Response(status_code=200)
+
+
+@router.get("/queryStock/shrinkRollback/{productNo}")
+def shrink_rollback_list(productNo: str, request: Request, session: Session = Depends(get_session)) -> Response:
+    ops(request)
+    return JSONResponse(history.shrink_rollback_candidates(session, productNo.upper()))
 
 
 @router.patch("/inStocks/rollback")
