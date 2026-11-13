@@ -11,7 +11,7 @@ import {
   updateStockInfo
 } from "../../../../../actions/StockActions";
 import StockInfoContainer from "./StockInfoContainer";
-import QueryProductInformation from "../../Utilities/QueryProductInformation";
+import QueryProductInformation, { ProductNoChange } from "../../Utilities/QueryProductInformation";
 import ShowProductInformation from "../../Utilities/ShowProductInformation";
 import OutStockModal from "./OutStockModal";
 import QueryResponseWithNoStock from "../../Utilities/QueryResponseWithNoStock";
@@ -120,7 +120,7 @@ const ModifyBoard: React.FC = () => {
     }
   });
 
-  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = useCallback((e: ProductNoChange) => {
     setProductNo(e.target.value);
   }, []);
 

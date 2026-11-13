@@ -1,3 +1,6 @@
+import type { ThunkDispatch } from "redux-thunk";
+import type { UnknownAction } from "redux";
+
 // ============================================
 // Action Types
 // ============================================
@@ -247,10 +250,9 @@ export interface InStockRequest {
   location?: string;
 }
 
+/** PATCH /api/stock/outStock/update: out-stock request id -> where it is shipped from. */
 export interface OutStockUpdateRequest {
-  id?: number;
-  status?: string;
-  [key: string]: unknown;
+  outStockUpdate: Record<string, string>;
 }
 
 export interface ProductHistoryRequest {
@@ -294,7 +296,6 @@ export interface TouchedFields {
 // ============================================
 // Dispatch Type
 // ============================================
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ThunkAction<R = any> = (dispatch: AppDispatch) => R;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AppDispatch = (action: Action | ThunkAction<any>) => any;
+// dispatch(action) returns the action; dispatch(thunk) returns what the thunk returns (the
+// actions' Promise<AxiosResponse>), so call sites get typed results instead of `any`.
+export type AppDispatch = ThunkDispatch<RootState, undefined, UnknownAction>;

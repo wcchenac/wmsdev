@@ -4,7 +4,7 @@ import ModifyRequestContainer from './ModifyRequestContainer';
 import { copy } from '../../../../../utilities/DeepCopy';
 import {
     updateStockInfoesCopy,
-    joinInfoesDefectArray,
+    joinInfoDefectArray,
     defectStringTransToOptions,
     parseRowCount,
     exceedsRowCountLimit,
@@ -12,7 +12,7 @@ import {
 import ToolbarForAddDeleteSubmit from '../../Utilities/ToolbarForAddDeleteSubmit';
 import ShrinkConfirmModal from './ShrinkConfirmModal';
 import { calculateInfoLength } from './calculateInfoLength';
-import { StockInfo, ShrinkStockRequest } from '../../../../../types';
+import { StockInfo, ShrinkStockRequest, ShrinkStockInStockRequest } from '../../../../../types';
 
 export interface NewStockInfoItem {
     productNo: string;
@@ -191,15 +191,15 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
     }, []);
 
     const handleSubmitClick = useCallback((infoLengthCalc: InfoLengthCalculation): void => {
-        const stockInfoesCopy = copy(newStockInfoes) as NewStockInfoItem[];
-
-        // Cast to any to allow the helper method to modify defect field from array to string
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        joinInfoesDefectArray(stockInfoesCopy as any);
+        // The backend takes the selected defects as one "GA/GB" string per row.
+        const inStockRequests: ShrinkStockInStockRequest[] = copy(newStockInfoes).map((row) => ({
+            ...row,
+            defect: joinInfoDefectArray(row),
+        }));
 
         const shrinkStockRequest: ShrinkStockRequest = {
             oldStockIdentifierId: oldStockInfo.stockIdentifier?.id || 0,
-            inStockRequests: stockInfoesCopy,
+            inStockRequests,
             allocation: infoLengthCalc.allocation,
             adjustment: infoLengthCalc.adjustment,
             shrinkType: infoLengthCalc.shrinkType,

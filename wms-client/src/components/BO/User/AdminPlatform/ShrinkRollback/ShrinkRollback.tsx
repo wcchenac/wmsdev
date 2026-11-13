@@ -1,4 +1,4 @@
-import React, { Component, ChangeEvent, FormEvent } from "react";
+import React, { Component, FormEvent } from "react";
 import { connect, ConnectedProps } from "react-redux";
 import {
   getShrinkRollbackList,
@@ -6,7 +6,7 @@ import {
 } from "../../../../../actions/StockActions";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../../Others/Spinner";
-import QueryProductInformation from "../../../Stock/Utilities/QueryProductInformation";
+import QueryProductInformation, { ProductNoChange } from "../../../Stock/Utilities/QueryProductInformation";
 import StockInfoContainer from "./StockInfoContainer";
 import { RootState, ShrinkRollbackObject } from "../../../../../types";
 
@@ -44,7 +44,7 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
     this.handleShrinkRollback = this.handleShrinkRollback.bind(this);
   }
 
-  handleProductNoChange(e: ChangeEvent<HTMLInputElement>): void {
+  handleProductNoChange(e: ProductNoChange): void {
     if (e.target.name === "productNo") {
       this.setState({ productNo: e.target.value });
     }

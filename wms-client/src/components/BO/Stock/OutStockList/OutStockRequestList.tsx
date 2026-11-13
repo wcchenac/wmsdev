@@ -18,7 +18,7 @@ import { dayOfStart, dayOfEnd } from "../Utilities/DateUtils";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import ConfirmModal from "./ConfirmModal";
-import { RootState, AppDispatch, SelectedUser } from "../../../../types";
+import { RootState, AppDispatch, SelectedUser, OutStockUpdateRequest } from "../../../../types";
 import { OutStockInfo } from "./SearchInfo";
 
 import equal from "fast-deep-equal";
@@ -27,11 +27,6 @@ const dayIntervalRange = 7;
 
 interface QueryResult {
   [date: string]: OutStockInfo[];
-}
-
-interface OutStockUpdateRequest {
-  outStockUpdate: { [id: string]: string };
-  [key: string]: unknown;
 }
 
 const OutStockRequestList: React.FC = () => {
@@ -120,12 +115,17 @@ const OutStockRequestList: React.FC = () => {
     }
   }, [queryResultFromStore, queryResult]);
 
-  const handleStartDateSelection = useCallback((date: Date) => {
-    setStartDate(dayOfStart(date));
+  // The date picker passes null when its text is cleared; keep the previous date then.
+  const handleStartDateSelection = useCallback((date: Date | null) => {
+    if (date) {
+      setStartDate(dayOfStart(date));
+    }
   }, []);
 
-  const handleEndDateSelection = useCallback((date: Date) => {
-    setEndDate(dayOfEnd(date));
+  const handleEndDateSelection = useCallback((date: Date | null) => {
+    if (date) {
+      setEndDate(dayOfEnd(date));
+    }
   }, []);
 
   const handleDateSelectionModeClick = useCallback(() => {

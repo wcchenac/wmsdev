@@ -63,7 +63,7 @@ const StockCategory: React.FC = () => {
           <div className="row justify-content-center">
             <div className="col-6">
               <label>請選擇想要輸出的分類...</label>
-              <Select
+              <Select<CategoryOption, false>
                 closeMenuOnSelect
                 components={animatedComponents}
                 isSearchable

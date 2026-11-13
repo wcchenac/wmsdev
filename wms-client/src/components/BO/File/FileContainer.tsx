@@ -32,12 +32,17 @@ const FileContainer: React.FC<FileContainerProps> = ({
     handleFileCategoryCurrentQuery(fileType);
   }, [handleFileCategoryCurrentQuery, fileType]);
 
-  const handleStartDateSelection = useCallback((date: Date) => {
-    setStartDate(dayOfStart(date));
+  // The date picker passes null when its text is cleared; keep the previous date then.
+  const handleStartDateSelection = useCallback((date: Date | null) => {
+    if (date) {
+      setStartDate(dayOfStart(date));
+    }
   }, []);
 
-  const handleEndDateSelection = useCallback((date: Date) => {
-    setEndDate(dayOfEnd(date));
+  const handleEndDateSelection = useCallback((date: Date | null) => {
+    if (date) {
+      setEndDate(dayOfEnd(date));
+    }
   }, []);
 
   const handleDateSelectionModeClick = useCallback(() => {

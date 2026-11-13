@@ -1,10 +1,10 @@
-import React, { useState, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
+import React, { useState, useCallback, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getStockInfoes } from "../../../../actions/StockActions";
 import StockInfoContainer from "./Common/StockInfoContainer";
-import QueryProductInformation from "../Utilities/QueryProductInformation";
+import QueryProductInformation, { ProductNoChange } from "../Utilities/QueryProductInformation";
 import ShowProductInformation from "../Utilities/ShowProductInformation";
 import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay-ts";
@@ -81,7 +81,7 @@ const QueryBoard_Detail: React.FC = () => {
     }
   });
 
-  const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+  const onChange = useCallback((e: ProductNoChange) => {
     setProductNo(e.target.value);
   }, []);
 

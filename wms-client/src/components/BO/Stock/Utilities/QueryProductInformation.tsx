@@ -1,8 +1,12 @@
-import React, { useState, useCallback, ChangeEvent, FormEvent, KeyboardEvent } from "react";
+import React, { useState, useCallback, FormEvent, KeyboardEvent } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 
-interface SyntheticInputEvent {
+/**
+ * What onChange receives: the input's ChangeEvent, or a plain { target } object when the
+ * clear button or Esc empties the field. Handlers may only read target.name / target.value.
+ */
+export interface ProductNoChange {
   target: {
     name: string;
     value: string;
@@ -12,7 +16,7 @@ interface SyntheticInputEvent {
 interface QueryProductInformationProps {
   productNo: string;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
-  onChange: (e: ChangeEvent<HTMLInputElement> | SyntheticInputEvent) => void;
+  onChange: (e: ProductNoChange) => void;
   isLoading?: boolean;
 }
 
@@ -36,7 +40,7 @@ const QueryProductInformation: React.FC<QueryProductInformationProps> = ({
 
   const handleClear = useCallback(() => {
     // Create a synthetic event to clear the input
-    const syntheticEvent: SyntheticInputEvent = {
+    const syntheticEvent: ProductNoChange = {
       target: {
         name: "productNo",
         value: "",

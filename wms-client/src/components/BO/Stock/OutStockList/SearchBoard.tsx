@@ -1,7 +1,7 @@
 import React, { Component, MouseEvent } from "react";
 import SearchContainer from "./SearchContainer";
 import { copy } from "../../../../utilities/DeepCopy";
-import { SelectedUser } from "../../../../types";
+import { SelectedUser, OutStockUpdateRequest } from "../../../../types";
 import { OutStockInfo } from "./SearchInfo";
 
 import equal from "fast-deep-equal";
@@ -21,10 +21,6 @@ interface ToBeSubmitMap {
 
 interface QueryResult {
   [date: string]: OutStockInfo[];
-}
-
-interface OutStockUpdateRequest {
-  outStockUpdate: { [id: string]: string };
 }
 
 interface SearchBoardProps {

@@ -78,10 +78,10 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
     { field: "unit", headerName: "\u55ae\u4f4d", flex: 1 }
   ];
 
-  const rows = data.map((item, index) => ({
-    id: item.id || index,
-    ...item
-  }));
+  // Every stock identifier has an id, and the selection above is keyed by item.id, so rows use
+  // it as their DataGrid id. (The old `{ id: item.id || index, ...item }` fallback never took
+  // effect: the spread always overwrote it with item.id.)
+  const rows = data;
 
   return (
     <Modal

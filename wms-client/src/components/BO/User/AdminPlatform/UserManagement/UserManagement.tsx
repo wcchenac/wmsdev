@@ -13,7 +13,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import { RootState } from "../../../../../store";
-import { UpdateUserRequest, User } from "../../../../../types";
+import { AppDispatch, UpdateUserRequest, User } from "../../../../../types";
 
 interface UserRow extends User {
   id: string | number;
@@ -25,8 +25,7 @@ const UserManagement: React.FC = () => {
   const [modalShow, setModalShow] = useState<boolean>(false);
   const [selectedData, setSelectedData] = useState<User>({});
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dispatch = useDispatch<any>();
+  const dispatch = useDispatch<AppDispatch>();
   const queryResult = useSelector((state: RootState) => state.user.users);
 
   const handleQueryUser = useCallback((): void => {

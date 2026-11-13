@@ -22,7 +22,6 @@ interface DevToolsExtension {
   }) => typeof compose;
 }
 
-const initialState = {};
 const middleware: ThunkMiddleware<RootState>[] = [thunk];
 
 // Enable Redux DevTools Extension in development
@@ -37,9 +36,9 @@ const composeEnhancers: typeof compose =
       })
     : compose;
 
+// No preloaded state: each reducer starts from its own initial state.
 const store = createStore(
   rootReducer as Reducer<RootState>,
-  initialState,
   composeEnhancers(applyMiddleware(...middleware)) as StoreEnhancer
 );
 

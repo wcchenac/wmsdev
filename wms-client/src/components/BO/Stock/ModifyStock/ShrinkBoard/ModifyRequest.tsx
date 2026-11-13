@@ -45,8 +45,8 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
     );
 
     const onDefectChange = useCallback(
-        (selectedOptions: MultiValue<DefectOption>) => {
-            handleDefectChange(selectedOptions as (DefectOption | undefined)[], index);
+        (selectedOptions: MultiValue<DefectOption | undefined>) => {
+            handleDefectChange([...selectedOptions], index);
         },
         [handleDefectChange, index],
     );

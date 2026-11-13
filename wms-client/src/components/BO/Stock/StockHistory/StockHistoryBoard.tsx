@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getProductHistory } from "../../../../actions/StockActions";
 import { dayOfStart, dayOfEnd, setPreviousMonth } from "../Utilities/DateUtils";
-import QueryProductInformation from "../Utilities/QueryProductInformation";
+import QueryProductInformation, { ProductNoChange } from "../Utilities/QueryProductInformation";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
@@ -62,7 +62,7 @@ function StockHistoryBoard(): React.ReactElement {
     setTreeData(treeDataTranslation(result as unknown as RawHistoryNode[]));
   });
 
-  const handleProductNoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProductNoChange = useCallback((e: ProductNoChange) => {
     setProductNo(e.target.value);
   }, []);
 
