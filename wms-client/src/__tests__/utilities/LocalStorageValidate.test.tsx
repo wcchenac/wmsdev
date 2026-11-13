@@ -1,3 +1,4 @@
+import type { Mock, Mocked, MockedFunction } from 'vitest';
 import localStorageValidate from '../../utilities/LocalStorageValidate';
 import setJWTToken from '../../utilities/SetJWTToken';
 import store from '../../store';
@@ -13,28 +14,30 @@ interface DecodedJWT {
 }
 
 interface LocalStorageMock {
-  getItem: jest.Mock;
-  setItem: jest.Mock;
-  removeItem: jest.Mock;
-  clear: jest.Mock;
+  getItem: Mock;
+  setItem: Mock;
+  removeItem: Mock;
+  clear: Mock;
 }
 
 // Mock dependencies
-jest.mock('../../utilities/SetJWTToken');
-jest.mock('jwt-decode', () => ({
-  jwtDecode: jest.fn()
+vi.mock('../../utilities/SetJWTToken');
+vi.mock('jwt-decode', () => ({
+  jwtDecode: vi.fn()
 }));
-jest.mock('../../store', () => ({
-  dispatch: jest.fn()
+vi.mock('../../store', () => ({
+  default: {
+    dispatch: vi.fn()
+  }
 }));
-jest.mock('../../actions/UserActions', () => ({
-  logout: jest.fn(() => ({ type: 'LOGOUT' }))
+vi.mock('../../actions/UserActions', () => ({
+  logout: vi.fn(() => ({ type: 'LOGOUT' }))
 }));
 
-const mockedSetJWTToken = setJWTToken as jest.MockedFunction<typeof setJWTToken>;
-const mockedJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
-const mockedStore = store as jest.Mocked<typeof store>;
-const mockedLogout = logout as jest.MockedFunction<typeof logout>;
+const mockedSetJWTToken = setJWTToken as MockedFunction<typeof setJWTToken>;
+const mockedJwtDecode = jwtDecode as MockedFunction<typeof jwtDecode>;
+const mockedStore = store as Mocked<typeof store>;
+const mockedLogout = logout as MockedFunction<typeof logout>;
 
 describe('LocalStorageValidate - localStorageValidate function', () => {
   const mockValidToken = 'valid-jwt-token';
@@ -53,10 +56,10 @@ describe('LocalStorageValidate - localStorageValidate function', () => {
 
   // Create a proper mock for localStorage
   const localStorageMock: LocalStorageMock = {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
-    removeItem: jest.fn(),
-    clear: jest.fn()
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn()
   };
 
   beforeAll(() => {
@@ -67,7 +70,7 @@ describe('LocalStorageValidate - localStorageValidate function', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     localStorageMock.getItem.mockReset();
     window.location.href = '';
   });

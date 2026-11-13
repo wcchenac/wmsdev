@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, RenderResult } from '@testing-library/react';
 import SearchBoard from '../../../../../components/BO/Stock/OutStockList/SearchBoard';
@@ -27,15 +28,15 @@ interface SelectedUserItem {
 interface SearchBoardProps {
   queryResult: QueryResult | undefined;
   selectedUserList: SelectedUserItem[];
-  handleSubmitClick: jest.Mock;
-  handleDeleteClick: jest.Mock;
-  downloadFile: jest.Mock;
-  handleModalShow: jest.Mock;
-  initialize: jest.Mock;
+  handleSubmitClick: Mock;
+  handleDeleteClick: Mock;
+  downloadFile: Mock;
+  handleModalShow: Mock;
+  initialize: Mock;
 }
 
 // Mock SearchContainer
-jest.mock('../../../../../components/BO/Stock/OutStockList/SearchContainer', () => {
+vi.mock('../../../../../components/BO/Stock/OutStockList/SearchContainer', () => ({ default: (() => {
   return function MockSearchContainer(props: MockSearchContainerProps): JSX.Element {
     return (
       <div
@@ -50,11 +51,11 @@ jest.mock('../../../../../components/BO/Stock/OutStockList/SearchContainer', () 
       </div>
     );
   };
-});
+})() }));
 
 // Mock DeepCopy
-jest.mock('../../../../../utilities/DeepCopy', () => ({
-  copy: jest.fn((obj: unknown) => JSON.parse(JSON.stringify(obj)))
+vi.mock('../../../../../utilities/DeepCopy', () => ({
+  copy: vi.fn((obj: unknown) => JSON.parse(JSON.stringify(obj)))
 }));
 
 describe('SearchBoard', () => {
@@ -72,11 +73,11 @@ describe('SearchBoard', () => {
       { user: 'user1', selected: true },
       { user: 'user2', selected: true }
     ],
-    handleSubmitClick: jest.fn(),
-    handleDeleteClick: jest.fn(),
-    downloadFile: jest.fn(),
-    handleModalShow: jest.fn(),
-    initialize: jest.fn()
+    handleSubmitClick: vi.fn(),
+    handleDeleteClick: vi.fn(),
+    downloadFile: vi.fn(),
+    handleModalShow: vi.fn(),
+    initialize: vi.fn()
   };
 
   const renderSearchBoard = (props: Partial<SearchBoardProps> = {}): RenderResult => {
@@ -84,7 +85,7 @@ describe('SearchBoard', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {

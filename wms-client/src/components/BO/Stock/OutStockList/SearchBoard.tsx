@@ -4,7 +4,7 @@ import { copy } from "../../../../utilities/DeepCopy";
 import { SelectedUser } from "../../../../types";
 import { OutStockInfo } from "./SearchInfo";
 
-const equal = require("fast-deep-equal");
+import equal from "fast-deep-equal";
 
 interface ToBeSubmitItem {
   selected: boolean;

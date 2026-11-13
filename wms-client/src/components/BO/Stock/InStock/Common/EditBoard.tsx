@@ -2,7 +2,7 @@ import React, { useRef, useEffect, memo, ReactNode, MouseEvent } from "react";
 import StockInfoContainer from "./StockInfoContainer";
 import { StockIdentifierType, DefectOption } from "../../../../../enums/Enums";
 
-const equal = require("fast-deep-equal");
+import equal from "fast-deep-equal";
 
 interface WaitHandleStatusItem {
   quantity: string | number;

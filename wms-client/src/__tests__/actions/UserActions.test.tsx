@@ -1,3 +1,4 @@
+import type { Mock, Mocked, MockedFunction } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk, ThunkDispatch } from 'redux-thunk';
 import * as actions from '../../actions/UserActions';
@@ -7,14 +8,14 @@ import { jwtDecode } from 'jwt-decode';
 import { AnyAction } from 'redux';
 
 // Mock dependencies
-jest.mock('../../utilities/API');
-jest.mock('jwt-decode', () => ({
-  jwtDecode: jest.fn()
+vi.mock('../../utilities/API');
+vi.mock('jwt-decode', () => ({
+  jwtDecode: vi.fn()
 }));
-jest.mock('../../utilities/SetJWTToken', () => jest.fn());
+vi.mock('../../utilities/SetJWTToken', () => ({ default: vi.fn() }));
 
-const mockedAPI = API as jest.Mocked<typeof API>;
-const mockedJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
+const mockedAPI = API as Mocked<typeof API>;
+const mockedJwtDecode = jwtDecode as MockedFunction<typeof jwtDecode>;
 
 type RootState = Record<string, unknown>;
 type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
@@ -22,10 +23,10 @@ type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
 const mockStore = configureMockStore<RootState, AppDispatch>([thunk]);
 
 interface LocalStorageMock {
-  getItem: jest.Mock;
-  setItem: jest.Mock;
-  removeItem: jest.Mock;
-  clear: jest.Mock;
+  getItem: Mock;
+  setItem: Mock;
+  removeItem: Mock;
+  clear: Mock;
 }
 
 interface DecodedUser {
@@ -37,10 +38,10 @@ interface DecodedUser {
 
 // Create localStorage mock
 const localStorageMock: LocalStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn()
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn()
 };
 
 // Setup localStorage mock before all tests
@@ -63,7 +64,7 @@ describe('UserActions', () => {
 
   beforeEach(() => {
     store = mockStore({});
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     localStorageMock.getItem.mockClear();
     localStorageMock.setItem.mockClear();
     localStorageMock.removeItem.mockClear();

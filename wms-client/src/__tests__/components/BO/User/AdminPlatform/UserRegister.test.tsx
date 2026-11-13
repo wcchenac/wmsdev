@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 import UserRegister from '../../../../../components/BO/User/AdminPlatform/UserRegister';
+import { toast } from 'react-toastify';
 
 interface MockLoadingOverlayProps {
   children: React.ReactNode;
@@ -27,7 +28,7 @@ interface RenderUserRegisterResult extends RenderResult {
 }
 
 // Mock react-loading-overlay-ts
-jest.mock('react-loading-overlay-ts', () => {
+vi.mock('react-loading-overlay-ts', () => ({ default: (() => {
   return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>
@@ -36,25 +37,25 @@ jest.mock('react-loading-overlay-ts', () => {
       </div>
     );
   };
-});
+})() }));
 
 // Mock Spinner
-jest.mock('../../../../../components/Others/Spinner', () => ({
+vi.mock('../../../../../components/Others/Spinner', () => ({
   Spinner: (): JSX.Element => <div data-testid="spinner-component">Spinner</div>
 }));
 
 // Mock react-toastify
-jest.mock('react-toastify', () => ({
+vi.mock('react-toastify', () => ({
   ToastContainer: (): JSX.Element => <div data-testid="toast-container" />,
   toast: {
-    success: jest.fn(),
-    error: jest.fn()
+    success: vi.fn(),
+    error: vi.fn()
   }
 }));
 
 // Mock registerUser action
-const mockRegisterUser = jest.fn();
-jest.mock('../../../../../actions/UserActions', () => ({
+const mockRegisterUser = vi.fn();
+vi.mock('../../../../../actions/UserActions', () => ({
   registerUser: (registration: unknown) => () => mockRegisterUser(registration)
 }));
 
@@ -85,7 +86,7 @@ const renderUserRegister = (storeState: Partial<StoreState> = {}): RenderUserReg
 
 describe('UserRegister', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockRegisterUser.mockResolvedValue({ status: 200 });
   });
 
@@ -292,7 +293,6 @@ describe('UserRegister', () => {
     });
 
     test('shows success toast on successful registration', async () => {
-      const { toast } = require('react-toastify');
       renderUserRegister();
       fillForm();
 
@@ -319,7 +319,6 @@ describe('UserRegister', () => {
     });
 
     test('shows error toast on registration failure', async () => {
-      const { toast } = require('react-toastify');
       mockRegisterUser.mockRejectedValue(new Error('Registration failed'));
 
       renderUserRegister();

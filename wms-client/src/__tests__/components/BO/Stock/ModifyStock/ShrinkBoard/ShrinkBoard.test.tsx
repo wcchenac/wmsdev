@@ -29,18 +29,18 @@ interface MockModifyRequestBoardProps {
 const mockStore = configureMockStore([thunk]);
 
 // Mock actions
-const mockGetShrinkList = jest.fn();
-const mockStockIdentifierWaitToShrinkIsFalse = jest.fn();
-const mockBatchCreateStockInfoesForShrink = jest.fn();
+const mockGetShrinkList = vi.fn();
+const mockStockIdentifierWaitToShrinkIsFalse = vi.fn();
+const mockBatchCreateStockInfoesForShrink = vi.fn();
 
-jest.mock('../../../../../../actions/StockActions', () => ({
+vi.mock('../../../../../../actions/StockActions', () => ({
   getShrinkList: () => () => mockGetShrinkList(),
   stockIdentifierWaitToShrinkIsFalse: (id: string) => () => mockStockIdentifierWaitToShrinkIsFalse(id),
   batchCreateStockInfoesForShrink: (req: unknown) => () => mockBatchCreateStockInfoesForShrink(req)
 }));
 
 // Mock child components to isolate ShrinkBoard logic
-jest.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkList', () => {
+vi.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkList', () => ({ default: (() => {
   return function MockShrinkList({ queryShrinkList, onCancelShrinkClick, onModifyClick }: MockShrinkListProps): JSX.Element {
     return (
       <div data-testid="shrink-list">
@@ -50,9 +50,9 @@ jest.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkL
       </div>
     );
   };
-});
+})() }));
 
-jest.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ModifyRequestBoard', () => {
+vi.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ModifyRequestBoard', () => ({ default: (() => {
   return function MockModifyRequestBoard({ handleGoBack, handleModifyRequestSubmit }: MockModifyRequestBoardProps): JSX.Element {
     return (
       <div data-testid="modify-request-board">
@@ -61,7 +61,7 @@ jest.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ModifyR
       </div>
     );
   };
-});
+})() }));
 
 const renderWithRedux = (component: React.ReactElement, { initialState }: { initialState: StoreState }): RenderWithReduxResult => {
   const store = mockStore(initialState);
@@ -80,7 +80,7 @@ describe('ShrinkBoard', () => {
         stockInfoes: []
       }
     };
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders ShrinkList by default', () => {

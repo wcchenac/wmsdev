@@ -20,7 +20,7 @@ import ConfirmModal from "./ConfirmModal";
 import { RootState, AppDispatch, SelectedUser } from "../../../../types";
 import { OutStockInfo } from "./SearchInfo";
 
-const equal = require("fast-deep-equal");
+import equal from "fast-deep-equal";
 const refreshTime = 1000 * 60 * 10;
 const dayIntervalRange = 7;
 

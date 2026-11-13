@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import CheckBoxForSelectionBoard from '../../../../../components/BO/Stock/InStock/Common/CheckBoxForSelectionBoard';
@@ -16,7 +17,7 @@ interface CheckBoxProps {
   index: number;
   checked: boolean;
   waitHandleStatus: WaitHandleStatus;
-  handleCheckBoxSelected: jest.Mock;
+  handleCheckBoxSelected: Mock;
 }
 
 describe('CheckBoxForSelectionBoard', () => {
@@ -28,7 +29,7 @@ describe('CheckBoxForSelectionBoard', () => {
       '板卷': { quantity: '10', unit: '碼' },
       '整卷': { quantity: '5', unit: '碼' }
     },
-    handleCheckBoxSelected: jest.fn()
+    handleCheckBoxSelected: vi.fn()
   };
 
   const renderCheckBox = (props: Partial<CheckBoxProps> = {}): RenderResult => {
@@ -36,7 +37,7 @@ describe('CheckBoxForSelectionBoard', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {
@@ -115,7 +116,7 @@ describe('CheckBoxForSelectionBoard', () => {
     });
 
     test('passes correct index to handleCheckBoxSelected', () => {
-      const handleCheckBoxSelected = jest.fn();
+      const handleCheckBoxSelected = vi.fn();
       renderCheckBox({ index: 5, handleCheckBoxSelected });
       fireEvent.click(screen.getByRole('checkbox'));
       expect(handleCheckBoxSelected).toHaveBeenCalledWith(expect.anything(), 5);

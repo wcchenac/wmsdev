@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import ShipModal from '../../../../../components/BO/Stock/Utilities/ShipModal';
@@ -11,15 +12,15 @@ interface MockShipModalBodyProps {
 interface ShipModalProps {
   show: boolean;
   outStockReason: string;
-  handleModalClose: jest.Mock;
-  onChange: jest.Mock;
-  onReansonButtonChange: jest.Mock;
-  onCancleShipClick: jest.Mock;
-  onShipClick: jest.Mock;
+  handleModalClose: Mock;
+  onChange: Mock;
+  onReansonButtonChange: Mock;
+  onCancleShipClick: Mock;
+  onShipClick: Mock;
 }
 
 // Mock ShipModalBody
-jest.mock('../../../../../components/BO/Stock/Utilities/ShipModalBody', () => {
+vi.mock('../../../../../components/BO/Stock/Utilities/ShipModalBody', () => ({ default: (() => {
   return function MockShipModalBody(props: MockShipModalBodyProps): JSX.Element {
     return (
       <div data-testid="ship-modal-body">
@@ -37,17 +38,17 @@ jest.mock('../../../../../components/BO/Stock/Utilities/ShipModalBody', () => {
       </div>
     );
   };
-});
+})() }));
 
 describe('ShipModal', () => {
   const defaultProps: ShipModalProps = {
     show: true,
     outStockReason: '',
-    handleModalClose: jest.fn(),
-    onChange: jest.fn(),
-    onReansonButtonChange: jest.fn(),
-    onCancleShipClick: jest.fn(),
-    onShipClick: jest.fn()
+    handleModalClose: vi.fn(),
+    onChange: vi.fn(),
+    onReansonButtonChange: vi.fn(),
+    onCancleShipClick: vi.fn(),
+    onShipClick: vi.fn()
   };
 
   const renderShipModal = (props: Partial<ShipModalProps> = {}): RenderResult => {
@@ -55,7 +56,7 @@ describe('ShipModal', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {

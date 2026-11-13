@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import SelectionBoard from '../../../../../components/BO/Stock/InStock/Common/SelectionBoard';
@@ -24,14 +25,14 @@ interface SelectionBoardProps {
   orderNo: string;
   waitHandleStatus: WaitHandleStatus;
   selectedProductNoList: SelectedProductNoItem[];
-  handlePrevStep: jest.Mock;
-  handleNextStep: jest.Mock;
-  handleSelectionClick: jest.Mock;
-  handleCheckBoxSelected: jest.Mock;
+  handlePrevStep: Mock;
+  handleNextStep: Mock;
+  handleSelectionClick: Mock;
+  handleCheckBoxSelected: Mock;
 }
 
 // Mock CheckBoxForSelectionBoard
-jest.mock('../../../../../components/BO/Stock/InStock/Common/CheckBoxForSelectionBoard', () => {
+vi.mock('../../../../../components/BO/Stock/InStock/Common/CheckBoxForSelectionBoard', () => ({ default: (() => {
   return function MockCheckBoxForSelectionBoard(props: MockCheckBoxProps): JSX.Element {
     return (
       <div
@@ -48,7 +49,7 @@ jest.mock('../../../../../components/BO/Stock/InStock/Common/CheckBoxForSelectio
       </div>
     );
   };
-});
+})() }));
 
 describe('SelectionBoard', () => {
   const defaultProps: SelectionBoardProps = {
@@ -62,10 +63,10 @@ describe('SelectionBoard', () => {
       { index: 0, productNo: 'PROD001', selected: false },
       { index: 1, productNo: 'PROD002', selected: false }
     ],
-    handlePrevStep: jest.fn(),
-    handleNextStep: jest.fn(),
-    handleSelectionClick: jest.fn(),
-    handleCheckBoxSelected: jest.fn()
+    handlePrevStep: vi.fn(),
+    handleNextStep: vi.fn(),
+    handleSelectionClick: vi.fn(),
+    handleCheckBoxSelected: vi.fn()
   };
 
   const renderSelectionBoard = (props: Partial<SelectionBoardProps> = {}): RenderResult => {
@@ -73,7 +74,7 @@ describe('SelectionBoard', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {

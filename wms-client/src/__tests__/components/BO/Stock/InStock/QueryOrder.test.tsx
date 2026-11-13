@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import QueryOrder from '../../../../../components/BO/Stock/InStock/Common/QueryOrder';
@@ -5,16 +6,16 @@ import QueryOrder from '../../../../../components/BO/Stock/InStock/Common/QueryO
 interface QueryOrderProps {
   type: string;
   isOrderValid: boolean | null;
-  handleQueryOrderSubmit: jest.Mock;
-  handleOrderNo: jest.Mock;
+  handleQueryOrderSubmit: Mock;
+  handleOrderNo: Mock;
 }
 
 describe('QueryOrder', () => {
   const defaultProps: QueryOrderProps = {
     type: '進貨',
     isOrderValid: null,
-    handleQueryOrderSubmit: jest.fn(),
-    handleOrderNo: jest.fn()
+    handleQueryOrderSubmit: vi.fn(),
+    handleOrderNo: vi.fn()
   };
 
   const renderQueryOrder = (props: Partial<QueryOrderProps> = {}): RenderResult => {
@@ -22,7 +23,7 @@ describe('QueryOrder', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {
@@ -73,7 +74,7 @@ describe('QueryOrder', () => {
 
   describe('input handling', () => {
     test('calls handleOrderNo on input change', () => {
-      const handleOrderNo = jest.fn();
+      const handleOrderNo = vi.fn();
       renderQueryOrder({ handleOrderNo });
 
       const input = screen.getByPlaceholderText('請輸入進貨單號');
@@ -85,7 +86,7 @@ describe('QueryOrder', () => {
 
   describe('form submission', () => {
     test('calls handleQueryOrderSubmit on form submit', () => {
-      const handleQueryOrderSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+      const handleQueryOrderSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
       renderQueryOrder({ handleQueryOrderSubmit });
 
       const button = screen.getByRole('button', { name: '查詢' });

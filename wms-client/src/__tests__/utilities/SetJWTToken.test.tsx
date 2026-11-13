@@ -2,10 +2,12 @@ import setJWTToken from '../../utilities/SetJWTToken';
 import API from '../../utilities/API';
 
 // Mock the API module
-jest.mock('../../utilities/API', () => ({
-  defaults: {
-    headers: {
-      common: {} as Record<string, string | undefined>
+vi.mock('../../utilities/API', () => ({
+  default: {
+    defaults: {
+      headers: {
+        common: {} as Record<string, string | undefined>
+      }
     }
   }
 }));

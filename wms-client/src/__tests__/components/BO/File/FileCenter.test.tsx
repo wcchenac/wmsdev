@@ -27,7 +27,7 @@ interface StoreState {
 }
 
 // Mock LoadingOverlay - uses react-loading-overlay-ts package
-jest.mock('react-loading-overlay-ts', () => {
+vi.mock('react-loading-overlay-ts', () => ({ default: (() => {
   return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>
@@ -36,15 +36,15 @@ jest.mock('react-loading-overlay-ts', () => {
       </div>
     );
   };
-});
+})() }));
 
 // Mock Spinner
-jest.mock('../../../../components/Others/Spinner', () => ({
+vi.mock('../../../../components/Others/Spinner', () => ({
   Spinner: (): JSX.Element => <div data-testid="spinner-component">Spinner</div>
 }));
 
 // Mock FileContainer
-jest.mock('../../../../components/BO/File/FileContainer', () => {
+vi.mock('../../../../components/BO/File/FileContainer', () => ({ default: (() => {
   return function MockFileContainer(props: MockFileContainerProps): JSX.Element {
     return (
       <div
@@ -55,10 +55,10 @@ jest.mock('../../../../components/BO/File/FileContainer', () => {
       </div>
     );
   };
-});
+})() }));
 
 // Mock FileContainerForCategory
-jest.mock('../../../../components/BO/File/FileContainerForCategory', () => {
+vi.mock('../../../../components/BO/File/FileContainerForCategory', () => ({ default: (() => {
   return function MockFileContainerForCategory(props: MockFileContainerForCategoryProps): JSX.Element {
     return (
       <div
@@ -68,14 +68,14 @@ jest.mock('../../../../components/BO/File/FileContainerForCategory', () => {
       </div>
     );
   };
-});
+})() }));
 
 // Mock FileActions
-jest.mock('../../../../actions/FileActions', () => ({
-  queryFileCategoryTodayFile: jest.fn(() => Promise.resolve({ status: 200, data: 'test.xls' })),
-  queryFileCategoryIntervalFiles: jest.fn(() => Promise.resolve({ status: 200, data: ['test1.xls', 'test2.xls'] })),
-  queryCategoryDetailList: jest.fn(() => () => Promise.resolve()),
-  downloadFile: jest.fn()
+vi.mock('../../../../actions/FileActions', () => ({
+  queryFileCategoryTodayFile: vi.fn(() => Promise.resolve({ status: 200, data: 'test.xls' })),
+  queryFileCategoryIntervalFiles: vi.fn(() => Promise.resolve({ status: 200, data: ['test1.xls', 'test2.xls'] })),
+  queryCategoryDetailList: vi.fn(() => () => Promise.resolve()),
+  downloadFile: vi.fn()
 }));
 
 const mockStore = configureMockStore([thunk]);

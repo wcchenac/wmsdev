@@ -15,7 +15,7 @@ interface PromiseTrackerResult {
 }
 
 // Mock react-loader-spinner
-jest.mock('react-loader-spinner', () => ({
+vi.mock('react-loader-spinner', () => ({
   ThreeDots: function MockThreeDots(props: MockThreeDotsProps): JSX.Element {
     return (
       <div
@@ -31,14 +31,14 @@ jest.mock('react-loader-spinner', () => ({
 }));
 
 // Mock react-promise-tracker
-const mockUsePromiseTracker = jest.fn<PromiseTrackerResult, [{ area?: string }]>();
-jest.mock('react-promise-tracker', () => ({
+const mockUsePromiseTracker = vi.fn<(options: { area?: string }) => PromiseTrackerResult>();
+vi.mock('react-promise-tracker', () => ({
   usePromiseTracker: (options: { area?: string }) => mockUsePromiseTracker(options)
 }));
 
 describe('LoadingSpinner', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('when promise is in progress', () => {

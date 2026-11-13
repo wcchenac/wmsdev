@@ -59,7 +59,7 @@ interface RenderQueryBoardResult extends RenderResult {
 }
 
 // Mock child components
-jest.mock('../../../../../components/BO/Stock/QueryStock/Common/StockInfoContainer', () => {
+vi.mock('../../../../../components/BO/Stock/QueryStock/Common/StockInfoContainer', () => ({ default: (() => {
   return function MockStockInfoContainer(props: MockStockInfoContainerProps): JSX.Element {
     return (
       <div data-testid="stock-info-container"
@@ -69,9 +69,9 @@ jest.mock('../../../../../components/BO/Stock/QueryStock/Common/StockInfoContain
       </div>
     );
   };
-});
+})() }));
 
-jest.mock('../../../../../components/BO/Stock/Utilities/QueryProductInformation', () => {
+vi.mock('../../../../../components/BO/Stock/Utilities/QueryProductInformation', () => ({ default: (() => {
   return function MockQueryProductInformation(props: MockQueryProductInformationProps): JSX.Element {
     return (
       <form onSubmit={props.onSubmit} data-testid="query-form">
@@ -85,9 +85,9 @@ jest.mock('../../../../../components/BO/Stock/Utilities/QueryProductInformation'
       </form>
     );
   };
-});
+})() }));
 
-jest.mock('../../../../../components/BO/Stock/Utilities/ShowProductInformation', () => {
+vi.mock('../../../../../components/BO/Stock/Utilities/ShowProductInformation', () => ({ default: (() => {
   return function MockShowProductInformation(props: MockShowProductInformationProps): JSX.Element {
     return (
       <div data-testid="show-product-info"
@@ -98,21 +98,21 @@ jest.mock('../../../../../components/BO/Stock/Utilities/ShowProductInformation',
       </div>
     );
   };
-});
+})() }));
 
-jest.mock('../../../../../components/BO/Stock/Utilities/QueryResponseWithNoStock', () => {
+vi.mock('../../../../../components/BO/Stock/Utilities/QueryResponseWithNoStock', () => ({ default: (() => {
   return function MockQueryResponseWithNoStock(): JSX.Element {
     return <div data-testid="no-stock-response">No Stock Found</div>;
   };
-});
+})() }));
 
-jest.mock('../../../../../components/BO/Stock/Utilities/ShowProductQuantity', () => {
+vi.mock('../../../../../components/BO/Stock/Utilities/ShowProductQuantity', () => ({ default: (() => {
   return function MockShowProductQuantity(): JSX.Element {
     return <div data-testid="product-quantity">Quantity Info</div>;
   };
-});
+})() }));
 
-jest.mock('../../../../../components/BO/Stock/Utilities/ToolbarForNextPrev', () => {
+vi.mock('../../../../../components/BO/Stock/Utilities/ToolbarForNextPrev', () => ({ default: (() => {
   return function MockToolbarForNextPrev(props: MockToolbarForNextPrevProps): JSX.Element {
     return (
       <div data-testid="toolbar-next-prev">
@@ -135,9 +135,9 @@ jest.mock('../../../../../components/BO/Stock/Utilities/ToolbarForNextPrev', () 
       </div>
     );
   };
-});
+})() }));
 
-jest.mock('react-loading-overlay-ts', () => {
+vi.mock('react-loading-overlay-ts', () => ({ default: (() => {
   return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>
@@ -146,15 +146,15 @@ jest.mock('react-loading-overlay-ts', () => {
       </div>
     );
   };
-});
+})() }));
 
-jest.mock('../../../../../components/Others/Spinner', () => ({
+vi.mock('../../../../../components/Others/Spinner', () => ({
   Spinner: (): JSX.Element => <div data-testid="spinner-component">Spinner</div>
 }));
 
 // Mock action
-const mockGetStockInfoesBasic = jest.fn();
-jest.mock('../../../../../actions/StockActions', () => ({
+const mockGetStockInfoesBasic = vi.fn();
+vi.mock('../../../../../actions/StockActions', () => ({
   getStockInfoesBasic: (productNo: string) => () => mockGetStockInfoesBasic(productNo)
 }));
 
@@ -187,7 +187,7 @@ const renderQueryBoard = (storeState: Partial<StoreState> = {}): RenderQueryBoar
 
 describe('QueryBoard', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockGetStockInfoesBasic.mockResolvedValue({ status: 200 });
   });
 

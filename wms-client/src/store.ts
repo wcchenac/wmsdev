@@ -27,7 +27,7 @@ const middleware: ThunkMiddleware<RootState>[] = [thunk];
 
 // Enable Redux DevTools Extension in development
 const composeEnhancers: typeof compose =
-  process.env.NODE_ENV === 'development' &&
+  import.meta.env.DEV &&
   typeof window !== 'undefined' &&
   (window as unknown as DevToolsExtension).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     ? (window as unknown as DevToolsExtension).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__!({

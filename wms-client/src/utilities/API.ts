@@ -12,7 +12,8 @@ declare global {
  * Order:
  * 1. window.__WMS_CONFIG__.apiBaseUrl, written to public/config.js at container
  *    start (docker/frontend/40-runtime-config.sh)
- * 2. REACT_APP_API_BASE_URL baked in at build time (.env.development / .env.production)
+ * 2. VITE_API_BASE_URL or REACT_APP_API_BASE_URL baked in at build time
+ *    (.env.development / .env.production)
  * 3. "/" so requests stay on this origin and a reverse proxy (nginx) can forward /api
  */
 const resolveApiBaseUrl = (): string => {
@@ -25,8 +26,10 @@ const resolveApiBaseUrl = (): string => {
         return runtimeBase;
     }
 
-    if (process.env.REACT_APP_API_BASE_URL) {
-        return process.env.REACT_APP_API_BASE_URL;
+    const buildTimeBase =
+        import.meta.env.VITE_API_BASE_URL || import.meta.env.REACT_APP_API_BASE_URL;
+    if (buildTimeBase) {
+        return buildTimeBase;
     }
 
     return '/';

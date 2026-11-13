@@ -1,6 +1,6 @@
 import React from "react";
 
-const equal = require("fast-deep-equal");
+import equal from "fast-deep-equal";
 
 interface ProductInfo {
   productNo: string;

@@ -23,8 +23,8 @@ interface StockHistoryRequest {
 const mockStore = configureMockStore([thunk]);
 
 // Mock actions
-const mockGetProductHistory = jest.fn();
-jest.mock('../../../../../actions/StockActions', () => ({
+const mockGetProductHistory = vi.fn();
+vi.mock('../../../../../actions/StockActions', () => ({
   getProductHistory: (request: StockHistoryRequest) => () => mockGetProductHistory(request)
 }));
 
@@ -45,7 +45,7 @@ describe('StockHistoryBoard', () => {
         stockInfoes: []
       }
     };
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders correctly', () => {

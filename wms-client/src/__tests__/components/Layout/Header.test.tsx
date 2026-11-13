@@ -29,7 +29,7 @@ interface StoreState {
 }
 
 // Mock child components
-jest.mock('../../../components/Layout/HeaderStockFunctions', () => {
+vi.mock('../../../components/Layout/HeaderStockFunctions', () => ({ default: (() => {
   return function MockHeaderStockFunctions(props: MockHeaderStockFunctionsProps): JSX.Element {
     return (
       <div data-testid="header-stock-functions"
@@ -39,9 +39,9 @@ jest.mock('../../../components/Layout/HeaderStockFunctions', () => {
       </div>
     );
   };
-});
+})() }));
 
-jest.mock('../../../components/Layout/HeaderUserFunctions', () => {
+vi.mock('../../../components/Layout/HeaderUserFunctions', () => ({ default: (() => {
   return function MockHeaderUserFunctions(props: MockHeaderUserFunctionsProps): JSX.Element {
     return (
       <div data-testid="header-user-functions"
@@ -52,11 +52,11 @@ jest.mock('../../../components/Layout/HeaderUserFunctions', () => {
       </div>
     );
   };
-});
+})() }));
 
 // Mock logout action
-const mockLogout = jest.fn();
-jest.mock('../../../actions/UserActions', () => ({
+const mockLogout = vi.fn();
+vi.mock('../../../actions/UserActions', () => ({
   logout: () => mockLogout
 }));
 
@@ -77,7 +77,7 @@ describe('Header', () => {
   const originalLocation = window.location;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -221,7 +221,7 @@ describe('Header', () => {
   describe('logout functionality', () => {
     test('logout redirects to home page', () => {
       // Mock window.location.href assignment
-      const locationHrefSpy = jest.fn();
+      const locationHrefSpy = vi.fn();
       Object.defineProperty(window, 'location', {
         value: { href: '', set href(value: string) { locationHrefSpy(value); } },
         writable: true,

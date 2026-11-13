@@ -11,7 +11,7 @@ interface MockThreeDotsProps {
 }
 
 // Mock react-loader-spinner
-jest.mock('react-loader-spinner', () => ({
+vi.mock('react-loader-spinner', () => ({
   ThreeDots: function MockThreeDots(props: MockThreeDotsProps): JSX.Element {
     return (
       <div

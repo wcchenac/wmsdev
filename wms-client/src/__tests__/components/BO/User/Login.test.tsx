@@ -29,8 +29,8 @@ interface RenderLoginResult extends RenderResult {
 }
 
 // Mock login action
-const mockLogin = jest.fn();
-jest.mock('../../../../actions/UserActions', () => ({
+const mockLogin = vi.fn();
+vi.mock('../../../../actions/UserActions', () => ({
   login: (loginRequest: LoginRequest) => () => mockLogin(loginRequest)
 }));
 
@@ -64,7 +64,7 @@ const renderLogin = (storeState: Partial<StoreState> = {}, initialPath: string =
 
 describe('Login', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {

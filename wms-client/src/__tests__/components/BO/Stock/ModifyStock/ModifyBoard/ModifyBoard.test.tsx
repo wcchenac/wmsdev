@@ -52,14 +52,14 @@ interface RenderWithReduxResult extends RenderResult {
 const mockStore = configureMockStore([thunk]);
 
 // Mock actions
-const mockGetStockInfoes = jest.fn();
-const mockStockIdentifierIsShiped = jest.fn();
-const mockStockIdentifiersAreShiped = jest.fn();
-const mockStockIdentifierWaitToShrinkIsTrue = jest.fn();
-const mockCreateOutStockRequest = jest.fn();
-const mockUpdateStockInfo = jest.fn();
+const mockGetStockInfoes = vi.fn();
+const mockStockIdentifierIsShiped = vi.fn();
+const mockStockIdentifiersAreShiped = vi.fn();
+const mockStockIdentifierWaitToShrinkIsTrue = vi.fn();
+const mockCreateOutStockRequest = vi.fn();
+const mockUpdateStockInfo = vi.fn();
 
-jest.mock('../../../../../../actions/StockActions', () => ({
+vi.mock('../../../../../../actions/StockActions', () => ({
   getStockInfoes: (id: string) => () => mockGetStockInfoes(id),
   stockIdentifierIsShiped: (req: unknown) => () => mockStockIdentifierIsShiped(req),
   stockIdentifiersAreShiped: (no: string, reqs: unknown[]) => () => mockStockIdentifiersAreShiped(no, reqs),
@@ -91,7 +91,7 @@ describe('ModifyBoard', () => {
         }
       }
     };
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders search input', () => {

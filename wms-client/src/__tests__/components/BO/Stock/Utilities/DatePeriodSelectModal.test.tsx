@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import DatePeriodSelectModal from '../../../../../components/BO/Stock/Utilities/DatePeriodSelectModal';
@@ -15,13 +16,13 @@ interface DatePeriodSelectModalProps {
   startDate: Date;
   endDate: Date;
   dayRange: number;
-  handleStartDateSelection: jest.Mock;
-  handleEndDateSelection: jest.Mock;
-  handleDateSelectionModeClick: jest.Mock;
+  handleStartDateSelection: Mock;
+  handleEndDateSelection: Mock;
+  handleDateSelectionModeClick: Mock;
 }
 
 // Mock react-datepicker
-jest.mock('react-datepicker', () => {
+vi.mock('react-datepicker', () => ({ default: (() => {
   return function MockDatePicker(props: MockDatePickerProps): JSX.Element {
     return (
       <input
@@ -32,7 +33,7 @@ jest.mock('react-datepicker', () => {
       />
     );
   };
-});
+})() }));
 
 describe('DatePeriodSelectModal', () => {
   const today = new Date();
@@ -45,9 +46,9 @@ describe('DatePeriodSelectModal', () => {
     startDate: today,
     endDate: tomorrow,
     dayRange: 7,
-    handleStartDateSelection: jest.fn(),
-    handleEndDateSelection: jest.fn(),
-    handleDateSelectionModeClick: jest.fn()
+    handleStartDateSelection: vi.fn(),
+    handleEndDateSelection: vi.fn(),
+    handleDateSelectionModeClick: vi.fn()
   };
 
   const renderModal = (props: Partial<DatePeriodSelectModalProps> = {}): RenderResult => {
@@ -55,7 +56,7 @@ describe('DatePeriodSelectModal', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {

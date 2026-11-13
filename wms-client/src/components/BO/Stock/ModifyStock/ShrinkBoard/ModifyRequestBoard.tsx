@@ -11,7 +11,7 @@ import ToolbarForAddDeleteSubmit from '../../Utilities/ToolbarForAddDeleteSubmit
 import ShrinkConfirmModal from './ShrinkConfirmModal';
 import { StockInfo, ShrinkStockRequest } from '../../../../../types';
 
-const equal = require('fast-deep-equal');
+import equal from "fast-deep-equal";
 
 // Extend Math interface for round10
 declare global {

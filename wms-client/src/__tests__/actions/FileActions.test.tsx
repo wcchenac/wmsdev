@@ -1,3 +1,4 @@
+import type { Mock, Mocked } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk, ThunkDispatch } from 'redux-thunk';
 import * as actions from '../../actions/FileActions';
@@ -6,9 +7,9 @@ import API from '../../utilities/API';
 import { AnyAction } from 'redux';
 
 // Mock dependencies
-jest.mock('../../utilities/API');
+vi.mock('../../utilities/API');
 
-const mockedAPI = API as jest.Mocked<typeof API>;
+const mockedAPI = API as Mocked<typeof API>;
 
 type RootState = Record<string, unknown>;
 type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
@@ -17,9 +18,9 @@ const mockStore = configureMockStore<RootState, AppDispatch>([thunk]);
 
 interface MockLink {
   href: string;
-  setAttribute: jest.Mock;
-  click: jest.Mock;
-  remove: jest.Mock;
+  setAttribute: Mock;
+  click: Mock;
+  remove: Mock;
 }
 
 describe('FileActions', () => {
@@ -27,7 +28,7 @@ describe('FileActions', () => {
 
   beforeEach(() => {
     store = mockStore({});
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('downloadFile', () => {
@@ -37,22 +38,22 @@ describe('FileActions', () => {
 
     beforeEach(() => {
       // Mock URL.createObjectURL
-      global.URL.createObjectURL = jest.fn(() => 'blob:test-url');
-      global.URL.revokeObjectURL = jest.fn();
+      global.URL.createObjectURL = vi.fn(() => 'blob:test-url');
+      global.URL.revokeObjectURL = vi.fn();
 
       // Mock document methods
       mockLink = {
         href: '',
-        setAttribute: jest.fn(),
-        click: jest.fn(),
-        remove: jest.fn()
+        setAttribute: vi.fn(),
+        click: vi.fn(),
+        remove: vi.fn()
       };
-      jest.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLElement);
-      jest.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as unknown as Node);
+      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLElement);
+      vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as unknown as Node);
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     test('calls API.get with correct endpoint and blob response type', async () => {

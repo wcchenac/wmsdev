@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import ConfirmModal from '../../../../../components/BO/Stock/OutStockList/ConfirmModal';
@@ -11,9 +12,9 @@ interface SearchInfo {
 interface ConfirmModalProps {
   show: boolean;
   searchInfo: SearchInfo;
-  handleModalClose: jest.Mock;
-  cancelShip: jest.Mock;
-  deleteOutStock: jest.Mock;
+  handleModalClose: Mock;
+  cancelShip: Mock;
+  deleteOutStock: Mock;
 }
 
 describe('ConfirmModal', () => {
@@ -24,9 +25,9 @@ describe('ConfirmModal', () => {
       stockIdentifierId: 100,
       outStockType: 0
     },
-    handleModalClose: jest.fn(),
-    cancelShip: jest.fn(),
-    deleteOutStock: jest.fn()
+    handleModalClose: vi.fn(),
+    cancelShip: vi.fn(),
+    deleteOutStock: vi.fn()
   };
 
   const renderConfirmModal = (props: Partial<ConfirmModalProps> = {}): RenderResult => {
@@ -34,7 +35,7 @@ describe('ConfirmModal', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('rendering', () => {

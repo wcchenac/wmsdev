@@ -1,3 +1,4 @@
+import type { Mocked } from 'vitest';
 import configureMockStore from 'redux-mock-store';
 import { thunk, ThunkDispatch } from 'redux-thunk';
 import * as actions from '../../actions/StockActions';
@@ -6,9 +7,9 @@ import API from '../../utilities/API';
 import { AnyAction } from 'redux';
 
 // Mock dependencies
-jest.mock('../../utilities/API');
+vi.mock('../../utilities/API');
 
-const mockedAPI = API as jest.Mocked<typeof API>;
+const mockedAPI = API as Mocked<typeof API>;
 
 type RootState = Record<string, unknown>;
 type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
@@ -20,7 +21,7 @@ describe('StockActions', () => {
 
   beforeEach(() => {
     store = mockStore({});
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // ============================================

@@ -2,7 +2,7 @@ import React, { PureComponent } from "react";
 import SearchInfo, { OutStockInfo } from "./SearchInfo";
 import HeaderCheckBox from "./HeaderCheckBox";
 
-const equal = require("fast-deep-equal");
+import equal from "fast-deep-equal";
 
 interface ToBeSubmitItem {
   selected: boolean;
