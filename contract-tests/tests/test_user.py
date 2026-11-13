@@ -1,6 +1,6 @@
 """/api/user/* — login and admin user management (5 endpoints)."""
 
-from conftest import USERS, rows
+from conftest import JWT_SECRET, USERS, exec_sql, login, rows, sign_jwt
 
 
 def user_table(db):
@@ -31,6 +31,33 @@ def test_token_is_required(http, golden):
         "garbage_token",
         http.get("/api/user/adminManagement/user/userList", headers={"Authorization": "Bearer not-a-jwt"}),
     )
+
+
+def test_token_edge_cases(http, db, golden):
+    import base64
+    import time
+
+    store_token = login(http, "store")
+    admin_token = login(http, "admin")
+    exec_sql(db, "DELETE FROM user WHERE employeeId = %s", "store")  # removed after login
+    golden.response("deleted_user", http.get("/api/stock/queryStock/query/2/CF1001",
+                                             headers={"Authorization": store_token}))
+
+    user_list = "/api/user/adminManagement/user/userList"
+    now = int(time.time())
+    claims = {"id": "1", "employeeId": "admin", "fullName": "管理員甲", "role": {"authority": "ROLE_Admin"}}
+    key = base64.b64decode(JWT_SECRET)
+    expired = sign_jwt({**claims, "iat": now - 7200, "exp": now - 3600}, key)
+    other_key = sign_jwt({**claims, "iat": now, "exp": now + 3600}, b"k" * 64)
+    alg_none = sign_jwt({**claims, "iat": now, "exp": now + 3600}, None, alg="none")
+    golden.response("expired", http.get(user_list, headers={"Authorization": "Bearer " + expired}))
+    golden.response("other_key", http.get(user_list, headers={"Authorization": "Bearer " + other_key}))
+    golden.response("alg_none", http.get(user_list, headers={"Authorization": "Bearer " + alg_none}))
+
+    raw = admin_token.removeprefix("Bearer ")
+    golden.response("lowercase_bearer", http.get(user_list, headers={"Authorization": "bearer " + raw}))
+    golden.response("no_space", http.get(user_list, headers={"Authorization": "Bearer" + raw}))
+    golden.response("unimplemented_path_no_token", http.get("/api/does/not/exist"))
 
 
 # POST /api/user/adminManagement/user/register --------------------------------
