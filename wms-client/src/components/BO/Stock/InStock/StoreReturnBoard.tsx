@@ -221,7 +221,7 @@ const StoreReturnBoard: React.FC = () => {
   }, [queryReturnOrderResult, initialSelectedList]);
 
   return (
-    <div className="returnOrder_stockInfo">
+    <div className="batch_add_stockInfo">
       <div className="container">
         <TabContainer
           id="left-tabs"
