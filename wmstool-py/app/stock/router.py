@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_session
 from app.security.auth import require_roles
-from app.stock import moves
+from app.stock import moves, orders, queries
 from app.stock.intake import InStockItem, create_stock_infoes
 from app.stock.serializers import history_json, out_stock_request_json
 from app.users.schemas import NotBlank
@@ -124,6 +124,38 @@ def update_history(id: int, childs: str, request: Request, session: Session = De
     except Exception:
         return _bad_request(session, "updateHistory")
     return JSONResponse(history_json(history))
+
+
+@router.get("/queryOrder/{orderType}/{orderNo}")
+def query_order(orderType: str, orderNo: str, request: Request, session: Session = Depends(get_session)) -> Response:
+    require_roles("ROLE_Normal", "ROLE_Operator", "ROLE_Admin")(request)
+    if orderType == "outStockToStore":
+        return JSONResponse(orders.out_stock_to_store_order(orderNo))
+    if orderType not in orders.ORDER_TYPES:
+        return Response(status_code=400)
+    return JSONResponse(orders.query_order(session, orderType, orderNo))
+
+
+@router.get("/queryStock/query/2/{productNo}")
+def query_product_basic(productNo: str, request: Request, session: Session = Depends(get_session)) -> Response:
+    require_roles("ROLE_Normal", "ROLE_Sales", "ROLE_Operator", "ROLE_Admin")(request)
+    return JSONResponse(queries.product_overview(session, productNo.upper(), basic=True))
+
+
+@router.get("/queryStock/query/1/{productNo}")
+def query_product_detail(productNo: str, request: Request, session: Session = Depends(get_session)) -> Response:
+    require_roles("ROLE_Sales", "ROLE_Operator", "ROLE_Admin")(request)
+    return JSONResponse(queries.product_overview(session, productNo.upper(), basic=False))
+
+
+@router.get("/stockManagement/weekly/syncProductCategory")
+def sync_product_category(request: Request, session: Session = Depends(get_session)) -> Response:
+    admin(request)
+    try:
+        orders.sync_product_category(session)
+    except Exception:
+        return _bad_request(session, "syncProductCategory")
+    return Response(status_code=200)
 
 
 class ShipRequest(BaseModel):

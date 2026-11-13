@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_expiration_ms: int = 43_200_000
     excel_dir: str = ""
+    erp_database_url: str  # spring.second-datasource.*: mssql+pymssql://user:pass@host:1433/DB (read-only)
 
 
 @lru_cache

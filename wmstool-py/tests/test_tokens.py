@@ -19,6 +19,7 @@ T0 = dt.datetime(2026, 11, 13, 3, 0, 0, tzinfo=dt.timezone.utc)
 def settings(monkeypatch):
     monkeypatch.setenv("WMS_DATABASE_URL", "mysql+pymysql://unused/unused")
     monkeypatch.setenv("JWT_SECRET", SECRET)
+    monkeypatch.setenv("ERP_DATABASE_URL", "mssql+pymssql://unused/unused")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()

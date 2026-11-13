@@ -8,6 +8,7 @@ from app.files.reports import resolve_download
 def excel_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("WMS_DATABASE_URL", "mysql+pymysql://unused/unused")
     monkeypatch.setenv("JWT_SECRET", "QUJD")
+    monkeypatch.setenv("ERP_DATABASE_URL", "mssql+pymssql://unused/unused")
     monkeypatch.setenv("EXCEL_DIR", str(tmp_path))
     get_settings.cache_clear()
     (tmp_path / "CategoryDetail").mkdir()
