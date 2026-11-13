@@ -32,6 +32,15 @@ def test_daily_stock_compare_failure_resets_todays_report(admin, db, golden):
     golden.add("reports", generated_reports())
 
 
+def test_daily_stock_compare_null_quantity_without_erp_match(admin, db, golden):
+    """ZZ0001 is not in the ERP and has a NULL quantity: Java only parses the quantity on
+    the matched branch, so it writes a Fail row with blank WMS/diff cells (200)."""
+    admin.post("/api/stock/inStocks", json=[in_stock("ZZ0001", "5", lot_no="X")])
+    exec_sql(db, "UPDATE product SET quantity = NULL WHERE productNo = 'ZZ0001'")
+    golden.response("compare", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+    golden.add("reports", generated_reports())
+
+
 def test_daily_stock_compare_twice_same_day(admin, golden):
     seed_baseline(admin)
     golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))

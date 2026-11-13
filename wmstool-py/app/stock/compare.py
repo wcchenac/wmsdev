@@ -39,19 +39,19 @@ def _erp_totals() -> Erp:
     return totals
 
 
-def comparison_rows(session: Session) -> list[list[str]]:
+def comparison_rows(session: Session) -> list[list[str | None]]:
     erp_totals = _erp_totals()
     # HashMaps never shrink: the leftover iteration order is the order over every key ever inserted.
     outer_order = java_hashmap_order(erp_totals)
     inner_order = {p: java_hashmap_order(types) for p, types in erp_totals.items()}
     remaining = {p: dict(types) for p, types in erp_totals.items()}
-    rows: list[list[str]] = []
+    rows: list[list[str | None]] = []
     for p in session.scalars(select(Product).order_by(Product.id)):
         product_no, type_, wms_qty, unit = p.productNo or "", p.type or "", p.quantity, p.unit or ""
-        if wms_qty is None:
-            raise TypeError("product quantity is null (Java: NullPointerException)")
         erp_entry = remaining.get(product_no, {}).get(type_)
         if erp_entry is not None:
+            if wms_qty is None:  # Java parses the quantity only on this branch
+                raise TypeError("product quantity is null (Java: NullPointerException)")
             erp_qty = erp_entry["quantity"]
             diff = java_parse_double(wms_qty) - java_parse_double(erp_qty)
             row = [product_no, type_, erp_qty, wms_qty, unit]
@@ -59,7 +59,7 @@ def comparison_rows(session: Session) -> list[list[str]]:
             del remaining[product_no][type_]
             if not remaining[product_no]:
                 del remaining[product_no]
-        else:
+        else:  # a NULL quantity is written as a blank cell, as Java does
             row = [product_no, type_, "", wms_qty, unit, "Fail", wms_qty]
         rows.append(row)
     for product_no in outer_order:

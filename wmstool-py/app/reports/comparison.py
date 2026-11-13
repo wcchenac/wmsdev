@@ -20,6 +20,7 @@ def create(day: dt.date) -> Path:
     return recreate_from_template(FOLDER, TEMPLATE, path)  # an earlier same-day report is replaced
 
 
-def append(path: Path, rows: list[list[str]]) -> None:
+def append(path: Path, rows: list[list[str | None]]) -> None:
+    # None cells (a NULL WMS quantity) stay blank, like Java's setCellValue(null)
     failed = [dict(enumerate(r)) for r in rows if r[5] != "Pass"]
     append_rows(path, failed, font=FAIL_FONT)  # type: ignore[arg-type]
