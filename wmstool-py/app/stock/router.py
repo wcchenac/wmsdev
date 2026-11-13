@@ -158,6 +158,41 @@ def sync_product_category(request: Request, session: Session = Depends(get_sessi
     return Response(status_code=200)
 
 
+@router.get("/queryStock/shrinkList")
+def shrink_list(request: Request, session: Session = Depends(get_session)) -> Response:
+    ops(request)
+    return JSONResponse(queries.wait_to_shrink_list(session))
+
+
+@router.get("/queryStock/inStockRollback")
+def in_stock_rollback_list(orderType: str, orderNo: str, request: Request,
+                           session: Session = Depends(get_session)) -> Response:
+    admin(request)
+    return JSONResponse(queries.in_stock_rollback_list(session, orderType, orderNo))
+
+
+@router.get("/queryStock/categoryList")
+def category_list(request: Request, session: Session = Depends(get_session)) -> Response:
+    admin(request)
+    try:
+        return JSONResponse(queries.category_list(session))
+    except Exception:
+        return _bad_request(session, "categoryList")
+
+
+@router.get("/outStock/waitHandleList/basic")
+def wait_handle_basic(request: Request, session: Session = Depends(get_session)) -> Response:
+    ops(request)
+    return JSONResponse(queries.wait_handle_today(session))
+
+
+@router.get("/outStock/waitHandleList/interval")
+def wait_handle_interval(startDate: str, endDate: str, request: Request,
+                         session: Session = Depends(get_session)) -> Response:
+    ops(request)
+    return JSONResponse(queries.wait_handle_interval(session, startDate, endDate))
+
+
 class ShipRequest(BaseModel):
     stockIdentifierId: int = 0
     reason: str | None = None

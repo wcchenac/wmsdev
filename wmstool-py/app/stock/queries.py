@@ -1,5 +1,6 @@
 """Read-side ports of QueryStockFunction."""
 
+import datetime as dt
 from typing import Any
 
 from sqlalchemy import select, text
@@ -7,10 +8,11 @@ from sqlalchemy.orm import Session
 
 from app import erp
 from app.erp import erp_text
-from app.javacompat import java_parse_int
-from app.stock.models import Product, StockIdentifier, StockInfo
+from app.javacompat import java_hashmap_order, java_parse_int, java_period_days
+from app.stock.models import InStockOrderRecord, OutStockRequest, Product, StockIdentifier, StockInfo
 from app.stock.orders import empty_product_information, null_value
-from app.stock.serializers import product_json, stock_info_json
+from app.stock.serializers import out_stock_request_json, product_json, stock_info_json
+from app.timeconv import client_param_to_db, db_to_taipei, taipei_to_db, taipei_today
 
 ADD_TYPES = {0: "無", 1: "可追加", 2: "不可追加", 3: "暫缺貨", 4: "無貨"}
 
@@ -64,3 +66,65 @@ def product_overview(session: Session, product_no: str, basic: bool) -> dict[str
     prev, nxt = _near_by(session, product_no)
     return {"nextProduct": nxt, "prevProduct": prev, "result": result, "information": information,
             "productList": product_list}
+
+
+def wait_to_shrink_list(session: Session) -> list[dict[str, Any]]:
+    """getWaitToShrinkList: rolls marked waitToShrink that still exist."""
+    identifiers = session.scalars(select(StockIdentifier).where(
+        StockIdentifier.waitToShrink == True, StockIdentifier.isExist == True)  # noqa: E712
+        .order_by(StockIdentifier.id)).all()
+    return [stock_info_json(_info_for(session, si.id)) for si in identifiers]
+
+
+def in_stock_rollback_list(session: Session, order_type: str, order_no: str) -> dict[str, list[dict[str, Any]]]:
+    """getInStockRollbackList: the order's in-stocked rolls grouped by productNo (Java HashMap order)."""
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for record in session.scalars(select(InStockOrderRecord).where(
+            InStockOrderRecord.inStockType == order_type, InStockOrderRecord.inStockOrderNo == order_no)
+            .order_by(InStockOrderRecord.id)):
+        grouped.setdefault(record.productNo or "", []).append(
+            stock_info_json(_info_for(session, record.stockIdentifierId or 0)))
+    return {k: grouped[k] for k in java_hashmap_order(grouped)}
+
+
+def _label_value(value: str | None) -> dict[str, str | None]:
+    return {k: value for k in java_hashmap_order(["label", "value"])}
+
+
+def category_list(session: Session) -> list[dict[str, str | None]]:
+    rows = session.execute(text("Select Distinct category From product Order By category"))
+    return [_label_value(r[0]) for r in rows]
+
+
+def _handle_list(requests: list[OutStockRequest], groups: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
+    users = java_hashmap_order(r.createdBy or "" for r in requests)  # a HashSet of createdBy
+    return {"userList": users, "queryResult": {k: groups[k] for k in java_hashmap_order(groups)}}
+
+
+def _live_requests(session: Session, *conditions: Any) -> list[OutStockRequest]:
+    return list(session.scalars(select(OutStockRequest).where(
+        OutStockRequest.isDeleted == False, *conditions)  # noqa: E712
+        .order_by(OutStockRequest.productNo, OutStockRequest.type)))
+
+
+def wait_handle_today(session: Session) -> dict[str, Any]:
+    """getOutStockWaitHandleList: requests created after today's Taipei midnight."""
+    today = taipei_today()
+    midnight_utc = taipei_to_db(dt.datetime.combine(today, dt.time.min))
+    requests = _live_requests(session, OutStockRequest.createdAt > midnight_utc)
+    return _handle_list(requests, {today.isoformat(): [out_stock_request_json(r) for r in requests]})
+
+
+def wait_handle_interval(session: Session, start: str, end: str) -> dict[str, Any]:
+    """getOutStockWaitHandleListWithTimeInterval, including Period.getDays() for the day keys."""
+    start_db, end_db = client_param_to_db(start), client_param_to_db(end)
+    start_taipei, end_taipei = db_to_taipei(start_db), db_to_taipei(end_db)
+    assert start_taipei is not None and end_taipei is not None
+    start_day, end_day = start_taipei.date(), end_taipei.date()  # = Java's start + 8h
+    requests = _live_requests(session, OutStockRequest.createdAt.between(start_db, end_db))
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for i in range(java_period_days(start_day, end_day) + 1):
+        day = start_day + dt.timedelta(days=i)
+        groups[day.isoformat()] = [out_stock_request_json(r) for r in requests
+                                   if (t := db_to_taipei(r.createdAt)) is not None and t.date() == day]
+    return _handle_list(requests, groups)
