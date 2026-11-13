@@ -101,9 +101,19 @@ Python 版讀 `.xlsx` 範本。正式機 `D:/OutputFiles` 下的 4 個範本（`
 soffice --headless --convert-to xlsx --outdir <同一個資料夾> <範本>.xls
 ```
 
-第一筆資料寫在哪一列、序號從幾開始，取決於範本的「最後一列」。Java（POI `getLastRowNum`）會把表頭下方只有格式的列也算進去，包括框線空格和只調過列高的列。Python 的 `poi_last_row` 會一併計算轉檔後保留在 `row_dimensions` 的列，結果與 Java 一致。`test_reports_from_formatted_templates` 用 `fixtures/formatted-templates/` 驗證這一點：`.xls` 由 `scripts/make_formatted_templates.py` 產生，`.xlsx` 由 `scripts/convert_templates.sh`（在容器內跑 LibreOffice）轉出。
+第一筆資料寫在哪一列、序號從幾開始，取決於範本的「最後一列」。Java（POI `getLastRowNum`）會把表頭下方只有格式的列也算進去，包括框線空格和只調過列高的列。Python 的 `app.xlsx.poi_last_row` 直接讀工作表 XML，每個 `<row>` 都算，跟 POI 一樣；報表寫入和進貨匯入共用這一套規則。`test_reports_from_formatted_templates` 用 `fixtures/formatted-templates/` 驗證這一點：`.xls` 由 `scripts/make_formatted_templates.py` 產生，`.xlsx` 由 `scripts/convert_templates.sh`（在容器內跑 LibreOffice）轉出。
 
-轉換正式範本之後，請把兩邊各產生的一份報表打開比對，確認第一筆資料列和序號相同。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。
+fixture 轉檔時用的是 LibreOffice 25.2.3.2，環境是 Debian 13（trixie）的 `libreoffice-calc-nogui 4:25.2.3-2+deb13u9`（arm64），base image 是 `python:3.12-slim@sha256:cb7e7f6d…`。腳本固定使用這個 image；Debian 的安全更新會換掉套件，所以套件版本無法鎖死，但腳本會檢查裝到的 LibreOffice 必須是 25.2.3，不是就停下。正式範本最好也用同一版轉檔；版本不同時，轉完務必跑下面的 `app.template_check`。
+
+轉換正式範本之後，在部署機上執行檢查（需要 `pip install "wmstool-py[tools]"`）：
+
+```bash
+python -m app.template_check D:/OutputFiles
+```
+
+它會逐一比對每個 `*Template.xls` 和旁邊轉出的 `.xlsx`：`.xls` 那一邊用 xlrd 模擬 HSSF 的最後一列，`.xlsx` 那一邊用服務本身的 `poi_last_row`。全部 `OK` 才回 0；如果出現 `MISMATCH` 或 `MISSING .xlsx`，代表第一筆資料列和序號會跟 Java 錯開，要先修正 `.xlsx` 範本再切換。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。
+
+`.xls` 那一邊是用 xlrd 模擬 HSSF，已經對 POI 4.1.0 驗證過一般列、只有格式的列和合併儲存格這幾種情況，但終究不是 POI 本身。所以檢查通過後，第一次切換時仍請把 Java 和 Python 各產生的一份報表打開比對，確認第一筆資料列和序號相同。
 
 ## 標記 `java_bug` 的測試
 

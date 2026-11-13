@@ -65,9 +65,19 @@ def test_bare_row_element_counts():
 
 
 def test_rows_without_r_follow_the_previous_row():
-    """XSSF numbers a <row> without r as the previous row + 1."""
     data = _rewrite_sheet(_save(_book(["貨號"])), b"</sheetData>", b"<row/><row/></sheetData>")
     assert poi_last_row(data) == 2
+
+
+@pytest.mark.parametrize(("rows", "expected"), [
+    (b'<row r="5"><c r="A5" t="inlineStr"><is><t>x</t></is></c></row><row r="3"/><row/>', 5),
+    (b'<row r="9"/><row r="4"/><row/><row/>', 10),
+])
+def test_rows_without_r_follow_the_highest_row(rows, expected):
+    """XSSFRow numbers a <row> without r as getLastRowNum() + 1 of the rows read so far,
+    not the previous element + 1. Expected values measured with POI 4.1.0 XSSF (2026-11-13)."""
+    data = _rewrite_sheet(_save(_book(["貨號"])), b'<row r="1"', rows + b'<row r="1"')
+    assert poi_last_row(data) == expected
 
 
 def test_out_of_order_rows_take_the_highest():

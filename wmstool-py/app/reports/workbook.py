@@ -7,6 +7,7 @@ cell blank).
 """
 
 import datetime as dt
+import io
 from pathlib import Path
 
 import openpyxl
@@ -29,8 +30,14 @@ def _template(folder: str, template: str) -> Path:
 
 
 # Like Java's WorkbookFactory.create(template) at the top of every createNewFile, the
-# template is read before the target is touched: a missing template raises
-# FileNotFoundError even when today's report exists, and never deletes it.
+# template is read and parsed before the target is touched: a missing or broken
+# template raises even when today's report exists, and never replaces it.
+
+
+def _read_template(folder: str, template: str) -> bytes:
+    content = _template(folder, template).read_bytes()
+    openpyxl.load_workbook(io.BytesIO(content))  # raises if it is not a workbook
+    return content
 
 
 def _write(target: Path, content: bytes) -> Path:
@@ -41,13 +48,13 @@ def _write(target: Path, content: bytes) -> Path:
 
 def ensure_from_template(folder: str, template: str, target: Path) -> Path:
     """Copy the template to `target` unless it already exists (createNewFile)."""
-    content = _template(folder, template).read_bytes()
+    content = _read_template(folder, template)
     return target if target.exists() else _write(target, content)
 
 
 def recreate_from_template(folder: str, template: str, target: Path) -> Path:
     """Replace `target` with a fresh copy of the template (deleteAndCreateNewFile)."""
-    return _write(target, _template(folder, template).read_bytes())
+    return _write(target, _read_template(folder, template))
 
 
 def write_row(sheet: Worksheet, index: int, cells: Row, font=None) -> None:  # noqa: ANN001
@@ -61,6 +68,8 @@ def write_row(sheet: Worksheet, index: int, cells: Row, font=None) -> None:  # n
 
 def append_rows(path: Path, rows: list[Row], font=None) -> None:  # noqa: ANN001
     """Append rows after the last one (getLastRowNum() + 1) on the first sheet."""
+    if not rows:  # nothing to write: an openpyxl load/save would drop bare <row>s
+        return
     start = first_data_row(path)  # from the file: openpyxl does not see every row
     book = openpyxl.load_workbook(path)
     sheet = book.worksheets[0]

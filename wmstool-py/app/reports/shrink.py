@@ -35,25 +35,30 @@ def _append(path: Path, records: Sequence, row) -> None:  # noqa: ANN001
     append_rows(path, [row(r, start + i - 1) for i, r in enumerate(records)])
 
 
-def _write(kind: tuple[str, str, str], records: Sequence, row, day: dt.date, fresh: bool) -> str:  # noqa: ANN001
+def _write(kind: tuple[str, str, str], records: Sequence, row, day: dt.date) -> str:  # noqa: ANN001
     folder, template, prefix = kind
     path, name = dated_report_path(folder, prefix, f"{day:%Y%m%d}", day)
-    (recreate_from_template if fresh else ensure_from_template)(folder, template, path)
+    ensure_from_template(folder, template, path)
     _append(path, records, row)
     return name
 
 
 def write_allocations(records: Sequence[StockAllocationRecord], day: dt.date) -> str:
-    return _write(ALLOCATION, records, _allocation_row, day, fresh=False)
+    return _write(ALLOCATION, records, _allocation_row, day)
 
 
 def write_adjustments(records: Sequence[StockAdjustmentRecord], day: dt.date) -> str:
-    return _write(ADJUSTMENT, records, _adjustment_row, day, fresh=False)
+    return _write(ADJUSTMENT, records, _adjustment_row, day)
 
 
-def rewrite_allocations(records: Sequence[StockAllocationRecord], day: dt.date) -> str:
-    return _write(ALLOCATION, records, _allocation_row, day, fresh=True)
-
-
-def rewrite_adjustments(records: Sequence[StockAdjustmentRecord], day: dt.date) -> str:
-    return _write(ADJUSTMENT, records, _adjustment_row, day, fresh=True)
+def rewrite_today(allocations: Sequence[StockAllocationRecord], adjustments: Sequence[StockAdjustmentRecord],
+                  day: dt.date) -> None:
+    """DeleteStockFunction.generateNewFile: both reports are recreated from their
+    templates first (allocation, then adjustment), and only then are rows written. A
+    missing adjustment template therefore leaves the allocation report as the template."""
+    paths = []
+    for folder, template, prefix in (ALLOCATION, ADJUSTMENT):
+        path, _ = dated_report_path(folder, prefix, f"{day:%Y%m%d}", day)
+        paths.append(recreate_from_template(folder, template, path))
+    _append(paths[0], allocations, _allocation_row)
+    _append(paths[1], adjustments, _adjustment_row)

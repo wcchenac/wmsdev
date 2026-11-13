@@ -16,11 +16,12 @@ dependencies = [
     "openpyxl==3.1.5",
     "python-multipart==0.0.20",
     "pymssql==2.3.2",
-    "Pillow==11.1.0",  # openpyxl needs it to embed product photos
 ]
 
 [project.optional-dependencies]
-dev = ["pytest==8.4.2", "httpx==0.28.1"]
+dev = ["pytest==8.4.2", "httpx==0.28.1", "xlrd==2.0.2", "xlwt==1.3.0"]
+# python -m app.template_check: reads the legacy .xls templates at cutover
+tools = ["xlrd==2.0.2"]
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -16,7 +16,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.db import get_session
-from app.javacompat import java_is_blank
+from app.javacompat import java_is_blank, spring_parse_long
 from app.security.auth import require_roles
 from app.stock import compare, history, moves, orders, queries, shrink
 from app.stock.intake import InStockItem, create_stock_infoes
@@ -265,10 +265,14 @@ def category_detail(category: str, request: Request, session: Session = Depends(
 
 @router.get("/queryStock/history/{productNo}")
 def history_route(productNo: str, request: Request, startDate: str | None = None, endDate: str | None = None,
-                  id: int | None = None, session: Session = Depends(get_session)) -> Response:
+                  id: str | None = None, session: Session = Depends(get_session)) -> Response:
     """Java maps history/{productNo} (tree) and history/{id} (structure) to the same
     path and answers 500 for both. Fixed as in contract-tests/java-patches: the
-    query parameters pick the handler, before authorization (Spring's order)."""
+    query parameters pick the handler, before authorization (Spring's order).
+
+    `id` arrives as text: only the structure handler binds it (`long id`, Spring's
+    number rules, 400 when it does not convert), so the tree ignores whatever it holds.
+    """
     is_tree = startDate is not None and endDate is not None
     is_structure = id is not None
     # Both sets present: Spring ranks the mapping with more param expressions first,
@@ -281,7 +285,11 @@ def history_route(productNo: str, request: Request, startDate: str | None = None
         assert id is not None
         admin(request)
         try:
-            return PlainTextResponse(history.structure_gson(session, id))
+            root_id = spring_parse_long(id)
+        except ValueError:
+            return Response(status_code=400)  # MethodArgumentTypeMismatch / missing value
+        try:
+            return PlainTextResponse(history.structure_gson(session, root_id))
         except Exception:
             return _bad_request(session, "history structure")
     return Response(status_code=400)  # no mapping's params condition is met
