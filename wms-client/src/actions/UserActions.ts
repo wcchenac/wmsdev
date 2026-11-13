@@ -25,7 +25,7 @@ export const registerUser =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       return await API.post("/api/user/adminManagement/user/register", newUser);
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -54,7 +54,7 @@ export const login =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -86,7 +86,7 @@ export const getUserList =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -110,7 +110,7 @@ export const deleteUser =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -138,7 +138,7 @@ export const updateUser =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,

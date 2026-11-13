@@ -44,6 +44,7 @@ interface StockInfoProps {
   handleDefectChange: (selectedOptions: MultiValue<DefectOption>, index: number) => void;
   handleShipCheck: (checked: boolean, index: number) => void;
   handleReasonButton: (value: string, index: number) => void;
+  disabled?: boolean;
 }
 
 const StockInfo: React.FC<StockInfoProps> = ({
@@ -56,6 +57,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
   handleDefectChange,
   handleShipCheck,
   handleReasonButton,
+  disabled = false,
 }) => {
   const [modalShow, setModalShow] = useState(false);
 
@@ -81,9 +83,10 @@ const StockInfo: React.FC<StockInfoProps> = ({
   }, [handleShipCheck, stockInfo.outStockReason, index]);
 
   const onCancleShipClick = useCallback(() => {
+    if (disabled) return;
     setModalShow(false);
     handleShipCheck(false, index);
-  }, [handleShipCheck, index]);
+  }, [handleShipCheck, index, disabled]);
 
   const onReansonButtonChange = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -93,8 +96,9 @@ const StockInfo: React.FC<StockInfoProps> = ({
   );
 
   const handleModalOpen = useCallback(() => {
+    if (disabled) return;
     setModalShow(true);
-  }, []);
+  }, [disabled]);
 
   const handleModalClose = useCallback(() => {
     setModalShow(false);
@@ -122,6 +126,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
             placeholder="批號"
             value={stockInfo.lotNo}
             onChange={onChange}
+            disabled={disabled}
           />
         </div>
       </td>
@@ -143,6 +148,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
               name="type"
               value={stockInfo.type}
               onChange={onChange}
+              disabled={disabled}
             >
               {typeList.map((type, idx) => (
                 <option key={idx} value={type}>
@@ -163,6 +169,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
             placeholder="數量"
             name="quantity"
             onChange={onChange}
+            disabled={disabled}
           />
           {errors.quantity && (
             <div className="invalid-feedback">{errors.quantity}</div>
@@ -192,6 +199,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
                 name="unit"
                 value={stockInfo.unit}
                 onChange={onChange}
+                disabled={disabled}
               >
                 {UnitOptions.map((unit, idx) => (
                   <option key={idx} value={unit}>
@@ -208,6 +216,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
                 name="color"
                 value={stockInfo.color}
                 onChange={onChange}
+                disabled={disabled}
               >
                 {ColorOptions.map((color, idx) => (
                   <option key={idx} value={color}>
@@ -226,6 +235,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
               name="defect"
               options={[...DefectOptions]}
               onChange={onDefectChange}
+              isDisabled={disabled}
             />
           </td>
         </React.Fragment>
@@ -239,11 +249,12 @@ const StockInfo: React.FC<StockInfoProps> = ({
             name="record"
             value={stockInfo.record}
             onChange={onChange}
+            disabled={disabled}
           />
         </div>
       </td>
       <td>
-        <div className="form-group mt-1 ml-1">
+        <div className="form-group mt-1 ml-1" style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}>
           {stockInfo.outStockReason !== "" ? (
             <OverlayTrigger
               key={index}

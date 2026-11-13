@@ -48,6 +48,8 @@
     ],
     "moduleNameMapper": {
       "^axios$": "<rootDir>/node_modules/axios/dist/node/axios.cjs",
+      "^react-loading-overlay-ts$": "<rootDir>/node_modules/react-loading-overlay-ts/dist/index.js",
+      "^@mui/icons-material/(.*)$": "<rootDir>/node_modules/@mui/icons-material/$1.js",
       "\\.(css|less|scss|sass)$": "identity-obj-proxy"
     }
   },
@@ -75,7 +77,12 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@types/react-redux": "^7.1.34",
+    "@types/redux-mock-store": "^1.5.0",
+    "@types/testing-library__jest-dom": "^5.14.9",
+    "@types/testing-library__react": "^10.0.1",
+    "history": "^5.3.0",
     "identity-obj-proxy": "^3.0.0",
+    "redux-mock-store": "^1.5.5",
     "typescript": "^4.9.5"
   }
 }

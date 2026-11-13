@@ -9,6 +9,7 @@ interface ToolbarForAddDeleteSubmitProps {
   handleRowNumChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onSubmitClick: (e: MouseEvent<HTMLButtonElement>) => void;
   submitDisabled: boolean;
+  isLoading?: boolean;
 }
 
 const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
@@ -20,6 +21,7 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
   handleRowNumChange,
   onSubmitClick,
   submitDisabled,
+  isLoading = false,
 }) => {
   return (
     <React.Fragment>
@@ -29,6 +31,7 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
             type="button"
             className="btn btn-primary mr-2"
             onClick={onAddClick}
+            disabled={isLoading}
           >
             新增一列
           </button>
@@ -36,7 +39,7 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
             type="button"
             className="btn btn-primary mr-2"
             onClick={onDeleteClick}
-            disabled={deleteDisabled}
+            disabled={deleteDisabled || isLoading}
           >
             刪除最後一列
           </button>
@@ -52,18 +55,27 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
               name="assignRowNum"
               value={assignRowNum}
               onChange={handleRowNumChange}
+              disabled={isLoading}
             />
-            <button className="btn btn-primary">新增</button>
+            <button className="btn btn-primary" disabled={isLoading}>新增</button>
           </form>
         </div>
         <div className="col-md-auto">
           <button
             type="button"
-            className="btn btn-primary btn-block"
+            className="btn btn-primary btn-block d-flex align-items-center justify-content-center"
+            style={{ minWidth: "100px" }}
             onClick={onSubmitClick}
-            disabled={submitDisabled}
+            disabled={submitDisabled || isLoading}
           >
-            送出
+            {isLoading ? (
+              <span
+                className="spinner-border spinner-border-sm mr-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            ) : null}
+            {isLoading ? "處理中..." : "送出"}
           </button>
         </div>
       </div>

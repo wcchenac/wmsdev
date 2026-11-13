@@ -179,11 +179,17 @@ const AssembleStockBoard: React.FC = () => {
             };
             return copyList;
           });
+          
+          // Refresh order status
+          dispatch(getAssembleOrder(orderNo)).finally(() => {
+            setIsLoading(false);
+          });
+        } else {
           setIsLoading(false);
         }
       });
     },
-    [dispatch]
+    [dispatch, orderNo]
   );
 
   // componentDidUpdate equivalent
@@ -212,10 +218,11 @@ const AssembleStockBoard: React.FC = () => {
       } else if (newCurrentOrderStatus && newWaitHandleStatus) {
         initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
         setIsOrderValid(true);
-        handleTabSelect(2);
+        // Only auto-jump to step 2 if we are coming from step 1
+        setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
       }
     }
-  }, [queryAssembleOrderResult, initialSelectedList, handleTabSelect]);
+  }, [queryAssembleOrderResult, initialSelectedList]);
 
   return (
     <div className="batch_add_stockInfo">

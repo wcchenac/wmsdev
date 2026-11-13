@@ -175,11 +175,17 @@ const CustomerReturnBoard: React.FC = () => {
             };
             return copyList;
           });
+          
+          // Refresh order status
+          dispatch(getCustomerReturnOrder(orderNo)).finally(() => {
+            setIsLoading(false);
+          });
+        } else {
           setIsLoading(false);
         }
       });
     },
-    [dispatch]
+    [dispatch, orderNo]
   );
 
   // componentDidUpdate equivalent
@@ -208,7 +214,8 @@ const CustomerReturnBoard: React.FC = () => {
       } else if (newCurrentOrderStatus && newWaitHandleStatus) {
         initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
         setIsOrderValid(true);
-        setKey(2);
+        // Only auto-jump to step 2 if we are coming from step 1
+        setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
       }
     }
   }, [queryReturnOrderResult, initialSelectedList]);

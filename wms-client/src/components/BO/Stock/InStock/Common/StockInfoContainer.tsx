@@ -329,139 +329,139 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
       role="tabpanel"
       aria-labelledby={"nav-tab-" + index}
     >
-      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-        <p className="h4 text-center">待入庫總量</p>
-        <div>
-          <table className="table table-sm">
-            <thead className="thead-dark">
-              <tr>
-                <th style={{ width: "20%" }}>貨號</th>
-                <th style={{ width: "20%" }}>型態</th>
-                <th style={{ width: "20%" }}>總數量</th>
-                <th style={{ width: "20%" }}>目前數量</th>
-                <th style={{ width: "20%" }}>單位</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(waitHandleStatus).map((typeKey, idx) => (
-                <tr key={idx}>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="productNo"
-                        value={productNo}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="type"
-                        value={typeKey}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="quantity_waitHandle"
-                        value={waitHandleStatus[typeKey].quantity as string}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="quantity_handled"
-                        value={(quantitySum as unknown as Record<string, number>)[typeKey]?.toString() || "0"}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <div className="form-group mb-0">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="unit"
-                        value={waitHandleStatus[typeKey].unit}
-                        readOnly
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <hr />
-        <ToolbarForAddDeleteSubmit
-          onAddClick={handleNewDataClick}
-          onDeleteClick={handleDeleteDataClick}
-          onSubmitClick={handleSubmitClick}
-          handleRowNumChange={handleRowNumChange}
-          handleRowNumSubmit={handleRowNumSubmit}
-          deleteDisabled={stockInfoes.length === 0}
-          submitDisabled={!isFormValid}
-          assignRowNum={assignRowNum}
-        />
+      <p className="h4 text-center">待入庫總量</p>
+      <div>
         <table className="table table-sm">
           <thead className="thead-dark">
             <tr>
-              {typeValidation ? (
-                <React.Fragment>
-                  <th style={{ width: "20%" }}>貨號</th>
-                  <th style={{ width: "14%" }}>批號</th>
-                  <th style={{ width: "14%" }}>型態</th>
-                  <th style={{ width: "14%" }}>數量</th>
-                  <th style={{ width: "14%" }}>單位</th>
-                  <th style={{ width: "20%" }}>記錄</th>
-                  <th style={{ width: "4%" }}>直出</th>
-                </React.Fragment>
-              ) : (
-                <React.Fragment>
-                  <th style={{ width: "20%" }}>貨號</th>
-                  <th style={{ width: "8%" }}>批號</th>
-                  <th style={{ width: "8%" }}>型態</th>
-                  <th style={{ width: "12%" }}>數量</th>
-                  <th style={{ width: "8%" }}>單位</th>
-                  <th style={{ width: "8%" }}>色號</th>
-                  <th style={{ width: "16%" }}>瑕疵</th>
-                  <th style={{ width: "16%" }}>記錄</th>
-                  <th style={{ width: "4%" }}>直出</th>
-                </React.Fragment>
-              )}
+              <th style={{ width: "20%" }}>貨號</th>
+              <th style={{ width: "20%" }}>型態</th>
+              <th style={{ width: "20%" }}>總數量</th>
+              <th style={{ width: "20%" }}>目前數量</th>
+              <th style={{ width: "20%" }}>單位</th>
             </tr>
           </thead>
           <tbody>
-            {stockInfoes.map((stockInfo, idx) => (
-              <StockInfo
-                key={idx}
-                index={idx}
-                typeValidation={typeValidation}
-                stockInfo={stockInfo}
-                errors={stockInfo.errors}
-                typeList={typeList}
-                handleInfoChange={handleInfoChange}
-                handleDefectChange={handleDefectChange}
-                handleShipCheck={handleShipCheck}
-                handleReasonButton={handleReasonButton}
-              />
+            {Object.keys(waitHandleStatus).map((typeKey, idx) => (
+              <tr key={idx}>
+                <td>
+                  <div className="form-group mb-0">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="productNo"
+                      value={productNo}
+                      readOnly
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group mb-0">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="type"
+                      value={typeKey}
+                      readOnly
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group mb-0">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="quantity_waitHandle"
+                      value={waitHandleStatus[typeKey].quantity as string}
+                      readOnly
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group mb-0">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="quantity_handled"
+                      value={(quantitySum as unknown as Record<string, number>)[typeKey]?.toString() || "0"}
+                      readOnly
+                    />
+                  </div>
+                </td>
+                <td>
+                  <div className="form-group mb-0">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="unit"
+                      value={waitHandleStatus[typeKey].unit}
+                      readOnly
+                    />
+                  </div>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
-      </LoadingOverlay>
+      </div>
+      <hr />
+      <ToolbarForAddDeleteSubmit
+        onAddClick={handleNewDataClick}
+        onDeleteClick={handleDeleteDataClick}
+        onSubmitClick={handleSubmitClick}
+        handleRowNumChange={handleRowNumChange}
+        handleRowNumSubmit={handleRowNumSubmit}
+        deleteDisabled={stockInfoes.length === 0}
+        submitDisabled={!isFormValid}
+        assignRowNum={assignRowNum}
+        isLoading={isLoading}
+      />
+      <table className="table table-sm">
+        <thead className="thead-dark">
+          <tr>
+            {typeValidation ? (
+              <React.Fragment>
+                <th style={{ width: "20%" }}>貨號</th>
+                <th style={{ width: "14%" }}>批號</th>
+                <th style={{ width: "14%" }}>型態</th>
+                <th style={{ width: "14%" }}>數量</th>
+                <th style={{ width: "14%" }}>單位</th>
+                <th style={{ width: "20%" }}>記錄</th>
+                <th style={{ width: "4%" }}>直出</th>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <th style={{ width: "20%" }}>貨號</th>
+                <th style={{ width: "8%" }}>批號</th>
+                <th style={{ width: "8%" }}>型態</th>
+                <th style={{ width: "12%" }}>數量</th>
+                <th style={{ width: "8%" }}>單位</th>
+                <th style={{ width: "8%" }}>色號</th>
+                <th style={{ width: "16%" }}>瑕疵</th>
+                <th style={{ width: "16%" }}>記錄</th>
+                <th style={{ width: "4%" }}>直出</th>
+              </React.Fragment>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {stockInfoes.map((stockInfo, idx) => (
+            <StockInfo
+              key={idx}
+              index={idx}
+              typeValidation={typeValidation}
+              stockInfo={stockInfo}
+              errors={stockInfo.errors}
+              typeList={typeList}
+              handleInfoChange={handleInfoChange}
+              handleDefectChange={handleDefectChange}
+              handleShipCheck={handleShipCheck}
+              handleReasonButton={handleReasonButton}
+              disabled={isLoading}
+            />
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 });

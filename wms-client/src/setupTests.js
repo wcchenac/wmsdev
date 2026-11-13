@@ -67,7 +67,7 @@ jest.mock('react-dnd-html5-backend', () => ({
   getEmptyImage: () => {},
 }));
 
-// Mock react-sortable-tree
+// Mock react-sortable-tree (virtual mock since package may not be installed)
 jest.mock('react-sortable-tree', () => {
   const React = require('react');
   return {
@@ -75,4 +75,12 @@ jest.mock('react-sortable-tree', () => {
     default: () => React.createElement('div', null, 'SortableTree'),
     SortableTreeWithoutDndContext: () => React.createElement('div', null, 'SortableTreeWithoutDndContext'),
   };
-});
+}, { virtual: true });
+
+// Mock react-loading-overlay (virtual mock since package is react-loading-overlay-ts)
+jest.mock('react-loading-overlay', () => {
+  const React = require('react');
+  return function MockLoadingOverlay({ children, active }) {
+    return React.createElement('div', { 'data-testid': 'loading-overlay', 'data-active': active }, children);
+  };
+}, { virtual: true });

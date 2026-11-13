@@ -36,7 +36,7 @@ export const getInStockOrder =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -60,7 +60,7 @@ export const getAssembleOrder =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -84,7 +84,7 @@ export const getCustomerReturnOrder =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -108,7 +108,7 @@ export const getStoreReturnOrder =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -132,7 +132,7 @@ export const getOutStockToStoreOrder =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -154,7 +154,7 @@ export const getStockInfoesBasic =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -176,7 +176,7 @@ export const getStockInfoes =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -198,7 +198,7 @@ export const getShrinkList =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -218,7 +218,7 @@ export const stockIdentifierIsShiped =
       });
 
       return await API.patch("/api/stock/shipStock", shipRequest);
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -242,7 +242,7 @@ export const stockIdentifiersAreShiped =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -259,7 +259,7 @@ export const stockIdentifierIsNotShiped =
       return await API.patch(
         `/api/stock/shipStock/rollback/${stockIdentifierId}`
       );
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -285,7 +285,7 @@ export const stockIdentifierWaitToShrinkIsTrue =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -309,7 +309,7 @@ export const stockIdentifierWaitToShrinkIsFalse =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -324,7 +324,7 @@ export const batchCreateStockInfoes =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       return await API.post("/api/stock/inStocks", inStockRequests);
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: CREATE_Errors,
@@ -339,7 +339,7 @@ export const batchCreateStockInfoesForShrink =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       return await API.post("/api/stock/shrinkStock", shrinkStockRequest);
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: SHRINK_Errors,
@@ -363,7 +363,7 @@ export const getInStockRollbackList =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -389,7 +389,7 @@ export const inStockRollback =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -413,7 +413,7 @@ export const getShrinkRollbackList =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -439,7 +439,7 @@ export const shrinkRollback =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -463,7 +463,7 @@ export const updateStockInfo =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: UPDATE_Errors,
@@ -478,7 +478,7 @@ export const createOutStockRequest =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       return await API.post("/api/stock/outStock", outStockRequest);
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -497,7 +497,7 @@ export const deleteOutStockRequest =
       );
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -519,7 +519,7 @@ export const getWaitHandleList =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -543,7 +543,7 @@ export const getWaitHandleListWithInterval =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -558,7 +558,7 @@ export const updateOutStockRequests =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       return await API.patch("/api/stock/outStock/update", outStockUpdateRequest);
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -582,7 +582,7 @@ export const getProductHistory =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -611,7 +611,7 @@ export const getAllCategory =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -630,7 +630,7 @@ export const findCategoryDetails =
       });
 
       return await API.get(`/api/stock/queryStock/category/${category}`);
-    } catch (err: unknown) {
+    } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,

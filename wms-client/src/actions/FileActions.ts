@@ -72,7 +72,7 @@ export const queryCategoryDetailList =
       });
 
       return res;
-    } catch (err: unknown) {
+    } catch (err) {
       // Error handled by global interceptor in API.js
       throw err;
     }

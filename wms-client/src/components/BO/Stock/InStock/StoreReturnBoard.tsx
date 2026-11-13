@@ -175,11 +175,17 @@ const StoreReturnBoard: React.FC = () => {
             };
             return copyList;
           });
+          
+          // Refresh order status
+          dispatch(getStoreReturnOrder(orderNo)).finally(() => {
+            setIsLoading(false);
+          });
+        } else {
           setIsLoading(false);
         }
       });
     },
-    [dispatch]
+    [dispatch, orderNo]
   );
 
   // Effect to handle queryReturnOrderResult changes (replaces componentDidUpdate)
@@ -207,7 +213,8 @@ const StoreReturnBoard: React.FC = () => {
         } else {
           initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
           setIsOrderValid(true);
-          setKey(2);
+          // Only auto-jump to step 2 if we are coming from step 1
+          setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
         }
       }
     }
