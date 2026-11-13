@@ -103,6 +103,8 @@ soffice --headless --convert-to xlsx --outdir <同一個資料夾> <範本>.xls
 
 第一筆資料寫在哪一列、序號從幾開始，取決於範本的「最後一列」。Java（POI `getLastRowNum`）會把表頭下方只有格式的列也算進去，包括框線空格和只調過列高的列。Python 的 `app.xlsx.poi_last_row` 直接讀工作表 XML，每個 `<row>` 都算，跟 POI 一樣；報表寫入和進貨匯入共用這一套規則。`test_reports_from_formatted_templates` 用 `fixtures/formatted-templates/` 驗證這一點：`.xls` 由 `scripts/make_formatted_templates.py` 產生，`.xlsx` 由 `scripts/convert_templates.sh`（在容器內跑 LibreOffice）轉出。
 
+fixture 轉檔時用的是 LibreOffice 25.2.3.2，環境是 Debian 13（trixie）的 `libreoffice-calc-nogui 4:25.2.3-2+deb13u9`（arm64），base image 是 `python:3.12-slim@sha256:cb7e7f6d…`。腳本固定使用這個 image；Debian 的安全更新會換掉套件，所以套件版本無法鎖死，但腳本會檢查裝到的 LibreOffice 必須是 25.2.3，不是就停下。正式範本最好也用同一版轉檔；版本不同時，轉完務必跑下面的 `app.template_check`。
+
 轉換正式範本之後，在部署機上執行檢查（需要 `pip install "wmstool-py[tools]"`）：
 
 ```bash

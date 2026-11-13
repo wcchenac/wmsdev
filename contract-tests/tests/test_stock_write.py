@@ -355,18 +355,34 @@ def test_out_stock_update_without_map(operator, db, golden):
 def test_out_stock_update_twice_in_one_second(operator, db, golden):
     """The pull-list name has second precision. Java's createNewFile rewrites the template
     even when the file exists, so a second update in the same second replaces the first
-    update's rows; both requests still point at that one file."""
+    update's rows; both requests still point at that one file.
+
+    The file name comes from the server's clock, the alignment from the client's, so on
+    a slow machine the two updates can still straddle a second: start over (clean
+    database and reports) up to three times before giving up."""
     import time
 
-    from conftest import rows
+    from conftest import reset_database, reset_files, rows
 
-    operator.post("/api/stock/outStock", json=OUT_STOCK)
-    operator.post("/api/stock/outStock", json=OUT_STOCK)
-    time.sleep(1.05 - (time.time() % 1))  # start just after a second boundary
-    first = operator.patch("/api/stock/outStock/update", json={"outStockUpdate": {"1": "門市A"}})
-    second = operator.patch("/api/stock/outStock/update", json={"outStockUpdate": {"2": "門市B"}})
-    names = {r["fileName"] for r in rows(db, "SELECT fileName FROM outstockrequest")}
-    assert len(names) == 1, f"the two updates crossed a second boundary ({names}); rerun the test"
+    def attempt():
+        reset_database(db)  # ids restart at 1 on every attempt (TRUNCATE)
+        reset_files()
+        operator.post("/api/stock/outStock", json=OUT_STOCK)
+        operator.post("/api/stock/outStock", json=OUT_STOCK)
+        time.sleep(1.05 - (time.time() % 1))  # start just after a second boundary
+        first = operator.patch("/api/stock/outStock/update", json={"outStockUpdate": {"1": "門市A"}})
+        second = operator.patch("/api/stock/outStock/update", json={"outStockUpdate": {"2": "門市B"}})
+        names = {r["fileName"] for r in rows(db, "SELECT fileName FROM outstockrequest")}
+        return first, second, names
+
+    attempts = 3
+    first, second, names = attempt()
+    for _ in range(attempts - 1):
+        if len(names) == 1:
+            break
+        first, second, names = attempt()
+    if len(names) != 1:
+        pytest.fail(f"the two updates crossed a second boundary on all {attempts} attempts ({names})")
     golden.response("first", first)
     golden.response("second", second)
     golden.add("reports", generated_reports())

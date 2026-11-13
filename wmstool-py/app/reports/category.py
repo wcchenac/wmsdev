@@ -43,7 +43,14 @@ class _Sheet:
 class _RawJpeg(Image):
     """addPicture(bytes, PICTURE_TYPE_JPEG): the file's bytes are embedded as a JPEG
     without being decoded, so a broken photo is still inserted (openpyxl's Image would
-    open it with Pillow and fail)."""
+    open it with Pillow and fail).
+
+    Relies on openpyxl 3.1.x internals (pinned to 3.1.5 in pyproject.toml): the writer
+    calls the private `_data()` for the media bytes and builds the media path from
+    `format` and the class counter `_id`; the drawing reads `width`/`height` and
+    `anchor`. Skipping `Image.__init__` is what avoids Pillow. When upgrading openpyxl,
+    rerun tests/test_reports.py::test_category_report_embeds_photo_bytes_undecoded.
+    """
 
     def __init__(self, data: bytes) -> None:  # no super().__init__: it decodes the image
         self.raw, self.format, self.width, self.height = data, "jpeg", 0, 0
