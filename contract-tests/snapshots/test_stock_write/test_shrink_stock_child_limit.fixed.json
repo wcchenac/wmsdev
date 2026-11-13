@@ -1,0 +1,845 @@
+{
+  "10_pieces": {
+    "body": null,
+    "status": 200
+  },
+  "11_pieces": {
+    "body": null,
+    "status": 200
+  },
+  "db": {
+    "history": [
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        "currentIdentifierId": 1,
+        "id": 1,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ]
+        },
+        "currentIdentifierId": 2,
+        "id": 2,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 3,
+        "id": 3,
+        "rootIdentifierId": 3
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 4,
+        "id": 4,
+        "rootIdentifierId": 4
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 5,
+        "id": 5,
+        "rootIdentifierId": 5
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 6,
+        "id": 6,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 7,
+        "id": 7,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 8,
+        "id": 8,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 9,
+        "id": 9,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 10,
+        "id": 10,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 11,
+        "id": 11,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 12,
+        "id": 12,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 13,
+        "id": 13,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 14,
+        "id": 14,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 15,
+        "id": 15,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 16,
+        "id": 16,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 17,
+        "id": 17,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 18,
+        "id": 18,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 19,
+        "id": 19,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 20,
+        "id": 20,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 21,
+        "id": 21,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 22,
+        "id": 22,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 23,
+        "id": 23,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 24,
+        "id": 24,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 25,
+        "id": 25,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 26,
+        "id": 26,
+        "rootIdentifierId": 2
+      }
+    ],
+    "stockidentifier": [
+      {
+        "adjustment": "0.00",
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": "<TODAY:yyyy-MM-dd>",
+        "eliminateReason": "減肥",
+        "eliminateType": "1",
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 1,
+        "inStockType": "進貨單",
+        "isExist": false,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "50",
+        "serialNo": 1,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": "<datetime:datetime>",
+        "updatedBy": "倉管乙",
+        "waitToShrink": false
+      },
+      {
+        "adjustment": "0.00",
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": "<TODAY:yyyy-MM-dd>",
+        "eliminateReason": "減肥",
+        "eliminateType": "1",
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 2,
+        "inStockType": "進貨單",
+        "isExist": false,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "48.5",
+        "serialNo": 1,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": "<datetime:datetime>",
+        "updatedBy": "倉管乙",
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 3,
+        "inStockType": "進貨單",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L02",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "12",
+        "serialNo": 1,
+        "type": "板卷",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 4,
+        "inStockType": "進貨單",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L07",
+        "outStockAt": null,
+        "productNo": "CF1002",
+        "quantity": "40",
+        "serialNo": 1,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 5,
+        "inStockType": "進貨單",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L11",
+        "outStockAt": null,
+        "productNo": "CF1003",
+        "quantity": "25",
+        "serialNo": 1,
+        "type": "板卷",
+        "unit": "公斤",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 6,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 1,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 7,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 2,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 8,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 3,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 9,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 4,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 10,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 5,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 11,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 6,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 12,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 7,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 13,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 8,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 14,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 9,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 15,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 10,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 16,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 11,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 17,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 12,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 18,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 13,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 19,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 14,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 20,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 15,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 21,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 16,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 22,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 17,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 23,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 18,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 24,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 19,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 25,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 20,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 26,
+        "inStockType": "減肥",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "4",
+        "serialNo": 21,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      }
+    ]
+  }
+}

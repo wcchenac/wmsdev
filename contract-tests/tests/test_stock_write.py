@@ -269,12 +269,52 @@ def test_shrink_stock_without_adjustment(operator, db, golden):
     "106 + 14n bytes, so an 11th child overflows and the whole shrink is rejected"
 )
 def test_shrink_stock_child_limit(operator, db, golden):
-    seed_baseline(operator)
-    golden.response("10_pieces", operator.post("/api/stock/shrinkStock",
-                                               json=shrink_request(1, ["4"] * 10, allocation=0, adjustment=0)))
-    golden.response("11_pieces", operator.post("/api/stock/shrinkStock",
-                                               json=shrink_request(2, ["4"] * 11, allocation=0, adjustment=0)))
-    golden.add("db", db_state(db, ["stockidentifier", "history"]))
+    """The limit lives in the column type, not in the code, so the test sets the column
+    the compared behavior assumes and puts the previous type back afterwards:
+
+    - .json (original Java): TINYBLOB, as Hibernate generated it;
+    - .fixed.json on Java: BLOB, the cutover migration the patched Java relies on
+      (java-patches/02-history-children-blob.patch only changes the mapping for new schemas);
+    - .fixed.json on Python: left alone — the rewrite's own Alembic migration (0002) must
+      have widened it.
+
+    Patched Java (.fixed.json, followed by Python): 11 children fit (200)."""
+    import conftest
+    from conftest import root_connection
+
+    def column_type() -> str:
+        with root_connection() as conn, conn.cursor() as cur:
+            cur.execute("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = %s "
+                        "AND TABLE_NAME = 'history' AND COLUMN_NAME = 'childrenIdentifierId'",
+                        (conftest.DB["database"],))
+            return cur.fetchone()[0]
+
+    def set_column_type(sql_type: str) -> None:
+        with root_connection() as conn, conn.cursor() as cur:
+            cur.execute(f"ALTER TABLE history MODIFY childrenIdentifierId {sql_type}")
+
+    previous = column_type()
+    wanted = None
+    if golden.path == golden.java_path:
+        wanted = "TINYBLOB"
+    elif conftest.BACKEND_KIND == "java":
+        wanted = "BLOB"
+    try:
+        if wanted is not None:
+            set_column_type(wanted)
+        seed_baseline(operator)
+        golden.response("10_pieces", operator.post("/api/stock/shrinkStock",
+                                                   json=shrink_request(1, ["4"] * 10, allocation=0, adjustment=0)))
+        golden.response("11_pieces", operator.post("/api/stock/shrinkStock",
+                                                   json=shrink_request(2, ["4"] * 11, allocation=0, adjustment=0)))
+        golden.add("db", db_state(db, ["stockidentifier", "history"]))
+    finally:
+        if wanted is not None and wanted.lower() != previous.lower():
+            # 11 children no longer fit a TINYBLOB: empty the table first (the golden has
+            # its copy already; the next test resets the database anyway)
+            with root_connection() as conn, conn.cursor() as cur:
+                cur.execute("DELETE FROM history")
+            set_column_type(previous)
 
 
 @pytest.mark.java_bug("rolling back a roll that was never shrunk fails inside rollbackShrink, which "

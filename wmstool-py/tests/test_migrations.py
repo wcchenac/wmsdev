@@ -35,15 +35,28 @@ def migrated_url():
     admin.dispose()
 
 
-def _upgrade(url: str) -> None:
+def _config(url: str) -> Config:
     cfg = Config(str(ROOT / "alembic.ini"))
     cfg.set_main_option("script_location", str(ROOT / "migrations"))
     cfg.set_main_option("sqlalchemy.url", url)
-    command.upgrade(cfg, "head")
+    return cfg
+
+
+def _upgrade(url: str, revision: str = "head") -> None:
+    command.upgrade(_config(url), revision)
+
+
+def _children_type(url: str) -> str:
+    engine = create_engine(url)
+    try:
+        column = next(c for c in inspect(engine).get_columns("history") if c["name"] == "childrenIdentifierId")
+        return str(column["type"]).upper()
+    finally:
+        engine.dispose()
 
 
 def test_baseline_creates_hibernate_schema(migrated_url):
-    _upgrade(migrated_url)
+    _upgrade(migrated_url, "0001")
     engine = create_engine(migrated_url)
     insp = inspect(engine)
 
@@ -53,7 +66,49 @@ def test_baseline_creates_hibernate_schema(migrated_url):
     unique_cols += [tuple(u["column_names"]) for u in insp.get_unique_constraints("user")]
     assert ("employeeId",) in unique_cols
     children = next(c for c in insp.get_columns("history") if c["name"] == "childrenIdentifierId")
-    assert str(children["type"]).upper() == "TINYBLOB"
+    assert str(children["type"]).upper() == "TINYBLOB"  # what Hibernate generates for a Long[]
 
-    _upgrade(migrated_url)  # running the baseline again is harmless
+    _upgrade(migrated_url, "0001")  # running the baseline again is harmless
     engine.dispose()
+
+
+def _serialized(n: int) -> bytes:
+    from app.javacompat import serialize_long_array
+
+    return serialize_long_array(list(range(1, n + 1)))
+
+
+def test_children_column_holds_more_than_ten_children(migrated_url):
+    """Defect 2 fixed: a Java-serialized Long[] takes 106 + 14n bytes, so TINYBLOB (255)
+    ends at 10 children. 0002 widens the column to BLOB; existing values are kept as is."""
+    _upgrade(migrated_url, "0001")
+    engine = create_engine(migrated_url)
+    with engine.begin() as conn:
+        conn.execute(text("INSERT INTO history (id, childrenIdentifierId, currentIdentifierId, rootIdentifierId) "
+                          "VALUES (1, :c, 1, 1)"), {"c": _serialized(10)})
+    _upgrade(migrated_url)
+    assert _children_type(migrated_url) == "BLOB"
+    with engine.begin() as conn:
+        assert conn.execute(text("SELECT childrenIdentifierId FROM history WHERE id = 1")).scalar() == _serialized(10)
+        conn.execute(text("INSERT INTO history (id, childrenIdentifierId, currentIdentifierId, rootIdentifierId) "
+                          "VALUES (2, :c, 2, 2)"), {"c": _serialized(11)})
+        assert conn.execute(text("SELECT childrenIdentifierId FROM history WHERE id = 2")).scalar() == _serialized(11)
+    engine.dispose()
+    _upgrade(migrated_url)  # running it again is harmless
+
+
+def test_children_column_downgrade_refuses_to_truncate(migrated_url):
+    """Going back to TINYBLOB would cut values longer than 255 bytes: refuse while any exist."""
+    _upgrade(migrated_url)
+    engine = create_engine(migrated_url)
+    with engine.begin() as conn:
+        conn.execute(text("INSERT INTO history (id, childrenIdentifierId, currentIdentifierId, rootIdentifierId) "
+                          "VALUES (1, :c, 1, 1)"), {"c": _serialized(11)})
+    with pytest.raises(RuntimeError, match="longer than 255 bytes"):
+        command.downgrade(_config(migrated_url), "0001")
+    assert _children_type(migrated_url) == "BLOB"
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM history"))
+    engine.dispose()
+    command.downgrade(_config(migrated_url), "0001")
+    assert _children_type(migrated_url) == "TINYBLOB"
