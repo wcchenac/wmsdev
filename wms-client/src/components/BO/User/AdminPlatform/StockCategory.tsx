@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import Select, { SingleValue } from "react-select";
 import makeAnimated from "react-select/animated";
 import {
@@ -25,7 +26,7 @@ const StockCategory: React.FC = () => {
   const categoryList = useSelector((state: RootState) => state.stockInfo);
 
   useEffect(() => {
-    dispatch(getAllCategory());
+    dispatch(getAllCategory()).catch(notifyRequestFailed);
   }, [dispatch]);
 
   const handleCategorySelect = useCallback((selected: SingleValue<CategoryOption>): void => {

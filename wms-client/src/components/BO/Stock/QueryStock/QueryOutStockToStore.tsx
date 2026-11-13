@@ -1,5 +1,6 @@
 import React, { useState, useCallback, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getOutStockToStoreOrder } from "../../../../actions/StockActions";
 import LoadingOverlay from "react-loading-overlay-ts";
@@ -39,6 +40,9 @@ const QueryOutStockToStore: React.FC = () => {
           setIsLoading(false);
           setIsQuery(true);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch, orderNo]

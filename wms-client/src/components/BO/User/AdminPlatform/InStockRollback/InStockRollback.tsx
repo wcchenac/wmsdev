@@ -1,5 +1,6 @@
 import React, { useState, useCallback, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
   getInStockRollbackList,
@@ -49,6 +50,9 @@ const InStockRollback: React.FC = () => {
           setIsLoading(false);
           setIsQuery(true);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch, orderType, orderNo]
@@ -62,6 +66,9 @@ const InStockRollback: React.FC = () => {
         if (response.status === 200) {
           setIsLoading(false);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch, orderType, orderNo]

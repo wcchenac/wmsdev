@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import UserSelection from "./UserSelection";
 import SearchBoard from "./SearchBoard";
 import {
@@ -55,6 +56,9 @@ const OutStockRequestList: React.FC = () => {
       if (response.status === 200) {
         setIsLoading(false);
       }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch]);
 
@@ -133,6 +137,9 @@ const OutStockRequestList: React.FC = () => {
       if (response.status === 200) {
         setIsLoading(false);
       }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch, startDate, endDate]);
 
@@ -142,6 +149,9 @@ const OutStockRequestList: React.FC = () => {
       if (res.status === 200) {
         getInitialState();
       }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch, getInitialState]);
 
@@ -178,6 +188,9 @@ const OutStockRequestList: React.FC = () => {
       if (res.status === 200) {
         getInitialState();
       }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch, getInitialState]);
 
@@ -187,6 +200,9 @@ const OutStockRequestList: React.FC = () => {
       if (res.status === 200) {
         getInitialState();
       }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch, getInitialState]);
 

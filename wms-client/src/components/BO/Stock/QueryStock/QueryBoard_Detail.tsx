@@ -1,5 +1,6 @@
 import React, { useState, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getStockInfoes } from "../../../../actions/StockActions";
 import StockInfoContainer from "./Common/StockInfoContainer";
@@ -95,6 +96,9 @@ const QueryBoard_Detail: React.FC = () => {
           setIsLoading(false);
           setIsQuery(true);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch, productNo]
@@ -112,6 +116,9 @@ const QueryBoard_Detail: React.FC = () => {
           setIsLoading(false);
           setIsQuery(true);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch]

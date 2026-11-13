@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
     getShrinkList,
@@ -66,6 +67,9 @@ const ShrinkBoard: React.FC = () => {
             if (response.status === 200) {
                 setIsLoading(false);
             }
+        }).catch((error) => {
+          setIsLoading(false);
+          notifyRequestFailed(error);
         });
     }, [dispatch]);
 
@@ -99,7 +103,10 @@ const ShrinkBoard: React.FC = () => {
                         setIsLoading(false);
                     }
                 }
-            );
+            ).catch((error) => {
+              setIsLoading(false);
+              notifyRequestFailed(error);
+            });
         },
         [dispatch]
     );

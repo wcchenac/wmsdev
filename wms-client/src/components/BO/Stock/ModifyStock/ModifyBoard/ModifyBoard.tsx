@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
   getStockInfoes,
@@ -132,6 +133,9 @@ const ModifyBoard: React.FC = () => {
           setIsLoading(false);
           setIsQuery(true);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch, productNo]
@@ -147,6 +151,9 @@ const ModifyBoard: React.FC = () => {
           setIsLoading(false);
           setIsQuery(true);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch]
@@ -161,6 +168,9 @@ const ModifyBoard: React.FC = () => {
           setIsLoading(false);
           setModalShow_OutStock(false);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch]
@@ -174,6 +184,9 @@ const ModifyBoard: React.FC = () => {
           setIsLoading(false);
           setModalShow_BatchShip(false);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch]
@@ -188,7 +201,10 @@ const ModifyBoard: React.FC = () => {
           setIsLoading(false);
           setModalShow_BatchShip(false);
         }
-      );
+      ).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
     },
     [dispatch, productNo]
   );
@@ -200,6 +216,9 @@ const ModifyBoard: React.FC = () => {
         if (response.status === 200) {
           setIsLoading(false);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch]
@@ -213,6 +232,9 @@ const ModifyBoard: React.FC = () => {
         if (response.status === 200) {
           setIsLoading(false);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch]

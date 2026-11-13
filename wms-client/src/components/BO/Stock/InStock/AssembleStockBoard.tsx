@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./Common/QueryOrder";
 import SelectionBoard from "./Common/SelectionBoard";
@@ -136,6 +137,9 @@ const AssembleStockBoard: React.FC = () => {
         if (response.status === 200) {
           setIsLoading(false);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch, orderNo]
@@ -184,6 +188,9 @@ const AssembleStockBoard: React.FC = () => {
         // Only the submitted product is marked; the order is not re-queried, since that would
         // rebuild the Step 2 list and bring back products the user left unticked.
         setIsLoading(false);
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
     },
     [dispatch]

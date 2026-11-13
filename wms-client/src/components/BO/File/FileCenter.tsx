@@ -1,5 +1,6 @@
 import React, { useState, useCallback, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../utilities/notifyRequestFailed";
 import FileContainer from "./FileContainer";
 import FileContainerForCategory from "./FileContainerForCategory";
 import {
@@ -96,7 +97,7 @@ const FileCenter: React.FC = () => {
   }, []);
 
   const handleQueryCategoryDetailList = useCallback(() => {
-    dispatch(queryCategoryDetailList());
+    dispatch(queryCategoryDetailList()).catch(notifyRequestFailed);
   }, [dispatch]);
 
   const dailyComparisonTitle = "每日庫存比對紀錄";
