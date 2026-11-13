@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { isSessionExpired, notifyRequestFailed } from "./notifyRequestFailed";
+import { isSessionExpired, notifyRequestFailed, responseStatus } from "./notifyRequestFailed";
 
 // The backend rolls back all or nothing. When any id in the request is gone, or the roll was
 // never shrunk, it answers 400 with no body and changes nothing, so the message has to come
@@ -33,9 +33,7 @@ export class RollbackError extends Error {
 
 /** The backend's all-or-nothing 400: the rollback was refused and nothing changed. */
 function isRejected(error: unknown): boolean {
-  if (typeof error !== "object" || error === null || !("response" in error)) return false;
-  const response = error.response;
-  return typeof response === "object" && response !== null && "status" in response && response.status === 400;
+  return responseStatus(error) === 400;
 }
 
 /**

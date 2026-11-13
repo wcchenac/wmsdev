@@ -27,7 +27,8 @@ function clientErrorMessage(error: unknown): string | undefined {
   return typeof message === "string" && message.trim() !== "" ? message.trim() : undefined;
 }
 
-function responseStatus(error: unknown): number | undefined {
+/** The HTTP status of a failed request, or undefined (no response, or a non-number status). */
+export function responseStatus(error: unknown): number | undefined {
   if (typeof error !== "object" || error === null || !("response" in error)) return undefined;
   const response = error.response;
   if (typeof response !== "object" || response === null || !("status" in response)) return undefined;

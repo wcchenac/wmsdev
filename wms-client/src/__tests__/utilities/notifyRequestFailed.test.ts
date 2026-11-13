@@ -1,5 +1,5 @@
 import { toast } from 'react-toastify';
-import { REQUEST_FAILED_MESSAGE, notifyRequestFailed } from '../../utilities/notifyRequestFailed';
+import { REQUEST_FAILED_MESSAGE, notifyRequestFailed, responseStatus } from '../../utilities/notifyRequestFailed';
 
 // The backend's own message is shown only for a 4xx answer that has a non-empty message the
 // app wrote (a request the user can correct). Server errors, Spring's default error bodies
@@ -50,5 +50,19 @@ describe('notifyRequestFailed', () => {
   test('the backend message is trimmed', () => {
     notifyRequestFailed(failure(400, { message: '  查無此貨號 \n' }));
     expect(toast.error).toHaveBeenCalledWith('查無此貨號');
+  });
+});
+
+describe('responseStatus', () => {
+  test.each([
+    ['a 400', failure(400, {}), 400],
+    ['a 503', failure(503, ''), 503],
+    ['no response (network down)', failure(undefined), undefined],
+    ['a response without a status', Object.assign(new Error('x'), { response: { data: {} } }), undefined],
+    ['a non-number status', Object.assign(new Error('x'), { response: { status: '400' } }), undefined],
+    ['a null response', Object.assign(new Error('x'), { response: null }), undefined],
+    ['not an error object', 'oops', undefined],
+  ])('%s', (_name, error, status) => {
+    expect(responseStatus(error)).toBe(status);
   });
 });
