@@ -29,7 +29,7 @@ function App() {
 
   return (
     <Provider store={store}>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="App">
           <Header />
           <main id="main-content" role="main" aria-label="主要內容區域">

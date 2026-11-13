@@ -5,7 +5,7 @@ import HeaderAdmin from '../../../../components/Layout/RoleHeader/HeaderAdmin';
 
 const renderHeaderAdmin = (): RenderResult => {
   return render(
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <HeaderAdmin />
     </MemoryRouter>
   );

@@ -50,7 +50,7 @@ const renderLogin = (storeState: Partial<StoreState> = {}, initialPath: string =
 
   const result = render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={[initialPath]}>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }} initialEntries={[initialPath]}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<div data-testid="home-page">Home Page</div>} />

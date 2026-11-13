@@ -5,7 +5,7 @@ import HeaderOperator from '../../../../components/Layout/RoleHeader/HeaderOpera
 
 const renderHeaderOperator = (): RenderResult => {
   return render(
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <HeaderOperator />
     </MemoryRouter>
   );

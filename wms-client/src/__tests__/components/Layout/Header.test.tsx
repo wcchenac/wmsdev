@@ -66,7 +66,7 @@ const mockStore = configureMockStore([thunk]);
 const renderWithProviders = (store: MockStoreEnhanced<unknown>): RenderResult => {
   return render(
     <Provider store={store}>
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Header />
       </MemoryRouter>
     </Provider>

@@ -5,7 +5,7 @@ import HeaderSales from '../../../../components/Layout/RoleHeader/HeaderSales';
 
 const renderHeaderSales = (): RenderResult => {
   return render(
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <HeaderSales />
     </MemoryRouter>
   );
