@@ -39,6 +39,13 @@ interface QuantityAccumulateResult {
   雜項: number;
 }
 
+// Parse a row's quantity for totals. A quantity that is still empty (or not yet
+// a number) counts as 0, otherwise one blank row turns the whole total into NaN.
+export function parseQuantity(quantity: string | number | null | undefined): number {
+  const value = parseFloat(String(quantity ?? ""));
+  return Number.isNaN(value) ? 0 : value;
+}
+
 // accumulate the total quantity by type
 export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulateResult {
   (function () {
@@ -103,22 +110,15 @@ export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulate
   let board = 0.0;
   let item = 0.0;
 
-  // A row whose quantity is still empty (or not yet a number) counts as 0,
-  // otherwise one blank row turns the whole type's total into NaN.
-  const quantityOf = (quantity: string | number): number => {
-    const value = parseFloat(quantity as string);
-    return Number.isNaN(value) ? 0 : value;
-  };
-
   for (let i = 0; i < stockInfoes.length; i += 1) {
     if (stockInfoes[i].type === StockIdentifierType.roll) {
-      roll += quantityOf(stockInfoes[i].quantity);
+      roll += parseQuantity(stockInfoes[i].quantity);
     }
     if (stockInfoes[i].type === StockIdentifierType.board) {
-      board += quantityOf(stockInfoes[i].quantity);
+      board += parseQuantity(stockInfoes[i].quantity);
     }
     if (stockInfoes[i].type === StockIdentifierType.hardware) {
-      item += quantityOf(stockInfoes[i].quantity);
+      item += parseQuantity(stockInfoes[i].quantity);
     }
   }
 

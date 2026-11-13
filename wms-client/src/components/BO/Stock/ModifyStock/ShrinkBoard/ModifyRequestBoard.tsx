@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, ChangeEvent } from 'react';
-import { StockIdentifierType, ShrinkType, DefectOption } from '../../../../../enums/Enums';
+import { StockIdentifierType, DefectOption } from '../../../../../enums/Enums';
 import ModifyRequestContainer from './ModifyRequestContainer';
 import { copy } from '../../../../../utilities/DeepCopy';
 import {
@@ -9,18 +9,8 @@ import {
 } from '../../Utilities/StockInfoHelperMethods';
 import ToolbarForAddDeleteSubmit from '../../Utilities/ToolbarForAddDeleteSubmit';
 import ShrinkConfirmModal from './ShrinkConfirmModal';
+import { calculateInfoLength } from './calculateInfoLength';
 import { StockInfo, ShrinkStockRequest } from '../../../../../types';
-
-import equal from "fast-deep-equal";
-
-// Extend Math interface for round10
-declare global {
-    interface Math {
-        round10(value: number, exp: number): number;
-        floor10(value: number, exp: number): number;
-        ceil10(value: number, exp: number): number;
-    }
-}
 
 export interface NewStockInfoItem {
     productNo: string;
@@ -108,96 +98,9 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
         stockInfo.stockIdentifier?.type === StockIdentifierType.hardware,
     [stockInfo.stockIdentifier?.type]);
 
-    const infoLengthCalculation = useCallback((): InfoLengthCalculation => {
-        // Decimal adjustment closure
-        (function () {
-            function decimalAdjust(type: 'round' | 'floor' | 'ceil', value: number, exp: number): number {
-                if (typeof exp === 'undefined' || +exp === 0) {
-                    return Math[type](value);
-                }
-                let valueNum = +value;
-                const expNum = +exp;
-                if (
-                    isNaN(valueNum) ||
-                    !(typeof expNum === 'number' && expNum % 1 === 0)
-                ) {
-                    return NaN;
-                }
-                const valueArr = valueNum.toString().split('e');
-                const shifted = Math[type](
-                    +(valueArr[0] + 'e' + (valueArr[1] ? +valueArr[1] - expNum : -expNum)),
-                );
-                const shiftedArr = shifted.toString().split('e');
-                return +(shiftedArr[0] + 'e' + (shiftedArr[1] ? +shiftedArr[1] + expNum : expNum));
-            }
-
-            if (!Math.round10) {
-                Math.round10 = function (value: number, exp: number): number {
-                    return decimalAdjust('round', value, exp);
-                };
-            }
-            if (!Math.floor10) {
-                Math.floor10 = function (value: number, exp: number): number {
-                    return decimalAdjust('floor', value, exp);
-                };
-            }
-            if (!Math.ceil10) {
-                Math.ceil10 = function (value: number, exp: number): number {
-                    return decimalAdjust('ceil', value, exp);
-                };
-            }
-        })();
-
-        const oldTotalLength = parseFloat(String(oldStockInfo.stockIdentifier?.quantity || 0));
-        const oldType = oldStockInfo.stockIdentifier?.type;
-        let typeDifference = false;
-        let totalQuantity = 0;
-        let allocation = 0;
-
-        for (let i = 0; i < newStockInfoes.length; i += 1) {
-            const childQuantity = parseFloat(newStockInfoes[i].quantity);
-            totalQuantity += childQuantity;
-
-            if (!equal(oldType, newStockInfoes[i].type)) {
-                allocation += childQuantity;
-                typeDifference = true;
-            }
-        }
-
-        const adjustment = totalQuantity - oldTotalLength;
-
-        const result: InfoLengthCalculation = {
-            adjustment: Math.round10(adjustment, -1),
-            totalQuantity: totalQuantity,
-            allocation: 0,
-            shrinkType: '',
-        };
-
-        if (typeDifference) {
-            result.allocation = Math.round10(allocation, -1);
-
-            if (oldType === StockIdentifierType.board) {
-                result.shrinkType = ShrinkType.BtoR;
-            }
-            if (oldType === StockIdentifierType.roll) {
-                result.shrinkType = ShrinkType.RtoB;
-            }
-        } else {
-            result.allocation = 0;
-
-            if (oldType === StockIdentifierType.board) {
-                result.shrinkType = ShrinkType.BtoB;
-            }
-            if (oldType === StockIdentifierType.roll) {
-                result.shrinkType = ShrinkType.RtoR;
-            }
-            if (oldType === StockIdentifierType.hardware) {
-                result.shrinkType = ShrinkType.HtoH;
-            }
-        }
-
-        return result;
-    }, [oldStockInfo, newStockInfoes]);
+    const infoLengthCalculation = useCallback(
+        (): InfoLengthCalculation => calculateInfoLength(oldStockInfo, newStockInfoes),
+        [oldStockInfo, newStockInfoes]);
 
     const checkLengthAlgorithm = useCallback((stockInfoes: NewStockInfoItem[]): boolean => {
         let isLengthChecked = false;
