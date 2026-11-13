@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  getStockInfoes,
-  getStockInfoesBasic,
-} from "../../../../actions/StockActions";
+import { getStockInfoes } from "../../../../actions/StockActions";
 import StockInfoContainer from "./Common/StockInfoContainer";
 import QueryProductInformation from "../Utilities/QueryProductInformation";
 import ShowProductInformation from "../Utilities/ShowProductInformation";
@@ -108,7 +105,7 @@ const QueryBoard_Detail: React.FC = () => {
 
       setIsLoading(true);
       setQueriedProductNo(select);
-      dispatch(getStockInfoesBasic(select)).then((response: { status: number }) => {
+      dispatch(getStockInfoes(select)).then((response: { status: number }) => {
         if (response.status === 200) {
           setIsLoading(false);
           setIsQuery(true);
