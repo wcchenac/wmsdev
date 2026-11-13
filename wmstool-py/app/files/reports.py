@@ -8,14 +8,12 @@ import datetime as dt
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from app.config import get_settings
 from app.javacompat import java_period_days, parse_client_datetime
 
 EXTENSION = ".xls"
 NOT_FOUND = "File Not Found"
-TAIPEI = ZoneInfo("Asia/Taipei")
 
 
 @dataclass(frozen=True)
@@ -36,10 +34,6 @@ DATED_LOOKUP = ("allocation", "adjustment", "dailyComparison")  # the only ones 
 
 def excel_root() -> Path:
     return Path(get_settings().excel_dir)
-
-
-def taipei_today() -> dt.date:
-    return dt.datetime.now(TAIPEI).date()
 
 
 def _dated_name(kind: ReportKind, day: dt.date) -> tuple[Path, str]:

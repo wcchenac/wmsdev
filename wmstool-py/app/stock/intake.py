@@ -9,7 +9,6 @@ row ids and the `product` table are part of the contract:
 
 import datetime as dt
 from dataclasses import dataclass
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -21,6 +20,7 @@ from app.javacompat import (
     java_parse_int,
     serialize_long_array,
 )
+from app.timeconv import java_now_utc, taipei_today_iso
 from app.stock.models import (
     History,
     InStockOrderRecord,
@@ -31,7 +31,6 @@ from app.stock.models import (
     TransactionRecord,
 )
 
-TAIPEI = ZoneInfo("Asia/Taipei")
 UNCATEGORISED = "未分類"
 
 # inStockType -> (StockIdentifier.inStockType label, TransactionRecord.transactionType)
@@ -57,15 +56,6 @@ class InStockItem:
     remark: str | None
     inStockType: str
     orderNo: str | None
-
-
-def utc_now() -> dt.datetime:
-    """What Java stores for LocalDateTime.now(): the JDBC URL has serverTimezone=UTC."""
-    return dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
-
-
-def taipei_today() -> str:
-    return dt.datetime.now(TAIPEI).date().isoformat()
 
 
 def _convert_units(item: InStockItem) -> tuple[str, str]:
@@ -123,8 +113,8 @@ def _apply_totals(session: Session, totals: dict[str, dict[str, dict[str, str]]]
 
 
 def create_stock_infoes(session: Session, items: list[InStockItem], editor: str) -> None:
-    now = utc_now()
-    today = taipei_today()
+    now = java_now_utc()
+    today = taipei_today_iso()
     infos: list[StockInfo] = []
     totals: dict[str, dict[str, dict[str, str]]] = {}
 

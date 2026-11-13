@@ -14,6 +14,7 @@ from app.files import reports
 from app.files.importer import ImportParseError, read_import_workbook
 from app.security.auth import require_roles
 from app.stock.intake import create_stock_infoes
+from app.timeconv import taipei_today
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/file")
@@ -65,7 +66,7 @@ def query_today(fileCategory: str, request: Request) -> Response:
     ops_only(request)
     if fileCategory not in reports.DATED_LOOKUP:
         return Response(status_code=400)
-    return PlainTextResponse(reports.find_today(fileCategory, reports.taipei_today()))
+    return PlainTextResponse(reports.find_today(fileCategory, taipei_today()))
 
 
 @router.get("/query/{fileCategory}/interval")
