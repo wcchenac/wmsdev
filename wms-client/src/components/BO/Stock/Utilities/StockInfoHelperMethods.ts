@@ -38,6 +38,18 @@ export function parseQuantity(quantity: string | number | null | undefined): num
   return Number.isNaN(value) ? 0 : value;
 }
 
+// Parse the 新增複數列數 input (a free-text field) into how many rows to add:
+// the whole-number part of a non-negative number, or 0 for anything else
+// ("", "abc", "3abc", "-2", "Infinity").
+export function parseRowCount(value: string | number): number {
+  const text = String(value).trim();
+  if (text === "") {
+    return 0;
+  }
+  const count = Number(text);
+  return Number.isFinite(count) && count > 0 ? Math.trunc(count) : 0;
+}
+
 // accumulate the total quantity by type
 export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulateResult {
   let roll = 0.0;

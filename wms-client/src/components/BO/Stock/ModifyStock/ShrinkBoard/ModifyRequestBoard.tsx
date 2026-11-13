@@ -6,6 +6,7 @@ import {
     updateStockInfoesCopy,
     joinInfoesDefectArray,
     defectStringTransToOptions,
+    parseRowCount,
 } from '../../Utilities/StockInfoHelperMethods';
 import ToolbarForAddDeleteSubmit from '../../Utilities/ToolbarForAddDeleteSubmit';
 import ShrinkConfirmModal from './ShrinkConfirmModal';
@@ -242,7 +243,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                 };
             }
 
-            const numRows = typeof assignRowNum === 'string' ? parseInt(assignRowNum, 10) : assignRowNum;
+            const numRows = parseRowCount(assignRowNum);
             for (let i = 0; i < numRows; i += 1) {
                 stockInfoesCopy.push({ ...newStockInfo });
             }

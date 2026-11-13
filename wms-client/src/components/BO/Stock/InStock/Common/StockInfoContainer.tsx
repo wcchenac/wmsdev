@@ -4,6 +4,7 @@ import { copy } from "../../../../../utilities/DeepCopy";
 import {
   quantityAccumulate,
   updateStockInfoesCopy,
+  parseRowCount,
 } from "../../Utilities/StockInfoHelperMethods";
 import ToolbarForAddDeleteSubmit from "../../Utilities/ToolbarForAddDeleteSubmit";
 import { DefectOptions, DefectOption } from "../../../../../enums/Enums";
@@ -292,7 +293,8 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
         };
       }
 
-      for (let i = 0; i < Number(assignRowNum); i += 1) {
+      const numRows = parseRowCount(assignRowNum);
+      for (let i = 0; i < numRows; i += 1) {
         stockInfoesCopy.push(newStockInfo);
       }
 

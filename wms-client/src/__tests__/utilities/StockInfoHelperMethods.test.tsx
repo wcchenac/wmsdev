@@ -5,7 +5,8 @@ import {
   joinInfoDefectArray,
   joinInfoesDefectArray,
   defectIndexMapper,
-  defectStringTransToOptions
+  defectStringTransToOptions,
+  parseRowCount
 } from '../../components/BO/Stock/Utilities/StockInfoHelperMethods';
 import { StockIdentifierType, DefectOptions } from '../../enums/Enums';
 
@@ -56,6 +57,24 @@ interface StockInfoWithDefect {
 }
 
 describe('StockInfoHelperMethods', () => {
+  // 新增複數列數 on 入庫 Step 3 and 減肥 both parse their text input with this.
+  describe('parseRowCount', () => {
+    test.each([
+      ['3', 3],
+      [' 3 ', 3],
+      [3, 3],
+      ['2.7', 2],
+      ['', 0],
+      ['abc', 0],
+      ['3abc', 0],
+      ['-2', 0],
+      [0, 0],
+      ['Infinity', 0],
+    ])('%j -> %i', (input, expected) => {
+      expect(parseRowCount(input)).toBe(expected);
+    });
+  });
+
   describe('quantityAccumulate', () => {
     test('accumulates quantities by type correctly', () => {
       const stockInfoes: StockInfoQuantity[] = [

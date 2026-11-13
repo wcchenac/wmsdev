@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "react-bootstrap";
 import RollbackModal from "./RollbackModal";
 import { StockInfo as StockInfoType } from "../../../../../types";
+import { round10 } from "../../../../../utilities/DecimalAdjust";
 
 interface StockInfoProps {
   productNo: string;
@@ -38,7 +39,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
     });
 
     return {
-      totalQuantity: Math.round(totalQuantity * 100) / 100,
+      totalQuantity: round10(totalQuantity, -2),
       unit: unit
     };
   }, [list]);
