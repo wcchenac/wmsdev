@@ -46,3 +46,24 @@ def test_rejects_drive_letters_even_where_they_are_plain_names(excel_dir):
     # the folder. Refuse ':' everywhere so the check does not depend on the OS.
     (excel_dir / "CategoryDetail" / "C:secret.xlsx").write_bytes(b"x")
     assert resolve_download("categoryDetail", "C:secret") is None
+
+
+def test_category_report_embeds_photo_bytes_undecoded(excel_dir, monkeypatch):
+    """Java's addPicture(bytes, PICTURE_TYPE_JPEG) does not decode the photo: a broken
+    file is embedded byte for byte as a JPEG."""
+    import zipfile
+
+    from app.reports import category
+
+    pictures = excel_dir / "pictures"
+    pictures.mkdir()
+    (pictures / "CF1001.jpg").write_bytes(b"this is not a jpeg")
+    monkeypatch.setenv("PICTURE_DIR", str(pictures))
+    get_settings.cache_clear()
+    row = ("CF1001", "L01", "整支", "50", "碼", 3, "", "", "", "進貨單", "2026-11-01", "棉布")
+    info = {"CF1001": ["S1", "廠商", "10", "品名", "說明"]}
+    name = category.write("棉布", [row], info, {})
+    with zipfile.ZipFile(excel_dir / "CategoryDetail" / name) as book:
+        media = [n for n in book.namelist() if n.startswith("xl/media/")]
+        assert media == ["xl/media/image1.jpeg"]
+        assert book.read(media[0]) == b"this is not a jpeg"

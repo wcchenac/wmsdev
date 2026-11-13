@@ -126,6 +126,23 @@ def test_category_detail_report_with_picture(admin, db, golden):
         picture.unlink()
 
 
+def test_category_detail_report_with_broken_picture(admin, db, golden):
+    """Java embeds the photo's bytes as a JPEG without decoding them: a file that is not
+    an image still answers 200 and still pushes the table 16 rows down."""
+    from conftest import FILES_DIR
+
+    _seed_category_tables(db)
+    pictures = FILES_DIR / "pictures"
+    pictures.mkdir(parents=True, exist_ok=True)
+    picture = pictures / "CF1001.jpg"
+    picture.write_bytes(b"this is not a jpeg")
+    try:
+        golden.response("棉布", admin.get("/api/stock/queryStock/category/棉布"))
+        golden.add("reports", _category_reports())
+    finally:
+        picture.unlink()
+
+
 def _category_reports():
     from conftest import EXCEL_DIR, read_workbook
 
