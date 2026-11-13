@@ -1,30 +1,6 @@
 import { DefectOptions, DefectOption, StockIdentifierType } from "../../../../enums/Enums";
 import { round10 } from "../../../../utilities/DecimalAdjust";
 
-interface StockInfoBase {
-  type: string;
-  quantity: string | number;
-  lotNo?: string;
-  unit?: string;
-  color?: string | number;
-  record?: string;
-  remark?: string;
-  outStockReason?: string;
-  reason?: string;
-  defect: (DefectOption | undefined)[] | DefectOption[] | string;
-  errors: {
-    quantity?: string;
-    quantity1?: string;
-    quantity2?: string;
-  };
-  quantity1?: string | number;
-  quantity2?: string | number;
-}
-
-interface StockInfo extends StockInfoBase {
-  defect: (DefectOption | undefined)[];
-}
-
 /** Total quantity per stock type. */
 export type QuantityAccumulateResult = Record<"整支" | "板卷" | "雜項", number>;
 
@@ -232,14 +208,6 @@ export function updateStockInfoCopy(
     default:
       break;
   }
-}
-
-// join stockInfo.defect array contents for infoes
-export function joinInfoesDefectArray(stockInfoesCopy: StockInfo[]): void {
-  stockInfoesCopy.forEach((stockInfo, index) => {
-    (stockInfoesCopy[index].defect as unknown as string) =
-      joinInfoDefectArray(stockInfo);
-  });
 }
 
 // Interface for objects with defect array

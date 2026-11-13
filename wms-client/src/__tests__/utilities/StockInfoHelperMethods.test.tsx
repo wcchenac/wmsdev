@@ -3,7 +3,6 @@ import {
   updateStockInfoesCopy,
   updateStockInfoCopy,
   joinInfoDefectArray,
-  joinInfoesDefectArray,
   defectIndexMapper,
   defectStringTransToOptions,
   parseRowCount,
@@ -362,25 +361,6 @@ describe('StockInfoHelperMethods', () => {
     test('handles two defects', () => {
       const stockInfo: StockInfoWithDefect = { defect: [{ value: 'GA' }, { value: 'GB' }] };
       expect(joinInfoDefectArray(stockInfo)).toBe('GA/GB');
-    });
-  });
-
-  describe('joinInfoesDefectArray', () => {
-    test('joins defect arrays for multiple stock infos', () => {
-      const stockInfoesCopy: StockInfoesCopyItem[] = [
-        { defect: [{ value: 'GA' }, { value: 'GB' }] } as unknown as StockInfoesCopyItem,
-        { defect: [{ value: 'GC' }] } as unknown as StockInfoesCopyItem
-      ];
-      joinInfoesDefectArray(stockInfoesCopy);
-
-      expect(stockInfoesCopy[0].defect).toBe('GA/GB');
-      expect(stockInfoesCopy[1].defect).toBe('GC');
-    });
-
-    test('handles empty stockInfoesCopy array', () => {
-      const stockInfoesCopy: StockInfoesCopyItem[] = [];
-      joinInfoesDefectArray(stockInfoesCopy);
-      expect(stockInfoesCopy).toEqual([]);
     });
   });
 

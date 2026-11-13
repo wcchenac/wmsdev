@@ -1,5 +1,5 @@
 import React, { ReactNode, KeyboardEvent } from "react";
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button, ButtonProps } from "react-bootstrap";
 import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
@@ -32,7 +32,7 @@ interface VariantConfig {
   icon: ReactNode;
   iconBg: string;
   iconColor: string;
-  confirmVariant: string;
+  confirmVariant: ButtonProps["variant"];
 }
 
 /**
@@ -188,7 +188,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             {cancelText}
           </Button>
           <Button
-            variant={config.confirmVariant as any}
+            variant={config.confirmVariant}
             onClick={handleConfirm}
             disabled={loading}
             aria-busy={loading}
