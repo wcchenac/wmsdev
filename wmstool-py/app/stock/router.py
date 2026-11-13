@@ -266,8 +266,8 @@ def history_route(productNo: str, request: Request, startDate: str | None = None
     query parameters pick the handler, before authorization (Spring's order)."""
     is_tree = startDate is not None and endDate is not None
     is_structure = id is not None
-    if is_tree and is_structure:
-        raise RuntimeError("Ambiguous handler methods")  # both params conditions match -> 500
+    # Both sets present: Spring ranks the mapping with more param expressions first,
+    # so the tree wins (recorded from the patched Java).
     if is_tree:
         assert startDate is not None and endDate is not None
         require_roles("ROLE_Sales", "ROLE_Operator", "ROLE_Admin")(request)
