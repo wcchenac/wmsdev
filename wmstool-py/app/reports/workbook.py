@@ -44,8 +44,14 @@ def recreate_from_template(folder: str, template: str, target: Path) -> Path:
 
 
 def poi_last_row(sheet: Worksheet) -> int:
-    """HSSF getLastRowNum(): 0-based index of the last row; 0 for an empty sheet."""
-    return max(sheet.max_row - 1, 0)
+    """HSSF getLastRowNum(): 0-based index of the last row; 0 for an empty sheet.
+
+    POI counts every row record, including a row that only carries formatting (a
+    custom height) and no cells. openpyxl's max_row only sees cells, so rows kept in
+    row_dimensions (a converted template's formatted rows) are counted as well.
+    """
+    last = max(sheet.max_row, max(sheet.row_dimensions, default=1))  # 1-based
+    return max(last - 1, 0)
 
 
 def write_row(sheet: Worksheet, index: int, cells: Row, font=None) -> None:  # noqa: ANN001

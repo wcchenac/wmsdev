@@ -67,3 +67,24 @@ def test_category_report_embeds_photo_bytes_undecoded(excel_dir, monkeypatch):
         media = [n for n in book.namelist() if n.startswith("xl/media/")]
         assert media == ["xl/media/image1.jpeg"]
         assert book.read(media[0]) == b"this is not a jpeg"
+
+
+def test_rows_with_only_formatting_count_as_last_row(tmp_path):
+    """POI counts a row that only has a custom height; it must still count after
+    openpyxl saves and reloads the report (a second append on the same day)."""
+    import openpyxl
+
+    from app.reports.workbook import append_rows, first_data_row, poi_last_row
+
+    path = tmp_path / "template.xlsx"
+    book = openpyxl.Workbook()
+    sheet = book.worksheets[0]
+    sheet["A1"] = "header"
+    sheet.row_dimensions[4].height = 30  # 0-based row 3, no cells
+    book.save(path)
+    assert first_data_row(path) == 4
+    append_rows(path, [{0: "first"}])
+    append_rows(path, [{0: "second"}])
+    sheet = openpyxl.load_workbook(path).worksheets[0]
+    assert [sheet.cell(row=r, column=1).value for r in (5, 6)] == ["first", "second"]
+    assert poi_last_row(sheet) == 5
