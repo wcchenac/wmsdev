@@ -12,14 +12,16 @@ const onRejected = (API.interceptors.response as unknown as {
   handlers: { rejected: RejectedHandler }[];
 }).handlers[0].rejected;
 
-const httpError = (status: number) =>
-  new AxiosError('failed', String(status), { headers: new AxiosHeaders() } as InternalAxiosRequestConfig, null, {
+const httpError = (status: number, url = '/api/stock/query') => {
+  const config = { url, headers: new AxiosHeaders() } as InternalAxiosRequestConfig;
+  return new AxiosError('failed', String(status), config, null, {
     status,
     statusText: '',
     headers: {},
-    config: { headers: new AxiosHeaders() } as InternalAxiosRequestConfig,
+    config,
     data: {},
   });
+};
 
 const getItem = vi.mocked(window.localStorage.getItem);
 const removeItem = vi.mocked(window.localStorage.removeItem);
@@ -32,6 +34,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // Let a scheduled redirect run so the next test starts with none pending.
+  vi.runAllTimers();
   vi.useRealTimers();
   delete API.defaults.headers.common.Authorization;
 });
@@ -63,10 +67,31 @@ describe('API 401 handling', () => {
     expect(vi.getTimerCount()).toBe(1);
   });
 
-  test('without a stored token (e.g. a wrong password on the login page) nothing happens', async () => {
+  test('without a stored token (e.g. signed out in another tab) the user is still told and sent to /login', async () => {
+    // Pages leave every 401 to this handler, so it must not stay silent here.
     getItem.mockReturnValue(null);
 
     await expect(onRejected(httpError(401))).rejects.toBeInstanceOf(AxiosError);
+
+    expect(API.defaults.headers.common.Authorization).toBeUndefined();
+    expect(toast.error).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE, expect.objectContaining({ toastId: 'session-expired' }));
+    vi.advanceTimersByTime(SESSION_EXPIRED_REDIRECT_DELAY_MS);
+    expect(window.location.href).toBe('/login');
+  });
+
+  test('several failing requests without a stored token also show one message and schedule one redirect', async () => {
+    getItem.mockReturnValue(null);
+
+    await Promise.allSettled([onRejected(httpError(401)), onRejected(httpError(401))]);
+
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  test('a rejected login (wrong password) is left to the login form', async () => {
+    getItem.mockReturnValue(null);
+
+    await expect(onRejected(httpError(401, '/api/user/login'))).rejects.toBeInstanceOf(AxiosError);
 
     expect(toast.error).not.toHaveBeenCalled();
     vi.runAllTimers();

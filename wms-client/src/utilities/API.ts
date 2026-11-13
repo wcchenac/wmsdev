@@ -46,6 +46,12 @@ export const SESSION_EXPIRED_MESSAGE = '登入已逾時，請重新登入';
 /** How long the message stays on screen before the page moves to /login. */
 export const SESSION_EXPIRED_REDIRECT_DELAY_MS = 2000;
 
+/** A wrong password on the login page also gets 401; the login form shows that one. */
+const LOGIN_URL = '/api/user/login';
+
+/** Set once the session-expired message is up and /login is on its way. */
+let redirectingToLogin = false;
+
 // Response interceptor for error handling
 API.interceptors.response.use(
     (response: AxiosResponse) => response,
@@ -54,16 +60,18 @@ API.interceptors.response.use(
         if (!error.response) {
             console.error('Network Error: Please check your connection');
         }
-        // 401 while signed in: the JWT expired mid-session. (A wrong password on the login
-        // page has no stored token and is left to the login form.) The first 401 clears the
-        // token, so other requests failing at the same time do not repeat this.
-        if (error.response && error.response.status === 401) {
-            const token = localStorage.getItem('jwtToken');
-            if (token) {
-                localStorage.removeItem('jwtToken');
-                delete API.defaults.headers.common['Authorization'];
+        // Any other 401 means the user is no longer signed in: the JWT expired mid-session, or
+        // the token is already gone (signed out in another tab). Pages leave 401s to this
+        // handler (isSessionExpired), so it always tells the user and goes to /login. Requests
+        // failing at the same time show the message and schedule the redirect only once.
+        if (error.response && error.response.status === 401 && error.config?.url !== LOGIN_URL) {
+            localStorage.removeItem('jwtToken');
+            delete API.defaults.headers.common['Authorization'];
+            if (!redirectingToLogin) {
+                redirectingToLogin = true;
                 toast.error(SESSION_EXPIRED_MESSAGE, { toastId: 'session-expired' });
                 setTimeout(() => {
+                    redirectingToLogin = false;
                     window.location.href = '/login';
                 }, SESSION_EXPIRED_REDIRECT_DELAY_MS);
             }

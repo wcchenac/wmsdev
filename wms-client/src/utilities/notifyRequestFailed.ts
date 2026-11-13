@@ -35,8 +35,9 @@ function responseStatus(error: unknown): number | undefined {
 }
 
 /**
- * True for a 401: API.ts then shows 「登入已逾時，請重新登入」 and goes to /login, so callers
- * with their own failure toast should skip it.
+ * True for a 401: API.ts then shows 「登入已逾時，請重新登入」 and goes to /login (with or
+ * without a stored token), so callers with their own failure toast should skip it. The login
+ * request's own 401 (wrong password) is shown by the login form, which does not use this.
  */
 export function isSessionExpired(error: unknown): boolean {
   return responseStatus(error) === 401;
