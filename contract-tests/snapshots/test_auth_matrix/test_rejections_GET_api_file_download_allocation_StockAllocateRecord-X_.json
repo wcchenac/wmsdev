@@ -3,7 +3,7 @@
     "body": {
       "error": "Forbidden",
       "message": "Forbidden",
-      "path": "/api/file/download/allocation/StockAllocateRecord-<TODAY:yyyyMMdd>",
+      "path": "/api/file/download/allocation/StockAllocateRecord-X",
       "status": 403,
       "timestamp": "<timestamp>"
     },
@@ -13,7 +13,7 @@
     "body": {
       "error": "Forbidden",
       "message": "Forbidden",
-      "path": "/api/file/download/allocation/StockAllocateRecord-<TODAY:yyyyMMdd>",
+      "path": "/api/file/download/allocation/StockAllocateRecord-X",
       "status": 403,
       "timestamp": "<timestamp>"
     },

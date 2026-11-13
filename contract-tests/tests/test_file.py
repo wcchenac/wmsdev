@@ -205,7 +205,10 @@ def test_import_reuses_backlog_values(operator, db, golden):
 @pytest.mark.java_bug("a trailing row without cells (here: only a height) makes Java read getCell(0) of it: "
                       "the whole file is skipped (patched Java skips the blank row)")
 def test_import_cell_existence(operator, db, golden):
-    """POI distinguishes a styled empty cell (text "") from a missing one, and counts empty <row>s."""
+    """POI distinguishes a styled empty cell (text "") from a missing one, and counts empty <row>s.
+
+    Patched Java (.fixed.json, followed by Python): the trailing row that only has a
+    height is skipped as blank, so the second file is imported instead of skipped."""
     from openpyxl.styles import Font
 
     book = openpyxl.Workbook()
@@ -248,7 +251,10 @@ def _with_trailing_row(data: bytes, row_xml: str) -> bytes:
 def test_import_trailing_rows_without_cells(operator, db, golden):
     """XSSF's getLastRowNum() counts every <row> element. A trailing row with no cells,
     whether it only has a row style or no attributes at all, makes Java read getCell(0)
-    of an empty row (NullPointerException): the whole file is skipped."""
+    of an empty row (NullPointerException): the whole file is skipped.
+
+    Patched Java (.fixed.json, followed by Python): both trailing rows are skipped as
+    blank and both files are imported."""
     row = ["CF1002", "L07", "整支", "40", "碼", 0, None, None, None, "fileImport", None]
     plain = _xlsx([row])
     golden.response("styled_row", _post(operator, "styled.xlsx",

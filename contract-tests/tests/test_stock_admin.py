@@ -28,7 +28,10 @@ def test_daily_stock_compare(admin, golden):
 def test_daily_stock_compare_failure_resets_todays_report(admin, db, golden):
     """Java recreates today's report from the template *before* comparing. A failure in
     the comparison (CF1001 整支 has a quantity that is not a number: Double.parseDouble
-    throws) answers 400 and leaves today's earlier report replaced by the empty template."""
+    throws) answers 400 and leaves today's earlier report replaced by the empty template.
+
+    Patched Java (.fixed.json, followed by Python): still 400, but the comparison runs
+    before the report is touched, so today's earlier report is kept."""
     seed_baseline(admin)
     golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))
     exec_sql(db, "UPDATE product SET quantity = 'abc' WHERE productNo = 'CF1001' AND type = '整支'")
@@ -114,11 +117,21 @@ def test_category_list(admin, golden):
 # GET /api/stock/queryStock/category/{category} -----------------------------------
 
 
+def _days_ago(days: int) -> str:
+    """A date relative to today: golden files store dates as <TODAY-n> tokens, so a
+    fixed date would drift by one token every day."""
+    import datetime as dt
+
+    from conftest import today
+
+    return f"{today() - dt.timedelta(days=days):%Y-%m-%d}"
+
+
 def _seed_category_tables(db):
     for row in [
-        ("CF1001", "L01", "整支", "50", "碼", 3, "", "A區", "", "進貨單", "2026-11-01", "棉布"),
-        ("CF1001", "L02", "板卷", "12", "碼", 0, "", "", "邊破", "進貨單", "2026-11-02", "棉布"),
-        ("CF1003", "L11", "板卷", "25", "公斤", 0, "", "", "", "調撥單", "2026-10-20", "針織"),
+        ("CF1001", "L01", "整支", "50", "碼", 3, "", "A區", "", "進貨單", _days_ago(12), "棉布"),
+        ("CF1001", "L02", "板卷", "12", "碼", 0, "", "", "邊破", "進貨單", _days_ago(11), "棉布"),
+        ("CF1003", "L11", "板卷", "25", "公斤", 0, "", "", "", "調撥單", _days_ago(24), "針織"),
     ]:
         exec_sql(db, "INSERT INTO categorydetail VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", *row)
     for row in [
@@ -172,7 +185,7 @@ def _product_photo(product_no: str, content: bytes):
 def test_category_detail_report_product_missing_in_erp(admin, db, golden):
     _seed_category_tables(db)
     exec_sql(db, "INSERT INTO categorydetail VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-             "ZZ0001", "X1", "整支", "8", "碼", 0, "", "", "", "進貨單", "2026-11-03", "棉布")
+             "ZZ0001", "X1", "整支", "8", "碼", 0, "", "", "", "進貨單", _days_ago(10), "棉布")
     golden.response("棉布", admin.get("/api/stock/queryStock/category/棉布"))
     golden.add("reports", _category_reports())
 
