@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, ChangeEvent, FormEvent, MouseEvent } from "react";
+import React, { useState, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
@@ -59,8 +59,6 @@ const NormalStockBoard: React.FC = () => {
   const [waitHandleStatus, setWaitHandleStatus] = useState<WaitHandleStatus>({});
   const [selectedProductNoList, setSelectedProductNoList] = useState<SelectedProductNo[]>([]);
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const initialSelectedList = useCallback(
     (currentStatus: CurrentOrderStatus, waitHandle: WaitHandleStatus) => {
       if (!isEmpty(currentStatus as Record<string, unknown>)) {
@@ -82,10 +80,6 @@ const NormalStockBoard: React.FC = () => {
   );
 
   const getInitialize = useCallback(() => {
-    if (timerRef.current !== null) {
-      clearTimeout(timerRef.current);
-    }
-
     setIsLoading(false);
     setIsOrderValid(undefined);
     setKey(1);
