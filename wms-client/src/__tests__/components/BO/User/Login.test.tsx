@@ -28,8 +28,9 @@ interface RenderLoginResult extends RenderResult {
   store: MockStoreEnhanced<unknown>;
 }
 
-// Mock login action
-const mockLogin = vi.fn();
+// Mock login action. Like the real thunk it returns a promise (Login waits on it to clear
+// the busy state).
+const mockLogin = vi.fn((_loginRequest: LoginRequest) => Promise.resolve());
 vi.mock('../../../../actions/UserActions', () => ({
   login: (loginRequest: LoginRequest) => () => mockLogin(loginRequest)
 }));
