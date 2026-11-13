@@ -129,6 +129,26 @@ describe.each(cases)('%s', (_name, rollback, listUrl) => {
     const error = await run().catch((e: unknown) => e);
 
     expect((error as RollbackError).message).toBe(ROLLBACK_DONE_NOT_REFRESHED_MESSAGE);
+    expect((error as RollbackError).rolledBack).toBe(true);
+  });
+
+  test('a successful rollback whose list query fails does not store 「回朔失敗」', async () => {
+    vi.mocked(API.get).mockRejectedValue(
+      Object.assign(new Error('500'), { response: { status: 500, data: { message: 'list query failed' } } })
+    );
+    const store = makeStore();
+
+    await run(store).catch(() => undefined);
+
+    expect(store.getState().errors.errors).toEqual({ message: ROLLBACK_DONE_NOT_REFRESHED_MESSAGE });
+  });
+
+  test('a failed rollback is marked as not rolled back', async () => {
+    vi.mocked(API.patch).mockRejectedValue(httpError(400));
+
+    const error = await run().catch((e: unknown) => e);
+
+    expect((error as RollbackError).rolledBack).toBe(false);
   });
 
   test('a 401 is passed on as is for the session-expired handling, without a list query', async () => {

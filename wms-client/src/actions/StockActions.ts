@@ -374,8 +374,15 @@ export const getInStockRollbackList =
     }
   };
 
-/** Puts a failed rollback in state.errors, like the other actions. */
+/**
+ * Puts a failed rollback in state.errors, like the other actions. When the rollback went
+ * through and only the list query after it failed, it stores that instead of a failure.
+ */
 const dispatchRollbackError = (dispatch: AppDispatch, err: unknown, fallbackMessage: string): void => {
+  if (err instanceof RollbackError && err.rolledBack) {
+    dispatch({ type: GET_Errors, payload: { message: err.message } });
+    return;
+  }
   const requestError = err instanceof RollbackError ? err.requestError : err;
   const error = requestError as { response?: { data?: unknown } } | undefined;
   dispatch({

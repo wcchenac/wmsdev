@@ -20,11 +20,14 @@ export const ROLLBACK_DONE_NOT_REFRESHED_MESSAGE = "回朔完成，但重新整�
 export class RollbackError extends Error {
   /** The failed request: the rollback itself, or the list query after a successful one. */
   readonly requestError: unknown;
+  /** True when the rollback went through and only the list query after it failed. */
+  readonly rolledBack: boolean;
 
-  constructor(message: string, requestError: unknown) {
+  constructor(message: string, requestError: unknown, rolledBack = false) {
     super(message);
     this.name = "RollbackError";
     this.requestError = requestError;
+    this.rolledBack = rolledBack;
   }
 }
 
@@ -60,7 +63,7 @@ export async function rollbackThenQueryList<T>(
     list = await queryList();
   } catch (listError) {
     if (isSessionExpired(listError)) throw listError;
-    if (rolledBack) throw new RollbackError(ROLLBACK_DONE_NOT_REFRESHED_MESSAGE, listError);
+    if (rolledBack) throw new RollbackError(ROLLBACK_DONE_NOT_REFRESHED_MESSAGE, listError, true);
     throw new RollbackError(
       isRejected(rollbackError) ? ROLLBACK_REJECTED_NOT_REFRESHED_MESSAGE : ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE,
       rollbackError
