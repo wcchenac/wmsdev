@@ -137,6 +137,16 @@ def test_wait_handle_list_interval(operator, golden):
 
 
 @pytest.mark.java_bug("same ambiguous history route (always 500)")
+def test_history_with_both_parameter_sets(admin, golden):
+    """startDate+endDate and id together: with the params-conditioned mappings Spring
+    prefers the mapping with more param expressions — the tree."""
+    seed_baseline(admin)
+    d = today()
+    golden.response("both", admin.get("/api/stock/queryStock/history/CF1001",
+                                      params={**client_range(d, d), "id": 1}))
+
+
+@pytest.mark.java_bug("same ambiguous history route (always 500)")
 def test_history_tree_start_boundary(admin, db, golden):
     """stockinfo is only collected for rolls created at or after `start`: a root
     created yesterday shows up with stockInfo null."""

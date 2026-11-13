@@ -1,0 +1,49 @@
+{
+  "categoryList": {
+    "body": [
+      {
+        "label": "棉布",
+        "value": "棉布"
+      }
+    ],
+    "status": 200
+  },
+  "download/allocation": {
+    "cells": [
+      [
+        "legacy report"
+      ]
+    ],
+    "content-disposition": "attachment; filename=StockAllocateRecord-<TODAY:yyyyMMdd>.<excel>",
+    "content-type": "<excel>",
+    "status": 200
+  },
+  "download/categoryDetail": {
+    "cells": [
+      [
+        "legacy report"
+      ]
+    ],
+    "content-disposition": "attachment; filename=CategoryDetail-??.<excel>",
+    "content-type": "<excel>",
+    "status": 200
+  },
+  "interval/allocation": {
+    "body": [
+      "StockAllocateRecord-<TODAY:yyyyMMdd>.<excel>"
+    ],
+    "status": 200
+  },
+  "today/adjustment": {
+    "body": "StockAdjustRecord-<TODAY:yyyyMMdd>.<excel>",
+    "status": 200
+  },
+  "today/allocation": {
+    "body": "StockAllocateRecord-<TODAY:yyyyMMdd>.<excel>",
+    "status": 200
+  },
+  "today/dailyComparison": {
+    "body": "StockComparisonResult-<TODAY:yyyyMMdd>.<excel>",
+    "status": 200
+  }
+}

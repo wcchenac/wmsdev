@@ -113,6 +113,28 @@ def test_download_path_traversal(operator, golden):
     golden.add("short_dated_name", _download_record(operator.get(f"{base}/allocation/X")))
 
 
+def test_legacy_xls_reports_remain_usable(operator, golden):
+    """At cutover production still holds the Java service's .xls reports; the rewrite
+    (which writes .xlsx) must still list, find and download them."""
+    from conftest import write_legacy_report
+
+    d = today()
+    sub = f"{d.year}/{d.month}"
+    write_legacy_report(f"STKALLT/{sub}/StockAllocateRecord-{_ymd(d)}")
+    write_legacy_report(f"STKADST/{sub}/StockAdjustRecord-{_ymd(d)}")
+    write_legacy_report(f"StockComparisonResult/{sub}/StockComparisonResult-{_ymd(d)}")
+    write_legacy_report("CategoryDetail/CategoryDetail-棉布")
+    for category in ("allocation", "adjustment", "dailyComparison"):
+        golden.response(f"today/{category}", operator.get(f"/api/file/query/{category}/today"))
+    golden.response("interval/allocation", operator.get("/api/file/query/allocation/interval",
+                                                        params=client_range(d, d)))
+    golden.response("categoryList", operator.get("/api/file/query/categoryList"))
+    golden.add("download/allocation", _download_record(
+        operator.get(f"/api/file/download/allocation/StockAllocateRecord-{_ymd(d)}")))
+    golden.add("download/categoryDetail", _download_record(
+        operator.get("/api/file/download/categoryDetail/CategoryDetail-棉布")))
+
+
 def _login(api, employee_id):
     from conftest import login
 

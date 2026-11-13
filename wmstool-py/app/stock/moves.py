@@ -11,7 +11,7 @@ import logging
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.javacompat import java_hashmap_order_long, java_parse_long, serialize_long_array
+from app.javacompat import java_parse_long, serialize_long_array
 from app.stock import products
 from app.stock.models import (
     History,
@@ -214,20 +214,23 @@ def create_out_stock_request(session: Session, fields: dict, editor: str) -> Out
     return request
 
 
-def handle_out_stock_requests(session: Session, request_from: dict[int, str | None], editor: str) -> None:
+def handle_out_stock_requests(session: Session, request_from: dict[int, str | None] | None, editor: str) -> None:
     """OutStockRequestFunction.updateOutStockRequest.
 
     The pull-list workbook is created first; an unknown id then fails the whole
-    request (the DB rolls back, the file stays — as in Java). Rows follow Java's
-    HashMap<Long, String> key order. A failure while writing rows is only logged.
+    request (the DB rolls back, the file stays — as in Java). Rows follow the JSON
+    key order: Jackson fills a Map field with a LinkedHashMap (and pydantic keeps the
+    order). A failure while writing rows is only logged.
     """
     from app.reports import pull_list  # reports import the models; keep the module graph acyclic
 
     now_taipei = db_to_taipei(java_now_utc())
     assert now_taipei is not None
     path, name = pull_list.create(now_taipei)
+    if request_from is None:  # Java: NullPointerException after the workbook exists
+        raise TypeError("outStockUpdate is null")
     handled = []
-    for request_id in java_hashmap_order_long(request_from):
+    for request_id in request_from:
         request = _one(session, select(OutStockRequest).where(OutStockRequest.id == request_id))
         request.requestFrom = request_from[request_id]
         request.isHandled = True

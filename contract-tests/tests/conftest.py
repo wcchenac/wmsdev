@@ -486,6 +486,18 @@ def generated_reports() -> dict[str, list[list[Any]]]:
     return reports
 
 
+def write_legacy_report(rel_path: str) -> pathlib.Path:
+    """A one-cell legacy .xls report, whatever the backend: what production holds at cutover."""
+    import xlwt
+
+    path = EXCEL_DIR / (re.sub(r"\.xlsx?$", "", rel_path) + ".xls")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    book = xlwt.Workbook()
+    book.add_sheet("Sheet1").write(0, 0, "legacy report")
+    book.save(str(path))
+    return path
+
+
 def write_report(rel_path: str) -> pathlib.Path:
     """Place a one-cell report where the backend looks for it, in the backend's format
     (.xls for Java, .xlsx for the Python rewrite). `rel_path` may omit the extension."""

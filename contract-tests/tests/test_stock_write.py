@@ -126,6 +126,37 @@ def test_shrink_stock_float_rounding(operator, db, golden):
     golden.add("reports", generated_reports())
 
 
+def test_shrink_stock_report_template_missing(operator, db, golden):
+    """The adjustment template is missing: the report write fails with an IOException.
+    Java's javax @Transactional commits on checked exceptions, so the shrink is kept,
+    the allocation report is written, and the answer is 400."""
+    from conftest import EXCEL_DIR
+
+    templates = [EXCEL_DIR / "STKADST" / f"StockAdjustRecordTemplate{ext}" for ext in (".xls", ".xlsx")]
+    moved = [(t, t.with_name(t.name + ".moved")) for t in templates if t.exists()]
+    for src, dst in moved:
+        src.rename(dst)
+    try:
+        seed_baseline(operator)
+        golden.response("shrink", operator.post("/api/stock/shrinkStock",
+                                                json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5)))
+        golden.add("db", db_state(db, ["stockidentifier", "transactionrecord", "stockallocationrecord",
+                                       "stockadjustmentrecord"]))
+        golden.add("reports", generated_reports())
+    finally:
+        for src, dst in moved:
+            dst.rename(src)
+
+
+def test_shrink_stock_without_pieces_field(operator, db, golden):
+    """No `inStockRequests` key: Java iterates a null list (NullPointerException) -> 400, rolled back."""
+    seed_baseline(operator)
+    body = shrink_request(1, ["30", "19"], allocation=0, adjustment=0)
+    del body["inStockRequests"]
+    golden.response("shrink", operator.post("/api/stock/shrinkStock", json=body))
+    golden.add("db", db_state(db, ["stockidentifier", "transactionrecord", "product"]))
+
+
 def test_shrink_stock_without_adjustment(operator, db, golden):
     seed_baseline(operator)
     golden.response("shrink", operator.post("/api/stock/shrinkStock",
@@ -158,6 +189,29 @@ def test_shrink_stock_rollback(admin, db, golden):
 
 
 # PATCH /api/stock/shipStock(s) + shipStock/rollback/{id} --------------------------
+
+
+def test_shrink_stock_rollback_db_error(admin, db, golden):
+    """A database error in the middle of the rollback (here: deleting stockinfo) — Java
+    answers 400 and the whole rollback is undone."""
+    import pymysql
+
+    from conftest import DB
+
+    seed_baseline(admin)
+    admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0, adjustment=0))
+    golden.add("before", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
+    root = pymysql.connect(**{**DB, "user": "root", "password": "root"})
+    try:
+        with root.cursor() as cur:  # binlog is on: creating a trigger needs root
+            cur.execute("CREATE TRIGGER contract_fail_stockinfo_delete BEFORE DELETE ON stockinfo FOR EACH ROW "
+                        "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'contract test: stockinfo delete fails'")
+        golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
+    finally:
+        with root.cursor() as cur:
+            cur.execute("DROP TRIGGER IF EXISTS contract_fail_stockinfo_delete")
+        root.close()
+    golden.add("after", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
 
 
 def test_ship_stock(operator, db, golden):
@@ -241,6 +295,60 @@ def test_out_stock_request(operator, db, golden):
     golden.response("create", operator.post("/api/stock/outStock", json=OUT_STOCK))
     golden.response("rollback", operator.patch("/api/stock/outStock/rollback/1"))
     golden.add("db", db_state(db, ["outstockrequest"]))
+
+
+def test_out_stock_update_follows_json_key_order(operator, db, golden):
+    """Jackson fills Map<Long, String> with a LinkedHashMap: rows follow the JSON key
+    order (2 then 17), not HashMap order (which would be 17 then 2)."""
+    for _ in range(17):
+        operator.post("/api/stock/outStock", json=OUT_STOCK)
+    golden.response("update", operator.patch("/api/stock/outStock/update",
+                                             json={"outStockUpdate": {"2": "門市A", "17": "門市B"}}))
+    golden.add("reports", generated_reports())
+
+
+@pytest.mark.java_bug(
+    "rollbackShrink catches the NonUniqueResultException itself and commits: the children's history "
+    "rows are deleted and the root's children list emptied, while the pieces and both SKO rows stay (200)"
+)
+def test_shrink_rollback_after_double_shrink(admin, db, golden):
+    """A roll shrunk twice has two SKO records. Recorded on Java (2026-11-13): 200 with a
+    half-done rollback — not the 400 a Spring-semantics reading predicted."""
+    seed_baseline(admin)
+    admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0, adjustment=0))
+    admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["10", "9"], allocation=0, adjustment=0))
+    golden.add("before", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
+    golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
+    golden.add("after", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
+
+
+def test_out_stock_update_without_map(operator, db, golden):
+    """Body `{}`: Java creates the pull-list workbook, then NPEs on the null map -> 400,
+    rolled back, the template-only workbook stays."""
+    operator.post("/api/stock/outStock", json=OUT_STOCK)
+    golden.response("update", operator.patch("/api/stock/outStock/update", json={}))
+    golden.add("db", db_state(db, ["outstockrequest"]))
+    golden.add("reports", generated_reports())
+
+
+def test_out_stock_update_twice_in_one_second(operator, db, golden):
+    """The pull-list name has second precision. Java's createNewFile rewrites the template
+    even when the file exists, so a second update in the same second replaces the first
+    update's rows; both requests still point at that one file."""
+    import time
+
+    from conftest import rows
+
+    operator.post("/api/stock/outStock", json=OUT_STOCK)
+    operator.post("/api/stock/outStock", json=OUT_STOCK)
+    time.sleep(1.05 - (time.time() % 1))  # start just after a second boundary
+    first = operator.patch("/api/stock/outStock/update", json={"outStockUpdate": {"1": "門市A"}})
+    second = operator.patch("/api/stock/outStock/update", json={"outStockUpdate": {"2": "門市B"}})
+    names = {r["fileName"] for r in rows(db, "SELECT fileName FROM outstockrequest")}
+    assert len(names) == 1, f"the two updates crossed a second boundary ({names}); rerun the test"
+    golden.response("first", first)
+    golden.response("second", second)
+    golden.add("reports", generated_reports())
 
 
 def test_out_stock_update_unknown_id(operator, db, golden):

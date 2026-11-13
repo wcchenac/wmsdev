@@ -12,9 +12,14 @@ from pathlib import Path
 from app.config import get_settings
 from app.javacompat import java_period_days, parse_client_datetime
 
-# The Java service writes legacy .xls; the rewrite writes .xlsx (decided 2026-11-13).
+# The Java service wrote legacy .xls; the rewrite writes .xlsx (decided 2026-11-13).
+# Lookups and downloads accept both so the reports kept from before the cutover stay
+# usable (decided 2026-11-13); .xlsx wins when both exist.
 EXTENSION = ".xlsx"
+LEGACY_EXTENSION = ".xls"
+READABLE_EXTENSIONS = (EXTENSION, LEGACY_EXTENSION)
 MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+MIMES = {EXTENSION: MIME, LEGACY_EXTENSION: "application/vnd.ms-excel;charset=UTF-8"}
 NOT_FOUND = "File Not Found"
 
 
@@ -38,14 +43,23 @@ def excel_root() -> Path:
     return Path(get_settings().excel_dir)
 
 
-def _dated_name(kind: ReportKind, day: dt.date) -> tuple[Path, str]:
-    name = f"{kind.prefix}{day:%Y%m%d}{EXTENSION}"
-    return excel_root() / kind.folder / str(day.year) / str(day.month) / name, name
+def _existing(stem: Path) -> Path | None:
+    """`stem` + .xlsx, else `stem` + .xls (legacy), else None."""
+    for ext in READABLE_EXTENSIONS:
+        candidate = stem.with_name(stem.name + ext)
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _dated_report(kind: ReportKind, day: dt.date) -> Path | None:
+    stem = excel_root() / kind.folder / str(day.year) / str(day.month) / f"{kind.prefix}{day:%Y%m%d}"
+    return _existing(stem)
 
 
 def find_today(category: str, today: dt.date) -> str:
-    path, name = _dated_name(REPORTS[category], today)
-    return name if path.exists() else NOT_FOUND
+    path = _dated_report(REPORTS[category], today)
+    return path.name if path is not None else NOT_FOUND
 
 
 def find_period(category: str, start: str, end: str) -> list[str]:
@@ -55,9 +69,9 @@ def find_period(category: str, start: str, end: str) -> list[str]:
     kind = REPORTS[category]
     found = []
     for i in range(java_period_days(start_dt.date(), end_dt.date()) + 1):
-        path, name = _dated_name(kind, start_dt.date() + dt.timedelta(days=i))
-        if path.exists():
-            found.append(name)
+        path = _dated_report(kind, start_dt.date() + dt.timedelta(days=i))
+        if path is not None:
+            found.append(path.name)
     return found or [NOT_FOUND]
 
 
@@ -70,7 +84,7 @@ def resolve_download(category: str, file_name: str) -> Path | None:
     """
     kind = REPORTS.get(category)
     # The client builds category-detail names with ".xls"; accept either extension.
-    for suffix in (".xlsx", ".xls"):
+    for suffix in READABLE_EXTENSIONS:
         if file_name.endswith(suffix):
             file_name = file_name[: -len(suffix)]
             break
@@ -79,23 +93,25 @@ def resolve_download(category: str, file_name: str) -> Path | None:
         return None
     folder = excel_root() / kind.folder
     if category == "categoryDetail":
-        path = folder / f"{file_name}{EXTENSION}"
-    else:
-        i = file_name.find("-")
-        try:
-            year = file_name[i + 1 : i + 5]
-            month = str(int(file_name[i + 5 : i + 7]))
-        except ValueError:
-            return None
-        path = folder / year / month / f"{file_name}{EXTENSION}"
-    return path if path.is_file() else None
+        return _existing(folder / file_name)
+    i = file_name.find("-")
+    try:
+        year = file_name[i + 1 : i + 5]
+        month = str(int(file_name[i + 5 : i + 7]))
+    except ValueError:
+        return None
+    return _existing(folder / year / month / file_name)
 
 
 def list_categories() -> list[dict[str, str]]:
-    """Raises (-> 500, as in Java) when the folder is missing or a name has no '.xls'."""
+    """Raises (-> 500, as in Java) when the folder is missing or a name has no '.xls'
+    (which also matches '.xlsx'). A category with both a legacy .xls and a new .xlsx
+    report is listed once."""
     folder = excel_root() / REPORTS["categoryDetail"].folder
-    result = []
+    result, seen = [], set()
     for name in os.listdir(folder):  # directory order, unsorted, like File.list()
-        category = name[name.find("-") + 1 : name.index(EXTENSION)]
-        result.append({"label": category, "value": category})
+        category = name[name.find("-") + 1 : name.index(LEGACY_EXTENSION)]
+        if category not in seen:
+            seen.add(category)
+            result.append({"label": category, "value": category})
     return result or [{"label": NOT_FOUND, "value": NOT_FOUND}]

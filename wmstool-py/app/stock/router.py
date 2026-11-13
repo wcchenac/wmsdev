@@ -12,6 +12,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.db import get_session
@@ -76,7 +77,7 @@ class InStockRequest(BaseModel):
 
 class ShrinkStockRequest(BaseModel):
     oldStockIdentifierId: int = 0
-    inStockRequests: list[InStockRequest] = []  # no @Valid on this list in Java
+    inStockRequests: list[InStockRequest] | None = None  # no @Valid on this list in Java; null -> 400
     allocation: float | None = None
     adjustment: float | None = None
     shrinkType: str | None = None
@@ -107,12 +108,24 @@ def in_stocks(body: list[InStockRequest], request: Request, session: Session = D
 def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
     try:
-        shrink.shrink_stock(session, shrink.ShrinkRequest(
+        if body.inStockRequests is None:
+            raise TypeError("inStockRequests is null (Java: NullPointerException)")
+        report_writes = shrink.shrink_stock(session, shrink.ShrinkRequest(
             old_identifier_id=body.oldStockIdentifierId, pieces=[r.to_item() for r in body.inStockRequests],
             allocation=body.allocation, adjustment=body.adjustment, shrink_type=body.shrinkType,
         ), principal.full_name)
+        session.commit()
     except Exception:
         return _bad_request(session, "shrinkStock")
+    # Reports only after the commit. A failed write keeps the shrink and answers 400,
+    # which is what Java does (javax @Transactional commits on its IOException).
+    try:
+        for write in report_writes:
+            write()
+    except Exception:
+        logger.exception("shrink %s committed but a report write failed; rewrite the report by hand",
+                         body.oldStockIdentifierId)
+        return Response(status_code=400)
     return Response(status_code=200)
 
 
@@ -120,7 +133,11 @@ def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = 
 def shrink_stock_rollback(stockIdentifierId: int, request: Request,
                           session: Session = Depends(get_session)) -> Response:
     principal = admin(request)
-    shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)  # Java ignores the result
+    try:
+        shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)  # Java ignores the result
+        session.commit()
+    except DBAPIError:
+        return _bad_request(session, "shrinkStock/rollback")
     return Response(status_code=200)
 
 
@@ -131,7 +148,7 @@ def shrink_rollback_list(productNo: str, request: Request, session: Session = De
 
 
 class OutStockUpdateRequest(BaseModel):
-    outStockUpdate: dict[int, str | None] = {}
+    outStockUpdate: dict[int, str | None] | None = None  # null -> 400 after the workbook is created
 
 
 @router.patch("/outStock/update")
@@ -139,7 +156,7 @@ def out_stock_update(body: OutStockUpdateRequest, request: Request,
                      session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
     try:
-        moves.handle_out_stock_requests(session, dict(body.outStockUpdate), principal.full_name)
+        moves.handle_out_stock_requests(session, body.outStockUpdate, principal.full_name)
     except Exception:
         return _bad_request(session, "outStock/update")
     return Response(status_code=200)
@@ -254,8 +271,8 @@ def history_route(productNo: str, request: Request, startDate: str | None = None
     query parameters pick the handler, before authorization (Spring's order)."""
     is_tree = startDate is not None and endDate is not None
     is_structure = id is not None
-    if is_tree and is_structure:
-        raise RuntimeError("Ambiguous handler methods")  # both params conditions match -> 500
+    # Both sets present: Spring ranks the mapping with more param expressions first,
+    # so the tree wins (recorded from the patched Java).
     if is_tree:
         assert startDate is not None and endDate is not None
         require_roles("ROLE_Sales", "ROLE_Operator", "ROLE_Admin")(request)
