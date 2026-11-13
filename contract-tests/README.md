@@ -101,9 +101,15 @@ Python 版讀 `.xlsx` 範本。正式機 `D:/OutputFiles` 下的 4 個範本（`
 soffice --headless --convert-to xlsx --outdir <同一個資料夾> <範本>.xls
 ```
 
-第一筆資料寫在哪一列、序號從幾開始，取決於範本的「最後一列」。Java（POI `getLastRowNum`）會把表頭下方只有格式的列也算進去，包括框線空格和只調過列高的列。Python 的 `poi_last_row` 會一併計算轉檔後保留在 `row_dimensions` 的列，結果與 Java 一致。`test_reports_from_formatted_templates` 用 `fixtures/formatted-templates/` 驗證這一點：`.xls` 由 `scripts/make_formatted_templates.py` 產生，`.xlsx` 由 `scripts/convert_templates.sh`（在容器內跑 LibreOffice）轉出。
+第一筆資料寫在哪一列、序號從幾開始，取決於範本的「最後一列」。Java（POI `getLastRowNum`）會把表頭下方只有格式的列也算進去，包括框線空格和只調過列高的列。Python 的 `app.xlsx.poi_last_row` 直接讀工作表 XML，每個 `<row>` 都算，跟 POI 一樣；報表寫入和進貨匯入共用這一套規則。`test_reports_from_formatted_templates` 用 `fixtures/formatted-templates/` 驗證這一點：`.xls` 由 `scripts/make_formatted_templates.py` 產生，`.xlsx` 由 `scripts/convert_templates.sh`（在容器內跑 LibreOffice）轉出。
 
-轉換正式範本之後，請把兩邊各產生的一份報表打開比對，確認第一筆資料列和序號相同。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。
+轉換正式範本之後，在部署機上執行檢查（需要 `pip install "wmstool-py[tools]"`）：
+
+```bash
+python -m app.template_check D:/OutputFiles
+```
+
+它會逐一比對每個 `*Template.xls` 和旁邊轉出的 `.xlsx`：`.xls` 那一邊用 xlrd 模擬 HSSF 的最後一列，`.xlsx` 那一邊用服務本身的 `poi_last_row`。全部 `OK` 才回 0；如果出現 `MISMATCH` 或 `MISSING .xlsx`，代表第一筆資料列和序號會跟 Java 錯開，要先修正 `.xlsx` 範本再切換。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。
 
 ## 標記 `java_bug` 的測試
 
