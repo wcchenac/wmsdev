@@ -1,13 +1,5 @@
 import { DefectOptions, DefectOption, StockIdentifierType } from "../../../../enums/Enums";
-
-// Extend Math interface for decimal adjustment methods
-declare global {
-  interface Math {
-    round10(value: number, exp: number): number;
-    floor10(value: number, exp: number): number;
-    ceil10(value: number, exp: number): number;
-  }
-}
+import { round10 } from "../../../../utilities/DecimalAdjust";
 
 interface StockInfoBase {
   type: string;
@@ -48,64 +40,6 @@ export function parseQuantity(quantity: string | number | null | undefined): num
 
 // accumulate the total quantity by type
 export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulateResult {
-  (function () {
-    /**
-     * Decimal adjustment of a number.
-     *
-     * @param {String}  type  The type of adjustment.
-     * @param {Number}  value The number.
-     * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
-     * @returns {Number} The adjusted value.
-     */
-    function decimalAdjust(
-      type: "round" | "floor" | "ceil",
-      value: number,
-      exp: number
-    ): number {
-      // If the exp is undefined or zero...
-      if (typeof exp === "undefined" || +exp === 0) {
-        return Math[type](value);
-      }
-      value = +value;
-      exp = +exp;
-      // If the value is not a number or the exp is not an integer...
-      if (isNaN(value) || !(typeof exp === "number" && exp % 1 === 0)) {
-        return NaN;
-      }
-      // Shift
-      const valueArray = value.toString().split("e");
-      const shiftedValue = Math[type](
-        +(valueArray[0] + "e" + (valueArray[1] ? +valueArray[1] - exp : -exp))
-      );
-      // Shift back
-      const resultArray = shiftedValue.toString().split("e");
-      return +(
-        resultArray[0] +
-        "e" +
-        (resultArray[1] ? +resultArray[1] + exp : exp)
-      );
-    }
-
-    // Decimal round
-    if (!Math.round10) {
-      Math.round10 = function (value: number, exp: number): number {
-        return decimalAdjust("round", value, exp);
-      };
-    }
-    // Decimal floor
-    if (!Math.floor10) {
-      Math.floor10 = function (value: number, exp: number): number {
-        return decimalAdjust("floor", value, exp);
-      };
-    }
-    // Decimal ceil
-    if (!Math.ceil10) {
-      Math.ceil10 = function (value: number, exp: number): number {
-        return decimalAdjust("ceil", value, exp);
-      };
-    }
-  })();
-
   let roll = 0.0;
   let board = 0.0;
   let item = 0.0;
@@ -123,9 +57,9 @@ export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulate
   }
 
   return {
-    整支: Math.round10(roll, -2),
-    板卷: Math.round10(board, -2),
-    雜項: Math.round10(item, -2),
+    整支: round10(roll, -2),
+    板卷: round10(board, -2),
+    雜項: round10(item, -2),
   };
 }
 
