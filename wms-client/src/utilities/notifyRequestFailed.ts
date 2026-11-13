@@ -15,12 +15,9 @@ function isSpringDefaultErrorBody(data: object): boolean {
  * app itself wrote (not Spring's default error body).
  */
 function clientErrorMessage(error: unknown): string | undefined {
-  if (typeof error !== "object" || error === null || !("response" in error)) return undefined;
-  const response = error.response;
-  if (typeof response !== "object" || response === null) return undefined;
-  const status = "status" in response ? response.status : undefined;
-  if (typeof status !== "number" || status < 400 || status >= 500) return undefined;
-  const data = "data" in response ? response.data : undefined;
+  const status = responseStatus(error);
+  if (status === undefined || status < 400 || status >= 500) return undefined;
+  const data = responseData(error);
   if (typeof data !== "object" || data === null || !("message" in data)) return undefined;
   if (isSpringDefaultErrorBody(data)) return undefined;
   const message = data.message;
@@ -33,6 +30,14 @@ export function responseStatus(error: unknown): number | undefined {
   const response = error.response;
   if (typeof response !== "object" || response === null || !("status" in response)) return undefined;
   return typeof response.status === "number" ? response.status : undefined;
+}
+
+/** The body of a failed request's response, or undefined (no response, or no body). */
+function responseData(error: unknown): unknown {
+  if (typeof error !== "object" || error === null || !("response" in error)) return undefined;
+  const response = error.response;
+  if (typeof response !== "object" || response === null || !("data" in response)) return undefined;
+  return response.data;
 }
 
 /**
