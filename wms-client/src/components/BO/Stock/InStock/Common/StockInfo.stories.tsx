@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { fn } from "storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
 import { DefectOptions, StockIdentifierType } from "../../../../../enums/Enums";
 import StockInfo from "./StockInfo";
 
@@ -83,8 +83,39 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+const field = (canvasElement: HTMLElement, name: string) =>
+  canvasElement.querySelector<HTMLInputElement | HTMLSelectElement>(`[name=${name}]`)!;
+
+// The 直出 cell shows an MUI checkbox icon: blank opens the ship modal, checked cancels it.
+const shipIcon = (canvasElement: HTMLElement, checked: boolean) =>
+  canvasElement.querySelector<SVGElement>(
+    `[data-testid=${checked ? "CheckBoxRoundedIcon" : "CheckBoxOutlineBlankRoundedIcon"}]`
+  );
+
 export const ClothRow: Story = {
   render: (args) => <StockRow {...args} />,
+  play: async ({ canvasElement, args }) => {
+    await expect(field(canvasElement, "productNo")).toHaveValue("CT-2048");
+    await expect(field(canvasElement, "productNo")).toBeDisabled();
+    await expect(field(canvasElement, "lotNo")).toHaveValue("L26011");
+    await expect(field(canvasElement, "type")).toHaveValue(StockIdentifierType.roll);
+    await expect(field(canvasElement, "color")).toHaveValue("3");
+    await expect(within(canvasElement).getByText(DefectOptions[0].label)).toBeVisible();
+
+    await userEvent.type(field(canvasElement, "record"), "!");
+    await expect(args.handleInfoChange).toHaveBeenCalled();
+
+    // The blank 直出 box opens the ship modal; a reason button reports its value and row index.
+    await userEvent.click(shipIcon(canvasElement, false)!);
+    const dialog = await within(document.body).findByRole("dialog");
+    await waitFor(() => expect(dialog).toBeVisible());
+    await userEvent.click(within(dialog).getByRole("button", { name: "中壢" }));
+    await expect(args.handleReasonButton).toHaveBeenCalledWith("中壢", 0);
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "取消" }));
+    await expect(args.handleShipCheck).toHaveBeenCalledWith(false, 0);
+    await waitFor(() => expect(within(document.body).queryByRole("dialog")).not.toBeInTheDocument());
+  },
 };
 
 export const QuantityError: Story = {
@@ -97,6 +128,10 @@ export const QuantityError: Story = {
     errors: { quantity: "數量需大於 0" },
   },
   render: (args) => <StockRow {...args} />,
+  play: async ({ canvasElement }) => {
+    await expect(field(canvasElement, "quantity")).toHaveClass("is-invalid");
+    await expect(within(canvasElement).getByText("數量需大於 0")).toBeVisible();
+  },
 };
 
 export const DirectShipChecked: Story = {
@@ -107,6 +142,18 @@ export const DirectShipChecked: Story = {
     },
   },
   render: (args) => <StockRow {...args} />,
+  play: async ({ canvasElement, args }) => {
+    await expect(shipIcon(canvasElement, false)).toBeNull();
+    const checked = shipIcon(canvasElement, true)!;
+    await expect(checked).toBeInTheDocument();
+
+    // Hovering shows the chosen reason; clicking the checked box cancels direct ship.
+    await userEvent.hover(checked);
+    await expect(await within(document.body).findByRole("tooltip")).toHaveTextContent("中壢");
+    await userEvent.click(checked);
+    await expect(args.handleShipCheck).toHaveBeenCalledWith(false, 0);
+    await userEvent.unhover(checked);
+  },
 };
 
 export const LockedType: Story = {
@@ -127,6 +174,16 @@ export const LockedType: Story = {
     errors: { quantity: "" },
   },
   render: (args) => <StockRow {...args} />,
+  play: async ({ canvasElement }) => {
+    // Hardware: type and unit are fixed text fields, and there is no 色號 / 瑕疵.
+    await expect(field(canvasElement, "type").tagName).toBe("INPUT");
+    await expect(field(canvasElement, "type")).toHaveValue(StockIdentifierType.hardware);
+    await expect(field(canvasElement, "type")).toBeDisabled();
+    await expect(field(canvasElement, "unit")).toHaveValue("箱");
+    await expect(field(canvasElement, "unit")).toBeDisabled();
+    await expect(canvasElement.querySelector("[name=color]")).toBeNull();
+    await expect(field(canvasElement, "lotNo")).toBeEnabled();
+  },
 };
 
 export const Disabled: Story = {
@@ -134,4 +191,12 @@ export const Disabled: Story = {
     disabled: true,
   },
   render: (args) => <StockRow {...args} />,
+  play: async ({ canvasElement }) => {
+    for (const name of ["lotNo", "type", "quantity", "unit", "color", "record"]) {
+      await expect(field(canvasElement, name)).toBeDisabled();
+    }
+    // The blank 直出 box does not open the ship modal.
+    await userEvent.click(shipIcon(canvasElement, false)!, { pointerEventsCheck: 0 });
+    await expect(within(document.body).queryByRole("dialog")).not.toBeInTheDocument();
+  },
 };
