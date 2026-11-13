@@ -170,6 +170,22 @@ def test_shrink_rollback_template_missing_keeps_reports(admin, db, golden):
         golden.add("reports", generated_reports())
 
 
+def test_shrink_rollback_adjustment_template_missing(admin, db, golden):
+    """generateNewFile recreates both reports from their templates before writing any
+    row: with the adjustment template gone, the allocation report is already reset to
+    the empty template when the adjustment one fails. Two rolls are shrunk so that
+    today still has records (roll 2's) after rolling roll 1 back."""
+    from conftest import templates_missing
+
+    seed_baseline(admin)
+    admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5))
+    admin.post("/api/stock/shrinkStock", json=shrink_request(2, ["20", "28"], allocation=0.5, adjustment=0.5))
+    with templates_missing("STKADST/StockAdjustRecordTemplate"):
+        golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
+        golden.add("db", db_state(db, ["stockidentifier", "stockallocationrecord", "stockadjustmentrecord"]))
+        golden.add("reports", generated_reports())
+
+
 def test_shrink_stock_without_pieces_field(operator, db, golden):
     """No `inStockRequests` key: Java iterates a null list (NullPointerException) -> 400, rolled back."""
     seed_baseline(operator)

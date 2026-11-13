@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app import erp
 from app.erp import erp_text
 from app.javacompat import deserialize_long_array, java_format_2f, serialize_long_array
-from app.reports.shrink import rewrite_adjustments, rewrite_allocations, write_adjustments, write_allocations
+from app.reports.shrink import rewrite_today, write_adjustments, write_allocations
 from app.stock import moves, products
 from app.stock.intake import InStockItem, create_stock_infoes
 from app.stock.models import (
@@ -126,8 +126,7 @@ def _regenerate_today_reports(session: Session) -> None:
     adjustments = session.scalars(select(StockAdjustmentRecord).where(
         StockAdjustmentRecord.createdAt.between(start, end))
         .order_by(StockAdjustmentRecord.createdAt, StockAdjustmentRecord.id)).all()
-    rewrite_allocations(allocations, today)
-    rewrite_adjustments(adjustments, today)
+    rewrite_today(allocations, adjustments, today)
 
 
 def _single(session: Session, stmt):  # noqa: ANN001, ANN202
