@@ -1,0 +1,8 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/controllers/StockController.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/controllers/StockController.java
+@@ -247 +247 @@
+-	@GetMapping("/queryStock/history/{productNo}")
++	@GetMapping(value = "/queryStock/history/{productNo}", params = { "startDate", "endDate" })
+@@ -305 +305 @@
+-	@GetMapping("/queryStock/history/{id}")
++	@GetMapping(value = "/queryStock/history/{id}", params = "id")

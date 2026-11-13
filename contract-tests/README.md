@@ -79,6 +79,15 @@ docker compose up -d --wait
 - `--golden-variant fixed --update-golden`：對修補版 Java 錄製 `.fixed.json`。
 - 防呆：`--update-golden` 對 Python 後端一律拒絕執行，golden 永遠來自 Java。
 
+目前唯一的修補是 history 路由衝突（`java-patches/history-routes.patch`：兩個 mapping 以 `params` 區分）。重錄步驟：
+
+```bash
+./java-patches/build-patched-jar.sh          # 在暫存目錄套修補並建 jar，不動 repo 的 wmstool/
+docker compose -f docker-compose.yml -f docker-compose.java-fixed.yml up -d --wait
+.venv/bin/pytest -q -k "history and not update_history" --update-golden --golden-variant fixed
+docker compose up -d --wait                  # 換回原版 Java
+```
+
 ## 部署注意：報表範本
 
 Python 版讀 `.xlsx` 範本。正式機 `D:/OutputFiles` 下的 4 個範本（`OutStockList/OutStockListTemplate`、`STKADST/StockAdjustRecordTemplate`、`STKALLT/StockAllocateRecordTemplate`、`StockComparisonResult/StockComparisonResultTemplate`）需轉成 `.xlsx` 並放在原位置：

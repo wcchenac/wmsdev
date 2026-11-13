@@ -1,0 +1,71 @@
+{
+  "today": {
+    "body": [
+      {
+        "nodes": [],
+        "stockInfo": null
+      },
+      {
+        "nodes": [],
+        "stockInfo": {
+          "color": 3,
+          "defect": "污",
+          "id": 2,
+          "record": "",
+          "remark": "A區",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 2,
+            "inStockType": "進貨單",
+            "lotNo": "L01",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "48.5",
+            "serialNo": 1,
+            "type": "整支",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      },
+      {
+        "nodes": [],
+        "stockInfo": {
+          "color": 0,
+          "defect": "",
+          "id": 3,
+          "record": "邊破",
+          "remark": "",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 3,
+            "inStockType": "進貨單",
+            "lotNo": "L02",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "12",
+            "serialNo": 1,
+            "type": "板卷",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      }
+    ],
+    "status": 200
+  }
+}

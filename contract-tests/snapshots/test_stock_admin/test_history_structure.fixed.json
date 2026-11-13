@@ -1,0 +1,6 @@
+{
+  "by_root_id": {
+    "body": "[{\"id\":1,\"currentIdentifierId\":1,\"childrenIdentifierId\":[6,7],\"rootIdentifierId\":1},{\"id\":6,\"currentIdentifierId\":6,\"childrenIdentifierId\":[],\"rootIdentifierId\":1},{\"id\":7,\"currentIdentifierId\":7,\"childrenIdentifierId\":[],\"rootIdentifierId\":1}]",
+    "status": 200
+  }
+}

@@ -9,7 +9,7 @@ import datetime as dt
 
 import pytest
 
-from conftest import client_range, today
+from conftest import client_range, exec_sql, today
 from scenarios import seed_baseline, shrink_request
 
 ORDERS = [
@@ -134,6 +134,16 @@ def test_wait_handle_list_interval(operator, golden):
 
 
 # GET /api/stock/queryStock/history/{productNo} ---------------------------------
+
+
+@pytest.mark.java_bug("same ambiguous history route (always 500)")
+def test_history_tree_start_boundary(admin, db, golden):
+    """stockinfo is only collected for rolls created at or after `start`: a root
+    created yesterday shows up with stockInfo null."""
+    seed_baseline(admin)
+    exec_sql(db, "UPDATE stockidentifier SET createdAt = createdAt - INTERVAL 1 DAY WHERE id = 1")
+    d = today()
+    golden.response("today", admin.get("/api/stock/queryStock/history/CF1001", params=client_range(d, d)))
 
 
 @pytest.mark.java_bug(
