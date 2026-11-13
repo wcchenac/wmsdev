@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import rootReducer from '../../../../../reducers';
 import API from '../../../../../utilities/API';
 import { GET_StockInfoes } from '../../../../../types';
+import { REQUEST_FAILED_MESSAGE } from '../../../../../utilities/notifyRequestFailed';
 import StockCategory from '../../../../../components/BO/User/AdminPlatform/StockCategory';
 import UserRegister from '../../../../../components/BO/User/AdminPlatform/UserRegister';
 import InStockByImportFile from '../../../../../components/BO/User/AdminPlatform/InStockByImportFile';
@@ -46,7 +47,7 @@ const renderPage = (Page: React.ComponentType) => {
 const pages: [string, string, () => Promise<void>][] = [
   [
     '新增使用者 (UserRegister)',
-    'register fail',
+    REQUEST_FAILED_MESSAGE,
     async () => {
       const { container } = renderPage(UserRegister);
       const set = (name: string, value: string) =>

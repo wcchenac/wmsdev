@@ -4,9 +4,9 @@ import rootReducer from '../../reducers';
 import API from '../../utilities/API';
 import { registerUser } from '../../actions/UserActions';
 
-// UserRegister shows no field messages from the store: a failed registration only gets its
-// 「register fail」 toast. So a failure stores just the generic message, never the response
-// body (a Spring 500 body carries the exception text).
+// UserRegister shows no messages from the store: it picks its toast from the rethrown error.
+// So a failure stores just the generic message, never the response body (a Spring 500 body
+// carries the exception text).
 
 vi.mock('../../utilities/API', () => ({
   default: { post: vi.fn() },

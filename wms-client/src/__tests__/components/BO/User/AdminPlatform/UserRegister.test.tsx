@@ -6,6 +6,7 @@ import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 import UserRegister from '../../../../../components/BO/User/AdminPlatform/UserRegister';
 import { toast } from 'react-toastify';
+import { REQUEST_FAILED_MESSAGE } from '../../../../../utilities/notifyRequestFailed';
 
 interface MockLoadingOverlayProps {
   children: React.ReactNode;
@@ -329,8 +330,33 @@ describe('UserRegister', () => {
       expect(mockRegisterUser).toHaveBeenCalled();
     });
 
-    test('shows error toast on registration failure', async () => {
-      mockRegisterUser.mockRejectedValue(new Error('Registration failed'));
+    // A taken employee ID is something the admin can fix, so it is named; any other failure
+    // gets the usual request-failed handling.
+    test.each([
+      [
+        'a taken employee ID',
+        Object.assign(new Error('400'), {
+          response: { status: 400, data: { success: false, message: 'EmployeeId is already exists!' } },
+        }),
+        '員工編號已存在',
+      ],
+      [
+        'another message from the app (4xx)',
+        Object.assign(new Error('400'), {
+          response: { status: 400, data: { success: false, message: 'Role setting error' } },
+        }),
+        'Role setting error',
+      ],
+      [
+        'a server error',
+        Object.assign(new Error('500'), {
+          response: { status: 500, data: { timestamp: 't', status: 500, error: 'Internal Server Error', message: 'SQL [n/a]', path: '/api' } },
+        }),
+        REQUEST_FAILED_MESSAGE,
+      ],
+      ['no response', new Error('Network Error'), REQUEST_FAILED_MESSAGE],
+    ])('shows the right error toast for %s', async (_name, error, shown) => {
+      mockRegisterUser.mockRejectedValue(error);
 
       renderUserRegister();
       fillForm();
@@ -340,7 +366,8 @@ describe('UserRegister', () => {
       // Use flushPromises pattern
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      expect(toast.error).toHaveBeenCalledWith('register fail');
+      expect(toast.error).toHaveBeenCalledTimes(1);
+      expect(toast.error).toHaveBeenCalledWith(shown);
     });
 
     test('hides loading overlay after registration failure', async () => {

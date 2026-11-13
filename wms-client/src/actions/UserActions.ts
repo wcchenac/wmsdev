@@ -22,8 +22,8 @@ interface DecodedToken extends User {
 
 /**
  * Registers a user. On failure it stores only the generic message: UserRegister shows no
- * messages from the store (just its own 「register fail」 toast), and the response body can
- * be a Spring error body with the exception text. The error is rethrown for the page.
+ * messages from the store (it picks its toast from the rethrown error), and the response body
+ * can be a Spring error body with the exception text.
  */
 export const registerUser =
   (newUser: RegisterUserRequest) =>

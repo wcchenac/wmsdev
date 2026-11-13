@@ -5,7 +5,7 @@ import { registerUser } from "../../../../actions/UserActions";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
-import { isSessionExpired } from "../../../../utilities/notifyRequestFailed";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import "react-toastify/dist/ReactToastify.css";
 import { AppDispatch } from "../../../../types";
 
@@ -15,6 +15,18 @@ interface UserRegisterState {
   fullName: string;
   password: string;
   role: string;
+}
+
+/** The backend's answer (ApiResponse, 400) when the employee ID is already registered. */
+const EMPLOYEE_ID_TAKEN = "EmployeeId is already exists!";
+
+function isEmployeeIdTaken(error: unknown): boolean {
+  if (typeof error !== "object" || error === null || !("response" in error)) return false;
+  const response = error.response;
+  if (typeof response !== "object" || response === null) return false;
+  if (!("status" in response) || response.status !== 400) return false;
+  const data = "data" in response ? response.data : undefined;
+  return typeof data === "object" && data !== null && "message" in data && data.message === EMPLOYEE_ID_TAKEN;
 }
 
 const initialState: UserRegisterState = {
@@ -56,8 +68,12 @@ const UserRegister: React.FC = () => {
       })
       .catch((error) => {
         setState((prev) => ({ ...prev, isLoading: false }));
-        if (!isSessionExpired(error)) {
-          toast.error("register fail");
+        // A taken employee ID is named so the admin can pick another; anything else (and the
+        // 401 left to API.ts) gets the usual handling.
+        if (isEmployeeIdTaken(error)) {
+          toast.error("員工編號已存在");
+        } else {
+          notifyRequestFailed(error);
         }
       });
   };
