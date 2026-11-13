@@ -360,20 +360,22 @@ def test_reports_from_formatted_templates(operator, golden):
     and a row with only a custom height (row 3); fixtures/formatted-templates, the .xlsx
     converted with LibreOffice as at cutover. POI's getLastRowNum() counts every row
     record, so Java writes the first data row at row 4 and the 序號 starts at 3."""
+    import contextlib
     import shutil
 
     from conftest import EXCEL_DIR, ROOT
 
     fixtures = ROOT / "fixtures" / "formatted-templates"
-    saved = []
-    for folder, name in FORMATTED_TEMPLATES.items():
-        for ext in (".xls", ".xlsx"):
-            target = EXCEL_DIR / folder / f"{name}{ext}"
-            backup = target.with_name(target.name + ".saved")
-            target.rename(backup)
-            saved.append((backup, target))
-            shutil.copyfile(fixtures / f"{name}{ext}", target)
-    try:
+    with contextlib.ExitStack() as restore:
+        # each template is put back as soon as it is moved aside, so a failure while
+        # swapping (a missing fixture) cannot leave the shared templates replaced
+        for folder, name in FORMATTED_TEMPLATES.items():
+            for ext in (".xls", ".xlsx"):
+                target = EXCEL_DIR / folder / f"{name}{ext}"
+                backup = target.with_name(target.name + ".saved")
+                target.rename(backup)
+                restore.callback(backup.replace, target)
+                shutil.copyfile(fixtures / f"{name}{ext}", target)
         seed_baseline(operator)
         golden.response("shrink", operator.post("/api/stock/shrinkStock",
                                                 json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5)))
@@ -381,9 +383,6 @@ def test_reports_from_formatted_templates(operator, golden):
         golden.response("pull_list", operator.patch("/api/stock/outStock/update",
                                                     json={"outStockUpdate": {"1": "門市A"}}))
         golden.add("reports", generated_reports())
-    finally:
-        for backup, target in saved:
-            backup.replace(target)
 
 
 def test_out_stock_update_unknown_id(operator, db, golden):
