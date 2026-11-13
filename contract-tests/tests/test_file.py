@@ -10,7 +10,7 @@ import io
 import openpyxl
 import xlrd
 
-from conftest import client_range, db_state, today, write_report
+from conftest import client_range, db_state, rows, today, write_report
 
 CATEGORIES = ["allocation", "adjustment", "dailyComparison", "outStockList", "categoryDetail", "bogus"]
 
@@ -150,6 +150,23 @@ def test_import_in_stock_file(operator, db, golden):
     golden.response("import", operator.post("/api/file/import/inStockFile",
                                             files=[("files", ("stock.xlsx", good, XLSX))]))
     golden.add("db", db_state(db))
+
+
+def test_import_failure_inside_intake(operator, db, golden):
+    """File B parses but fails inside stock intake ('打' needs an integer quantity)."""
+    a = _xlsx([["CF1001", "L01", "整支", "50", "碼", 0, None, None, None, "fileImport", None]])
+    b = _xlsx([["CF1003", None, "雜項", 2.5, "打", 0, None, None, None, "fileImport", None]])
+    c = _xlsx([["CF1002", "L07", "整支", "40", "碼", 0, None, None, None, "fileImport", None]])
+    golden.response("import_a_b_c", operator.post("/api/file/import/inStockFile", files=[
+        ("files", ("a.xlsx", a, XLSX)), ("files", ("b.xlsx", b, XLSX)), ("files", ("c.xlsx", c, XLSX))]))
+    golden.add("db", db_state(db))
+
+
+def test_import_created_at_is_utc(operator, db, golden):
+    row = _xlsx([["CF1001", "L01", "整支", "50", "碼", 0, None, None, None, "fileImport", None]])
+    operator.post("/api/file/import/inStockFile", files=[("files", ("a.xlsx", row, XLSX))])
+    (r,) = rows(db, "SELECT TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), createdAt) AS m FROM stockidentifier")
+    golden.add("offset_hours", round(r["m"] / 60))
 
 
 def test_import_in_stock_file_bad_input(operator, db, golden):
