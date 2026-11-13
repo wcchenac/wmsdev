@@ -5,13 +5,13 @@ import { isSessionExpired, notifyRequestFailed } from "./notifyRequestFailed";
 // never shrunk, it answers 400 with no body and changes nothing, so the message has to come
 // from here and the list on screen is stale.
 
-export const ROLLBACK_REJECTED_MESSAGE = "回滾失敗，沒有任何變更。清單可能已過期，已重新整理。";
+export const ROLLBACK_REJECTED_MESSAGE = "回朔失敗，沒有任何變更。清單可能已過期，已重新整理。";
 export const ROLLBACK_REJECTED_NOT_REFRESHED_MESSAGE =
-  "回滾失敗，沒有任何變更。重新整理清單也失敗，請稍後重新查詢。";
+  "回朔失敗，沒有任何變更。重新整理清單也失敗，請稍後重新查詢。";
 /** No answer (timeout, connection lost): the rollback may or may not have gone through. */
-export const ROLLBACK_UNCONFIRMED_MESSAGE = "無法確認回滾結果（連線中斷），已重新整理清單，請以畫面為準。";
-export const ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE = "無法確認回滾結果（連線中斷），請稍後重新查詢。";
-export const ROLLBACK_DONE_NOT_REFRESHED_MESSAGE = "回滾完成，但重新整理清單失敗，請重新查詢。";
+export const ROLLBACK_UNCONFIRMED_MESSAGE = "無法確認回朔結果（連線中斷），已重新整理清單，請以畫面為準。";
+export const ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE = "無法確認回朔結果（連線中斷），請稍後重新查詢。";
+export const ROLLBACK_DONE_NOT_REFRESHED_MESSAGE = "回朔完成，但重新整理清單失敗，請重新查詢。";
 
 /** A rollback that did not end with a successful rollback and a fresh list. */
 export class RollbackError extends Error {

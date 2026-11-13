@@ -2,7 +2,8 @@ import { applyMiddleware, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
 import rootReducer from '../../reducers';
 import API from '../../utilities/API';
-import { inStockRollback, shrinkRollback } from '../../actions/StockActions';
+import { getInStockRollbackList, getShrinkRollbackList, inStockRollback, shrinkRollback } from '../../actions/StockActions';
+import * as rollbackRequest from '../../utilities/rollbackRequest';
 import {
   ROLLBACK_DONE_NOT_REFRESHED_MESSAGE,
   ROLLBACK_REJECTED_MESSAGE,
@@ -31,12 +32,12 @@ const makeStore = () => createStore(rootReducer, applyMiddleware(thunk));
 
 const cases = [
   [
-    '入庫回滾 (inStockRollback)',
+    '入庫回朔 (inStockRollback)',
     () => inStockRollback([1, 2], 'normal', 'IN001'),
     '/api/stock/queryStock/inStockRollback?orderType=normal&orderNo=IN001',
   ],
   [
-    '減肥回滾 (shrinkRollback)',
+    '減肥回朔 (shrinkRollback)',
     () => shrinkRollback(7, 'CF1001'),
     '/api/stock/queryStock/shrinkRollback/CF1001',
   ],
@@ -113,5 +114,35 @@ describe.each(cases)('%s', (_name, rollback, listUrl) => {
 
     await expect(run()).rejects.toBe(expired);
     expect(API.get).not.toHaveBeenCalled();
+  });
+});
+
+// The pages are called 入庫回朔 and 減肥回朔, so their messages say 回朔 too.
+describe('rollback wording', () => {
+  test('every rollback message says 回朔', () => {
+    const messages = Object.entries(rollbackRequest)
+      .filter(([name]) => name.endsWith('_MESSAGE'))
+      .map(([, value]) => value as string);
+
+    expect(messages).toHaveLength(5);
+    for (const message of messages) {
+      expect(message).toMatch(/回朔/);
+      expect(message).not.toMatch(/回滾/);
+    }
+  });
+
+  test.each([
+    ['inStockRollback', () => inStockRollback([1], 'normal', 'IN001'), '入庫回朔失敗'],
+    ['shrinkRollback', () => shrinkRollback(7, 'CF1001'), '縮碼回朔失敗'],
+    ['getInStockRollbackList', () => getInStockRollbackList('normal', 'IN001'), '無法取得入庫回朔列表'],
+    ['getShrinkRollbackList', () => getShrinkRollbackList('CF1001'), '無法取得縮碼回朔列表'],
+  ] as const)('%s stores its message when the failure has no body', async (_name, action, message) => {
+    vi.mocked(API.patch).mockReset().mockRejectedValue(networkError());
+    vi.mocked(API.get).mockReset().mockRejectedValue(networkError());
+    const store = makeStore();
+
+    await store.dispatch(action()).catch(() => undefined);
+
+    expect(store.getState().errors.errors).toEqual({ message });
   });
 });

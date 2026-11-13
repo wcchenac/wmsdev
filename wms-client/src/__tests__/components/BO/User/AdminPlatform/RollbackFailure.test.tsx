@@ -42,7 +42,7 @@ vi.mock('../../../../../components/BO/User/AdminPlatform/InStockRollback/StockIn
   default: ({ result, handleInStockRollback }: { result: object; handleInStockRollback: (ids: number[]) => void }) => (
     <div>
       <output data-testid="list">{JSON.stringify(result)}</output>
-      <button onClick={() => handleInStockRollback([1, 2])}>回滾</button>
+      <button onClick={() => handleInStockRollback([1, 2])}>回朔</button>
     </div>
   ),
 }));
@@ -50,7 +50,7 @@ vi.mock('../../../../../components/BO/User/AdminPlatform/ShrinkRollback/StockInf
   default: ({ result, handleShrinkRollback }: { result: object; handleShrinkRollback: (id: number) => void }) => (
     <div>
       <output data-testid="list">{JSON.stringify(result)}</output>
-      <button onClick={() => handleShrinkRollback(7)}>回滾</button>
+      <button onClick={() => handleShrinkRollback(7)}>回朔</button>
     </div>
   ),
 }));
@@ -69,7 +69,7 @@ const overlayIdle = () => screen.getByTestId('loading-overlay').dataset.active =
 
 const pages = [
   [
-    '入庫回滾 (InStockRollback)',
+    '入庫回朔 (InStockRollback)',
     InStockRollback,
     async (container: HTMLElement) => {
       fireEvent.change(container.querySelector('select[name=orderType]')!, { target: { name: 'orderType', value: 'normal' } });
@@ -83,7 +83,7 @@ const pages = [
     { CF1001: [{ id: 2 }] },
   ],
   [
-    '減肥回滾 (ShrinkRollback)',
+    '減肥回朔 (ShrinkRollback)',
     ShrinkRollback,
     async (container: HTMLElement) => {
       const input = container.querySelector<HTMLInputElement>('#productNo-search')!;
@@ -114,7 +114,7 @@ describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList)
 
   const rollBack = async () => {
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '回滾' }));
+      fireEvent.click(screen.getByRole('button', { name: '回朔' }));
     });
     await settle();
   };

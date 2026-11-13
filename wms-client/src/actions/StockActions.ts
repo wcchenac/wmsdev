@@ -368,7 +368,7 @@ export const getInStockRollbackList =
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得入庫回滾列表" },
+        payload: error.response?.data || { message: "無法取得入庫回朔列表" },
       });
       throw err;
     }
@@ -407,7 +407,7 @@ export const inStockRollback =
         }
       );
     } catch (err) {
-      dispatchRollbackError(dispatch, err, "入庫回滾失敗");
+      dispatchRollbackError(dispatch, err, "入庫回朔失敗");
       throw err;
     }
   };
@@ -430,7 +430,7 @@ export const getShrinkRollbackList =
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得縮碼回滾列表" },
+        payload: error.response?.data || { message: "無法取得縮碼回朔列表" },
       });
       throw err;
     }
@@ -459,7 +459,7 @@ export const shrinkRollback =
         }
       );
     } catch (err) {
-      dispatchRollbackError(dispatch, err, "縮碼回滾失敗");
+      dispatchRollbackError(dispatch, err, "縮碼回朔失敗");
       throw err;
     }
   };
