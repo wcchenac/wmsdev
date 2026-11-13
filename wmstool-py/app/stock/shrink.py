@@ -68,11 +68,12 @@ def rollback_shrink(session: Session, old_id: int, editor: str) -> None:
     contract-tests/java-patches/04-shrink-rollback-atomic.patch): any failure — a roll
     shrunk twice, one never shrunk, a missing report template — raises and the caller
     rolls the whole rollback back (400). Java itself swallowed every exception but a
-    database error and committed whatever it had done before the failure."""
-    _rollback_shrink(session, old_id, editor)
+    database error and committed whatever it had done before the failure.
 
-
-def _rollback_shrink(session: Session, old_id: int, editor: str) -> None:
+    The reports are rewritten before the caller commits: both templates are parsed
+    first, so a missing template changes no report; a failure while writing a report,
+    or a failing commit, can still leave a rewritten report behind a rolled-back
+    database (the patched Java does the same)."""
     totals: products.Totals = {}
     old_history = _single(session, select(History).where(History.currentIdentifierId == old_id))
     children = deserialize_long_array(old_history.childrenIdentifierId) if old_history.childrenIdentifierId else []

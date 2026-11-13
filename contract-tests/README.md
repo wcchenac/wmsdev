@@ -79,18 +79,18 @@ docker compose up -d --wait
 - `--golden-variant fixed --update-golden`：對修補版 Java 錄製 `.fixed.json`。
 - 防呆：`--update-golden` 對 Python 後端一律拒絕執行，golden 永遠來自 Java。
 
-`java-patches/` 裡的修補依檔名順序套用。編號對應 `wmstool/docs/analysis/2026-11-13-java-defects-found-in-migration.md` 的項目：
+`java-patches/` 裡的修補依檔名順序套用。檔名的編號是遷移時整理的 Java 缺陷清單的項目編號（那份清單沒有納入版本控制）；每個修補修了什麼，以下表為準：
 
 | 修補 | 修正 | 改變的測試 |
 |---|---|---|
 | `history-routes.patch` | 第 1 項：history 兩個 mapping 以 `params` 區分，不再一律 500 | history 相關測試、`test_auth_matrix` 的 history 路由 |
 | `03-instock-rollback-atomic.patch` | 第 3 項：入庫回滾任何一個 id 失敗就整筆回滾、回 400 | `test_in_stock_rollback`、`test_in_stock_rollback_partial_failure` |
-| `04-shrink-rollback-atomic.patch` | 第 4 項：減肥回滾任何一步失敗（重複減肥、沒減肥過、範本遺失）就整筆回滾、回 400 | `test_shrink_stock_rollback`、`test_shrink_rollback_after_double_shrink`、`test_shrink_rollback_template_missing_keeps_reports`、`test_shrink_rollback_adjustment_template_missing` |
+| `04-shrink-rollback-atomic.patch` | 第 4 項：減肥回滾任何一步失敗（重複減肥、沒減肥過、範本遺失）就整筆回滾、回 400；重建報表前先確認兩份範本都能解析 | `test_shrink_stock_rollback`、`test_shrink_rollback_after_double_shrink`、`test_shrink_rollback_template_missing_keeps_reports`、`test_shrink_rollback_adjustment_template_missing` |
 | `09-import-skip-blank-rows.patch` | 第 9 項：進貨匯入略過沒有任何文字的列，不再整個檔案被略過 | `test_import_cell_existence`、`test_import_trailing_rows_without_cells`、`test_import_blank_rows_between_data` |
 
 Python 版跟著修補版 Java 走：上表的測試在 Python 上比對 `.fixed.json`。
 
-注意第 4 項：回滾時報表在資料庫回滾之前就已經改寫，所以範本遺失時，資料庫雖然整筆回滾，當天的調撥報表可能已經被重設成空範本（`test_shrink_rollback_adjustment_template_missing`）。Java 修補版也是這樣。
+注意第 4 項：回滾時，當天的報表在資料庫 commit 之前就重建。兩份範本會先解析，任何一份遺失或損壞時，兩份報表都不會被動到（`test_shrink_rollback_adjustment_template_missing`）。但如果寫入報表本身中途失敗（例如檔案被 Excel 開著），或資料庫 commit 失敗，資料庫會整筆回滾，已經改寫的報表卻不會還原。Java 修補版也是這樣。
 
 重錄步驟：
 
