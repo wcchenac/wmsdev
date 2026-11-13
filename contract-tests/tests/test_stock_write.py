@@ -155,6 +155,19 @@ def test_ship_stocks(operator, db, golden):
     golden.add("db", db_state(db))
 
 
+def test_ship_stock_blank_reason_rules(operator, db, golden):
+    """@NotBlank uses Java String.trim(): only chars <= U+0020 count as blank.
+    A full-width space (common with Chinese IMEs) is NOT blank; \\x01 is."""
+    seed_baseline(operator)
+    golden.response("fullwidth_space", operator.patch("/api/stock/shipStock",
+                                                      json={"stockIdentifierId": 2, "reason": "　"}))
+    golden.response("control_char", operator.patch("/api/stock/shipStock",
+                                                   json={"stockIdentifierId": 3, "reason": "\x01"}))
+    golden.response("list_control_char", operator.patch("/api/stock/shipStocks",
+                                                        json=[{"stockIdentifierId": 4, "reason": "\x01"}]))
+    golden.add("db", db_state(db, ["stockidentifier", "outstockrequest"]))
+
+
 def test_ship_same_identifier_twice(operator, db, golden):
     """Java does not check isExist: a second ship creates another pull request and
     deducts the product again; the later rollback then finds two live requests."""

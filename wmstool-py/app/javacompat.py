@@ -43,6 +43,21 @@ def java_hashmap_order(keys: Iterable[str]) -> list[str]:
     return [key for index in sorted(buckets) for key in buckets[index]]
 
 
+# ------------------------------------------------------------------- strings
+
+_JAVA_TRIM = "".join(chr(c) for c in range(0x21))
+
+
+def java_trim(text: str) -> str:
+    """String.trim(): strips only characters <= U+0020 (not U+3000, not U+00A0)."""
+    return text.strip(_JAVA_TRIM)
+
+
+def java_is_blank(value: object) -> bool:
+    """Bean Validation @NotBlank: null, or empty after String.trim()."""
+    return value is None or (isinstance(value, str) and java_trim(value) == "")
+
+
 # ------------------------------------------------------------------- numbers
 
 

@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db import get_session
+from app.javacompat import java_is_blank
 from app.security.auth import require_roles
 from app.stock import moves, orders, queries
 from app.stock.intake import InStockItem, create_stock_infoes
@@ -33,18 +34,13 @@ def _bad_request(session: Session, what: str) -> Response:
     return Response(status_code=400)
 
 
-def _blank(value: object) -> bool:
-    # Bean Validation @NotBlank: null, or only characters <= U+0020 (Java trim()).
-    return value is None or (isinstance(value, str) and value.strip("".join(chr(c) for c in range(0x21))) == "")
-
-
 def constraint_violations(items: list[BaseModel], param: str, messages: dict[str, str]) -> dict[str, str]:
     """`List<@Valid T>` on a @Validated controller -> ConstraintViolationException, which
     CustomResponseEntityExceptionHandler turns into {"<param>[i].<field>": "<message>"} (400)."""
     errors = {}
     for i, item in enumerate(items):
         for field, message in messages.items():
-            if _blank(getattr(item, field)):
+            if java_is_blank(getattr(item, field)):
                 errors[f"{param}[{i}].{field}"] = message
     return errors
 

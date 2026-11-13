@@ -4,10 +4,12 @@ from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel
 
+from app.javacompat import java_is_blank
+
 
 def _not_blank(value: str) -> str:
-    # Bean Validation @NotBlank: not empty and not only whitespace.
-    if not value.strip():
+    # Bean Validation @NotBlank uses Java String.trim(): a full-width space is not blank.
+    if java_is_blank(value):
         raise ValueError("must not be blank")
     return value
 
