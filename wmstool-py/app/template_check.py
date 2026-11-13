@@ -21,13 +21,20 @@ from app.xlsx import poi_last_row
 
 
 def xls_last_row(path: Path) -> int:
-    """HSSF getLastRowNum(): the highest row with a ROW record or a cell; 0 when empty."""
+    """HSSF getLastRowNum(): the highest row with a ROW record or a cell record; 0 when empty.
+
+    xlrd's nrows is not that: it is padded with XL_CELL_EMPTY cells to cover merged
+    ranges, which HSSF does not count. Real cells (BLANK included, with formatting_info)
+    are never XL_CELL_EMPTY. Checked against POI 4.1.0 HSSF in tests/test_template_check.py.
+    """
     import xlrd  # only needed here: pip install "wmstool-py[tools]"
 
     book = xlrd.open_workbook(str(path), formatting_info=True, on_demand=True)
     try:
         sheet = book.sheet_by_index(0)
-        return max([sheet.nrows - 1, 0, *sheet.rowinfo_map])
+        cell_rows = [r for r in range(sheet.nrows)
+                     if any(cell.ctype != xlrd.XL_CELL_EMPTY for cell in sheet.row(r))]
+        return max([0, *sheet.rowinfo_map, *cell_rows])
     finally:
         book.release_resources()
 

@@ -4,6 +4,7 @@ row where Java (POI HSSF on the .xls) does?"""
 from pathlib import Path
 
 import openpyxl
+import pytest
 import xlwt
 
 from app.template_check import check, main, xls_last_row
@@ -45,6 +46,25 @@ def test_xls_last_row_counts_rows_without_values(tmp_path):
     _xls(tmp_path / "b.xls", styled_blank_rows=2, sized_row=3)
     assert xls_last_row(tmp_path / "a.xls") == 0
     assert xls_last_row(tmp_path / "b.xls") == 3
+
+
+@pytest.mark.parametrize(("merge", "blank_row", "expected"), [
+    ((0, 5, 0, 3), None, 0),  # A1:D6 merged, only row 0 has records
+    ((0, 5, 0, 3), 2, 2),     # ... plus a bordered blank cell on row 2
+    ((2, 7, 0, 3), None, 0),  # a merge entirely below the last row
+])
+def test_xls_last_row_ignores_merged_ranges(tmp_path, merge, blank_row, expected):
+    """xlrd pads nrows to cover merged ranges; HSSF only counts ROW records and cell
+    records. Expected values measured with POI 4.1.0 HSSF getLastRowNum() (2026-11-13).
+    The MERGEDCELLS record is added directly: xlwt's merge() writes blank cells."""
+    book = xlwt.Workbook(encoding="utf-8")
+    sheet = book.add_sheet("Sheet1")
+    sheet.write(0, 0, "貨號")
+    if blank_row is not None:
+        sheet.write(blank_row, 1, None, xlwt.easyxf("borders: left thin"))
+    sheet._Worksheet__merged_ranges.append(merge)  # noqa: SLF001
+    book.save(str(tmp_path / "t.xls"))
+    assert xls_last_row(tmp_path / "t.xls") == expected
 
 
 def test_matching_conversion_is_ok(tmp_path):
