@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import Header from "./Header";
 import { RoleOption } from "../../enums/Enums";
 import { withStore } from "../../stories/withStore";

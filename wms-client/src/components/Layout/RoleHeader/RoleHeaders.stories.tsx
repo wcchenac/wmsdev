@@ -1,5 +1,5 @@
 import React from "react";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import HeaderAdmin from "./HeaderAdmin";
 import HeaderOperator from "./HeaderOperator";
 import HeaderNormal from "./HeaderNormal";
