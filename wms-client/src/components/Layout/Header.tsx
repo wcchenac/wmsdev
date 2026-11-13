@@ -6,27 +6,11 @@ import HeaderStockFunctions from "./HeaderStockFunctions";
 import HeaderUserFunctions from "./HeaderUserFunctions";
 import { RootState, AppDispatch } from "../../types";
 
-interface RoleObject {
-  authority?: string;
-}
-
-interface UserData {
-  fullName?: string;
-  role?: string | RoleObject;
-}
-
-interface UserStateExtended {
-  validToken: boolean;
-  user: UserData;
-}
-
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const dispatch = useDispatch<AppDispatch>();
-  const user = useSelector<RootState, UserStateExtended>(
-    (state) => state.user as unknown as UserStateExtended
-  );
+  const user = useSelector((state: RootState) => state.user);
 
   const handleLogout = useCallback(() => {
     dispatch(logout());

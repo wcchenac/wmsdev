@@ -5,7 +5,7 @@ import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getStockInfoes } from "../../../../actions/StockActions";
 import StockInfoContainer from "./Common/StockInfoContainer";
 import QueryProductInformation, { ProductNoChange } from "../Utilities/QueryProductInformation";
-import ShowProductInformation from "../Utilities/ShowProductInformation";
+import ShowProductInformation, { ProductInfo } from "../Utilities/ShowProductInformation";
 import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
@@ -14,23 +14,6 @@ import ToolbarForNextPrev from "../Utilities/ToolbarForNextPrev";
 import { StockIdentifierType } from "../../../../enums/Enums";
 import { RootState, AppDispatch, StockInfo } from "../../../../types";
 
-interface ProductInfo {
-  productNo: string;
-  picture: string;
-  cName: string;
-  spec: string;
-  packDesc: string;
-  addType: string;
-  descrip: string;
-  supp: string;
-  suppName: string;
-  userField1: string;
-  prodDesc: string;
-  cCost: string | number;
-  cCCCODE: string;
-  eNAME?: string;
-  eSPEC?: string;
-}
 
 interface StockQuantityItem {
   type: string;
@@ -54,7 +37,7 @@ const QueryBoard_Detail: React.FC = () => {
   const [queriedProductNo, setQueriedProductNo] = useState<string>("");
   const [prevProduct, setPrevProduct] = useState<string>("");
   const [nextProduct, setNextProduct] = useState<string>("");
-  const [productInfo, setProductInfo] = useState<ProductInfo>({} as ProductInfo);
+  const [productInfo, setProductInfo] = useState<ProductInfo>({});
   const [stockInfoes, setStockInfoes] = useState<StockInfo[]>([]);
   const [stockQuantity, setStockQuantity] = useState<StockQuantityItem[]>([]);
 

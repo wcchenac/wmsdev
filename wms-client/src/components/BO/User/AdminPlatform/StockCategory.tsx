@@ -18,6 +18,13 @@ interface CategoryOption {
   label: string;
 }
 
+// GET /api/stock/queryStock/categoryList returns [{ label, value }]; it shares the stockInfo
+// slice with other pages, so keep only entries of that shape.
+const isCategoryOption = (value: unknown): value is CategoryOption =>
+  typeof value === "object" && value !== null &&
+  "value" in value && typeof value.value === "string" &&
+  "label" in value && typeof value.label === "string";
+
 const StockCategory: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
@@ -53,8 +60,8 @@ const StockCategory: React.FC = () => {
 
   const animatedComponents = makeAnimated();
 
-  // Type assertion for stockInfoes which can be array or have options property
-  const options = (categoryList.stockInfoes as unknown as CategoryOption[]) || [];
+  const stockInfoes: unknown = categoryList.stockInfoes;
+  const options = Array.isArray(stockInfoes) ? stockInfoes.filter(isCategoryOption) : [];
 
   return (
     <div className="container">

@@ -179,3 +179,17 @@ describe('入庫回朔 (InStockRollback)', () => {
     expect(screen.queryByText('LEFTOVER-3')).not.toBeInTheDocument();
   });
 });
+
+describe('歷史記錄查詢 tree data', () => {
+  test('an array that is not product history (e.g. a shrink list) builds no tree and does not crash', () => {
+    const store = makeStore();
+    renderPage(StockHistoryBoard, store);
+
+    expect(() =>
+      act(() => {
+        store.dispatch({ type: GET_StockInfoes, payload: [{ id: 7, productNo: 'LEFTOVER-4' }] });
+      })
+    ).not.toThrow();
+    expect(screen.queryByText('LEFTOVER-4')).not.toBeInTheDocument();
+  });
+});

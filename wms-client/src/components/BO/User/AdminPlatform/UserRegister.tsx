@@ -1,12 +1,11 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useState, ChangeEvent, FormEvent } from "react";
+import { useDispatch } from "react-redux";
 import { RoleOption } from "../../../../enums/Enums";
 import { registerUser } from "../../../../actions/UserActions";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { RootState } from "../../../../store";
 import { AppDispatch } from "../../../../types";
 
 interface UserRegisterState {
@@ -15,7 +14,6 @@ interface UserRegisterState {
   fullName: string;
   password: string;
   role: string;
-  errors: Record<string, string>;
 }
 
 const initialState: UserRegisterState = {
@@ -23,21 +21,12 @@ const initialState: UserRegisterState = {
   employeeId: "",
   fullName: "",
   password: "",
-  role: "",
-  errors: {}
+  role: ""
 };
 
 const UserRegister: React.FC = () => {
   const [state, setState] = useState<UserRegisterState>(initialState);
   const dispatch = useDispatch<AppDispatch>();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const errors = useSelector((s: RootState) => s.errors) as any;
-
-  useEffect(() => {
-    if (errors) {
-      setState((prev) => ({ ...prev, errors }));
-    }
-  }, [errors]);
 
   const userKeyInChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     setState((prev) => ({ ...prev, [e.target.name]: e.target.value }));

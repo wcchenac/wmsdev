@@ -3,20 +3,24 @@ import { Modal } from "react-bootstrap";
 
 import equal from "fast-deep-equal";
 
-interface ProductInfo {
-  productNo: string;
-  picture: string;
-  cName: string;
-  spec: string;
-  packDesc: string;
-  addType: string;
-  descrip: string;
-  supp: string;
-  suppName: string;
-  userField1: string;
-  prodDesc: string;
-  cCost: string | number;
-  cCCCODE: string;
+/**
+ * Product master data from the stock query's `information`. Every field may be missing: the
+ * page starts with {} before a query, and the basic query has no supplier or cost fields.
+ */
+export interface ProductInfo {
+  productNo?: string;
+  picture?: string;
+  cName?: string;
+  spec?: string;
+  packDesc?: string;
+  addType?: string;
+  descrip?: string;
+  supp?: string;
+  suppName?: string;
+  userField1?: string;
+  prodDesc?: string;
+  cCost?: string | number;
+  cCCCODE?: string;
   eNAME?: string;
   eSPEC?: string;
 }

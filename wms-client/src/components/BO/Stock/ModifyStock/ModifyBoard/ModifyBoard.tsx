@@ -12,7 +12,7 @@ import {
 } from "../../../../../actions/StockActions";
 import StockInfoContainer from "./StockInfoContainer";
 import QueryProductInformation, { ProductNoChange } from "../../Utilities/QueryProductInformation";
-import ShowProductInformation from "../../Utilities/ShowProductInformation";
+import ShowProductInformation, { ProductInfo } from "../../Utilities/ShowProductInformation";
 import OutStockModal from "./OutStockModal";
 import QueryResponseWithNoStock from "../../Utilities/QueryResponseWithNoStock";
 import LoadingOverlay from "react-loading-overlay-ts";
@@ -36,22 +36,6 @@ import {
 // ============================================
 // Type Definitions
 // ============================================
-interface ProductInfo {
-  productNo?: string;
-  picture?: string;
-  cName?: string;
-  spec?: string;
-  packDesc?: string;
-  addType?: string;
-  descrip?: string;
-  supp?: string;
-  suppName?: string;
-  userField1?: string;
-  prodDesc?: string;
-  cCost?: string | number;
-  cCCCODE?: string;
-  [key: string]: unknown;
-}
 
 interface StockQuantityItem {
   type: string;
@@ -334,7 +318,7 @@ const ModifyBoard: React.FC = () => {
                     isQuery={isQuery}
                     productNo={productNo}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    productInfo={productInfo as any}
+                    productInfo={productInfo}
                   />
                 </div>
                 <div className="col-md-auto me-auto">

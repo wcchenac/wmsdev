@@ -21,6 +21,12 @@ interface RawHistoryNode {
   nodes?: RawHistoryNode[];
 }
 
+// The shared stockInfo slice also holds other pages' results; only history roots have a
+// stockInfo object.
+const isHistoryNode = (value: unknown): value is RawHistoryNode =>
+  typeof value === "object" && value !== null && "stockInfo" in value &&
+  typeof value.stockInfo === "object" && value.stockInfo !== null;
+
 function StockHistoryBoard(): React.ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isQuery, setIsQuery] = useState<boolean>(false);
@@ -49,17 +55,17 @@ function StockHistoryBoard(): React.ReactElement {
     return node;
   };
 
-  const treeDataTranslation = useCallback((data: RawHistoryNode[] | null | undefined): TreeNode[] => {
+  const treeDataTranslation = useCallback((data: unknown): TreeNode[] => {
     // Product history is an array of root nodes; anything else (another query's result) has no tree.
     if (!Array.isArray(data)) return [];
-    return data.map((item, idx) => transversalForTreeData(item, `${idx}`));
+    return data.filter(isHistoryNode).map((item, idx) => transversalForTreeData(item, `${idx}`));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Only react to a result that arrives while this page is mounted, not one another page
   // left in the shared stockInfo slice (componentDidUpdate in dev).
   useUpdateEffect(stockInfo.stockInfoes, (result) => {
-    setTreeData(treeDataTranslation(result as unknown as RawHistoryNode[]));
+    setTreeData(treeDataTranslation(result));
   });
 
   const handleProductNoChange = useCallback((e: ProductNoChange) => {
