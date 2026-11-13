@@ -6,7 +6,7 @@
         "createdAt": "<datetime:datetime>",
         "createdBy": "倉管乙",
         "defect": "污",
-        "fileName": "OutStockList-<TODAY:yyyyMMdd><HHmmss>.xls",
+        "fileName": "OutStockList-<TODAY:yyyyMMdd><HHmmss>.<excel>",
         "id": 1,
         "isDeleted": false,
         "isHandled": true,
@@ -27,7 +27,7 @@
         "createdAt": "<datetime:datetime>",
         "createdBy": "倉管乙",
         "defect": "",
-        "fileName": "OutStockList-<TODAY:yyyyMMdd><HHmmss>.xls",
+        "fileName": "OutStockList-<TODAY:yyyyMMdd><HHmmss>.<excel>",
         "id": 2,
         "isDeleted": false,
         "isHandled": true,
@@ -46,7 +46,7 @@
     ]
   },
   "reports": {
-    "OutStockList/<YEAR>/<MONTH>/OutStockList-<TODAY:yyyyMMdd><HHmmss>.xls": [
+    "OutStockList/<YEAR>/<MONTH>/OutStockList-<TODAY:yyyyMMdd><HHmmss>.<excel>": [
       [
         "貨號",
         "批號",

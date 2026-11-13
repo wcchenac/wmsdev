@@ -75,20 +75,43 @@ def test_category_detail_report(admin, db, golden):
     golden.add("reports", _category_reports())
 
 
+# A 4x4 JPEG (generated with Pillow) standing in for a product photo.
+TINY_JPEG = (
+    "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgy"
+    "PC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAEAAQD"
+    "ASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKB"
+    "kaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZ"
+    "mqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQF"
+    "BgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5"
+    "OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX"
+    "2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDkKKKK8U/TD//Z"
+)
+
+
+def test_category_detail_report_with_picture(admin, db, golden):
+    """A product photo (pictures/<productNo>.jpg) pushes that product's table 16 rows down instead of 10."""
+    import base64
+
+    from conftest import FILES_DIR
+
+    _seed_category_tables(db)
+    pictures = FILES_DIR / "pictures"
+    pictures.mkdir(parents=True, exist_ok=True)
+    picture = pictures / "CF1001.jpg"
+    picture.write_bytes(base64.b64decode(TINY_JPEG))
+    try:
+        golden.response("棉布", admin.get("/api/stock/queryStock/category/棉布"))
+        golden.add("reports", _category_reports())
+    finally:
+        picture.unlink()
+
+
 def _category_reports():
-    import xlrd
+    from conftest import EXCEL_DIR, read_workbook
 
-    from conftest import EXCEL_DIR
-
-    out = {}
-    for path in sorted((EXCEL_DIR / "CategoryDetail").glob("*.xls")) if (EXCEL_DIR / "CategoryDetail").exists() else []:
-        sheet = xlrd.open_workbook(str(path)).sheet_by_index(0)
-        out[path.name] = {
-            "sheet": sheet.name,
-            "cells": [[sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(sheet.nrows)],
-            "merged": sorted(sheet.merged_cells),
-        }
-    return out
+    folder = EXCEL_DIR / "CategoryDetail"
+    paths = sorted(p for p in folder.iterdir() if p.suffix in (".xls", ".xlsx")) if folder.exists() else []
+    return {path.name: read_workbook(path) for path in paths}
 
 
 # GET /api/stock/queryStock/history/{id} + PATCH /api/stock/queryStock/updateHistory ---

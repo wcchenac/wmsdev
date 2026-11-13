@@ -70,6 +70,22 @@ def test_parse_int_rejects_what_java_rejects(text):
         java_parse_int(text)
 
 
+@pytest.mark.parametrize(
+    ("keys", "expected"),
+    [  # HashMap<Long, ?> on Temurin 1.8.0_492
+        ([99, 1, 17, 33], [1, 17, 33, 99]),
+        ([2, 1], [1, 2]),
+        ([5000000000, 7, 4294967296, 16], [16, 4294967296, 5000000000, 7]),
+        ([3 + i * 29 for i in range(20)],
+         [32, 322, 3, 293, 264, 554, 235, 525, 206, 496, 177, 467, 148, 438, 119, 409, 90, 380, 61, 351]),
+    ],
+)
+def test_hashmap_order_long(keys, expected):
+    from app.javacompat import java_hashmap_order_long
+
+    assert java_hashmap_order_long(keys) == expected
+
+
 def test_hashmap_order_ignores_repeated_keys():
     assert java_hashmap_order(["CF1003", "CF1001", "CF1003"]) == ["CF1003", "CF1001"]
 

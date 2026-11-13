@@ -69,6 +69,21 @@ def out_stock_to_store_order(order_no: str) -> list[tuple]:
     return _rows("SELECT * FROM dbo.OutStockToStoreOrder WHERE OrderNo = :no Order By SERIAL", no=order_no)
 
 
+def product_unit(code: str) -> list[tuple]:
+    # [UNIT]
+    return _rows("SELECT UNIT FROM dbo.PRODUCT WHERE CODE= :code", code=code)
+
+
+def product_info_for_class(clas: str) -> list[tuple]:
+    # [CODE, SUPP, SUPPNAME, CCOST, CNAME, DESCRIP]
+    return _rows("SELECT CODE, SUPP, SUPPNAME, CCOST, CNAME, DESCRIP FROM dbo.ProductInfo WHERE CLAS= :clas", clas=clas)
+
+
+def product_cqty_unit() -> list[tuple]:
+    # [PROD, GWN, CQTY, UNIT]
+    return _rows("SELECT * FROM dbo.ProductCQTYUNIT")
+
+
 def product_classes() -> list[tuple]:
     # [CODE, CLAS]
     return _rows("SELECT CODE, CLAS FROM dbo.PRODUCT")

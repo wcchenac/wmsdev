@@ -169,3 +169,38 @@ class OutStockRequest(Base):
     updatedAt: Mapped[dt.datetime | None] = mapped_column(DateTime)
     createdBy: Mapped[str | None] = mapped_column(String(255))
     updatedBy: Mapped[str | None] = mapped_column(String(255))
+
+
+class StockAllocationRecord(Base):
+    """調撥 (warehouse transfer) issued by a shrink. INGWN/OUTGWN from shrinkType RB/BR."""
+
+    __tablename__ = "stockallocationrecord"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    productNo: Mapped[str | None] = mapped_column(String(255))
+    quantity: Mapped[str | None] = mapped_column(String(255))
+    unit: Mapped[str | None] = mapped_column(String(255))
+    realQuantity: Mapped[str | None] = mapped_column(String(255))
+    INGWN: Mapped[str | None] = mapped_column(String(255))
+    OUTGWN: Mapped[str | None] = mapped_column(String(255))
+    issuedByStockIdentifier: Mapped[int | None] = mapped_column(BigInteger)
+    issuedByTransactionRecord: Mapped[int | None] = mapped_column(BigInteger)
+    createdAt: Mapped[dt.datetime | None] = mapped_column(DateTime)
+    updatedAt: Mapped[dt.datetime | None] = mapped_column(DateTime)
+
+
+class StockAdjustmentRecord(Base):
+    """調整 (stock adjustment) issued by a shrink. GWN from shrinkType."""
+
+    __tablename__ = "stockadjustmentrecord"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    productNo: Mapped[str | None] = mapped_column(String(255))
+    quantity: Mapped[str | None] = mapped_column(String(255))
+    unit: Mapped[str | None] = mapped_column(String(255))
+    realQuantity: Mapped[str | None] = mapped_column(String(255))
+    GWN: Mapped[str | None] = mapped_column(String(255))
+    issuedByStockIdentifier: Mapped[int | None] = mapped_column(BigInteger)
+    issuedByTransactionRecord: Mapped[int | None] = mapped_column(BigInteger)
+    createdAt: Mapped[dt.datetime | None] = mapped_column(DateTime)
+    updatedAt: Mapped[dt.datetime | None] = mapped_column(DateTime)

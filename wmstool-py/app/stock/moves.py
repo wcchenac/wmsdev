@@ -6,10 +6,12 @@ Optional finder raise here when the row is missing (or, for single-result
 finders, duplicated); the router lets that become a 500 with a rollback.
 """
 
+import logging
+
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.javacompat import java_parse_long, serialize_long_array
+from app.javacompat import java_hashmap_order_long, java_parse_long, serialize_long_array
 from app.stock import products
 from app.stock.models import (
     History,
@@ -19,7 +21,9 @@ from app.stock.models import (
     StockInfo,
     TransactionRecord,
 )
-from app.timeconv import java_now_utc, taipei_today_iso
+from app.timeconv import db_to_taipei, java_now_utc, taipei_today_iso
+
+logger = logging.getLogger(__name__)
 
 
 class NotFound(Exception):
@@ -38,6 +42,11 @@ def _one(session: Session, stmt):  # noqa: ANN001, ANN202
 
 def _identifier(session: Session, identifier_id: int) -> StockIdentifier:
     return _one(session, select(StockIdentifier).where(StockIdentifier.id == identifier_id))
+
+
+def identifier(session: Session, identifier_id: int) -> StockIdentifier:
+    """stockIdentifierRepo.findById(id).get()."""
+    return _identifier(session, identifier_id)
 
 
 def _info_of(session: Session, identifier_id: int) -> StockInfo:
@@ -203,6 +212,33 @@ def create_out_stock_request(session: Session, fields: dict, editor: str) -> Out
     session.add(request)
     session.flush()
     return request
+
+
+def handle_out_stock_requests(session: Session, request_from: dict[int, str | None], editor: str) -> None:
+    """OutStockRequestFunction.updateOutStockRequest.
+
+    The pull-list workbook is created first; an unknown id then fails the whole
+    request (the DB rolls back, the file stays — as in Java). Rows follow Java's
+    HashMap<Long, String> key order. A failure while writing rows is only logged.
+    """
+    from app.reports import pull_list  # reports import the models; keep the module graph acyclic
+
+    now_taipei = db_to_taipei(java_now_utc())
+    assert now_taipei is not None
+    path, name = pull_list.create(now_taipei)
+    handled = []
+    for request_id in java_hashmap_order_long(request_from):
+        request = _one(session, select(OutStockRequest).where(OutStockRequest.id == request_id))
+        request.requestFrom = request_from[request_id]
+        request.isHandled = True
+        request.fileName = name
+        _touch(request, editor)
+        handled.append(request)
+    session.flush()
+    try:
+        pull_list.append(path, handled)
+    except Exception:
+        logger.exception("writing pull list %s failed", name)
 
 
 def delete_out_stock_request(session: Session, request_id: int, editor: str) -> None:

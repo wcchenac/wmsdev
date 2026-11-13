@@ -5,8 +5,8 @@
         "seeded by contract test"
       ]
     ],
-    "content-disposition": "attachment; filename=StockAdjustRecord-<TODAY:yyyyMMdd>.xls",
-    "content-type": "application/vnd.ms-excel;charset=UTF-8",
+    "content-disposition": "attachment; filename=StockAdjustRecord-<TODAY:yyyyMMdd>.<excel>",
+    "content-type": "<excel>",
     "status": 200
   },
   "allocation": {
@@ -15,8 +15,8 @@
         "seeded by contract test"
       ]
     ],
-    "content-disposition": "attachment; filename=StockAllocateRecord-<TODAY:yyyyMMdd>.xls",
-    "content-type": "application/vnd.ms-excel;charset=UTF-8",
+    "content-disposition": "attachment; filename=StockAllocateRecord-<TODAY:yyyyMMdd>.<excel>",
+    "content-type": "<excel>",
     "status": 200
   },
   "bad_category": {
@@ -29,8 +29,8 @@
         "seeded by contract test"
       ]
     ],
-    "content-disposition": "attachment; filename=CategoryDetail-??.xls",
-    "content-type": "application/vnd.ms-excel;charset=UTF-8",
+    "content-disposition": "attachment; filename=CategoryDetail-??.<excel>",
+    "content-type": "<excel>",
     "status": 200
   },
   "missing_file": {

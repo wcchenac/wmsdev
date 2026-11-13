@@ -24,11 +24,11 @@
     "status": 400
   },
   "seeded/adjustment": {
-    "body": "StockAdjustRecord-<TODAY:yyyyMMdd>.xls",
+    "body": "StockAdjustRecord-<TODAY:yyyyMMdd>.<excel>",
     "status": 200
   },
   "seeded/allocation": {
-    "body": "StockAllocateRecord-<TODAY:yyyyMMdd>.xls",
+    "body": "StockAllocateRecord-<TODAY:yyyyMMdd>.<excel>",
     "status": 200
   },
   "seeded/bogus": {
@@ -40,7 +40,7 @@
     "status": 400
   },
   "seeded/dailyComparison": {
-    "body": "StockComparisonResult-<TODAY:yyyyMMdd>.xls",
+    "body": "StockComparisonResult-<TODAY:yyyyMMdd>.<excel>",
     "status": 200
   },
   "seeded/outStockList": {

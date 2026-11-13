@@ -12,13 +12,17 @@ def excel_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("EXCEL_DIR", str(tmp_path))
     get_settings.cache_clear()
     (tmp_path / "CategoryDetail").mkdir()
-    (tmp_path / "CategoryDetail" / "CategoryDetail-棉布.xls").write_bytes(b"x")
+    (tmp_path / "CategoryDetail" / "CategoryDetail-棉布.xlsx").write_bytes(b"x")
     yield tmp_path
     get_settings.cache_clear()
 
 
 def test_resolves_category_report(excel_dir):
-    assert resolve_download("categoryDetail", "CategoryDetail-棉布") == excel_dir / "CategoryDetail" / "CategoryDetail-棉布.xls"
+    expected = excel_dir / "CategoryDetail" / "CategoryDetail-棉布.xlsx"
+    assert resolve_download("categoryDetail", "CategoryDetail-棉布") == expected
+    # FileCenter.tsx builds category-detail names with ".xls"
+    assert resolve_download("categoryDetail", "CategoryDetail-棉布.xls") == expected
+    assert resolve_download("categoryDetail", "CategoryDetail-棉布.xlsx") == expected
 
 
 @pytest.mark.parametrize("name", ["../secret", "..\\secret", "C:secret", "C:/secret", "/etc/passwd"])
@@ -29,5 +33,5 @@ def test_rejects_names_that_could_leave_the_folder(excel_dir, name):
 def test_rejects_drive_letters_even_where_they_are_plain_names(excel_dir):
     # On Windows (production), Path(folder) / "C:x" is drive-relative and escapes
     # the folder. Refuse ':' everywhere so the check does not depend on the OS.
-    (excel_dir / "CategoryDetail" / "C:secret.xls").write_bytes(b"x")
+    (excel_dir / "CategoryDetail" / "C:secret.xlsx").write_bytes(b"x")
     assert resolve_download("categoryDetail", "C:secret") is None

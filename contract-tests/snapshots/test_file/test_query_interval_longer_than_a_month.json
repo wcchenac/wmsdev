@@ -1,8 +1,8 @@
 {
   "jan1_to_feb10": {
     "body": [
-      "StockAllocateRecord-20260101.xls",
-      "StockAllocateRecord-20260105.xls"
+      "StockAllocateRecord-20260101.<excel>",
+      "StockAllocateRecord-20260105.<excel>"
     ],
     "status": 200
   }

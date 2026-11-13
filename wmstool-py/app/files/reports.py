@@ -1,6 +1,6 @@
 """Report files on disk, following wmstool's FileController / FileService rules.
 
-Reports live under EXCEL_DIR/<folder>/<year>/<month, no zero padding>/<prefix><yyyyMMdd>.xls,
+Reports live under EXCEL_DIR/<folder>/<year>/<month, no zero padding>/<prefix><yyyyMMdd>.xlsx,
 except CategoryDetail, which is flat.
 """
 
@@ -12,7 +12,9 @@ from pathlib import Path
 from app.config import get_settings
 from app.javacompat import java_period_days, parse_client_datetime
 
-EXTENSION = ".xls"
+# The Java service writes legacy .xls; the rewrite writes .xlsx (decided 2026-11-13).
+EXTENSION = ".xlsx"
+MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 NOT_FOUND = "File Not Found"
 
 
@@ -67,6 +69,11 @@ def resolve_download(category: str, file_name: str) -> Path | None:
     decodes them into the path parameter.
     """
     kind = REPORTS.get(category)
+    # The client builds category-detail names with ".xls"; accept either extension.
+    for suffix in (".xlsx", ".xls"):
+        if file_name.endswith(suffix):
+            file_name = file_name[: -len(suffix)]
+            break
     # ':' too: on Windows "C:x" is drive-relative and would escape the folder.
     if kind is None or any(sep in file_name for sep in ("/", "\\", ":")):
         return None

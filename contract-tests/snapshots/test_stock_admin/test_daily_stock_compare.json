@@ -4,7 +4,7 @@
     "status": 200
   },
   "reports": {
-    "StockComparisonResult/<YEAR>/<MONTH>/StockComparisonResult-<TODAY:yyyyMMdd>.xls": [
+    "StockComparisonResult/<YEAR>/<MONTH>/StockComparisonResult-<TODAY:yyyyMMdd>.<excel>": [
       [
         "貨號",
         "型態",
