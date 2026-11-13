@@ -72,7 +72,7 @@ const UserRegister: React.FC = () => {
     dispatch(registerUser(registration))
       .then(() => {
         setState(initialState);
-        toast.success("register success");
+        toast.success("新增使用者成功");
       })
       .catch((error) => {
         setState((prev) => ({ ...prev, isLoading: false }));

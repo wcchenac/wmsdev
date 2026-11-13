@@ -313,7 +313,7 @@ describe('UserRegister', () => {
       // Use flushPromises pattern instead of waitFor to avoid MutationObserver issues
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      expect(toast.success).toHaveBeenCalledWith('register success');
+      expect(toast.success).toHaveBeenCalledWith('新增使用者成功');
     });
 
     test('resets form after successful registration', async () => {
