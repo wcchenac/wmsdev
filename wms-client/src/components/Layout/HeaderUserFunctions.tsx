@@ -30,7 +30,7 @@ const HeaderUserFunctions: React.FC<HeaderUserFunctionsProps> = ({
       <ul className="navbar-nav ml-auto">
         <li className="nav-item">
           <NavLink className="nav-link" to="/login">
-            <i className="fa fa-user-circle-o fa-lg mr-1"></i>
+            <i className="fa fa-user-circle-o fa-lg me-1"></i>
             {fullName}
           </NavLink>
         </li>
