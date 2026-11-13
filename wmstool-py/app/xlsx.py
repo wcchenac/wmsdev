@@ -37,12 +37,12 @@ def _first_sheet(book: zipfile.ZipFile) -> str:
 def poi_last_row(source: Path | bytes) -> int:
     """0-based index of the highest <row> on the first sheet; 0 for a sheet without rows."""
     with zipfile.ZipFile(io.BytesIO(source) if isinstance(source, bytes) else source) as book:
-        previous = last = -1
+        last = -1
         with book.open(_first_sheet(book)) as sheet:
             for _, element in ElementTree.iterparse(sheet):
                 if element.tag == f"{_MAIN}row":
                     r = element.get("r")
-                    previous = int(r) - 1 if r is not None else previous + 1  # XSSF: previous row + 1
-                    last = max(last, previous)
+                    # XSSFRow: a <row> without r becomes getLastRowNum() + 1 of the rows so far
+                    last = max(last, int(r) - 1 if r is not None else last + 1)
                     element.clear()
         return max(last, 0)
