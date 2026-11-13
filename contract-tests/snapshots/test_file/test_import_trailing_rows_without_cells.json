@@ -1,0 +1,13 @@
+{
+  "bare_row": {
+    "body": null,
+    "status": 200
+  },
+  "db": {
+    "stockidentifier": []
+  },
+  "styled_row": {
+    "body": null,
+    "status": 200
+  }
+}

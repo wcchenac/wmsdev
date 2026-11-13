@@ -74,7 +74,8 @@ def test_rows_with_only_formatting_count_as_last_row(tmp_path):
     openpyxl saves and reloads the report (a second append on the same day)."""
     import openpyxl
 
-    from app.reports.workbook import append_rows, first_data_row, poi_last_row
+    from app.reports.workbook import append_rows, first_data_row
+    from app.xlsx import poi_last_row
 
     path = tmp_path / "template.xlsx"
     book = openpyxl.Workbook()
@@ -87,4 +88,4 @@ def test_rows_with_only_formatting_count_as_last_row(tmp_path):
     append_rows(path, [{0: "second"}])
     sheet = openpyxl.load_workbook(path).worksheets[0]
     assert [sheet.cell(row=r, column=1).value for r in (5, 6)] == ["first", "second"]
-    assert poi_last_row(sheet) == 5
+    assert poi_last_row(path) == 5

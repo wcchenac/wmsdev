@@ -1,9 +1,9 @@
 """Report workbooks (.xlsx): template copies and row placement with POI semantics.
 
-The Java helpers append rows at `sheet.getLastRowNum() + 1`; on an HSSF sheet
-getLastRowNum() is the 0-based index of the last row and 0 for an empty sheet.
-Rows here are {0-based column: value}; None values are not written (Java's
-setCellValue(null) leaves the cell blank).
+The Java helpers append rows at `sheet.getLastRowNum() + 1` (app.xlsx.poi_last_row:
+the 0-based index of the last row, 0 for an empty sheet). Rows here are {0-based
+column: value}; None values are not written (Java's setCellValue(null) leaves the
+cell blank).
 """
 
 import datetime as dt
@@ -13,6 +13,7 @@ import openpyxl
 from openpyxl.worksheet.worksheet import Worksheet
 
 from app.files.reports import EXTENSION, excel_root
+from app.xlsx import poi_last_row
 
 Row = dict[int, str | int | float | None]
 
@@ -49,17 +50,6 @@ def recreate_from_template(folder: str, template: str, target: Path) -> Path:
     return _write(target, _template(folder, template).read_bytes())
 
 
-def poi_last_row(sheet: Worksheet) -> int:
-    """HSSF getLastRowNum(): 0-based index of the last row; 0 for an empty sheet.
-
-    POI counts every row record, including a row that only carries formatting (a
-    custom height) and no cells. openpyxl's max_row only sees cells, so rows kept in
-    row_dimensions (a converted template's formatted rows) are counted as well.
-    """
-    last = max(sheet.max_row, max(sheet.row_dimensions, default=1))  # 1-based
-    return max(last - 1, 0)
-
-
 def write_row(sheet: Worksheet, index: int, cells: Row, font=None) -> None:  # noqa: ANN001
     for col, value in cells.items():
         if value is None:
@@ -71,9 +61,9 @@ def write_row(sheet: Worksheet, index: int, cells: Row, font=None) -> None:  # n
 
 def append_rows(path: Path, rows: list[Row], font=None) -> None:  # noqa: ANN001
     """Append rows after the last one (getLastRowNum() + 1) on the first sheet."""
+    start = first_data_row(path)  # from the file: openpyxl does not see every row
     book = openpyxl.load_workbook(path)
     sheet = book.worksheets[0]
-    start = poi_last_row(sheet) + 1
     for offset, cells in enumerate(rows):
         write_row(sheet, start + offset, cells, font)
     book.save(path)
@@ -81,4 +71,4 @@ def append_rows(path: Path, rows: list[Row], font=None) -> None:  # noqa: ANN001
 
 def first_data_row(path: Path) -> int:
     """The 0-based row the next append_rows() call starts at."""
-    return poi_last_row(openpyxl.load_workbook(path, read_only=False).worksheets[0]) + 1
+    return poi_last_row(path) + 1
