@@ -51,7 +51,6 @@ const Login: React.FC = () => {
   useUpdateEffect(reduxErrors, (nextErrors) => {
     if (nextErrors) {
       setErrors(nextErrors);
-      setIsSubmitting(false);
     }
   });
 
@@ -91,7 +90,11 @@ const Login: React.FC = () => {
       password
     };
 
-    dispatch(login(loginRequest));
+    // The button comes back when the request settles, not when the stored error changes:
+    // the same error twice in a row leaves the store unchanged.
+    dispatch(login(loginRequest)).finally(() => {
+      setIsSubmitting(false);
+    });
   };
 
   const hasEmployeeIdError = touched.employeeId && errors.username;

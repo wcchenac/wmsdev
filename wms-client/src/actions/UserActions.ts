@@ -56,9 +56,16 @@ export const login =
       return res;
     } catch (err) {
       const error = err as { response?: { data?: unknown } };
+      const data = error.response?.data;
+      // A rejected login answers with { username, password } messages. Anything else (no
+      // response, or a proxy's HTML error page when the backend is down) gets the generic
+      // message, so the form always receives an object it can show.
       dispatch({
         type: GET_Errors,
-        payload: error.response?.data || { message: "登入失敗，請檢查帳號密碼" },
+        payload:
+          data !== null && typeof data === "object" && !Array.isArray(data)
+            ? data
+            : { message: "登入失敗，請檢查帳號密碼" },
       });
     }
   };

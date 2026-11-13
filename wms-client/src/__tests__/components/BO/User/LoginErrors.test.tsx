@@ -207,3 +207,36 @@ describe('Login valid marks', () => {
     expect(marks(container)).toEqual({ employeeId: true, password: true });
   });
 });
+
+describe('Login when the proxy answers with an error page', () => {
+  // Behind nginx, a backend that is down gives 502 with an HTML body, so error.response.data
+  // is a string, not { username, password }.
+  beforeEach(() => {
+    vi.mocked(API.post).mockReset().mockRejectedValue(
+      Object.assign(new Error('Request failed with status code 502'), {
+        response: { status: 502, data: '<html><body><h1>502 Bad Gateway</h1></body></html>' },
+      })
+    );
+  });
+
+  test('shows the request-failed message', async () => {
+    const { container } = renderLogin();
+
+    await submit(container, 'admin', 'admin123');
+
+    expect(screen.getByText('登入失敗，請檢查帳號密碼')).toBeInTheDocument();
+  });
+
+  test('the login button works again after a second failed attempt', async () => {
+    const { container } = renderLogin();
+    const button = () => container.querySelector<HTMLButtonElement>('button[type=submit]')!;
+
+    await submit(container, 'admin', 'admin123');
+    expect(button()).toBeEnabled();
+
+    await submit(container, 'admin', 'admin123');
+    expect(button()).toBeEnabled();
+    expect(button()).toHaveTextContent('登入');
+    expect(button()).not.toHaveTextContent('登入中');
+  });
+});
