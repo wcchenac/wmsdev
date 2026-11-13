@@ -87,9 +87,12 @@ docker compose up -d --wait
 | `03-instock-rollback-atomic.patch` | 第 3 項：入庫回滾任何一個 id 失敗就整筆回滾、回 400 | `test_in_stock_rollback`、`test_in_stock_rollback_partial_failure` |
 | `04-shrink-rollback-atomic.patch` | 第 4 項：減肥回滾任何一步失敗（重複減肥、沒減肥過、範本遺失）就整筆回滾、回 400；重建報表前先確認兩份範本都能解析 | `test_shrink_stock_rollback`、`test_shrink_rollback_after_double_shrink`、`test_shrink_rollback_template_missing_keeps_reports`、`test_shrink_rollback_adjustment_template_missing` |
 | `05-pull-list-append-same-second.patch` | 第 5 項：同一秒已有拉貨單時附加在後面，不再用範本覆寫（檔名格式不變） | `test_out_stock_update_twice_in_one_second` |
-| `06-stock-compare-write-after-compare.patch` | 第 6 項：每日比對先算完才重設當天報表；比對失敗保留舊報表，寫入失敗回 400 | `test_daily_stock_compare_failure_resets_todays_report` |
+| `06-stock-compare-write-after-compare.patch` | 第 6 項：每日比對先算完才重設當天報表；比對失敗保留舊報表，寫入失敗回 400 | `test_daily_stock_compare_failure_resets_todays_report`（用不是數字的數量讓比對失敗；NULL 數量在第 7 項之後不再失敗） |
+| `07-stock-compare-null-quantity.patch` | 第 7 項：WMS 數量為 NULL 而 ERP 有對應時寫一列 Fail（WMS 數量、差異留空），不再讓整次比對失敗 | `test_daily_stock_compare_null_quantity_with_erp_match` |
 | `08-shrink-report-failure-keeps-shrink.patch` | 第 8 項：減肥寫報表失敗時減肥照樣成立、回 200，報表失敗只記 log；兩份報表各自寫入 | `test_shrink_stock_report_template_missing`、`test_shrink_stock_template_missing_with_todays_report` |
 | `09-import-skip-blank-rows.patch` | 第 9 項：進貨匯入略過沒有任何文字的列，不再整個檔案被略過 | `test_import_cell_existence`、`test_import_trailing_rows_without_cells`、`test_import_blank_rows_between_data` |
+| `10-category-detail-missing-erp-product.patch` | 第 10 項：類別明細裡 ERP 查不到的商品，商品資訊欄留空，不再讓整份報表失敗（原本還會留下 0 byte 的報表檔） | `test_category_detail_report_product_missing_in_erp` |
+| `12-missing-field-message.patch` | 第 12 項：`shrinkStock` 缺 `inStockRequests`、`outStock/update` 缺 `outStockUpdate` 時，400 附上 `{欄位: 訊息}`；拉貨單在檢查之後才建立 | `test_shrink_stock_without_pieces_field`、`test_out_stock_update_without_map` |
 
 Python 版跟著修補版 Java 走：上表的測試在 Python 上比對 `.fixed.json`。
 

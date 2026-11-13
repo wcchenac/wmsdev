@@ -46,12 +46,16 @@ def comparison_rows(session: Session) -> list[list[str | None]]:
         product_no, type_, wms_qty, unit = p.productNo or "", p.type or "", p.quantity, p.unit or ""
         erp_entry = remaining.get(product_no, {}).get(type_)
         if erp_entry is not None:
-            if wms_qty is None:  # Java parses the quantity only on this branch
-                raise TypeError("product quantity is null (Java: NullPointerException)")
             erp_qty = erp_entry["quantity"]
-            diff = java_parse_double(wms_qty) - java_parse_double(erp_qty)
             row = [product_no, type_, erp_qty, wms_qty, unit]
-            row += ["Pass"] if java_format_2f(abs(diff)) == "0.00" else ["Fail", java_format_2f(diff)]
+            if wms_qty is None:
+                # Nothing to compare: a Fail row with blank WMS quantity and difference
+                # (defect 7 fixed, as in contract-tests/java-patches/07-stock-compare-null-
+                # quantity.patch); Java's Double.parseDouble(null) failed the whole comparison.
+                row += ["Fail", None]
+            else:
+                diff = java_parse_double(wms_qty) - java_parse_double(erp_qty)
+                row += ["Pass"] if java_format_2f(abs(diff)) == "0.00" else ["Fail", java_format_2f(diff)]
             del remaining[product_no][type_]
             if not remaining[product_no]:
                 del remaining[product_no]

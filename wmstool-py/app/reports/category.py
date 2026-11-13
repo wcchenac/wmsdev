@@ -6,6 +6,7 @@ positions follow HSSF's getLastRowNum(), which is 0 on an empty sheet; the
 writer tracks it explicitly as `last`.
 """
 
+from collections.abc import Sequence
 from pathlib import Path
 
 import openpyxl
@@ -66,7 +67,10 @@ def _picture(product_no: str) -> Path:
 def _first_part(s: _Sheet, product_no: str, info: ProductInfo) -> None:
     """Product info block, photo, table header."""
     last = s.last
-    values = info[product_no]  # Java: NullPointerException when the ERP has no row
+    # A product the ERP has no row for gets blank information cells (defect 10 fixed, as
+    # in contract-tests/java-patches/10-category-detail-missing-erp-product.patch); Java
+    # failed the whole report with a NullPointerException.
+    values: Sequence[str | None] = info.get(product_no) or [None] * 5
     for i, right in enumerate(RIGHT_LABELS):
         row = last + 4 + i
         if i < len(LEFT_LABELS):

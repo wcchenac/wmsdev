@@ -214,8 +214,9 @@ def create_out_stock_request(session: Session, fields: dict, editor: str) -> Out
     return request
 
 
-def handle_out_stock_requests(session: Session, request_from: dict[int, str | None] | None, editor: str) -> None:
-    """OutStockRequestFunction.updateOutStockRequest.
+def handle_out_stock_requests(session: Session, request_from: dict[int, str | None], editor: str) -> None:
+    """OutStockRequestFunction.updateOutStockRequest. A missing map is rejected by the
+    router before this runs (defect 12 fixed).
 
     The pull-list workbook is created first; an unknown id then fails the whole
     request (the DB rolls back, the file stays — as in Java). Rows follow the JSON
@@ -227,8 +228,6 @@ def handle_out_stock_requests(session: Session, request_from: dict[int, str | No
     now_taipei = db_to_taipei(java_now_utc())
     assert now_taipei is not None
     path, name = pull_list.create(now_taipei)
-    if request_from is None:  # Java: NullPointerException after the workbook exists
-        raise TypeError("outStockUpdate is null")
     handled = []
     for request_id in request_from:
         request = _one(session, select(OutStockRequest).where(OutStockRequest.id == request_id))

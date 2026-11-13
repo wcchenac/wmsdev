@@ -1,0 +1,13 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/utilities/CategoryDetailExcelHelper.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/utilities/CategoryDetailExcelHelper.java
+@@ -142,7 +142,9 @@
+ 		String picturePath = folderPathForPicture + seperator + productNo + filetype_picture;
+ 		int lastRow = sheet.getLastRowNum();
+ 		File f = new File(picturePath);
+-		String[] productInfo = productInfoMap.get(productNo);
++		// A product the ERP has no row for gets blank information cells instead of
++		// failing the whole report (setCellValue(null) leaves a cell blank)
++		String[] productInfo = productInfoMap.getOrDefault(productNo, new String[5]);
+ 		final String[] productTable_Left = { "品名", "價格異動" };
+ 		final String[] productTable_Right = { "廠商代碼", "廠商名稱", "成本" };
+ 		final String[] tableHeader = { "貨號", "批號", "型態", "數量", "單位", "色號", "瑕疵", "備註", "記錄", "進貨方式", "母批進貨日期" };

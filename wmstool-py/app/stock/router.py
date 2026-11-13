@@ -34,6 +34,13 @@ def _bad_request(session: Session, what: str) -> Response:
     return Response(status_code=400)
 
 
+def _missing_field(field: str, message: str) -> Response:
+    """400 naming a missing body field, in the {field: message} shape of the validation
+    errors (defect 12 fixed, as in contract-tests/java-patches/12-missing-field-message.patch;
+    Java answered an empty 400)."""
+    return JSONResponse({field: message}, status_code=400)
+
+
 def constraint_violations(items: list[BaseModel], param: str, messages: dict[str, str]) -> dict[str, str]:
     """`List<@Valid T>` on a @Validated controller -> ConstraintViolationException, which
     CustomResponseEntityExceptionHandler turns into {"<param>[i].<field>": "<message>"} (400)."""
@@ -106,9 +113,9 @@ def in_stocks(body: list[InStockRequest], request: Request, session: Session = D
 @router.post("/shrinkStock")
 def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
+    if body.inStockRequests is None:  # defect 12 fixed: name the missing field
+        return _missing_field("inStockRequests", "必須提供切出的布卷清單")
     try:
-        if body.inStockRequests is None:
-            raise TypeError("inStockRequests is null (Java: NullPointerException)")
         report_writes = shrink.shrink_stock(session, shrink.ShrinkRequest(
             old_identifier_id=body.oldStockIdentifierId, pieces=[r.to_item() for r in body.inStockRequests],
             allocation=body.allocation, adjustment=body.adjustment, shrink_type=body.shrinkType,
@@ -148,13 +155,15 @@ def shrink_rollback_list(productNo: str, request: Request, session: Session = De
 
 
 class OutStockUpdateRequest(BaseModel):
-    outStockUpdate: dict[int, str | None] | None = None  # null -> 400 after the workbook is created
+    outStockUpdate: dict[int, str | None] | None = None  # null -> 400 naming the field (defect 12)
 
 
 @router.patch("/outStock/update")
 def out_stock_update(body: OutStockUpdateRequest, request: Request,
                      session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
+    if body.outStockUpdate is None:  # defect 12 fixed: checked before any pull list is written
+        return _missing_field("outStockUpdate", "必須提供要處理的拉貨單")
     try:
         moves.handle_out_stock_requests(session, body.outStockUpdate, principal.full_name)
     except Exception:

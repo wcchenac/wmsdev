@@ -196,6 +196,8 @@ def test_shrink_rollback_adjustment_template_missing(admin, db, golden):
         golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("a missing field answers an empty 400; patched Java names the field "
+                      "({field: message}, like the validation errors)")
 def test_shrink_stock_without_pieces_field(operator, db, golden):
     """No `inStockRequests` key: Java iterates a null list (NullPointerException) -> 400, rolled back."""
     seed_baseline(operator)
@@ -371,6 +373,8 @@ def test_shrink_rollback_after_double_shrink(admin, db, golden):
     golden.add("after", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
 
 
+@pytest.mark.java_bug("a missing field answers an empty 400 and leaves a template-only pull list behind; "
+                      "patched Java checks first, names the field and writes no file")
 def test_out_stock_update_without_map(operator, db, golden):
     """Body `{}`: Java creates the pull-list workbook, then NPEs on the null map -> 400,
     rolled back, the template-only workbook stays."""
