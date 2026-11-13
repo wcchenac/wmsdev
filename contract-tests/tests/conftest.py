@@ -193,12 +193,33 @@ def root_connection() -> pymysql.connections.Connection:
     return pymysql.connect(**{**DB, "user": "root", "password": "root"})
 
 
+def _restore_widened_children_column(cur) -> None:  # noqa: ANN001
+    """Only where the rewrite's Alembic migration 0002 (TINYBLOB -> BLOB) is recorded as
+    applied: a database the migration never ran on keeps its TINYBLOB, so a Python
+    backend without the migration still fails test_shrink_stock_child_limit."""
+    cur.execute("SELECT COUNT(*) FROM information_schema.TABLES "
+                "WHERE TABLE_SCHEMA = %s AND TABLE_NAME = 'alembic_version'", (DB["database"],))
+    if not cur.fetchone()[0]:
+        return
+    cur.execute(f"SELECT version_num FROM `{DB['database']}`.alembic_version")
+    version = cur.fetchone()
+    if version is None or version[0] < "0002":
+        return
+    cur.execute("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = %s "
+                "AND TABLE_NAME = 'history' AND COLUMN_NAME = 'childrenIdentifierId'", (DB["database"],))
+    column = cur.fetchone()
+    if column is not None and column[0].lower() == "tinyblob":
+        cur.execute(f"ALTER TABLE `{DB['database']}`.history MODIFY childrenIdentifierId BLOB")
+
+
 @pytest.fixture(scope="session")
 def recover_interrupted_run():
     """A run killed mid-test can leave a fault-injection trigger (contract_*) in the
-    database, swapped templates aside as *.saved, and a product photo in pictures/;
-    TRUNCATE and reset_files would keep the first and third and delete the second.
-    Undo all three once per session. pictures/ only ever holds photos tests put there."""
+    database, swapped templates aside as *.saved, a product photo in pictures/, and
+    history.childrenIdentifierId narrowed to TINYBLOB (test_shrink_stock_child_limit
+    narrows it for the original Java). TRUNCATE and reset_files would keep the first,
+    third and fourth and delete the second. Undo all four once per session.
+    pictures/ only ever holds photos tests put there."""
     root = root_connection()
     try:
         with root.cursor() as cur:
@@ -206,6 +227,7 @@ def recover_interrupted_run():
                         "WHERE TRIGGER_SCHEMA = %s AND TRIGGER_NAME LIKE 'contract\\_%%'", (DB["database"],))
             for (name,) in cur.fetchall():
                 cur.execute(f"DROP TRIGGER IF EXISTS `{name}`")
+            _restore_widened_children_column(cur)
     finally:
         root.close()
     for rel in TEMPLATE_FILES:
