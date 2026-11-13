@@ -70,4 +70,41 @@ describe.each([
     expect(editableQuantityInputs()).toHaveLength(before + added);
     expect(screen.getByPlaceholderText('輸入列數')).toHaveValue('0');
   });
+
+  test('50 rows is the most that can be added at once', async () => {
+    renderBoard();
+    const before = editableQuantityInputs().length;
+
+    await addRows('50');
+
+    expect(editableQuantityInputs()).toHaveLength(before + 50);
+    expect(screen.queryByText('一次最多新增 50 列')).not.toBeInTheDocument();
+  });
+
+  test.each(['51', '1e6'])('%j shows a hint and adds nothing', async (value) => {
+    renderBoard();
+    const before = editableQuantityInputs().length;
+
+    await addRows(value);
+
+    expect(editableQuantityInputs()).toHaveLength(before);
+    const input = screen.getByPlaceholderText('輸入列數');
+    expect(input).toHaveValue(value);
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription('一次最多新增 50 列');
+    expect(screen.getByRole('button', { name: '新增' })).toBeDisabled();
+  });
+
+  test('the hint goes away once the value is back within the limit', async () => {
+    renderBoard();
+    const input = screen.getByPlaceholderText('輸入列數');
+
+    fireEvent.change(input, { target: { value: '51' } });
+    expect(screen.getByText('一次最多新增 50 列')).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: '5' } });
+    expect(screen.queryByText('一次最多新增 50 列')).not.toBeInTheDocument();
+    expect(input).not.toHaveAttribute('aria-invalid');
+    expect(screen.getByRole('button', { name: '新增' })).toBeEnabled();
+  });
 });

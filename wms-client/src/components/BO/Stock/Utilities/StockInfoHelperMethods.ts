@@ -50,6 +50,14 @@ export function parseRowCount(value: string | number): number {
   return Number.isFinite(count) && count > 0 ? Math.trunc(count) : 0;
 }
 
+// Most rows 新增複數列數 may add at once; a typo like 1000 would otherwise render
+// that many form rows and freeze the page.
+export const MAX_ASSIGN_ROW_COUNT = 50;
+
+export function exceedsRowCountLimit(value: string | number): boolean {
+  return parseRowCount(value) > MAX_ASSIGN_ROW_COUNT;
+}
+
 // accumulate the total quantity by type
 export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulateResult {
   let roll = 0.0;

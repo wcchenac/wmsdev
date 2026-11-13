@@ -5,6 +5,7 @@ import {
   quantityAccumulate,
   updateStockInfoesCopy,
   parseRowCount,
+  exceedsRowCountLimit,
 } from "../../Utilities/StockInfoHelperMethods";
 import ToolbarForAddDeleteSubmit from "../../Utilities/ToolbarForAddDeleteSubmit";
 import { DefectOptions, DefectOption } from "../../../../../enums/Enums";
@@ -265,6 +266,11 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
 
   const handleRowNumSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // The toolbar shows the limit hint; keep the typed value so it stays visible.
+    if (exceedsRowCountLimit(assignRowNum)) {
+      return;
+    }
 
     setStockInfoes((prevStockInfoes) => {
       const stockInfoesCopy = copy(prevStockInfoes);

@@ -7,6 +7,7 @@ import {
     joinInfoesDefectArray,
     defectStringTransToOptions,
     parseRowCount,
+    exceedsRowCountLimit,
 } from '../../Utilities/StockInfoHelperMethods';
 import ToolbarForAddDeleteSubmit from '../../Utilities/ToolbarForAddDeleteSubmit';
 import ShrinkConfirmModal from './ShrinkConfirmModal';
@@ -214,6 +215,11 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
 
     const handleRowNumSubmit = useCallback((e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
+
+        // The toolbar shows the limit hint; keep the typed value so it stays visible.
+        if (exceedsRowCountLimit(assignRowNum)) {
+            return;
+        }
 
         setNewStockInfoes(prev => {
             const stockInfoesCopy = [...prev];

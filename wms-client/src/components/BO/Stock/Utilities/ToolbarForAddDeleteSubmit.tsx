@@ -1,4 +1,5 @@
-import React, { ChangeEvent, FormEvent, MouseEvent } from "react";
+import React, { ChangeEvent, FormEvent, MouseEvent, useId } from "react";
+import { exceedsRowCountLimit, MAX_ASSIGN_ROW_COUNT } from "./StockInfoHelperMethods";
 
 interface ToolbarForAddDeleteSubmitProps {
   onAddClick: (e: MouseEvent<HTMLButtonElement>) => void;
@@ -23,6 +24,9 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
   submitDisabled,
   isLoading = false,
 }) => {
+  const rowLimitHintId = useId();
+  const tooManyRows = exceedsRowCountLimit(assignRowNum);
+
   return (
     <React.Fragment>
       <div className="row">
@@ -48,16 +52,25 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
           <form className="d-flex align-items-center" onSubmit={handleRowNumSubmit}>
             <label className="form-label mb-0 me-2 text-nowrap">新增複數列數</label>
 
-            <input
-              type="text"
-              className="form-control w-auto me-2"
-              placeholder="輸入列數"
-              name="assignRowNum"
-              value={assignRowNum}
-              onChange={handleRowNumChange}
-              disabled={isLoading}
-            />
-            <button className="btn btn-primary text-nowrap" disabled={isLoading}>新增</button>
+            <div className="position-relative me-2">
+              <input
+                type="text"
+                className={"form-control w-auto" + (tooManyRows ? " is-invalid" : "")}
+                placeholder="輸入列數"
+                name="assignRowNum"
+                value={assignRowNum}
+                onChange={handleRowNumChange}
+                disabled={isLoading}
+                aria-invalid={tooManyRows || undefined}
+                aria-describedby={tooManyRows ? rowLimitHintId : undefined}
+              />
+              {tooManyRows ? (
+                <div id={rowLimitHintId} className="invalid-tooltip">
+                  一次最多新增 {MAX_ASSIGN_ROW_COUNT} 列
+                </div>
+              ) : null}
+            </div>
+            <button className="btn btn-primary text-nowrap" disabled={isLoading || tooManyRows}>新增</button>
           </form>
         </div>
         <div className="col-md-auto">

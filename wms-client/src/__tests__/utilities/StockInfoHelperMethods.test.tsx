@@ -6,7 +6,9 @@ import {
   joinInfoesDefectArray,
   defectIndexMapper,
   defectStringTransToOptions,
-  parseRowCount
+  parseRowCount,
+  exceedsRowCountLimit,
+  MAX_ASSIGN_ROW_COUNT
 } from '../../components/BO/Stock/Utilities/StockInfoHelperMethods';
 import { StockIdentifierType, DefectOptions } from '../../enums/Enums';
 
@@ -72,6 +74,26 @@ describe('StockInfoHelperMethods', () => {
       ['Infinity', 0],
     ])('%j -> %i', (input, expected) => {
       expect(parseRowCount(input)).toBe(expected);
+    });
+  });
+
+  describe('exceedsRowCountLimit', () => {
+    test('the limit is 50 rows', () => {
+      expect(MAX_ASSIGN_ROW_COUNT).toBe(50);
+    });
+
+    test.each([
+      ['50', false],
+      ['50.9', false],
+      [50, false],
+      ['51', true],
+      [51, true],
+      ['1e6', true],
+      ['', false],
+      ['abc', false],
+      ['-100', false],
+    ])('%j -> %s', (input, expected) => {
+      expect(exceedsRowCountLimit(input)).toBe(expected);
     });
   });
 
