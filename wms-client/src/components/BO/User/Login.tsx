@@ -10,7 +10,11 @@ import { useUpdateEffect } from "../../../utilities/useUpdateEffect";
 interface LoginErrors {
   username?: string;
   password?: string;
-  /** Set when the request itself failed (no response): "登入失敗，請檢查帳號密碼". */
+  /**
+   * "登入失敗，請檢查帳號密碼", set by the login action whenever the failure is not a rejected
+   * login (InvalidLoginResponse): no response, a proxy's HTML error page, a server error or
+   * Spring error body, or field messages that are not strings.
+   */
   message?: string;
 }
 
