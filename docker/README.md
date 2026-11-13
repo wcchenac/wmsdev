@@ -67,7 +67,9 @@ To use another backend from the same image, change the upstream and recreate the
 BACKEND_UPSTREAM=http://192.168.20.113:8080 docker compose -f docker/docker-compose.yml up -d frontend
 ```
 
-The host in `BACKEND_UPSTREAM` must be reachable from the frontend container. When the browser should call a backend directly, set `API_BASE_URL` instead (the container rewrites `/config.js` before nginx starts):
+The host in `BACKEND_UPSTREAM` must be reachable from the frontend container. Give it as `scheme://host[:port]` without a path. nginx resolves the host when a request comes in (re-resolving every 10 s), not at startup, so the frontend starts even while the backend's name cannot be resolved yet; `/api` answers 502 until it can. The DNS server is read from the container's `/etc/resolv.conf` (Docker's `127.0.0.11` on a Compose network); set `NGINX_RESOLVER` to use another one.
+
+When the browser should call a backend directly, set `API_BASE_URL` instead (the container rewrites `/config.js` before nginx starts):
 
 ```bash
 API_BASE_URL=http://192.168.20.113:8080 docker compose -f docker/docker-compose.yml up -d frontend

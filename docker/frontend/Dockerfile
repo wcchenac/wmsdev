@@ -16,8 +16,9 @@ RUN npm run build
 FROM nginx:1.27-alpine
 
 COPY docker/frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY docker/frontend/15-resolver.envsh /docker-entrypoint.d/15-resolver.envsh
 COPY docker/frontend/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
-RUN chmod +x /docker-entrypoint.d/40-runtime-config.sh
+RUN chmod +x /docker-entrypoint.d/15-resolver.envsh /docker-entrypoint.d/40-runtime-config.sh
 
 COPY --from=build /app/build /usr/share/nginx/html
 
