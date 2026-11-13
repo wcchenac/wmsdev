@@ -160,7 +160,7 @@ describe.each(cases)('%s', (_name, rollback, listUrl) => {
   });
 });
 
-// The pages are called 入庫回朔 and 減肥回朔, so their messages say 回朔 too.
+// The pages are called 入庫回朔 and 減肥回朔, so their messages use the same words.
 describe('rollback wording', () => {
   test('the 「cannot confirm」 messages do not blame the connection (they also cover 5xx)', () => {
     expect(ROLLBACK_UNCONFIRMED_MESSAGE).not.toMatch(/連線/);
@@ -181,9 +181,9 @@ describe('rollback wording', () => {
 
   test.each([
     ['inStockRollback', () => inStockRollback([1], 'normal', 'IN001'), '入庫回朔失敗'],
-    ['shrinkRollback', () => shrinkRollback(7, 'CF1001'), '縮碼回朔失敗'],
+    ['shrinkRollback', () => shrinkRollback(7, 'CF1001'), '減肥回朔失敗'],
     ['getInStockRollbackList', () => getInStockRollbackList('normal', 'IN001'), '無法取得入庫回朔列表'],
-    ['getShrinkRollbackList', () => getShrinkRollbackList('CF1001'), '無法取得縮碼回朔列表'],
+    ['getShrinkRollbackList', () => getShrinkRollbackList('CF1001'), '無法取得減肥回朔列表'],
   ] as const)('%s stores its message when the failure has no body', async (_name, action, message) => {
     vi.mocked(API.patch).mockReset().mockRejectedValue(networkError());
     vi.mocked(API.get).mockReset().mockRejectedValue(networkError());
