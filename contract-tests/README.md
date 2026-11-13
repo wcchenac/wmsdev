@@ -88,6 +88,11 @@ docker compose -f docker-compose.yml -f docker-compose.java-fixed.yml up -d --wa
 docker compose up -d --wait                  # 換回原版 Java
 ```
 
+## 切換方式（2026-11-13 決定：不並行，直接切換）
+
+- 切換後 Python 版只寫 `.xlsx`；正式機既有的 `.xls` 報表**不轉換**，Python 版的查詢（today／interval／categoryList）與下載同時認得 `.xls` 與 `.xlsx`，兩者並存時以 `.xlsx` 為準（`test_legacy_xls_reports_remain_usable`）。
+- `shrinkStock` 的調撥／調整報表在資料庫 commit 之後才寫。寫入失敗（例如範本遺失、當天報表被 Excel 開著）時減肥已保留、回 400，與 Java 相同；log 會記下需要人工補寫的報表（`test_shrink_stock_report_template_missing`）。
+
 ## 部署注意：報表範本
 
 Python 版讀 `.xlsx` 範本。正式機 `D:/OutputFiles` 下的 4 個範本（`OutStockList/OutStockListTemplate`、`STKADST/StockAdjustRecordTemplate`、`STKALLT/StockAllocateRecordTemplate`、`StockComparisonResult/StockComparisonResultTemplate`）需轉成 `.xlsx` 並放在原位置：

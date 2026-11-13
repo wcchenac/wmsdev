@@ -3,6 +3,7 @@
 import datetime as dt
 import logging
 import struct
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from sqlalchemy import delete, select
@@ -130,7 +131,13 @@ def _single(session: Session, stmt):  # noqa: ANN001, ANN202
     return rows[0]
 
 
-def shrink_stock(session: Session, req: ShrinkRequest, editor: str) -> None:
+ReportWrite = Callable[[], str]
+
+
+def shrink_stock(session: Session, req: ShrinkRequest, editor: str) -> list[ReportWrite]:
+    """The DB part of a shrink. Returns the report writes, which the caller runs only
+    after the transaction commits (decided 2026-11-13): a rollback can then never leave
+    an allocation/adjustment row in a report for a shrink that did not happen."""
     if req.allocation is None or req.adjustment is None:
         raise TypeError("allocation/adjustment is null (Java: unboxing NullPointerException)")
     allocation, adjustment = java_float(req.allocation), java_float(req.adjustment)
@@ -155,6 +162,7 @@ def shrink_stock(session: Session, req: ShrinkRequest, editor: str) -> None:
 
     create_stock_infoes(session, req.pieces, editor)
 
+    writes: list[ReportWrite] = []
     if allocation != 0:
         rec = allocation_record(old.productNo, old.unit, req.shrink_type)
         rec.quantity = allocation_text
@@ -163,7 +171,7 @@ def shrink_stock(session: Session, req: ShrinkRequest, editor: str) -> None:
         rec.createdAt = java_now_utc()
         session.add(rec)
         session.flush()
-        write_allocations([rec], today)
+        writes.append(lambda: write_allocations([rec], today))
     if adjustment != 0:
         adj = adjustment_record(old.productNo, old.unit, req.shrink_type)
         adj.quantity = adjustment_text
@@ -172,4 +180,5 @@ def shrink_stock(session: Session, req: ShrinkRequest, editor: str) -> None:
         adj.createdAt = java_now_utc()
         session.add(adj)
         session.flush()
-        write_adjustments([adj], today)
+        writes.append(lambda: write_adjustments([adj], today))
+    return writes

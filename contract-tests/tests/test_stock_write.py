@@ -126,6 +126,28 @@ def test_shrink_stock_float_rounding(operator, db, golden):
     golden.add("reports", generated_reports())
 
 
+def test_shrink_stock_report_template_missing(operator, db, golden):
+    """The adjustment template is missing: the report write fails with an IOException.
+    Java's javax @Transactional commits on checked exceptions, so the shrink is kept,
+    the allocation report is written, and the answer is 400."""
+    from conftest import EXCEL_DIR
+
+    templates = [EXCEL_DIR / "STKADST" / f"StockAdjustRecordTemplate{ext}" for ext in (".xls", ".xlsx")]
+    moved = [(t, t.with_name(t.name + ".moved")) for t in templates if t.exists()]
+    for src, dst in moved:
+        src.rename(dst)
+    try:
+        seed_baseline(operator)
+        golden.response("shrink", operator.post("/api/stock/shrinkStock",
+                                                json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5)))
+        golden.add("db", db_state(db, ["stockidentifier", "transactionrecord", "stockallocationrecord",
+                                       "stockadjustmentrecord"]))
+        golden.add("reports", generated_reports())
+    finally:
+        for src, dst in moved:
+            dst.rename(src)
+
+
 def test_shrink_stock_without_adjustment(operator, db, golden):
     seed_baseline(operator)
     golden.response("shrink", operator.post("/api/stock/shrinkStock",

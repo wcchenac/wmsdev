@@ -107,12 +107,22 @@ def in_stocks(body: list[InStockRequest], request: Request, session: Session = D
 def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
     try:
-        shrink.shrink_stock(session, shrink.ShrinkRequest(
+        report_writes = shrink.shrink_stock(session, shrink.ShrinkRequest(
             old_identifier_id=body.oldStockIdentifierId, pieces=[r.to_item() for r in body.inStockRequests],
             allocation=body.allocation, adjustment=body.adjustment, shrink_type=body.shrinkType,
         ), principal.full_name)
+        session.commit()
     except Exception:
         return _bad_request(session, "shrinkStock")
+    # Reports only after the commit. A failed write keeps the shrink and answers 400,
+    # which is what Java does (javax @Transactional commits on its IOException).
+    try:
+        for write in report_writes:
+            write()
+    except Exception:
+        logger.exception("shrink %s committed but a report write failed; rewrite the report by hand",
+                         body.oldStockIdentifierId)
+        return Response(status_code=400)
     return Response(status_code=200)
 
 
