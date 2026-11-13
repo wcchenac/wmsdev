@@ -185,7 +185,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
     const handleDefectChange = useCallback((selectedOptions: (DefectOption | undefined)[], i: number): void => {
         setNewStockInfoes(prev => {
             const copyList = [...prev];
-            copyList[i].defect = selectedOptions;
+            copyList[i] = { ...copyList[i], defect: selectedOptions };
             return copyList;
         });
     }, []);
@@ -251,7 +251,8 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
 
             const numRows = parseRowCount(assignRowNum);
             for (let i = 0; i < numRows; i += 1) {
-                stockInfoesCopy.push({ ...newStockInfo });
+                // Each row gets its own object, including its errors.
+                stockInfoesCopy.push(copy(newStockInfo));
             }
 
             return stockInfoesCopy;
@@ -263,12 +264,11 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
     const handleShipCheck = useCallback((checked: boolean, i: number): void => {
         setNewStockInfoes(prev => {
             const copyList = [...prev];
-            copyList[i].directShip = checked;
-
-            if (!checked) {
-                copyList[i].outStockReason = '';
-            }
-
+            copyList[i] = {
+                ...copyList[i],
+                directShip: checked,
+                outStockReason: checked ? copyList[i].outStockReason : '',
+            };
             return copyList;
         });
     }, []);
@@ -276,7 +276,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
     const handleReasonButton = useCallback((value: string, i: number): void => {
         setNewStockInfoes(prev => {
             const copyList = [...prev];
-            copyList[i].outStockReason = value;
+            copyList[i] = { ...copyList[i], outStockReason: value };
             return copyList;
         });
     }, []);

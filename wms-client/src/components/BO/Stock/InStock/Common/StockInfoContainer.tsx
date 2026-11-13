@@ -234,7 +234,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
   const handleDefectChange = useCallback((selectedOptions: MultiValue<DefectOption>, i: number) => {
     setStockInfoes((prevStockInfoes) => {
       const copyList = [...prevStockInfoes];
-      copyList[i].defect = selectedOptions as DefectOption[];
+      copyList[i] = { ...copyList[i], defect: selectedOptions as DefectOption[] };
       return copyList;
     });
   }, []);
@@ -242,12 +242,11 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
   const handleShipCheck = useCallback((checked: boolean, i: number) => {
     setStockInfoes((prevStockInfoes) => {
       const copyList = [...prevStockInfoes];
-      copyList[i].directShip = checked;
-
-      if (!checked) {
-        copyList[i].outStockReason = "";
-      }
-
+      copyList[i] = {
+        ...copyList[i],
+        directShip: checked,
+        outStockReason: checked ? copyList[i].outStockReason : "",
+      };
       return copyList;
     });
   }, []);
@@ -255,7 +254,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
   const handleReasonButton = useCallback((value: string, i: number) => {
     setStockInfoes((prevStockInfoes) => {
       const copyList = [...prevStockInfoes];
-      copyList[i].outStockReason = value;
+      copyList[i] = { ...copyList[i], outStockReason: value };
       return copyList;
     });
   }, []);
@@ -301,7 +300,8 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
 
       const numRows = parseRowCount(assignRowNum);
       for (let i = 0; i < numRows; i += 1) {
-        stockInfoesCopy.push(newStockInfo);
+        // Each row gets its own object; sharing one made a change to a row show on all of them.
+        stockInfoesCopy.push(copy(newStockInfo));
       }
 
       return stockInfoesCopy;

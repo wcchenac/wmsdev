@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import StockInfoContainer from '../../../../components/BO/Stock/InStock/Common/StockInfoContainer';
 import ModifyRequestBoard from '../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ModifyRequestBoard';
 import { StockIdentifierType } from '../../../../enums/Enums';
@@ -106,5 +106,38 @@ describe.each([
     expect(screen.queryByText('一次最多新增 50 列')).not.toBeInTheDocument();
     expect(input).not.toHaveAttribute('aria-invalid');
     expect(screen.getByRole('button', { name: '新增' })).toBeEnabled();
+  });
+});
+
+// Rows added together with 新增複數列數 must be independent: marking one row for 直出 (direct
+// ship) must not mark the others.
+describe.each([
+  ['入庫 Step 3 (StockInfoContainer)', renderInStock],
+  ['減肥 (ModifyRequestBoard)', renderShrink],
+])('%s rows added together', (_name, renderBoard) => {
+  const shipIcons = (container: HTMLElement, checked: boolean) =>
+    Array.from(
+      container.querySelectorAll<SVGElement>(
+        `[data-testid=${checked ? 'CheckBoxRoundedIcon' : 'CheckBoxOutlineBlankRoundedIcon'}]`
+      )
+    );
+
+  test('marking one row for direct ship leaves the others unmarked', async () => {
+    const { container } = renderBoard();
+    const before = shipIcons(container, false).length;
+    await addRows('3');
+    const blanks = shipIcons(container, false);
+    expect(blanks).toHaveLength(before + 3);
+
+    // Mark the second of the new rows: open its ship modal, pick a reason, confirm.
+    fireEvent.click(blanks[before + 1]);
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: '中壢' }));
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: '確認' }));
+    });
+
+    expect(shipIcons(container, true)).toHaveLength(1);
+    expect(shipIcons(container, false)).toHaveLength(before + 2);
   });
 });
