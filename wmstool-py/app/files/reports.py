@@ -65,6 +65,31 @@ def find_period(category: str, start: str, end: str) -> list[str]:
     return found or [NOT_FOUND]
 
 
+def resolve_download(category: str, file_name: str) -> Path | None:
+    """The report file to send, or None (-> 400) for anything Java would reject.
+
+    Names containing a path separator are refused outright: Tomcat answers 400
+    for encoded slashes and backslashes before Spring sees them, while Starlette
+    decodes them into the path parameter.
+    """
+    kind = REPORTS.get(category)
+    # ':' too: on Windows "C:x" is drive-relative and would escape the folder.
+    if kind is None or any(sep in file_name for sep in ("/", "\\", ":")):
+        return None
+    folder = excel_root() / kind.folder
+    if category == "categoryDetail":
+        path = folder / f"{file_name}{EXTENSION}"
+    else:
+        i = file_name.find("-")
+        try:
+            year = file_name[i + 1 : i + 5]
+            month = str(int(file_name[i + 5 : i + 7]))
+        except ValueError:
+            return None
+        path = folder / year / month / f"{file_name}{EXTENSION}"
+    return path if path.is_file() else None
+
+
 def list_categories() -> list[dict[str, str]]:
     """Raises (-> 500, as in Java) when the folder is missing or a name has no '.xls'."""
     folder = excel_root() / REPORTS["categoryDetail"].folder

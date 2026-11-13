@@ -21,7 +21,6 @@
   },
   "bad_category": {
     "content-disposition": null,
-    "content-type": null,
     "status": 400
   },
   "categoryDetail": {
@@ -36,7 +35,6 @@
   },
   "missing_file": {
     "content-disposition": null,
-    "content-type": null,
     "status": 400
   },
   "sales_forbidden": {

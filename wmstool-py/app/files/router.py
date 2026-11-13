@@ -14,6 +14,21 @@ router = APIRouter(prefix="/api/file")
 ops_only = require_roles("ROLE_Operator", "ROLE_Admin")
 
 
+@router.get("/download/{fileCategory}/{fileName:path}")
+def download(fileCategory: str, fileName: str, request: Request) -> Response:
+    ops_only(request)
+    path = reports.resolve_download(fileCategory, fileName)
+    if path is None:
+        return Response(status_code=400)
+    # Tomcat writes headers as ISO-8859-1: characters outside it become '?'.
+    header_name = path.name.encode("latin-1", "replace").decode("latin-1")
+    return Response(
+        content=path.read_bytes(),
+        media_type="application/vnd.ms-excel;charset=UTF-8",
+        headers={"Content-Disposition": f"attachment; filename={header_name}"},
+    )
+
+
 @router.get("/query/{fileCategory}/today")
 def query_today(fileCategory: str, request: Request) -> Response:
     ops_only(request)

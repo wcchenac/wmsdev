@@ -78,10 +78,12 @@ def test_query_category_list(operator, golden):
 
 
 def _download_record(resp):
+    # Error responses: only the status is contract (their content type is the
+    # servlet container's error page, not the API's).
     record = {"status": resp.status_code,
-              "content-disposition": resp.headers.get("content-disposition"),
-              "content-type": resp.headers.get("content-type")}
+              "content-disposition": resp.headers.get("content-disposition")}
     if resp.status_code == 200:
+        record["content-type"] = resp.headers.get("content-type")
         sheet = xlrd.open_workbook(file_contents=resp.content).sheet_by_index(0)
         record["cells"] = [[sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(sheet.nrows)]
     return record
@@ -101,6 +103,17 @@ def test_download(operator, golden):
     golden.add("sales_forbidden", {"status": operator.http.get(
         f"/api/file/download/allocation/{name}",
         headers={"Authorization": _login(operator, "sales")}).status_code})
+
+
+def test_download_path_traversal(operator, golden):
+    write_report("CategoryDetail/CategoryDetail-棉布.xls")
+    base = "/api/file/download"
+    golden.add("encoded_slash", _download_record(
+        operator.get(f"{base}/categoryDetail/..%2F..%2Fconfig%2Fapplication")))
+    golden.add("encoded_backslash", _download_record(
+        operator.get(f"{base}/categoryDetail/..%5C..%5Cconfig%5Capplication")))
+    golden.add("dotdot_name", _download_record(operator.get(f"{base}/categoryDetail/..")))
+    golden.add("short_dated_name", _download_record(operator.get(f"{base}/allocation/X")))
 
 
 def _login(api, employee_id):
