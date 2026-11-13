@@ -17,8 +17,7 @@ import { isEmpty } from "../../../../utilities/IsEmpty";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import { RootState, AppDispatch } from "../../../../types";
-import { DefectOption } from "../../../../enums/Enums";
+import { RootState, AppDispatch, InStockRequest } from "../../../../types";
 
 interface WaitHandleStatusItem {
   quantity: string | number;
@@ -42,24 +41,6 @@ interface SelectedProductNo {
   isSubmitted: boolean;
 }
 
-interface StockInfoData {
-  productNo: string;
-  lotNo: string;
-  type: string;
-  quantity: string;
-  unit: string;
-  color: string;
-  defect: DefectOption[] | string;
-  record: string;
-  remark: string;
-  inStockType: string;
-  orderNo: string;
-  directShip: boolean;
-  outStockReason: string;
-  errors: {
-    quantity: string;
-  };
-}
 
 const AssembleStockBoard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -170,11 +151,11 @@ const AssembleStockBoard: React.FC = () => {
   }, []);
 
   const handleInStockRequestSubmit = useCallback(
-    (e: MouseEvent<HTMLButtonElement>, index: number, inStockRequests: StockInfoData[]) => {
+    (e: MouseEvent<HTMLButtonElement>, index: number, inStockRequests: InStockRequest[]) => {
       e.preventDefault();
 
       setIsLoading(true);
-      dispatch(batchCreateStockInfoes(inStockRequests as unknown as Parameters<typeof batchCreateStockInfoes>[0])).then((res) => {
+      dispatch(batchCreateStockInfoes(inStockRequests)).then((res) => {
         if (res.status === 200) {
           setSelectedProductNoList((prevList) => {
             const copyList = [...prevList];

@@ -236,18 +236,23 @@ export interface UpdateStockInfoRequest {
   [key: string]: unknown;
 }
 
+/** One row of POST /api/stock/inStocks (backend InStockRequest). */
 export interface InStockRequest {
-  productNo?: string;
-  lotNo?: string;
-  type?: string;
-  quantity?: number;
-  unit?: string;
-  color?: string;
-  defect?: string;
-  remark?: string;
-  record?: string;
-  warehouse?: string;
-  location?: string;
+  productNo: string;
+  lotNo: string;
+  type: string;
+  quantity: string;
+  unit: string;
+  /** Backend int; the form keeps the selected option as a string. */
+  color: string;
+  /** Selected defects joined as "GA/GB". */
+  defect: string;
+  record: string;
+  remark: string;
+  inStockType: string;
+  orderNo: string;
+  directShip: boolean;
+  outStockReason: string;
 }
 
 /** PATCH /api/stock/outStock/update: out-stock request id -> where it is shipped from. */

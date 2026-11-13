@@ -98,3 +98,61 @@ describe.each([
     expect(prev).toBeDisabled();
   });
 });
+
+// The request body sent to POST /api/stock/inStocks must not change while its types are
+// tidied up: every form row, with the selected defects joined into one string.
+describe.each([
+  ['進貨單入庫', NormalStockBoard, 'normal'],
+  ['組裝單入庫', AssembleStockBoard, 'assemble'],
+  ['退貨單入庫', CustomerReturnBoard, 'customerReturn'],
+  ['調撥單入庫', StoreReturnBoard, 'storeReturn'],
+])('%s request body', (_name, Board, inStockType) => {
+  beforeEach(() => {
+    p1Submitted = false;
+    mockedGet.mockReset().mockImplementation(async () => ({ status: 200, data: order() }));
+    mockedPost.mockReset().mockResolvedValue({ status: 200, data: {} });
+  });
+
+  test('posts each row of the product with its defects as a string', async () => {
+    const store = createStore(rootReducer, applyMiddleware(thunk));
+    const { container } = render(
+      <Provider store={store}>
+        <Board />
+      </Provider>
+    );
+    const orderInput = container.querySelector<HTMLInputElement>('input[name=orderNo]')!;
+    fireEvent.change(orderInput, { target: { value: 'X1', name: 'orderNo' } });
+    await act(async () => {
+      fireEvent.submit(orderInput.closest('form')!);
+    });
+    fireEvent.click(container.querySelector<HTMLInputElement>('#checkbox-1')!);
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+
+    const pane = container.querySelector<HTMLElement>('.tab-pane.active .tab-pane.active')!;
+    fireEvent.change(pane.querySelector<HTMLInputElement>('input[name=lotNo]')!, { target: { value: 'L7', name: 'lotNo' } });
+    fireEvent.change(pane.querySelector<HTMLInputElement>('input[placeholder="數量"]')!, { target: { value: '40', name: 'quantity' } });
+    const submit = Array.from(pane.querySelectorAll<HTMLButtonElement>('button')).find((b) => b.textContent === '送出')!;
+    await act(async () => {
+      fireEvent.click(submit);
+    });
+
+    expect(mockedPost).toHaveBeenCalledWith('/api/stock/inStocks', [
+      {
+        productNo: 'P1',
+        lotNo: 'L7',
+        type: '板卷',
+        quantity: '40',
+        unit: '碼',
+        color: '1',
+        defect: '',
+        record: '',
+        remark: '',
+        inStockType,
+        orderNo: 'X1',
+        directShip: false,
+        outStockReason: '',
+        errors: { quantity: '' },
+      },
+    ]);
+  });
+});

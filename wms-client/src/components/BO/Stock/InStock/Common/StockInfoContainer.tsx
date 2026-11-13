@@ -4,11 +4,13 @@ import { copy } from "../../../../../utilities/DeepCopy";
 import {
   quantityAccumulate,
   updateStockInfoesCopy,
+  joinInfoDefectArray,
   parseRowCount,
   exceedsRowCountLimit,
 } from "../../Utilities/StockInfoHelperMethods";
 import ToolbarForAddDeleteSubmit from "../../Utilities/ToolbarForAddDeleteSubmit";
 import { DefectOptions, DefectOption } from "../../../../../enums/Enums";
+import { InStockRequest } from "../../../../../types";
 import { MultiValue } from "react-select";
 
 interface WaitHandleStatusItem {
@@ -55,7 +57,7 @@ interface StockInfoContainerProps {
   handleInStockRequestSubmit: (
     e: MouseEvent<HTMLButtonElement>,
     index: number,
-    inStockRequests: StockInfoData[]
+    inStockRequests: InStockRequest[]
   ) => void;
 }
 
@@ -141,27 +143,6 @@ function checkFormAlgorithm(
   } else {
     return false;
   }
-}
-
-// Helper function to join defect array for submission
-function joinInfoesDefectArray(stockInfoesCopy: StockInfoData[]): void {
-  stockInfoesCopy.forEach((stockInfo, index) => {
-    if (Array.isArray(stockInfo.defect)) {
-      const defectArray = stockInfo.defect as DefectOption[];
-      let newDefectContent = "";
-      defectArray.forEach((object, idx) => {
-        if (object === undefined) {
-          return;
-        }
-        if (idx === defectArray.length - 1) {
-          newDefectContent = newDefectContent + object.value;
-        } else {
-          newDefectContent = newDefectContent + object.value + "/";
-        }
-      });
-      (stockInfoesCopy[index].defect as string) = newDefectContent;
-    }
-  });
 }
 
 const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(function StockInfoContainer(
@@ -311,14 +292,15 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
   }, [productNo, type, orderNo, assignRowNum, props]);
 
   const handleSubmitClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    const stockInfoesCopy = copy(stockInfoes);
+    // The backend takes the selected defects as one "GA/GB" string per row; hardware rows
+    // already hold "".
+    const inStockRequests: InStockRequest[] = copy(stockInfoes).map((row) => ({
+      ...row,
+      defect: Array.isArray(row.defect) ? joinInfoDefectArray({ defect: row.defect }) : row.defect,
+    }));
 
-    if (!typeValidation) {
-      joinInfoesDefectArray(stockInfoesCopy);
-    }
-
-    handleInStockRequestSubmit(e, index, stockInfoesCopy);
-  }, [stockInfoes, typeValidation, handleInStockRequestSubmit, index]);
+    handleInStockRequestSubmit(e, index, inStockRequests);
+  }, [stockInfoes, handleInStockRequestSubmit, index]);
 
   const typeList = Object.keys(waitHandleStatus);
   const quantitySum = quantityAccumulate(stockInfoes as unknown as Parameters<typeof quantityAccumulate>[0]);

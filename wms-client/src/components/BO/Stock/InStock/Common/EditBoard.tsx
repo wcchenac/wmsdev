@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, memo, ReactNode, MouseEvent } from "react";
+import { InStockRequest } from "../../../../../types";
 import StockInfoContainer from "./StockInfoContainer";
-import { StockIdentifierType, DefectOption } from "../../../../../enums/Enums";
+import { StockIdentifierType } from "../../../../../enums/Enums";
 
 import equal from "fast-deep-equal";
 
@@ -22,24 +23,6 @@ interface SelectedProductNo {
   isSubmitted: boolean;
 }
 
-interface StockInfoData {
-  productNo: string;
-  lotNo: string;
-  type: string;
-  quantity: string;
-  unit: string;
-  color: string;
-  defect: DefectOption[] | string;
-  record: string;
-  remark: string;
-  inStockType: string;
-  orderNo: string;
-  directShip: boolean;
-  outStockReason: string;
-  errors: {
-    quantity: string;
-  };
-}
 
 interface EditBoardProps {
   isLoading: boolean;
@@ -51,7 +34,7 @@ interface EditBoardProps {
   handleInStockRequestSubmit: (
     e: MouseEvent<HTMLButtonElement>,
     index: number,
-    inStockRequests: StockInfoData[]
+    inStockRequests: InStockRequest[]
   ) => void;
   handlePrevStep: () => void;
 }
