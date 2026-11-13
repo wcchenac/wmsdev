@@ -8,6 +8,7 @@ import datetime as dt
 import io
 
 import openpyxl
+import pytest
 from conftest import client_range, db_state, read_workbook, rows, today, write_report
 
 CATEGORIES = ["allocation", "adjustment", "dailyComparison", "outStockList", "categoryDetail", "bogus"]
@@ -201,6 +202,8 @@ def test_import_reuses_backlog_values(operator, db, golden):
     golden.add("db", db_state(db))
 
 
+@pytest.mark.java_bug("a trailing row without cells (here: only a height) makes Java read getCell(0) of it: "
+                      "the whole file is skipped (patched Java skips the blank row)")
 def test_import_cell_existence(operator, db, golden):
     """POI distinguishes a styled empty cell (text "") from a missing one, and counts empty <row>s."""
     from openpyxl.styles import Font
@@ -241,6 +244,7 @@ def _with_trailing_row(data: bytes, row_xml: str) -> bytes:
     return out.getvalue()
 
 
+@pytest.mark.java_bug("trailing rows without cells make Java skip the whole file (patched Java skips the rows)")
 def test_import_trailing_rows_without_cells(operator, db, golden):
     """XSSF's getLastRowNum() counts every <row> element. A trailing row with no cells,
     whether it only has a row style or no attributes at all, makes Java read getCell(0)
@@ -250,6 +254,38 @@ def test_import_trailing_rows_without_cells(operator, db, golden):
     golden.response("styled_row", _post(operator, "styled.xlsx",
                                         _with_trailing_row(plain, '<row r="5" s="0" customFormat="1"/>')))
     golden.response("bare_row", _post(operator, "bare.xlsx", _with_trailing_row(plain, '<row r="5"/>')))
+    golden.add("db", db_state(db, ["stockidentifier"]))
+
+
+@pytest.mark.java_bug("a row without data (no cells, styled empty cells, whitespace) between data rows "
+                      "makes Java read getCell(0) of it (NullPointerException): the whole file is skipped, "
+                      "and the API still answers 200")
+def test_import_blank_rows_between_data(operator, db, golden):
+    """The patched Java skips rows that are missing or whose cells are all empty after trim()."""
+    from openpyxl.styles import Font
+
+    def book_with(middle):
+        book = openpyxl.Workbook()
+        sheet = book.active
+        assert sheet is not None
+        sheet.append(IMPORT_HEADER)
+        sheet.append(["CF1001", "L01", "整支", "50", "碼", 0, None, None, None, "fileImport", None])
+        middle(sheet)
+        sheet["A4"], sheet["B4"], sheet["C4"], sheet["D4"] = "CF1002", "L07", "整支", "40"
+        sheet["E4"], sheet["F4"], sheet["J4"] = "碼", 0, "fileImport"
+        buf = io.BytesIO()
+        book.save(buf)
+        return buf.getvalue()
+
+    def styled(sheet):
+        sheet["A3"].font = Font(bold=True)
+
+    def spaces(sheet):
+        sheet["A3"], sheet["C3"] = "  ", " "
+
+    golden.response("missing_row", _post(operator, "missing.xlsx", book_with(lambda sheet: None)))
+    golden.response("styled_empty_row", _post(operator, "styled.xlsx", book_with(styled)))
+    golden.response("whitespace_row", _post(operator, "spaces.xlsx", book_with(spaces)))
     golden.add("db", db_state(db, ["stockidentifier"]))
 
 

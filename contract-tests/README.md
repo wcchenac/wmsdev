@@ -79,14 +79,31 @@ docker compose up -d --wait
 - `--golden-variant fixed --update-golden`：對修補版 Java 錄製 `.fixed.json`。
 - 防呆：`--update-golden` 對 Python 後端一律拒絕執行，golden 永遠來自 Java。
 
-目前唯一的修補是 history 路由衝突（`java-patches/history-routes.patch`：兩個 mapping 以 `params` 區分）。重錄步驟：
+`java-patches/` 裡的修補依檔名順序套用。編號對應 `wmstool/docs/analysis/2026-11-13-java-defects-found-in-migration.md` 的項目：
+
+| 修補 | 修正 | 改變的測試 |
+|---|---|---|
+| `history-routes.patch` | 第 1 項：history 兩個 mapping 以 `params` 區分，不再一律 500 | history 相關測試、`test_auth_matrix` 的 history 路由 |
+| `03-instock-rollback-atomic.patch` | 第 3 項：入庫回滾任何一個 id 失敗就整筆回滾、回 400 | `test_in_stock_rollback`、`test_in_stock_rollback_partial_failure` |
+| `04-shrink-rollback-atomic.patch` | 第 4 項：減肥回滾任何一步失敗（重複減肥、沒減肥過、範本遺失）就整筆回滾、回 400 | `test_shrink_stock_rollback`、`test_shrink_rollback_after_double_shrink`、`test_shrink_rollback_template_missing_keeps_reports`、`test_shrink_rollback_adjustment_template_missing` |
+| `09-import-skip-blank-rows.patch` | 第 9 項：進貨匯入略過沒有任何文字的列，不再整個檔案被略過 | `test_import_cell_existence`、`test_import_trailing_rows_without_cells`、`test_import_blank_rows_between_data` |
+
+Python 版跟著修補版 Java 走：上表的測試在 Python 上比對 `.fixed.json`。
+
+注意第 4 項：回滾時報表在資料庫回滾之前就已經改寫，所以範本遺失時，資料庫雖然整筆回滾，當天的調撥報表可能已經被重設成空範本（`test_shrink_rollback_adjustment_template_missing`）。Java 修補版也是這樣。
+
+重錄步驟：
 
 ```bash
-./java-patches/build-patched-jar.sh          # 在暫存目錄套修補並建 jar，不動 repo 的 wmstool/
+./java-patches/build-patched-jar.sh          # 在暫存目錄套修補並建 runtime/wmstool-fixed.jar，不動 repo 的 wmstool/
 docker compose -f docker-compose.yml -f docker-compose.java-fixed.yml up -d --wait
-.venv/bin/pytest -q -k "history and not update_history" --update-golden --golden-variant fixed
+.venv/bin/pytest -q -k "<上表改到的測試>" --update-golden --golden-variant fixed
 docker compose up -d --wait                  # 換回原版 Java
 ```
+
+不要用 `-m java_bug` 全部重錄：沒有修補的缺陷（例如 `test_shrink_stock_child_limit`，第 2 項）會多出一份跟 `.json` 相同的 `.fixed.json`，看起來像已修好。
+
+確認修補版 Java 沒有改到其他行為：對修補版跑整套並比對原版的 golden（`--golden-variant java`），失敗的應該只有上表的測試。
 
 ## 切換方式（2026-11-13 決定：不並行，直接切換）
 

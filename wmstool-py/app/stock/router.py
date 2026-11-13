@@ -12,7 +12,6 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel
-from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.db import get_session
@@ -134,10 +133,10 @@ def shrink_stock_rollback(stockIdentifierId: int, request: Request,
                           session: Session = Depends(get_session)) -> Response:
     principal = admin(request)
     try:
-        shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)  # Java ignores the result
+        shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)
         session.commit()
-    except DBAPIError:
-        return _bad_request(session, "shrinkStock/rollback")
+    except Exception:
+        return _bad_request(session, "shrinkStock/rollback")  # all or nothing (defect 4 fixed)
     return Response(status_code=200)
 
 
@@ -175,7 +174,10 @@ def daily_stock_compare(request: Request, session: Session = Depends(get_session
 @router.patch("/inStocks/rollback")
 def in_stocks_rollback(body: list[int], request: Request, session: Session = Depends(get_session)) -> Response:
     admin(request)
-    moves.rollback_in_stock(session, body)  # Java ignores the boolean result
+    try:
+        moves.rollback_in_stock(session, body)
+    except Exception:
+        return _bad_request(session, "inStocks/rollback")  # all or nothing (defect 3 fixed)
     return Response(status_code=200)
 
 

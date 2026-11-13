@@ -83,10 +83,11 @@ def ship_identifier(session: Session, identifier_id: int, reason: str | None, ed
     products.update_product_quantity(session, si.productNo, si.type, "-" + si.quantity, si.unit)
 
 
-def rollback_in_stock(session: Session, identifier_ids: list[int]) -> bool:
-    """DeleteStockFunction.rollbackInStock, including its defect: a missing id stops the
-    loop, earlier ids stay deleted and product totals are not reduced (Java catches
-    its own exception and the transaction commits)."""
+def rollback_in_stock(session: Session, identifier_ids: list[int]) -> None:
+    """DeleteStockFunction.rollbackInStock, all or nothing (defect 3 fixed, as in
+    contract-tests/java-patches/03-instock-rollback-atomic.patch): a missing id raises
+    and the caller rolls the whole request back. Java itself swallowed the failure and
+    committed the ids already deleted without reducing the product totals."""
     totals: products.Totals = {}
     for identifier_id in identifier_ids:
         info = session.scalars(select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id)).first()
@@ -97,7 +98,7 @@ def rollback_in_stock(session: Session, identifier_ids: list[int]) -> bool:
         si = session.get(StockIdentifier, identifier_id)
         history = session.scalars(select(History).where(History.currentIdentifierId == identifier_id)).first()
         if None in (info, trans, order, si, history):
-            return False
+            raise LookupError(f"in-stock rollback: data for identifier {identifier_id} not found")
         assert si is not None
         session.execute(delete(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
         session.execute(delete(TransactionRecord).where(
@@ -107,7 +108,6 @@ def rollback_in_stock(session: Session, identifier_ids: list[int]) -> bool:
         session.execute(delete(History).where(History.currentIdentifierId == identifier_id))
         products.collect(totals, si.productNo, si.type, "-" + si.quantity, si.unit)
     products.apply_totals(session, totals)
-    return True
 
 
 def update_stock_info(session: Session, info_id: int, color: int, defect: str | None, record: str | None,

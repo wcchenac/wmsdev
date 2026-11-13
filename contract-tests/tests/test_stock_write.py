@@ -70,6 +70,8 @@ def _token(api, employee_id):
 # PATCH /api/stock/inStocks/rollback ---------------------------------------------
 
 
+@pytest.mark.java_bug("rollbackInStock swallows its own failure: an unknown id answers 200 "
+                      "(patched Java rolls the request back and answers 400)")
 def test_in_stock_rollback(admin, db, golden):
     seed_baseline(admin)
     golden.response("rollback_4_5", admin.patch("/api/stock/inStocks/rollback", json=[4, 5]))
@@ -157,6 +159,8 @@ def test_shrink_stock_template_missing_with_todays_report(operator, db, golden):
         golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("rollbackShrink swallows the report IOException and commits the rollback (200); "
+                      "patched Java rolls the whole rollback back and answers 400")
 def test_shrink_rollback_template_missing_keeps_reports(admin, db, golden):
     """The rollback rewrites today's reports (deleteAndCreateNewFile), which reads the
     template before deleting: with the allocation template gone, today's reports stay."""
@@ -170,6 +174,8 @@ def test_shrink_rollback_template_missing_keeps_reports(admin, db, golden):
         golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("rollbackShrink swallows the report IOException and commits the rollback (200); "
+                      "patched Java rolls the whole rollback back and answers 400")
 def test_shrink_rollback_adjustment_template_missing(admin, db, golden):
     """generateNewFile recreates both reports from their templates before writing any
     row: with the adjustment template gone, the allocation report is already reset to
@@ -217,6 +223,8 @@ def test_shrink_stock_child_limit(operator, db, golden):
     golden.add("db", db_state(db, ["stockidentifier", "history"]))
 
 
+@pytest.mark.java_bug("rolling back a roll that was never shrunk fails inside rollbackShrink, which "
+                      "swallows it (200); patched Java answers 400")
 def test_shrink_stock_rollback(admin, db, golden):
     seed_baseline(admin)
     admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5))

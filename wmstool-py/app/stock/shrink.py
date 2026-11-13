@@ -1,13 +1,11 @@
 """Shrink (減肥: cut a roll into pieces): port of ModifyStockFunction.shrinkStock."""
 
 import datetime as dt
-import logging
 import struct
 from collections.abc import Callable
 from dataclasses import dataclass
 
 from sqlalchemy import delete, select
-from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app import erp
@@ -26,8 +24,6 @@ from app.stock.models import (
 )
 from app.stock.orders import unit_name
 from app.timeconv import java_now_utc, taipei_to_db, taipei_today, taipei_today_iso
-
-logger = logging.getLogger(__name__)
 
 
 def java_float(x: float) -> float:
@@ -67,20 +63,13 @@ def _real_quantity(product_no: str, unit: str, amount: float, formatted: str) ->
     return formatted if base == unit else java_format_2f(amount * 3.0)
 
 
-def rollback_shrink(session: Session, old_id: int, editor: str) -> bool:
-    """DeleteStockFunction.rollbackShrink. Java catches every exception itself and returns
-    false while the transaction still commits whatever was done before the failure."""
-    try:
-        _rollback_shrink(session, old_id, editor)
-        return True
-    except DBAPIError:
-        # A database error is different in Java: Spring marks the transaction
-        # rollback-only, the commit fails and the controller answers 400 with
-        # nothing changed (recorded: test_shrink_stock_rollback_db_error).
-        raise
-    except Exception:
-        logger.exception("shrink rollback of %s failed", old_id)
-        return False
+def rollback_shrink(session: Session, old_id: int, editor: str) -> None:
+    """DeleteStockFunction.rollbackShrink, all or nothing (defect 4 fixed, as in
+    contract-tests/java-patches/04-shrink-rollback-atomic.patch): any failure — a roll
+    shrunk twice, one never shrunk, a missing report template — raises and the caller
+    rolls the whole rollback back (400). Java itself swallowed every exception but a
+    database error and committed whatever it had done before the failure."""
+    _rollback_shrink(session, old_id, editor)
 
 
 def _rollback_shrink(session: Session, old_id: int, editor: str) -> None:

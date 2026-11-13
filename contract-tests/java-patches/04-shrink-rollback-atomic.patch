@@ -1,0 +1,12 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/DeleteStockFunction.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/DeleteStockFunction.java
+@@ -182,7 +182,8 @@
+ 		} catch (Exception e) {
+ 			e.printStackTrace();
+ 
+-			return false;
++			// all or nothing: roll the whole rollback back, the controller answers 400
++			throw new IllegalStateException("shrink rollback failed", e);
+ 		}
+ 	}
+ 

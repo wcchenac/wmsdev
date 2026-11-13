@@ -1,0 +1,17 @@
+{
+  "db": {
+    "stockidentifier": []
+  },
+  "missing_row": {
+    "body": null,
+    "status": 200
+  },
+  "styled_empty_row": {
+    "body": null,
+    "status": 200
+  },
+  "whitespace_row": {
+    "body": null,
+    "status": 200
+  }
+}
