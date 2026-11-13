@@ -7,6 +7,15 @@ afterEach(() => {
   cleanup();
 });
 
+// react-bootstrap's Modal/Fade schedules a transitionend fallback (setTimeout; 5ms in jsdom,
+// where transitions take 0s) and does not cancel it on unmount. When a file's last test opens
+// or closes a modal and the environment is torn down within those 5ms, the timer fires without
+// `document` and vitest reports an unhandled error (exit 1 although every test passed). Timers
+// fire in deadline order, so waiting longer than that here lets them run while the DOM exists.
+afterAll(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 20));
+});
+
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
