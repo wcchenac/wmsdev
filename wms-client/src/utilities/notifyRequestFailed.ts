@@ -23,6 +23,14 @@ function responseStatus(error: unknown): number | undefined {
 }
 
 /**
+ * True for a 401: API.ts then shows 「登入已逾時，請重新登入」 and goes to /login, so callers
+ * with their own failure toast should skip it.
+ */
+export function isSessionExpired(error: unknown): boolean {
+  return responseStatus(error) === 401;
+}
+
+/**
  * Shows a toast for a failed API call. The actions dispatch the error to the store and then
  * rethrow it; call sites use this in their .catch so the failure is visible instead of an
  * unhandled rejection.
@@ -33,7 +41,7 @@ function responseStatus(error: unknown): number | undefined {
  */
 export function notifyRequestFailed(error: unknown): void {
   // API.ts already tells the user the session expired and sends them to /login.
-  if (responseStatus(error) === 401) {
+  if (isSessionExpired(error)) {
     return;
   }
   toast.error(clientErrorMessage(error) ?? REQUEST_FAILED_MESSAGE);

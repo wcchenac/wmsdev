@@ -5,6 +5,7 @@ import { registerUser } from "../../../../actions/UserActions";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
+import { isSessionExpired } from "../../../../utilities/notifyRequestFailed";
 import "react-toastify/dist/ReactToastify.css";
 import { AppDispatch } from "../../../../types";
 
@@ -53,9 +54,11 @@ const UserRegister: React.FC = () => {
         setState(initialState);
         toast.success("register success");
       })
-      .catch(() => {
+      .catch((error) => {
         setState((prev) => ({ ...prev, isLoading: false }));
-        toast.error("register fail");
+        if (!isSessionExpired(error)) {
+          toast.error("register fail");
+        }
       });
   };
 

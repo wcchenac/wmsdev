@@ -1,6 +1,7 @@
 import React, { useState, useCallback, ChangeEvent } from "react";
 import { setWHByImportFile } from "../../../../actions/FileActions";
 import { toast } from "react-toastify";
+import { isSessionExpired } from "../../../../utilities/notifyRequestFailed";
 import "react-toastify/dist/ReactToastify.css";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
@@ -53,9 +54,11 @@ const SetWarehouse: React.FC = () => {
         setIsLoading(false);
         toast.success("upload success");
       })
-      .catch(() => {
+      .catch((error) => {
         setIsLoading(false);
-        toast.error("upload fail");
+        if (!isSessionExpired(error)) {
+          toast.error("upload fail");
+        }
       });
   }, [selectedFile]);
 

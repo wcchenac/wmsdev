@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
+import { notifyRequestFailed, isSessionExpired } from "../../../../utilities/notifyRequestFailed";
 import Select, { SingleValue } from "react-select";
 import makeAnimated from "react-select/animated";
 import {
@@ -52,8 +52,10 @@ const StockCategory: React.FC = () => {
         toast.success(category + "分類本建立成功");
         setIsLoading(false);
       })
-      .catch(() => {
-        toast.error(category + "分類本建立失敗");
+      .catch((error) => {
+        if (!isSessionExpired(error)) {
+          toast.error(category + "分類本建立失敗");
+        }
         setIsLoading(false);
       });
   }, [dispatch, selectedCategory]);
