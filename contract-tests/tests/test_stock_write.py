@@ -243,6 +243,16 @@ def test_out_stock_request(operator, db, golden):
     golden.add("db", db_state(db, ["outstockrequest"]))
 
 
+def test_out_stock_update_unknown_id(operator, db, golden):
+    """Java creates the pull-list workbook first, then fails on id 99: 400, DB rolled
+    back, but the (template-only) workbook stays on disk."""
+    operator.post("/api/stock/outStock", json=OUT_STOCK)
+    golden.response("update", operator.patch("/api/stock/outStock/update",
+                                             json={"outStockUpdate": {"1": "門市A", "99": "門市B"}}))
+    golden.add("db", db_state(db, ["outstockrequest"]))
+    golden.add("reports", generated_reports())
+
+
 def test_out_stock_update_writes_pull_list(operator, db, golden):
     seed_baseline(operator)
     operator.patch("/api/stock/shipStock", json={"stockIdentifierId": 2, "reason": "出貨"})

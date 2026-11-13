@@ -20,21 +20,36 @@ def _java_string_hash(s: str) -> int:
     return h
 
 
+def _java_long_hash(v: int) -> int:
+    """Long.hashCode(): (int) (value ^ (value >>> 32))."""
+    u = v & 0xFFFFFFFFFFFFFFFF
+    return (u ^ (u >> 32)) & 0xFFFFFFFF
+
+
 def java_hashmap_order(keys: Iterable[str]) -> list[str]:
-    """keySet() order of a `new HashMap<>()` after put()-ing `keys` in order.
+    """keySet() order of a `new HashMap<String, ?>()` after put()-ing `keys` in order.
 
     Java 8 HashMap: bucket = (h ^ (h >>> 16)) & (capacity - 1); capacity starts
     at 16 and doubles when size exceeds 0.75 * capacity. Resizing keeps the
     relative order inside a bucket, so the final order is: by bucket under the
     final capacity, then by first insertion.
     """
+    return _hashmap_order(keys, _java_string_hash)
+
+
+def java_hashmap_order_long(keys: Iterable[int]) -> list[int]:
+    """keySet() order of a `new HashMap<Long, ?>()` (see java_hashmap_order)."""
+    return _hashmap_order(keys, _java_long_hash)
+
+
+def _hashmap_order(keys, hash_fn):  # noqa: ANN001, ANN202
     unique = list(dict.fromkeys(keys))
     capacity = 16
     while len(unique) > capacity * 3 // 4:
         capacity *= 2
-    buckets: dict[int, list[str]] = {}
+    buckets: dict[int, list] = {}
     for key in unique:
-        h = _java_string_hash(key)
+        h = hash_fn(key)
         buckets.setdefault((h ^ (h >> 16)) & (capacity - 1), []).append(key)
     # Java converts a bin when it gets its 9th node (treeify, or a resize while the
     # table is under 64): only then does this model's order stop being exact.

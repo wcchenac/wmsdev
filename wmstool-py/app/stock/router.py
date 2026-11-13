@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app.db import get_session
 from app.javacompat import java_is_blank
 from app.security.auth import require_roles
-from app.stock import history, moves, orders, queries, shrink
+from app.stock import compare, history, moves, orders, queries, shrink
 from app.stock.intake import InStockItem, create_stock_infoes
 from app.stock.serializers import history_json, out_stock_request_json
 from app.users.schemas import NotBlank
@@ -128,6 +128,31 @@ def shrink_stock_rollback(stockIdentifierId: int, request: Request,
 def shrink_rollback_list(productNo: str, request: Request, session: Session = Depends(get_session)) -> Response:
     ops(request)
     return JSONResponse(history.shrink_rollback_candidates(session, productNo.upper()))
+
+
+class OutStockUpdateRequest(BaseModel):
+    outStockUpdate: dict[int, str | None] = {}
+
+
+@router.patch("/outStock/update")
+def out_stock_update(body: OutStockUpdateRequest, request: Request,
+                     session: Session = Depends(get_session)) -> Response:
+    principal = ops(request)
+    try:
+        moves.handle_out_stock_requests(session, dict(body.outStockUpdate), principal.full_name)
+    except Exception:
+        return _bad_request(session, "outStock/update")
+    return Response(status_code=200)
+
+
+@router.get("/stockManagement/daily/stockCompare")
+def daily_stock_compare(request: Request, session: Session = Depends(get_session)) -> Response:
+    admin(request)
+    try:
+        compare.stock_full_comparison(session)
+    except Exception:
+        return _bad_request(session, "stockCompare")
+    return Response(status_code=200)
 
 
 @router.patch("/inStocks/rollback")
