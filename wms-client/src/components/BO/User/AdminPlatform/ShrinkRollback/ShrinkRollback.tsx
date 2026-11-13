@@ -9,6 +9,7 @@ import { Spinner } from "../../../../Others/Spinner";
 import QueryProductInformation, { ProductNoChange } from "../../../Stock/Utilities/QueryProductInformation";
 import StockInfoContainer from "./StockInfoContainer";
 import { RootState, ShrinkRollbackObject } from "../../../../../types";
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 
 interface ShrinkRollbackState {
   isLoading: boolean;
@@ -58,6 +59,9 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
         if (response.status === 200) {
           this.setState({ isLoading: false, isQuery: true });
         }
+      }).catch((error: unknown) => {
+        this.setState({ isLoading: false });
+        notifyRequestFailed(error);
       });
     });
   }
@@ -70,6 +74,10 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
           if (response.status === 200) {
             this.setState({ isLoading: false });
           }
+        })
+        .catch((error: unknown) => {
+          this.setState({ isLoading: false });
+          notifyRequestFailed(error);
         });
     });
   }

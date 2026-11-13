@@ -4,6 +4,7 @@ import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 
 const ScheduleMission: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -15,6 +16,9 @@ const ScheduleMission: React.FC = () => {
     missionTrigger(arr[0], arr[1]).then(() => {
       setIsLoading(false);
       toast.success("Misson Complete");
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, []);
 

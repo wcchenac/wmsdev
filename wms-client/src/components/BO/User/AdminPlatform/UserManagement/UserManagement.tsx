@@ -14,6 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import { RootState } from "../../../../../store";
 import { AppDispatch, UpdateUserRequest, User } from "../../../../../types";
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 
 interface UserRow extends User {
   id: string | number;
@@ -35,8 +36,9 @@ const UserManagement: React.FC = () => {
         setIsLoading(false);
         setIsQuery(true);
       }
-    }).catch(() => {
+    }).catch((error) => {
       setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch]);
 
@@ -58,8 +60,9 @@ const UserManagement: React.FC = () => {
         setSelectedData({});
         setIsLoading(false);
       }
-    }).catch(() => {
+    }).catch((error) => {
       setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch]);
 
@@ -69,8 +72,9 @@ const UserManagement: React.FC = () => {
       if (response?.status === 200) {
         setIsLoading(false);
       }
-    }).catch(() => {
+    }).catch((error) => {
       setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch]);
 

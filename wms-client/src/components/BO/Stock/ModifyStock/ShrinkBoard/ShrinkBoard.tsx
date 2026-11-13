@@ -84,10 +84,11 @@ const ShrinkBoard: React.FC = () => {
                             initialComponent();
                         }
                     })
-                    .catch(() => {
+                    .catch((error) => {
                         // Reset loading state on error
                         setIsLoading(false);
                         setWaitCreateResp(false);
+                        notifyRequestFailed(error);
                     });
             }
         },

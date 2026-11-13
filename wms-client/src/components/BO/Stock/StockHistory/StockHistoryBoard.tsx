@@ -12,6 +12,7 @@ import Box from "@mui/material/Box";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { RootState, AppDispatch, StockInfo, TreeNode, ApiResponse } from "../../../../types";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 
 const dayRangeSetting = 180;
 
@@ -102,8 +103,9 @@ function StockHistoryBoard(): React.ReactElement {
         setIsLoading(false);
         setIsQuery(true);
       }
-    }).catch(() => {
+    }).catch((error) => {
       setIsLoading(false);
+      notifyRequestFailed(error);
     });
   }, [dispatch, productNo, startDate, endDate]);
 

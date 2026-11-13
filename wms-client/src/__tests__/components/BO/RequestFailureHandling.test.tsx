@@ -21,6 +21,10 @@ import ShrinkBoard from '../../../components/BO/Stock/ModifyStock/ShrinkBoard/Sh
 import OutStockRequestList from '../../../components/BO/Stock/OutStockList/OutStockRequestList';
 import StockCategory from '../../../components/BO/User/AdminPlatform/StockCategory';
 import FileCenter from '../../../components/BO/File/FileCenter';
+import ShrinkRollback from '../../../components/BO/User/AdminPlatform/ShrinkRollback/ShrinkRollback';
+import ScheduleMission from '../../../components/BO/User/AdminPlatform/ScheduleMission';
+import StockHistoryBoard from '../../../components/BO/Stock/StockHistory/StockHistoryBoard';
+import UserManagement from '../../../components/BO/User/AdminPlatform/UserManagement/UserManagement';
 
 // When a request fails, the actions dispatch the error and rethrow. Every page must catch it:
 // hide the loading overlay and tell the user, instead of leaving an unhandled rejection and an
@@ -141,4 +145,40 @@ test('a 401 is left to the session-expired message instead of a second error toa
 
   expect(toast.error).not.toHaveBeenCalled();
   expect(overlaysIdle()).toBe(true);
+});
+
+// Pages that were left without a .catch (stuck overlay, unhandled rejection) or that closed the
+// overlay without telling the user.
+describe.each([
+  ['減肥回朔 (ShrinkRollback)', ShrinkRollback, async (c: HTMLElement) => submitForm(c, '#productNo-search', 'CF1001')],
+  ['歷史記錄查詢 (StockHistoryBoard)', StockHistoryBoard, async (c: HTMLElement) => submitForm(c, '#productNo-search', 'CF1001')],
+  [
+    '任務排程 (ScheduleMission)',
+    ScheduleMission,
+    async () => {
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: '每日比對' }));
+      });
+      await settle();
+    },
+  ],
+  [
+    '使用者管理 (UserManagement)',
+    UserManagement,
+    async () => {
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: '讀取員工清單' }));
+      });
+      await settle();
+    },
+  ],
+])('%s: a failed request', (_name, Page, trigger) => {
+  test('hides the loading overlay and shows an error toast', async () => {
+    const { container } = renderPage(Page);
+
+    await trigger(container);
+
+    expect(toast.error).toHaveBeenCalledWith(REQUEST_FAILED_MESSAGE);
+    expect(overlaysIdle()).toBe(true);
+  });
 });
