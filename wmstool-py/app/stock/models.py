@@ -145,3 +145,27 @@ class Product(Base):
     isAlert: Mapped[bool] = mapped_column(BitBool, default=False)
     createdAt: Mapped[dt.datetime | None] = mapped_column(DateTime)
     updatedAt: Mapped[dt.datetime | None] = mapped_column(DateTime)
+
+
+class OutStockRequest(Base):
+    __tablename__ = "outstockrequest"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    productNo: Mapped[str | None] = mapped_column(String(255))
+    lotNo: Mapped[str | None] = mapped_column(String(255))
+    type: Mapped[str | None] = mapped_column(String(255))
+    quantity: Mapped[str | None] = mapped_column(String(255))
+    unit: Mapped[str | None] = mapped_column(String(255))
+    color: Mapped[int] = mapped_column(Integer, default=0)
+    defect: Mapped[str | None] = mapped_column(String(255))
+    reason: Mapped[str | None] = mapped_column(String(255))
+    outStockType: Mapped[int] = mapped_column(Integer)  # 0 出貨, 1 減肥/分裝, 2 無指定拉貨
+    stockIdentifierId: Mapped[int] = mapped_column(BigInteger, default=0)
+    fileName: Mapped[str | None] = mapped_column(String(255))
+    isHandled: Mapped[bool] = mapped_column(BitBool, default=False)
+    isDeleted: Mapped[bool] = mapped_column(BitBool, default=False)
+    requestFrom: Mapped[str | None] = mapped_column(String(255))
+    createdAt: Mapped[dt.datetime | None] = mapped_column(DateTime)
+    updatedAt: Mapped[dt.datetime | None] = mapped_column(DateTime)
+    createdBy: Mapped[str | None] = mapped_column(String(255))
+    updatedBy: Mapped[str | None] = mapped_column(String(255))

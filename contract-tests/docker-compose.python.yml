@@ -16,6 +16,7 @@ services:
       TZ: Asia/Taipei
       EXCEL_DIR: /data/files/excels
       WMS_DATABASE_URL: mysql+pymysql://wms:wms@mysql:3306/wms?charset=utf8mb4
+      ERP_DATABASE_URL: mssql+pymssql://sa:Contract-Test-1@erp:1433/PILOT0010
       # Same test-only value as jwt.jwtSecret in config/application.properties.
       JWT_SECRET: Y29udHJhY3QtdGVzdC1vbmx5LWp3dC1zZWNyZXQtZm9yLXdtc3Rvb2wtaHM1MTItbmVlZHMtNjQtYnl0ZXMtLS0tLQ==
     healthcheck:

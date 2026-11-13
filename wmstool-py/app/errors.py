@@ -13,6 +13,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,41 @@ def spring_error(request: Request, status: int, error: str, message: str) -> JSO
         },
         status_code=status,
     )
+
+
+class CatchAllMiddleware:
+    """Answer unhandled exceptions with Spring's 500 body *without* re-raising.
+
+    Starlette routes `Exception` handlers to ServerErrorMiddleware, which sends
+    the response and then re-raises; uvicorn then drops the keep-alive
+    connection, and a client reusing it fails. Java keeps the connection.
+    Add this middleware first (innermost) so CORS still decorates the 500.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        started = False
+
+        async def tracking_send(message: Message) -> None:
+            nonlocal started
+            if message["type"] == "http.response.start":
+                started = True
+            await send(message)
+
+        try:
+            await self.app(scope, receive, tracking_send)
+        except Exception:
+            if started:
+                raise
+            request = Request(scope)
+            logger.exception("unhandled error on %s %s", request.method, request.url.path)
+            response = spring_error(request, 500, "Internal Server Error", "Internal Server Error")
+            await response(scope, receive, send)
 
 
 def install_error_handlers(app: FastAPI) -> None:

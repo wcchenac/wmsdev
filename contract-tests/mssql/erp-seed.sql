@@ -59,12 +59,14 @@ GO
 INSERT INTO dbo.BasicProductInfo VALUES
   (N'CF1001', N'精梳棉布', N'58吋', N'40支精梳', N'整支約50碼', 1, N'CF1001.jpg', N'5208.11', N'Combed Cotton', N'58in'),
   (N'CF1002', N'亞麻胚布', N'56吋', N'胚布未染', N'整支約40碼', 2, N'', N'5309.11', N'Linen Greige', N'56in'),
-  (N'CF1003', N'彈性針織', N'60吋', N'四面彈', N'每卷約25公斤', 4, N'', N'6004.10', N'Stretch Knit', N'60in');
+  (N'CF1003', N'彈性針織', N'60吋', N'四面彈', N'每卷約25公斤', 4, N'', N'6004.10', N'Stretch Knit', N'60in'),
+  (N'CF1004', N'NULL規格布', NULL, N'規格欄位為 NULL', N'每卷約20碼', 1, N'', N'5208.12', N'Null Spec', N'-');  -- NULL column: Java NPEs
 
 INSERT INTO dbo.ProductInfo VALUES
   (N'CF1001', N'精梳棉布', N'58吋', N'40支精梳', N'S001', N'大華紡織', N'棉布系列', N'夏季', N'整支約50碼', 1, N'CF1001.jpg', N'85', N'棉布', N'5208.11', N'Combed Cotton', N'58in'),
   (N'CF1002', N'亞麻胚布', N'56吋', N'胚布未染', N'S002', N'永信織造', N'麻布系列', N'', N'整支約40碼', 2, N'', N'120', N'麻布', N'5309.11', N'Linen Greige', N'56in'),
-  (N'CF1003', N'彈性針織', N'60吋', N'四面彈', N'S001', N'大華紡織', N'針織系列', N'運動', N'每卷約25公斤', 4, N'', N'210', N'針織', N'6004.10', N'Stretch Knit', N'60in');
+  (N'CF1003', N'彈性針織', N'60吋', N'四面彈', N'S001', N'大華紡織', N'針織系列', N'運動', N'每卷約25公斤', 4, N'', N'210', N'針織', N'6004.10', N'Stretch Knit', N'60in'),
+  (N'CF1004', N'NULL規格布', NULL, N'規格欄位為 NULL', N'S001', N'大華紡織', N'棉布系列', N'', N'每卷約20碼', 1, N'', N'90', N'棉布', N'5208.12', N'Null Spec', N'-');
 
 INSERT INTO dbo.PRODUCT VALUES
   (N'CF1001', N'棉布', 2),

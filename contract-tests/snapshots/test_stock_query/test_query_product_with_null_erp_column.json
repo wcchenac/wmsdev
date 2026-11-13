@@ -1,0 +1,22 @@
+{
+  "basic": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/stock/queryStock/query/2/CF1004",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  },
+  "detail": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/stock/queryStock/query/1/CF1004",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  }
+}

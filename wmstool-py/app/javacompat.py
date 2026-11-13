@@ -43,6 +43,21 @@ def java_hashmap_order(keys: Iterable[str]) -> list[str]:
     return [key for index in sorted(buckets) for key in buckets[index]]
 
 
+# ------------------------------------------------------------------- strings
+
+_JAVA_TRIM = "".join(chr(c) for c in range(0x21))
+
+
+def java_trim(text: str) -> str:
+    """String.trim(): strips only characters <= U+0020 (not U+3000, not U+00A0)."""
+    return text.strip(_JAVA_TRIM)
+
+
+def java_is_blank(value: object) -> bool:
+    """Bean Validation @NotBlank: null, or empty after String.trim()."""
+    return value is None or (isinstance(value, str) and java_trim(value) == "")
+
+
 # ------------------------------------------------------------------- numbers
 
 
@@ -175,3 +190,13 @@ def java_period_days(start: dt.date, end: dt.date) -> int:
         total_months += 1
         days -= (_plus_months(end.replace(day=1), 1) - dt.timedelta(days=1)).day
     return days
+
+
+def java_parse_long(text: str) -> int:
+    """Long.parseLong / Long.valueOf: like java_parse_int, 64-bit range."""
+    if not _JAVA_INT.fullmatch(text):
+        raise ValueError(f'For input string: "{text}"')
+    value = int(text)
+    if not -(2**63) <= value < 2**63:
+        raise ValueError(f'For input string: "{text}"')
+    return value

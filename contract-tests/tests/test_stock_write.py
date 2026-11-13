@@ -77,6 +77,13 @@ def test_in_stock_rollback(admin, db, golden):
     golden.add("db", db_state(db))
 
 
+@pytest.mark.java_bug("rollback stops at the first missing id: earlier ids are deleted but product totals are not reduced")
+def test_in_stock_rollback_partial_failure(admin, db, golden):
+    seed_baseline(admin)
+    golden.response("rollback_4_99", admin.patch("/api/stock/inStocks/rollback", json=[4, 99]))
+    golden.add("db", db_state(db))
+
+
 # PATCH /api/stock/updateStock --------------------------------------------------
 
 
@@ -145,6 +152,37 @@ def test_ship_stocks(operator, db, golden):
     seed_baseline(operator)
     golden.response("ship_many", operator.patch("/api/stock/shipStocks", json=[
         {"stockIdentifierId": 3, "reason": "出貨"}, {"stockIdentifierId": 4, "reason": "樣品"}]))
+    golden.add("db", db_state(db))
+
+
+def test_ship_stock_blank_reason_rules(operator, db, golden):
+    """@NotBlank uses Java String.trim(): only chars <= U+0020 count as blank.
+    A full-width space (common with Chinese IMEs) is NOT blank; \\x01 is."""
+    seed_baseline(operator)
+    golden.response("fullwidth_space", operator.patch("/api/stock/shipStock",
+                                                      json={"stockIdentifierId": 2, "reason": "　"}))
+    golden.response("control_char", operator.patch("/api/stock/shipStock",
+                                                   json={"stockIdentifierId": 3, "reason": "\x01"}))
+    golden.response("list_control_char", operator.patch("/api/stock/shipStocks",
+                                                        json=[{"stockIdentifierId": 4, "reason": "\x01"}]))
+    golden.add("db", db_state(db, ["stockidentifier", "outstockrequest"]))
+
+
+def test_ship_same_identifier_twice(operator, db, golden):
+    """Java does not check isExist: a second ship creates another pull request and
+    deducts the product again; the later rollback then finds two live requests."""
+    seed_baseline(operator)
+    ship = {"stockIdentifierId": 2, "reason": "出貨"}
+    golden.response("first", operator.patch("/api/stock/shipStock", json=ship))
+    golden.response("second", operator.patch("/api/stock/shipStock", json=ship))
+    golden.response("rollback", operator.patch("/api/stock/shipStock/rollback/2"))
+    golden.add("db", db_state(db, ["stockidentifier", "outstockrequest", "transactionrecord", "product"]))
+
+
+def test_ship_stocks_partial_failure(operator, db, golden):
+    seed_baseline(operator)
+    golden.response("ship_3_and_99", operator.patch("/api/stock/shipStocks", json=[
+        {"stockIdentifierId": 3, "reason": "出貨"}, {"stockIdentifierId": 99, "reason": "出貨"}]))
     golden.add("db", db_state(db))
 
 

@@ -54,6 +54,12 @@ def test_query_product_unknown(admin, golden):
     golden.response("nowhere", admin.get("/api/stock/queryStock/query/2/ZZ0000"))
 
 
+def test_query_product_with_null_erp_column(admin, golden):
+    """CF1004's ERP SPEC is NULL: Java calls toString() on it (NullPointerException -> 500)."""
+    golden.response("basic", admin.get("/api/stock/queryStock/query/2/CF1004"))
+    golden.response("detail", admin.get("/api/stock/queryStock/query/1/CF1004"))
+
+
 def test_query_product_role_split(sales, store, golden):
     """Mode 1 (detail, with supplier/cost) is not open to ROLE_Normal."""
     golden.response("sales_detail", sales.get("/api/stock/queryStock/query/1/CF1001"))
