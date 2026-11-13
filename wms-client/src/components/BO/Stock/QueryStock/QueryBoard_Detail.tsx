@@ -51,6 +51,8 @@ const QueryBoard_Detail: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isQuery, setIsQuery] = useState<boolean>(false);
   const [productNo, setProductNo] = useState<string>("");
+  // Product number of the last query; the input above may be edited afterwards.
+  const [queriedProductNo, setQueriedProductNo] = useState<string>("");
   const [prevProduct, setPrevProduct] = useState<string>("");
   const [nextProduct, setNextProduct] = useState<string>("");
   const [productInfo, setProductInfo] = useState<ProductInfo>({} as ProductInfo);
@@ -70,6 +72,7 @@ const QueryBoard_Detail: React.FC = () => {
       reduxStockInfoes.information.productNo !== null
     ) {
       setProductNo(reduxStockInfoes.information.productNo || "");
+      setQueriedProductNo(reduxStockInfoes.information.productNo || "");
       setPrevProduct(reduxStockInfoes.prevProduct || "");
       setNextProduct(reduxStockInfoes.nextProduct || "");
       setProductInfo(reduxStockInfoes.information);
@@ -87,6 +90,7 @@ const QueryBoard_Detail: React.FC = () => {
       e.preventDefault();
 
       setIsLoading(true);
+      setQueriedProductNo(productNo);
       dispatch(getStockInfoes(productNo)).then((response: { status: number }) => {
         if (response.status === 200) {
           setIsLoading(false);
@@ -103,6 +107,7 @@ const QueryBoard_Detail: React.FC = () => {
       const select = (e.target as HTMLButtonElement).value;
 
       setIsLoading(true);
+      setQueriedProductNo(select);
       dispatch(getStockInfoesBasic(select)).then((response: { status: number }) => {
         if (response.status === 200) {
           setIsLoading(false);
@@ -119,7 +124,7 @@ const QueryBoard_Detail: React.FC = () => {
     }
 
     if (stockInfoes.length === 0) {
-      return <QueryResponseWithNoStock productNo={productNo} onRetry={undefined} />;
+      return <QueryResponseWithNoStock productNo={queriedProductNo} onRetry={undefined} />;
     }
 
     return (
