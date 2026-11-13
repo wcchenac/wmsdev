@@ -330,8 +330,8 @@ describe('UserRegister', () => {
       expect(mockRegisterUser).toHaveBeenCalled();
     });
 
-    // A taken employee ID is something the admin can fix, so it is named; any other failure
-    // gets the usual request-failed handling.
+    // A taken employee ID or an unknown role is something the admin can fix, so the backend's
+    // answer is shown in Chinese; any other failure gets the usual request-failed handling.
     test.each([
       [
         'a taken employee ID',
@@ -341,11 +341,25 @@ describe('UserRegister', () => {
         '員工編號已存在',
       ],
       [
-        'another message from the app (4xx)',
+        'a role the backend does not know',
         Object.assign(new Error('400'), {
           response: { status: 400, data: { success: false, message: 'Role setting error' } },
         }),
-        'Role setting error',
+        '角色設定錯誤',
+      ],
+      [
+        'another message from the app (4xx)',
+        Object.assign(new Error('400'), {
+          response: { status: 400, data: { success: false, message: '其他後端訊息' } },
+        }),
+        '其他後端訊息',
+      ],
+      [
+        'a known message on a 5xx (not translated)',
+        Object.assign(new Error('500'), {
+          response: { status: 500, data: { success: false, message: 'EmployeeId is already exists!' } },
+        }),
+        REQUEST_FAILED_MESSAGE,
       ],
       [
         'a server error',
