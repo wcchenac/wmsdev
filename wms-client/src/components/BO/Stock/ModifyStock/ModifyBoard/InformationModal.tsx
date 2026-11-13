@@ -243,7 +243,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
               <input
                 type="text"
                 className="form-control"
-                placeholder="\u8a3b\u89e3"
+                placeholder="註解"
                 name="remark"
                 value={stockInfo.remark || ""}
                 onChange={handleInfoChange}
@@ -256,7 +256,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
               <input
                 type="text"
                 className="form-control"
-                placeholder="\u8a18\u9304"
+                placeholder="記錄"
                 name="record"
                 value={stockInfo.record || ""}
                 onChange={handleInfoChange}

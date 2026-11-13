@@ -231,7 +231,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                   name="type"
                   defaultValue={StockIdentifierType.roll}
                   onChange={handleRequestChange}
-                  aria-label="\u9078\u64c7\u5eab\u5b58\u578b\u614b"
+                  aria-label="選擇庫存型態"
                 >
                   {Object.keys(StockIdentifierType).map((type, index) => (
                     <option key={index} value={StockIdentifierType[type]}>
@@ -281,10 +281,10 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                       <Form.Control
                         type="number"
                         name="quantity1"
-                        placeholder="\u6700\u5c0f\u6578\u91cf"
+                        placeholder="最小數量"
                         onChange={handleRequestChange}
                         isInvalid={!!errors.quantity1}
-                        aria-label="\u6700\u5c0f\u6578\u91cf"
+                        aria-label="最小數量"
                         aria-describedby={errors.quantity1 ? "quantity1-error" : undefined}
                         min="0"
                       />
@@ -311,10 +311,10 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                     <Form.Control
                       type="number"
                       name="quantity2"
-                      placeholder="\u6700\u5927\u6578\u91cf"
+                      placeholder="最大數量"
                       onChange={handleRequestChange}
                       isInvalid={!!errors.quantity2}
-                      aria-label="\u6700\u5927\u6578\u91cf"
+                      aria-label="最大數量"
                       aria-describedby={errors.quantity2 ? "quantity2-error" : undefined}
                       min="0"
                     />
@@ -361,12 +361,12 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                   as="select"
                   id="unit"
                   name="unit"
-                  defaultValue="\u78bc"
+                  defaultValue="碼"
                   onChange={handleRequestChange}
-                  aria-label="\u9078\u64c7\u55ae\u4f4d"
+                  aria-label="選擇單位"
                 >
-                  <option value="\u78bc">{"\u78bc"}</option>
-                  <option value="\u5c3a">{"\u5c3a"}</option>
+                  <option value="碼">{"\u78bc"}</option>
+                  <option value="尺">{"\u5c3a"}</option>
                 </Form.Control>
               </Col>
             </Form.Group>
@@ -396,7 +396,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                   type="text"
                   id="outStockReason"
                   name="outStockReason"
-                  placeholder="\u8acb\u8f38\u5165\u51fa\u5eab\u539f\u56e0"
+                  placeholder="請輸入出庫原因"
                   onChange={handleRequestChange}
                   aria-required="true"
                   autoComplete="off"
