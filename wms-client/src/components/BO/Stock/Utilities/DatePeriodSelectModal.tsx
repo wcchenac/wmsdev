@@ -103,13 +103,10 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
               </h5>
               <button
                 type="button"
-                className="close"
+                className="btn-close btn-close-white"
                 data-dismiss="modal"
                 aria-label="Close"
-                style={{ color: 'var(--color-white)', opacity: 0.8 }}
-              >
-                <span aria-hidden="true">&times;</span>
-              </button>
+              />
             </div>
             <div className="modal-body">
               <div className="row">

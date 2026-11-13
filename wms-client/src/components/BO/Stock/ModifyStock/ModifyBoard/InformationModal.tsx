@@ -341,13 +341,10 @@ const InformationModal: React.FC<InformationModalProps> = ({
             </h5>
             <button
               type="button"
-              className="close ms-2"
+              className="btn-close btn-close-white ms-2"
               data-dismiss="modal"
               aria-label="Close"
-              style={{ color: 'var(--color-white)', opacity: 0.8 }}
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
+            />
           </div>
           {editMode ? renderEditModeOn() : renderEditModeOff()}
         </div>

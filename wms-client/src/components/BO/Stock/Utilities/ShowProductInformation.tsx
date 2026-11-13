@@ -113,13 +113,10 @@ const ShowProductInformation: React.FC<ShowProductInformationProps> = ({
               </h5>
               <button
                 type="button"
-                className="close"
+                className="btn-close btn-close-white"
                 data-dismiss="modal"
                 aria-label="Close"
-                style={{ color: 'var(--color-white)', opacity: 0.8 }}
-              >
-                <span aria-hidden="true">&times;</span>
-              </button>
+              />
             </div>
             <div className="modal-body" style={{ padding: 'var(--spacing-6)' }}>
               <div className="row">

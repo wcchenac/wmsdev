@@ -164,7 +164,7 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
 
   return (
     <div>
-      <div className="row">
+      <div className="d-flex">
         <button
           type="button"
           className="btn btn-primary"

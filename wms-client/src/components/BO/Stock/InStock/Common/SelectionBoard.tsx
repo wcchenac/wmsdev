@@ -47,7 +47,7 @@ const SelectionBoard: React.FC<SelectionBoardProps> = ({
 
   return (
     <div>
-      <div className="row justify-content-between">
+      <div className="d-flex justify-content-between">
         <Button variant="primary" onClick={handlePrevStep}>
           上一步
         </Button>
