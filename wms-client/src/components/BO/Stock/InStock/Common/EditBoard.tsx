@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, memo, ReactNode, MouseEvent } from "react";
+import React, { useEffect, useState, memo, ReactNode, MouseEvent } from "react";
 import { InStockRequest } from "../../../../../types";
 import StockInfoContainer from "./StockInfoContainer";
 import { StockIdentifierType } from "../../../../../enums/Enums";
@@ -51,18 +51,23 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
     handlePrevStep,
   } = props;
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Product tab currently shown, keyed by SelectedProductNo.index.
   const [activeTabIndex, setActiveTabIndex] = useState<number | null>(null);
 
+  // Every ticked product has been submitted: show the completion message and go back to
+  // Step 1 after 3 seconds. The timer lives in an effect so re-renders do not add more timers,
+  // and it is cleared if the board goes away first.
+  const isCompleted =
+    selectedProductNoList.some((object) => object.isSubmitted === true) &&
+    !selectedProductNoList.some((object) => object.selected === true && object.isSubmitted === false);
+
   useEffect(() => {
-    // Cleanup function to clear timeout and prevent memory leak
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
+    if (!isCompleted) {
+      return undefined;
+    }
+    const timer = setTimeout(getInitialize, 3000);
+    return () => clearTimeout(timer);
+  }, [isCompleted, getInitialize]);
 
   const contentAlgorithm = (filterSubmittedList: SelectedProductNo[]): ReactNode => {
     const filterSelectedList = selectedProductNoList.filter(
@@ -73,8 +78,6 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
 
     if (filterSelectedListLength === 0) {
       if (filterSubmittedListLength !== 0) {
-        timerRef.current = setTimeout(getInitialize, 3000);
-
         return (
           <div className="row justify-content-md-center">
             <div className="col-md-6">
