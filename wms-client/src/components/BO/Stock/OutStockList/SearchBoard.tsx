@@ -39,13 +39,16 @@ interface SearchBoardProps {
 
 interface SearchBoardState {
   toBeSubmit: ToBeSubmitMap;
+  /** Date tab currently shown; falls back to the first date when unset or no longer listed. */
+  activeDate: string | null;
 }
 
 class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
   constructor(props: SearchBoardProps) {
     super(props);
     this.state = {
-      toBeSubmit: {}
+      toBeSubmit: {},
+      activeDate: null
     };
     this.handleToBeSubmitChange = this.handleToBeSubmitChange.bind(this);
     this.handleToBeSubmitWHChange = this.handleToBeSubmitWHChange.bind(this);
@@ -187,13 +190,17 @@ class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
 
   render(): React.ReactNode {
     const { queryResult, selectedUserList } = this.props;
-    const { toBeSubmit } = this.state;
+    const { toBeSubmit, activeDate } = this.state;
 
     if (queryResult === undefined) {
       return null;
     } else {
       const dateArray = Object.keys(queryResult).sort();
       const userArray = this.extractUser(selectedUserList);
+      const currentDate =
+        activeDate !== null && dateArray.includes(activeDate)
+          ? activeDate
+          : dateArray[0];
 
       return (
         <React.Fragment>
@@ -215,17 +222,20 @@ class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
                 return (
                   <a
                     className={
-                      index === 0
+                      date === currentDate
                         ? "nav-item nav-link active"
                         : "nav-item nav-link"
                     }
                     id={"nav-tab-" + date}
                     key={index}
-                    data-toggle="tab"
                     href={"#nav-" + date}
                     role="tab"
                     aria-controls={"nav-" + date}
-                    aria-selected={index === 0}
+                    aria-selected={date === currentDate}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      this.setState({ activeDate: date });
+                    }}
                   >
                     {date}
                   </a>
@@ -245,6 +255,7 @@ class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
                 <SearchContainer
                   key={index}
                   index={index}
+                  active={date === currentDate}
                   date={date}
                   outStockListFiltered={outStockListFiltered}
                   toBeSubmit={toBeSubmit[date]}

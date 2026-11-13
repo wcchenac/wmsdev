@@ -36,6 +36,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
   handleStockInfoUpdate
 }) => {
   const [modalShow, setModalShow] = useState<boolean>(false);
+  const [infoShow, setInfoShow] = useState<boolean>(false);
   const [outStockReason, setOutStockReason] = useState<string>("");
 
   const { stockIdentifier } = stockInfo;
@@ -171,13 +172,15 @@ const StockInfo: React.FC<StockInfoProps> = ({
       </td>
       <td>
         <button
+          type="button"
           className="btn btn-primary me-2"
-          data-toggle="modal"
-          data-target={"#detailInfo-" + index}
+          onClick={() => setInfoShow(true)}
         >
           {"\u8a73\u7d30\u8cc7\u6599"}
         </button>
         <InformationModal
+          show={infoShow}
+          onHide={() => setInfoShow(false)}
           index={index}
           typeValidation={typeValidation}
           stockInfo={stockInfo}

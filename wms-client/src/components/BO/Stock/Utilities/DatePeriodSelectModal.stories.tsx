@@ -1,15 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
+import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePeriodSelectModal from "./DatePeriodSelectModal";
-import { showStaticModal } from "../../../../stories/frames";
 
 const start = new Date(2026, 10, 1);
 
 const meta = {
   title: "Stock/DatePeriodSelectModal",
   component: DatePeriodSelectModal,
-  decorators: [showStaticModal],
   args: {
     btnTitle: "選擇區間",
     btnSize: "sm",
@@ -20,6 +18,13 @@ const meta = {
     handleStartDateSelection: fn(),
     handleEndDateSelection: fn(),
     handleDateSelectionModeClick: fn(),
+  },
+  // The modal is a react-bootstrap Modal: open it so the story shows the dialog, not just the trigger.
+  play: async ({ canvasElement, args }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: args.btnTitle }));
+    const dialog = await within(document.body).findByRole("dialog");
+    // Wait for the fade-in transition before asserting visibility.
+    await waitFor(() => expect(dialog).toBeVisible());
   },
 } satisfies Meta<typeof DatePeriodSelectModal>;
 

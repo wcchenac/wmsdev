@@ -1,6 +1,6 @@
 import type { Mock } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
+import { render, screen, fireEvent, waitForElementToBeRemoved, RenderResult } from '@testing-library/react';
 import DatePeriodSelectModal from '../../../../../components/BO/Stock/Utilities/DatePeriodSelectModal';
 
 interface MockDatePickerProps {
@@ -55,6 +55,13 @@ describe('DatePeriodSelectModal', () => {
     return render(<DatePeriodSelectModal {...defaultProps} {...props} />);
   };
 
+  // react-bootstrap renders the modal into document.body only while it is open.
+  const openModal = (props: Partial<DatePeriodSelectModalProps> = {}): RenderResult => {
+    const result = renderModal(props);
+    fireEvent.click(screen.getByRole('button', { name: props.btnTitle ?? defaultProps.btnTitle }));
+    return result;
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -65,38 +72,49 @@ describe('DatePeriodSelectModal', () => {
       expect(screen.getByRole('button', { name: '選擇日期' })).toBeInTheDocument();
     });
 
-    test('renders modal title', () => {
+    test('does not render the modal until the trigger is clicked', () => {
       renderModal();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByText('時間區間查詢')).not.toBeInTheDocument();
+    });
+
+    test('renders modal title', () => {
+      openModal();
       expect(screen.getByText('時間區間查詢')).toBeInTheDocument();
     });
 
+    test('labels the dialog with its title', () => {
+      openModal();
+      expect(screen.getByRole('dialog', { name: '時間區間查詢' })).toBeInTheDocument();
+    });
+
     test('renders start date label', () => {
-      renderModal();
+      openModal();
       expect(screen.getByText('起始日期')).toBeInTheDocument();
     });
 
     test('renders end date label', () => {
-      renderModal();
+      openModal();
       expect(screen.getByText('結束日期')).toBeInTheDocument();
     });
 
     test('renders day range hint', () => {
-      renderModal();
+      openModal();
       expect(screen.getByText('時間區間最長7天')).toBeInTheDocument();
     });
 
     test('renders cancel button', () => {
-      renderModal();
-      expect(screen.getByText('取消')).toBeInTheDocument();
+      openModal();
+      expect(screen.getByRole('button', { name: '取消' })).toBeInTheDocument();
     });
 
     test('renders confirm button', () => {
-      renderModal();
-      expect(screen.getByText('確認')).toBeInTheDocument();
+      openModal();
+      expect(screen.getByRole('button', { name: '確認' })).toBeInTheDocument();
     });
 
     test('renders date pickers', () => {
-      renderModal();
+      openModal();
       expect(screen.getByTestId('datepicker-start')).toBeInTheDocument();
       expect(screen.getByTestId('datepicker-end')).toBeInTheDocument();
     });
@@ -127,7 +145,7 @@ describe('DatePeriodSelectModal', () => {
   describe('date validation', () => {
     test('shows error when end date is before start date', () => {
       const yesterday = new Date(today.getTime() - 86400000);
-      renderModal({
+      openModal({
         startDate: today,
         endDate: yesterday
       });
@@ -136,7 +154,7 @@ describe('DatePeriodSelectModal', () => {
 
     test('shows error when date range exceeds dayRange', () => {
       const twoWeeksFromNow = new Date(today.getTime() + 86400000 * 14);
-      renderModal({
+      openModal({
         startDate: today,
         endDate: twoWeeksFromNow,
         dayRange: 7
@@ -145,7 +163,7 @@ describe('DatePeriodSelectModal', () => {
     });
 
     test('does not show error for valid date range', () => {
-      renderModal({
+      openModal({
         startDate: today,
         endDate: tomorrow,
         dayRange: 7
@@ -155,30 +173,42 @@ describe('DatePeriodSelectModal', () => {
 
     test('confirm button is disabled when date setting is wrong', () => {
       const yesterday = new Date(today.getTime() - 86400000);
-      const { container } = renderModal({
+      openModal({
         startDate: today,
         endDate: yesterday
       });
-      const confirmButton = container.querySelector('.btn-primary') as HTMLButtonElement;
-      expect(confirmButton).toBeDisabled();
+      expect(screen.getByRole('button', { name: '確認' })).toBeDisabled();
     });
 
     test('confirm button is enabled when date setting is correct', () => {
-      const { container } = renderModal({
+      openModal({
         startDate: today,
         endDate: tomorrow
       });
-      const confirmButton = container.querySelector('.btn-primary') as HTMLButtonElement;
-      expect(confirmButton).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: '確認' })).not.toBeDisabled();
     });
   });
 
   describe('button interactions', () => {
-    test('calls handleDateSelectionModeClick when confirm clicked', () => {
-      const { container } = renderModal();
-      const confirmButton = container.querySelector('.btn-primary') as HTMLButtonElement;
-      fireEvent.click(confirmButton);
-      expect(defaultProps.handleDateSelectionModeClick).toHaveBeenCalled();
+    test('calls handleDateSelectionModeClick and closes when confirm clicked', async () => {
+      openModal();
+      fireEvent.click(screen.getByRole('button', { name: '確認' }));
+      expect(defaultProps.handleDateSelectionModeClick).toHaveBeenCalledTimes(1);
+      await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
+    });
+
+    test('closes without applying when cancel clicked', async () => {
+      openModal();
+      fireEvent.click(screen.getByRole('button', { name: '取消' }));
+      await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
+      expect(defaultProps.handleDateSelectionModeClick).not.toHaveBeenCalled();
+    });
+
+    test('closes without applying when the close button is clicked', async () => {
+      openModal();
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+      await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
+      expect(defaultProps.handleDateSelectionModeClick).not.toHaveBeenCalled();
     });
   });
 
@@ -190,28 +220,25 @@ describe('DatePeriodSelectModal', () => {
     });
 
     test('cancel button has btn-secondary class', () => {
-      const { container } = renderModal();
-      const cancelButtons = container.querySelectorAll('.btn-secondary');
-      expect(cancelButtons.length).toBeGreaterThan(0);
+      openModal();
+      expect(screen.getByRole('button', { name: '取消' })).toHaveClass('btn-secondary');
     });
 
     test('confirm button has btn-primary class', () => {
-      const { container } = renderModal();
-      const primaryButtons = container.querySelectorAll('.btn-primary');
-      expect(primaryButtons.length).toBeGreaterThan(0);
+      openModal();
+      expect(screen.getByRole('button', { name: '確認' })).toHaveClass('btn-primary');
+    });
+
+    test('close button uses the Bootstrap 5 white close style', () => {
+      openModal();
+      expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('btn-close', 'btn-close-white');
     });
   });
 
   describe('modal attributes', () => {
     test('modal has correct id based on fileType', () => {
-      const { container } = renderModal({ fileType: 'export' });
-      expect(container.querySelector('#dateCondition-export')).toBeInTheDocument();
-    });
-
-    test('trigger button targets correct modal', () => {
-      renderModal({ fileType: 'export' });
-      const button = screen.getByRole('button', { name: '選擇日期' });
-      expect(button).toHaveAttribute('data-target', '#dateCondition-export');
+      openModal({ fileType: 'export' });
+      expect(document.getElementById('dateCondition-export')).toBeInTheDocument();
     });
   });
 });

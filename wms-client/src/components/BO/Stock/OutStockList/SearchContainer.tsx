@@ -15,6 +15,8 @@ interface ToBeSubmitMap {
 
 interface SearchContainerProps {
   index: number;
+  /** Whether this date's tab pane is shown. Defaults to showing the first pane (index 0). */
+  active?: boolean;
   date: string;
   outStockListFiltered: OutStockInfo[];
   toBeSubmit: ToBeSubmitMap;
@@ -148,14 +150,14 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
   }
 
   render(): React.ReactNode {
-    const { outStockListFiltered, index, date } = this.props;
+    const { outStockListFiltered, index, date, active } = this.props;
     const { toBeSubmit, headerCheckBoxChecked } = this.state;
 
     return (
       <React.Fragment>
         <div
           className={
-            index === 0 ? "tab-pane fade show active" : "tab-pane fade"
+            (active ?? index === 0) ? "tab-pane fade show active" : "tab-pane fade"
           }
           id={"nav-" + date}
           role="tabpanel"

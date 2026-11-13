@@ -43,6 +43,8 @@ interface StockInfoData {
 
 interface StockInfoContainerProps {
   sequence: number;
+  /** Whether this tab pane is shown. Defaults to showing the first pane (sequence 0). */
+  active?: boolean;
   index: number;
   productNo: string;
   typeValidation: boolean;
@@ -167,6 +169,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
 ) {
   const {
     sequence,
+    active,
     index,
     productNo,
     typeValidation,
@@ -323,7 +326,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
   return (
     <div
       className={
-        sequence === 0 ? "tab-pane fade show active" : "tab-pane fade"
+        (active ?? sequence === 0) ? "tab-pane fade show active" : "tab-pane fade"
       }
       id={"nav-" + index}
       role="tabpanel"

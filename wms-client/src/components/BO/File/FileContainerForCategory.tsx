@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, MouseEvent } from "react";
+import { Modal } from "react-bootstrap";
 import Select, { MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";
 import { SelectOption } from "../../../types";
@@ -23,6 +24,7 @@ const FileContainerForCategory: React.FC<FileContainerForCategoryProps> = ({
   downloadFile
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<SelectOption[]>([]);
+  const [show, setShow] = useState(false);
 
   const animatedComponents = useMemo(() => makeAnimated(), []);
 
@@ -30,7 +32,10 @@ const FileContainerForCategory: React.FC<FileContainerForCategoryProps> = ({
     setSelectedCategory(selected ? [...selected] : []);
   }, []);
 
+  const handleClose = useCallback(() => setShow(false), []);
+
   const handleSubmit = useCallback(() => {
+    setShow(false);
     const request = selectedCategory.map((option) => option.value);
     createCategoryDetailFilename(request);
   }, [selectedCategory, createCategoryDetailFilename]);
@@ -57,84 +62,77 @@ const FileContainerForCategory: React.FC<FileContainerForCategoryProps> = ({
           </div>
           <div className="col-auto">
             <button
-              data-toggle="modal"
-              data-target="#categorySelection"
+              type="button"
               className="btn btn-sm btn-info"
+              onClick={() => setShow(true)}
             >
               選擇分類
             </button>
-            <div
-              className="modal fade"
+            <Modal
+              show={show}
+              onHide={handleClose}
+              centered
               id="categorySelection"
-              tabIndex={-1}
-              role="dialog"
-              aria-labelledby="content"
-              aria-hidden="true"
+              aria-labelledby="categorySelection-title"
             >
               <div
-                className="modal-dialog modal-dialog-centered"
-                role="document"
+                className="modal-header"
+                style={{
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+                  color: 'var(--color-white)',
+                  borderBottom: 'none',
+                  padding: 'var(--spacing-4)',
+                }}
               >
-                <div className="modal-content">
-                  <div
-                    className="modal-header"
-                    style={{
-                      background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
-                      color: 'var(--color-white)',
-                      borderBottom: 'none',
-                      padding: 'var(--spacing-4)',
-                    }}
-                  >
-                    <h5
-                      className="modal-title"
-                      style={{
-                        fontWeight: 'var(--font-weight-semibold)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'var(--spacing-2)',
-                      }}
-                    >
-                      <i className="fa fa-tags" aria-hidden="true" />
-                      選擇分類
-                    </h5>
-                    <button
-                      type="button"
-                      className="btn-close btn-close-white"
-                      data-dismiss="modal"
-                      aria-label="Close"
-                    />
-                  </div>
-                  <div className="modal-body">
-                    <Select<SelectOption, true>
-                      closeMenuOnSelect
-                      components={animatedComponents}
-                      isSearchable
-                      isClearable
-                      isMulti
-                      options={categoryList}
-                      onChange={handleCategorySelect}
-                    />
-                  </div>
-                  <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      data-dismiss="modal"
-                    >
-                      取消
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      data-dismiss="modal"
-                      onClick={handleSubmit}
-                    >
-                      確認
-                    </button>
-                  </div>
-                </div>
+                <h5
+                  className="modal-title"
+                  id="categorySelection-title"
+                  style={{
+                    fontWeight: 'var(--font-weight-semibold)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-2)',
+                  }}
+                >
+                  <i className="fa fa-tags" aria-hidden="true" />
+                  選擇分類
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  aria-label="Close"
+                  onClick={handleClose}
+                />
               </div>
-            </div>
+              <div className="modal-body">
+                <Select<SelectOption, true>
+                  closeMenuOnSelect
+                  components={animatedComponents}
+                  isSearchable
+                  isClearable
+                  isMulti
+                  options={categoryList}
+                  value={selectedCategory}
+                  onChange={handleCategorySelect}
+                />
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleClose}
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleSubmit}
+                >
+                  確認
+                </button>
+              </div>
+            </Modal>
           </div>
         </div>
         <hr />

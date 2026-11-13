@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
+import { Modal } from "react-bootstrap";
 import Select, { MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";
 import { ColorOptions, DefectOptions, DefectOption } from "../../../../../enums/Enums";
@@ -27,6 +28,8 @@ interface UpdateInfoRequest {
 }
 
 interface InformationModalProps {
+  show: boolean;
+  onHide: () => void;
   index: number;
   typeValidation: boolean;
   stockInfo: StockInfoType;
@@ -46,6 +49,8 @@ const stateInitial = (stockInfo: StockInfoType): StockInfoWithDefectOptions => {
 // Component
 // ============================================
 const InformationModal: React.FC<InformationModalProps> = ({
+  show,
+  onHide,
   index,
   typeValidation,
   stockInfo: propStockInfo,
@@ -91,8 +96,9 @@ const InformationModal: React.FC<InformationModalProps> = ({
       remark: stockInfo.remark
     };
 
+    onHide();
     handleStockInfoUpdate(updateInfoRequest);
-  }, [stockInfo, handleStockInfoUpdate]);
+  }, [stockInfo, handleStockInfoUpdate, onHide]);
 
   const renderEditModeOff = (): React.ReactElement => {
     const { stockIdentifier } = propStockInfo;
@@ -278,7 +284,6 @@ const InformationModal: React.FC<InformationModalProps> = ({
           <button
             type="button"
             className="btn btn-primary"
-            data-dismiss="modal"
             onClick={handleUpdateSubmit}
           >
             {"\u78ba\u8a8d"}
@@ -289,67 +294,64 @@ const InformationModal: React.FC<InformationModalProps> = ({
   };
 
   return (
-    <div
-      className="modal fade"
+    <Modal
+      show={show}
+      onHide={onHide}
+      centered
+      scrollable
+      // The modal used to be rendered inside a table cell and inherited
+      // `.table tbody tr td:last-child { text-align: center }`; keep that look now that it is portaled.
+      contentClassName="text-center"
       id={"detailInfo-" + index}
-      tabIndex={-1}
-      role="dialog"
-      aria-labelledby="content"
-      aria-hidden="true"
+      aria-labelledby={"detailInfo-" + index + "-title"}
     >
       <div
-        className="modal-dialog modal-dialog-scrollable modal-dialog-centered"
-        role="document"
+        className="modal-header"
+        style={{
+          background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
+          color: 'var(--color-white)',
+          borderBottom: 'none',
+          padding: 'var(--spacing-4)',
+        }}
       >
-        <div className="modal-content">
-          <div
-            className="modal-header"
+        <h5
+          className="modal-title"
+          id={"detailInfo-" + index + "-title"}
+          style={{
+            fontWeight: 'var(--font-weight-semibold)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-2)',
+            flex: 1,
+          }}
+        >
+          <i className="fa fa-info-circle" aria-hidden="true" />
+          詳細資料
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-light ms-auto"
+            onClick={handleEditMode}
             style={{
-              background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)',
-              color: 'var(--color-white)',
-              borderBottom: 'none',
-              padding: 'var(--spacing-4)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-1)',
+              padding: 'var(--spacing-1) var(--spacing-2)',
+              borderRadius: 'var(--border-radius-sm)',
             }}
           >
-            <h5
-              className="modal-title"
-              style={{
-                fontWeight: 'var(--font-weight-semibold)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--spacing-2)',
-                flex: 1,
-              }}
-            >
-              <i className="fa fa-info-circle" aria-hidden="true" />
-              詳細資料
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-light ms-auto"
-                onClick={handleEditMode}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 'var(--spacing-1)',
-                  padding: 'var(--spacing-1) var(--spacing-2)',
-                  borderRadius: 'var(--border-radius-sm)',
-                }}
-              >
-                <i className="fa fa-pencil" aria-hidden="true" />
-                {editMode ? '取消編輯' : '編輯'}
-              </button>
-            </h5>
-            <button
-              type="button"
-              className="btn-close btn-close-white ms-2"
-              data-dismiss="modal"
-              aria-label="Close"
-            />
-          </div>
-          {editMode ? renderEditModeOn() : renderEditModeOff()}
-        </div>
+            <i className="fa fa-pencil" aria-hidden="true" />
+            {editMode ? '取消編輯' : '編輯'}
+          </button>
+        </h5>
+        <button
+          type="button"
+          className="btn-close btn-close-white ms-2"
+          aria-label="Close"
+          onClick={onHide}
+        />
       </div>
-    </div>
+      {editMode ? renderEditModeOn() : renderEditModeOff()}
+    </Modal>
   );
 };
 

@@ -1,35 +1,29 @@
 import React from "react";
 import { NavLink } from "react-router";
+import { Dropdown } from "react-bootstrap";
 
 const HeaderAdmin: React.FC = () => (
   <React.Fragment>
     <ul className="navbar-nav me-auto">
-      <li className="nav-item dropdown">
-        <button
-          type="button"
-          className="nav-link dropdown-toggle"
-          id="stockInDropdown"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="false"
-        >
+      <Dropdown as="li" className="nav-item">
+        <Dropdown.Toggle as="button" type="button" className="nav-link" id="stockInDropdown">
           入庫作業
-        </button>
-        <div className="dropdown-menu" aria-labelledby="stockInDropdown">
-          <NavLink className="dropdown-item" to="/stock/1/1">
+        </Dropdown.Toggle>
+        <Dropdown.Menu renderOnMount>
+          <Dropdown.Item as={NavLink} to="/stock/1/1">
             進貨單入庫
-          </NavLink>
-          <NavLink className="dropdown-item" to="/stock/1/2">
+          </Dropdown.Item>
+          <Dropdown.Item as={NavLink} to="/stock/1/2">
             組裝單入庫
-          </NavLink>
-          <NavLink className="dropdown-item" to="/stock/1/3">
+          </Dropdown.Item>
+          <Dropdown.Item as={NavLink} to="/stock/1/3">
             退貨單入庫
-          </NavLink>
-          <NavLink className="dropdown-item" to="/stock/1/4">
+          </Dropdown.Item>
+          <Dropdown.Item as={NavLink} to="/stock/1/4">
             調撥單入庫
-          </NavLink>
-        </div>
-      </li>
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
       <li className="nav-item">
         <NavLink className="nav-link" to="/stock/2/2">
           庫存查詢
@@ -40,26 +34,19 @@ const HeaderAdmin: React.FC = () => (
           出庫單查詢
         </NavLink>
       </li>
-      <li className="nav-item dropdown">
-        <button
-          type="button"
-          className="nav-link dropdown-toggle"
-          id="stockModifyDropdown"
-          data-toggle="dropdown"
-          aria-haspopup="true"
-          aria-expanded="false"
-        >
+      <Dropdown as="li" className="nav-item">
+        <Dropdown.Toggle as="button" type="button" className="nav-link" id="stockModifyDropdown">
           庫存異動作業
-        </button>
-        <div className="dropdown-menu" aria-labelledby="stockModifyDropdown">
-          <NavLink className="dropdown-item" to="/stock/3/1">
+        </Dropdown.Toggle>
+        <Dropdown.Menu renderOnMount>
+          <Dropdown.Item as={NavLink} to="/stock/3/1">
             庫存異動
-          </NavLink>
-          <NavLink className="dropdown-item" to="/stock/3/2">
+          </Dropdown.Item>
+          <Dropdown.Item as={NavLink} to="/stock/3/2">
             減肥清單
-          </NavLink>
-        </div>
-      </li>
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
       <li className="nav-item">
         <NavLink className="nav-link" to="/stock/4">
           拉貨明細

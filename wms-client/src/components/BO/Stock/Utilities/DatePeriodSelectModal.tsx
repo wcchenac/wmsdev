@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
+import { Modal } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 
 type ButtonSize = "sm" | "lg" | undefined;
@@ -59,103 +60,107 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
   handleEndDateSelection,
   handleDateSelectionModeClick,
 }) => {
+  const [show, setShow] = useState(false);
   const wrongDateSetting = dateSettingAlgorithm(startDate, endDate, dayRange);
+  const titleId = "dateCondition-" + fileType + "-title";
+
+  const handleClose = useCallback(() => setShow(false), []);
+
+  const handleConfirm = useCallback(() => {
+    setShow(false);
+    handleDateSelectionModeClick();
+  }, [handleDateSelectionModeClick]);
 
   return (
     <React.Fragment>
       <button
+        type="button"
         className={getClassNameString(btnSize)}
-        data-toggle="modal"
-        data-target={"#dateCondition-" + fileType}
+        onClick={() => setShow(true)}
       >
         {btnTitle}
       </button>
-      <div
-        className="modal fade"
+      <Modal
+        show={show}
+        onHide={handleClose}
+        centered
         id={"dateCondition-" + fileType}
-        tabIndex={-1}
-        role="dialog"
-        aria-labelledby="content"
-        aria-hidden="true"
+        aria-labelledby={titleId}
       >
-        <div className="modal-dialog modal-dialog-centered" role="document">
-          <div className="modal-content">
-            <div
-              className="modal-header"
-              style={{
-                background: 'linear-gradient(135deg, var(--color-info) 0%, var(--color-info-dark, #138496) 100%)',
-                color: 'var(--color-white)',
-                borderBottom: 'none',
-                padding: 'var(--spacing-4)',
-              }}
-            >
-              <h5
-                className="modal-title"
-                style={{
-                  fontWeight: 'var(--font-weight-semibold)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--spacing-2)',
-                }}
-              >
-                <i className="fa fa-calendar-alt" aria-hidden="true" />
-                時間區間查詢
-              </h5>
-              <button
-                type="button"
-                className="btn-close btn-close-white"
-                data-dismiss="modal"
-                aria-label="Close"
+        <div
+          className="modal-header"
+          style={{
+            background: 'linear-gradient(135deg, var(--color-info) 0%, var(--color-info-dark, #138496) 100%)',
+            color: 'var(--color-white)',
+            borderBottom: 'none',
+            padding: 'var(--spacing-4)',
+          }}
+        >
+          <h5
+            className="modal-title"
+            id={titleId}
+            style={{
+              fontWeight: 'var(--font-weight-semibold)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-2)',
+            }}
+          >
+            <i className="fa fa-calendar-alt" aria-hidden="true" />
+            時間區間查詢
+          </h5>
+          <button
+            type="button"
+            className="btn-close btn-close-white"
+            aria-label="Close"
+            onClick={handleClose}
+          />
+        </div>
+        <div className="modal-body">
+          <div className="row">
+            <div className="col">
+              <label>起始日期</label>
+              <DatePicker
+                name="start"
+                selected={startDate}
+                onChange={handleStartDateSelection}
               />
             </div>
-            <div className="modal-body">
-              <div className="row">
-                <div className="col">
-                  <label>起始日期</label>
-                  <DatePicker
-                    name="start"
-                    selected={startDate}
-                    onChange={handleStartDateSelection}
-                  />
-                </div>
-                <div className="col">
-                  <label>結束日期</label>
-                  <DatePicker
-                    name="end"
-                    selected={endDate}
-                    onChange={handleEndDateSelection}
-                  />
-                </div>
-              </div>
-              <small className="text-muted">時間區間最長{dayRange}天</small>
-              <br />
-              {wrongDateSetting && (
-                <small className="text-danger">
-                  日期設定錯誤，請修改日期
-                </small>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-dismiss="modal"
-              >
-                取消
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                data-dismiss="modal"
-                disabled={wrongDateSetting}
-                onClick={handleDateSelectionModeClick}
-              >
-                確認
-              </button>
+            <div className="col">
+              <label>結束日期</label>
+              <DatePicker
+                name="end"
+                selected={endDate}
+                onChange={handleEndDateSelection}
+              />
             </div>
           </div>
+          <small className="text-muted">時間區間最長{dayRange}天</small>
+          <br />
+          {wrongDateSetting && (
+            <small className="text-danger">
+              日期設定錯誤，請修改日期
+            </small>
+          )}
         </div>
-      </div>
+        <div className="modal-footer">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleClose}
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={wrongDateSetting}
+            onClick={handleConfirm}
+          >
+            確認
+          </button>
+        </div>
+      </Modal>
     </React.Fragment>
   );
 };

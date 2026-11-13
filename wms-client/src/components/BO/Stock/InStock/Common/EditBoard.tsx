@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, memo, ReactNode, MouseEvent } from "react";
+import React, { useRef, useEffect, useState, memo, ReactNode, MouseEvent } from "react";
 import StockInfoContainer from "./StockInfoContainer";
 import { StockIdentifierType, DefectOption } from "../../../../../enums/Enums";
 
@@ -69,6 +69,8 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
   } = props;
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Product tab currently shown, keyed by SelectedProductNo.index.
+  const [activeTabIndex, setActiveTabIndex] = useState<number | null>(null);
 
   useEffect(() => {
     // Cleanup function to clear timeout and prevent memory leak
@@ -102,6 +104,11 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
         );
       }
     } else {
+      // Fall back to the first tab when nothing is chosen yet or the chosen product was submitted.
+      const currentTab = filterSelectedList.some((object) => object.index === activeTabIndex)
+        ? activeTabIndex
+        : filterSelectedList[0].index;
+
       return (
         <div className="scrollbar-70">
           <nav>
@@ -110,17 +117,20 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
                 return (
                   <a
                     className={
-                      index === 0
+                      object.index === currentTab
                         ? "nav-item nav-link active"
                         : "nav-item nav-link"
                     }
                     id={"nav-tab-" + object.index}
                     key={index}
-                    data-toggle="tab"
                     href={"#nav-" + object.index}
                     role="tab"
                     aria-controls={"nav-" + object.index}
-                    aria-selected={index === 0}
+                    aria-selected={object.index === currentTab}
+                    onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                      e.preventDefault();
+                      setActiveTabIndex(object.index);
+                    }}
                   >
                     {object.productNo}
                   </a>
@@ -143,6 +153,7 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
                   typeValidation={typeValidation}
                   key={object.index}
                   sequence={index}
+                  active={object.index === currentTab}
                   index={object.index}
                   orderNo={orderNo}
                   productNo={object.productNo}
