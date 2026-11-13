@@ -23,14 +23,29 @@ def test_daily_stock_compare(admin, golden):
     golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("today's report is reset to the template before comparing, so a failing comparison "
+                      "wipes it; patched Java compares first and keeps the earlier report")
 def test_daily_stock_compare_failure_resets_todays_report(admin, db, golden):
     """Java recreates today's report from the template *before* comparing. A failure in
-    the comparison (CF1001 整支 has a NULL quantity: NullPointerException) answers 400
-    and leaves today's earlier report replaced by the empty template."""
+    the comparison (CF1001 整支 has a quantity that is not a number: Double.parseDouble
+    throws) answers 400 and leaves today's earlier report replaced by the empty template.
+
+    Patched Java (.fixed.json, followed by Python): still 400, but the comparison runs
+    before the report is touched, so today's earlier report is kept."""
     seed_baseline(admin)
     golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))
-    exec_sql(db, "UPDATE product SET quantity = NULL WHERE productNo = 'CF1001' AND type = '整支'")
+    exec_sql(db, "UPDATE product SET quantity = 'abc' WHERE productNo = 'CF1001' AND type = '整支'")
     golden.response("second", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+    golden.add("reports", generated_reports())
+
+
+@pytest.mark.java_bug("a NULL WMS quantity whose product/type the ERP has makes Double.parseDouble(null) "
+                      "throw: the whole comparison fails (400); patched Java writes a Fail row instead")
+def test_daily_stock_compare_null_quantity_with_erp_match(admin, db, golden):
+    """CF1001 整支 is in the ERP and has a NULL WMS quantity."""
+    seed_baseline(admin)
+    exec_sql(db, "UPDATE product SET quantity = NULL WHERE productNo = 'CF1001' AND type = '整支'")
+    golden.response("compare", admin.get("/api/stock/stockManagement/daily/stockCompare"))
     golden.add("reports", generated_reports())
 
 
@@ -102,11 +117,21 @@ def test_category_list(admin, golden):
 # GET /api/stock/queryStock/category/{category} -----------------------------------
 
 
+def _days_ago(days: int) -> str:
+    """A date relative to today: golden files store dates as <TODAY-n> tokens, so a
+    fixed date would drift by one token every day."""
+    import datetime as dt
+
+    from conftest import today
+
+    return f"{today() - dt.timedelta(days=days):%Y-%m-%d}"
+
+
 def _seed_category_tables(db):
     for row in [
-        ("CF1001", "L01", "整支", "50", "碼", 3, "", "A區", "", "進貨單", "2026-11-01", "棉布"),
-        ("CF1001", "L02", "板卷", "12", "碼", 0, "", "", "邊破", "進貨單", "2026-11-02", "棉布"),
-        ("CF1003", "L11", "板卷", "25", "公斤", 0, "", "", "", "調撥單", "2026-10-20", "針織"),
+        ("CF1001", "L01", "整支", "50", "碼", 3, "", "A區", "", "進貨單", _days_ago(12), "棉布"),
+        ("CF1001", "L02", "板卷", "12", "碼", 0, "", "", "邊破", "進貨單", _days_ago(11), "棉布"),
+        ("CF1003", "L11", "板卷", "25", "公斤", 0, "", "", "", "調撥單", _days_ago(24), "針織"),
     ]:
         exec_sql(db, "INSERT INTO categorydetail VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", *row)
     for row in [
@@ -155,6 +180,16 @@ def _product_photo(product_no: str, content: bytes):
         settle_files()
 
 
+@pytest.mark.java_bug("a product of the category the ERP has no row for makes productInfo[i] throw "
+                      "(NullPointerException): the whole report fails; patched Java leaves its info blank")
+def test_category_detail_report_product_missing_in_erp(admin, db, golden):
+    _seed_category_tables(db)
+    exec_sql(db, "INSERT INTO categorydetail VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+             "ZZ0001", "X1", "整支", "8", "碼", 0, "", "", "", "進貨單", _days_ago(10), "棉布")
+    golden.response("棉布", admin.get("/api/stock/queryStock/category/棉布"))
+    golden.add("reports", _category_reports())
+
+
 def test_category_detail_report_with_picture(admin, db, golden):
     """A product photo (pictures/<productNo>.jpg) pushes that product's table 16 rows down instead of 10."""
     import base64
@@ -179,7 +214,8 @@ def _category_reports():
 
     folder = EXCEL_DIR / "CategoryDetail"
     paths = sorted(p for p in folder.iterdir() if p.suffix in (".xls", ".xlsx")) if folder.exists() else []
-    return {path.name: read_workbook(path) for path in paths}
+    # Java opens the report for writing before building it: a failure midway leaves 0 bytes
+    return {path.name: read_workbook(path) if path.stat().st_size else "<empty file>" for path in paths}
 
 
 # GET /api/stock/queryStock/history/{id} + PATCH /api/stock/queryStock/updateHistory ---

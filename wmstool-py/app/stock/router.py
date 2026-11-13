@@ -12,7 +12,6 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel
-from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.db import get_session
@@ -33,6 +32,13 @@ def _bad_request(session: Session, what: str) -> Response:
     session.rollback()
     logger.exception("%s failed", what)
     return Response(status_code=400)
+
+
+def _missing_field(field: str, message: str) -> Response:
+    """400 naming a missing body field, in the {field: message} shape of the validation
+    errors (defect 12 fixed, as in contract-tests/java-patches/12-missing-field-message.patch;
+    Java answered an empty 400)."""
+    return JSONResponse({field: message}, status_code=400)
 
 
 def constraint_violations(items: list[BaseModel], param: str, messages: dict[str, str]) -> dict[str, str]:
@@ -107,9 +113,9 @@ def in_stocks(body: list[InStockRequest], request: Request, session: Session = D
 @router.post("/shrinkStock")
 def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
+    if body.inStockRequests is None:  # defect 12 fixed: name the missing field
+        return _missing_field("inStockRequests", "必須提供切出的布卷清單")
     try:
-        if body.inStockRequests is None:
-            raise TypeError("inStockRequests is null (Java: NullPointerException)")
         report_writes = shrink.shrink_stock(session, shrink.ShrinkRequest(
             old_identifier_id=body.oldStockIdentifierId, pieces=[r.to_item() for r in body.inStockRequests],
             allocation=body.allocation, adjustment=body.adjustment, shrink_type=body.shrinkType,
@@ -117,15 +123,16 @@ def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = 
         session.commit()
     except Exception:
         return _bad_request(session, "shrinkStock")
-    # Reports only after the commit. A failed write keeps the shrink and answers 400,
-    # which is what Java does (javax @Transactional commits on its IOException).
-    try:
-        for write in report_writes:
+    # Reports only after the commit. The shrink stands whatever happens to them: each
+    # report is tried on its own and a failure is only logged for a manual rewrite
+    # (defect 8 fixed, as in contract-tests/java-patches/08-shrink-report-failure-keeps-
+    # shrink.patch). Java answered 400 for a committed shrink, so users shrank again.
+    for write in report_writes:
+        try:
             write()
-    except Exception:
-        logger.exception("shrink %s committed but a report write failed; rewrite the report by hand",
-                         body.oldStockIdentifierId)
-        return Response(status_code=400)
+        except Exception:
+            logger.exception("shrink %s committed but a report write failed; rewrite the report by hand",
+                             body.oldStockIdentifierId)
     return Response(status_code=200)
 
 
@@ -134,10 +141,10 @@ def shrink_stock_rollback(stockIdentifierId: int, request: Request,
                           session: Session = Depends(get_session)) -> Response:
     principal = admin(request)
     try:
-        shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)  # Java ignores the result
+        shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)
         session.commit()
-    except DBAPIError:
-        return _bad_request(session, "shrinkStock/rollback")
+    except Exception:
+        return _bad_request(session, "shrinkStock/rollback")  # all or nothing (defect 4 fixed)
     return Response(status_code=200)
 
 
@@ -148,13 +155,15 @@ def shrink_rollback_list(productNo: str, request: Request, session: Session = De
 
 
 class OutStockUpdateRequest(BaseModel):
-    outStockUpdate: dict[int, str | None] | None = None  # null -> 400 after the workbook is created
+    outStockUpdate: dict[int, str | None] | None = None  # null -> 400 naming the field (defect 12)
 
 
 @router.patch("/outStock/update")
 def out_stock_update(body: OutStockUpdateRequest, request: Request,
                      session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
+    if body.outStockUpdate is None:  # defect 12 fixed: checked before any pull list is written
+        return _missing_field("outStockUpdate", "必須提供要處理的拉貨單")
     try:
         moves.handle_out_stock_requests(session, body.outStockUpdate, principal.full_name)
     except Exception:
@@ -175,7 +184,10 @@ def daily_stock_compare(request: Request, session: Session = Depends(get_session
 @router.patch("/inStocks/rollback")
 def in_stocks_rollback(body: list[int], request: Request, session: Session = Depends(get_session)) -> Response:
     admin(request)
-    moves.rollback_in_stock(session, body)  # Java ignores the boolean result
+    try:
+        moves.rollback_in_stock(session, body)
+    except Exception:
+        return _bad_request(session, "inStocks/rollback")  # all or nothing (defect 3 fixed)
     return Response(status_code=200)
 
 

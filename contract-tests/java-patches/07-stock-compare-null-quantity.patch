@@ -1,0 +1,16 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/CompareStockFunction.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/CompareStockFunction.java
+@@ -126,7 +126,12 @@
+ 				tempResultList.add(firstDBQTY);
+ 				tempResultList.add(unit);
+ 
+-				if (String.format("%.2f", Math.abs(Double.parseDouble(firstDBQTY) - Double.parseDouble(secondDBQTY)))
++				if (firstDBQTY == null) {
++					// No WMS quantity to compare: report the product as failing, with the WMS
++					// quantity and the difference left blank, instead of failing the comparison
++					tempResultList.add("Fail");
++					tempResultList.add(null);
++				} else if (String.format("%.2f", Math.abs(Double.parseDouble(firstDBQTY) - Double.parseDouble(secondDBQTY)))
+ 						.equals("0.00")) {
+ 					tempResultList.add("Pass");
+ 				} else {

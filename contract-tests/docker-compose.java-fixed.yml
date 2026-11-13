@@ -1,10 +1,10 @@
-# The Java service with the minimal history-route fix (java-patches/), used only to
+# The Java service with the minimal fixes in java-patches/, used only to
 # record `.fixed.json` goldens:
 #
 #   docker compose -f docker-compose.yml -f docker-compose.java-fixed.yml up -d --wait
 services:
   backend:
     volumes: !override
-      - ./runtime/wmstool-history-fixed.jar:/app/wmstool.jar:ro
+      - ./runtime/wmstool-fixed.jar:/app/wmstool.jar:ro
       - ./config:/app/config:ro
       - ./runtime/files:/data/files

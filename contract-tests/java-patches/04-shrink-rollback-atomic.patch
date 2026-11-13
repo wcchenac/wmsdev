@@ -1,0 +1,59 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/DeleteStockFunction.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/DeleteStockFunction.java
+@@ -182,7 +182,8 @@
+ 		} catch (Exception e) {
+ 			e.printStackTrace();
+ 
+-			return false;
++			// all or nothing: roll the whole rollback back, the controller answers 400
++			throw new IllegalStateException("shrink rollback failed", e);
+ 		}
+ 	}
+ 
+@@ -194,6 +195,10 @@
+ 		LocalDateTime startTime = LocalDateTime.of(now, LocalTime.MIN);
+ 		LocalDateTime endTime = LocalDateTime.of(now, LocalTime.MAX);
+ 
++		// both templates must parse before either report is replaced
++		stockAllocateRecordExcelHelper.checkTemplate();
++		stockAdjustRecordExcelHelper.checkTemplate();
++
+ 		String allocationFileName = stockAllocateRecordExcelHelper.deleteAndCreateNewFile(now);
+ 		String adjustmentFileName = stockAdjustRecordExcelHelper.deleteAndCreateNewFile(now);
+ 
+--- a/wmstool/src/main/java/com/wmstool/wmstool/utilities/StockAllocateRecordExcelHelper.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/utilities/StockAllocateRecordExcelHelper.java
+@@ -68,6 +68,15 @@
+ 	}
+ 
+ 	/**
++	 * Parse the template without touching any report: fails before a report is
++	 * deleted when the template is missing or broken.
++	 */
++	public void checkTemplate() throws IOException {
++		String templateFile = folderPath + seperator + "STKALLT" + seperator + "StockAllocateRecordTemplate" + filetype;
++		WorkbookFactory.create(new File(templateFile)).close();
++	}
++
++	/**
+ 	 * For shrink roll-back process, re-create a excel from template excel which is
+ 	 * named by current date formated in "yyyyMMdd" pattern
+ 	 */
+--- a/wmstool/src/main/java/com/wmstool/wmstool/utilities/StockAdjustRecordExcelHelper.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/utilities/StockAdjustRecordExcelHelper.java
+@@ -68,6 +68,15 @@
+ 	}
+ 
+ 	/**
++	 * Parse the template without touching any report: fails before a report is
++	 * deleted when the template is missing or broken.
++	 */
++	public void checkTemplate() throws IOException {
++		String templateFile = folderPath + seperator + "STKADST" + seperator + "StockAdjustRecordTemplate" + filetype;
++		WorkbookFactory.create(new File(templateFile)).close();
++	}
++
++	/**
+ 	 * For shrink roll-back process, re-create a excel from template excel which is
+ 	 * named by current date formated in "yyyyMMdd" pattern
+ 	 */

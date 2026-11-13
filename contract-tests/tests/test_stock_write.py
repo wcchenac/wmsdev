@@ -70,6 +70,8 @@ def _token(api, employee_id):
 # PATCH /api/stock/inStocks/rollback ---------------------------------------------
 
 
+@pytest.mark.java_bug("rollbackInStock swallows its own failure: an unknown id answers 200 "
+                      "(patched Java rolls the request back and answers 400)")
 def test_in_stock_rollback(admin, db, golden):
     seed_baseline(admin)
     golden.response("rollback_4_5", admin.patch("/api/stock/inStocks/rollback", json=[4, 5]))
@@ -126,10 +128,15 @@ def test_shrink_stock_float_rounding(operator, db, golden):
     golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("the shrink is committed but the report IOException answers 400, so users shrink "
+                      "again; patched Java keeps 200 and only logs the report failure")
 def test_shrink_stock_report_template_missing(operator, db, golden):
     """The adjustment template is missing: the report write fails with an IOException.
     Java's javax @Transactional commits on checked exceptions, so the shrink is kept,
-    the allocation report is written, and the answer is 400."""
+    the allocation report is written, and the answer is 400.
+
+    Patched Java (.fixed.json, followed by Python): the same shrink and allocation
+    report, but 200 — the report failure is only logged."""
     from conftest import templates_missing
 
     with templates_missing("STKADST/StockAdjustRecordTemplate"):
@@ -141,10 +148,15 @@ def test_shrink_stock_report_template_missing(operator, db, golden):
         golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("the shrink is committed but the report IOException answers 400, so users shrink "
+                      "again; patched Java keeps 200 and only logs the report failure")
 def test_shrink_stock_template_missing_with_todays_report(operator, db, golden):
     """Java's createNewFile reads the template even when today's report already exists:
     with the allocation template gone, a second shrink fails while writing (400, shrink
-    kept) and today's allocation report keeps only the first shrink's row."""
+    kept) and today's allocation report keeps only the first shrink's row.
+
+    Patched Java (.fixed.json, followed by Python): the second shrink answers 200; the
+    allocation report still keeps only the first shrink's row (the failure is logged)."""
     from conftest import templates_missing
 
     seed_baseline(operator)
@@ -157,9 +169,15 @@ def test_shrink_stock_template_missing_with_todays_report(operator, db, golden):
         golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("rollbackShrink swallows the report IOException and commits the rollback (200); "
+                      "patched Java rolls the whole rollback back and answers 400")
 def test_shrink_rollback_template_missing_keeps_reports(admin, db, golden):
     """The rollback rewrites today's reports (deleteAndCreateNewFile), which reads the
-    template before deleting: with the allocation template gone, today's reports stay."""
+    template before deleting: with the allocation template gone, today's reports stay.
+    Java answers 200 and commits the database part of the rollback.
+
+    Patched Java (.fixed.json, followed by Python): 400 and nothing is rolled back —
+    the database stays shrunk, today's reports stay as they were."""
     from conftest import templates_missing
 
     seed_baseline(admin)
@@ -170,11 +188,17 @@ def test_shrink_rollback_template_missing_keeps_reports(admin, db, golden):
         golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("rollbackShrink swallows the report IOException and commits the rollback (200); "
+                      "patched Java rolls the whole rollback back and answers 400")
 def test_shrink_rollback_adjustment_template_missing(admin, db, golden):
     """generateNewFile recreates both reports from their templates before writing any
     row: with the adjustment template gone, the allocation report is already reset to
     the empty template when the adjustment one fails. Two rolls are shrunk so that
-    today still has records (roll 2's) after rolling roll 1 back."""
+    today still has records (roll 2's) after rolling roll 1 back.
+
+    Patched Java (.fixed.json, followed by Python): both templates are parsed before
+    either report is touched, so the rollback fails with 400, nothing is rolled back,
+    and both reports keep both shrinks' rows."""
     from conftest import templates_missing
 
     seed_baseline(admin)
@@ -186,8 +210,44 @@ def test_shrink_rollback_adjustment_template_missing(admin, db, golden):
         golden.add("reports", generated_reports())
 
 
+def _shrink_with_broken_allocation_template(operator, db, golden, replacement):  # noqa: ANN001
+    """Shrink with both an allocation and an adjustment while the allocation template
+    (written first) is broken: patched Java keeps the shrink (200) and still writes the
+    adjustment report — each report on its own."""
+    from conftest import templates_swapped
+
+    template = "STKALLT/StockAllocateRecordTemplate"
+    with templates_swapped({f"{template}.xls": replacement, f"{template}.xlsx": replacement}):
+        seed_baseline(operator)
+        golden.response("shrink", operator.post("/api/stock/shrinkStock",
+                                                json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5)))
+        golden.add("db", db_state(db, ["stockidentifier", "stockallocationrecord", "stockadjustmentrecord"]))
+        golden.add("reports", generated_reports())
+
+
+@pytest.mark.java_bug("the allocation report's IOException ends the shrink before the adjustment is "
+                      "saved or written, and answers 400; patched Java keeps the shrink and writes the "
+                      "adjustment report")
+def test_shrink_stock_allocation_template_missing(operator, db, golden):
+    _shrink_with_broken_allocation_template(operator, db, golden, None)
+
+
+@pytest.mark.java_bug("an empty allocation template makes POI throw a RuntimeException (EmptyFileException): "
+                      "the whole shrink is rolled back (400); patched Java keeps the shrink and writes the "
+                      "adjustment report")
+def test_shrink_stock_allocation_template_empty(operator, db, golden, tmp_path):
+    empty = tmp_path / "empty"
+    empty.write_bytes(b"")
+    _shrink_with_broken_allocation_template(operator, db, golden, empty)
+
+
+@pytest.mark.java_bug("a missing field answers an empty 400; patched Java names the field "
+                      "({field: message}, like the validation errors)")
 def test_shrink_stock_without_pieces_field(operator, db, golden):
-    """No `inStockRequests` key: Java iterates a null list (NullPointerException) -> 400, rolled back."""
+    """No `inStockRequests` key: Java iterates a null list (NullPointerException) -> 400, rolled back.
+
+    Patched Java (.fixed.json, followed by Python): 400 with
+    {"inStockRequests": <message>}, checked before anything is done."""
     seed_baseline(operator)
     body = shrink_request(1, ["30", "19"], allocation=0, adjustment=0)
     del body["inStockRequests"]
@@ -217,6 +277,8 @@ def test_shrink_stock_child_limit(operator, db, golden):
     golden.add("db", db_state(db, ["stockidentifier", "history"]))
 
 
+@pytest.mark.java_bug("rolling back a roll that was never shrunk fails inside rollbackShrink, which "
+                      "swallows it (200); patched Java answers 400")
 def test_shrink_stock_rollback(admin, db, golden):
     seed_baseline(admin)
     admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5))
@@ -350,7 +412,9 @@ def test_out_stock_update_follows_json_key_order(operator, db, golden):
 )
 def test_shrink_rollback_after_double_shrink(admin, db, golden):
     """A roll shrunk twice has two SKO records. Recorded on Java (2026-11-13): 200 with a
-    half-done rollback — not the 400 a Spring-semantics reading predicted."""
+    half-done rollback — not the 400 a Spring-semantics reading predicted.
+
+    Patched Java (.fixed.json, followed by Python): 400 and nothing is rolled back."""
     seed_baseline(admin)
     admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0, adjustment=0))
     admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["10", "9"], allocation=0, adjustment=0))
@@ -359,19 +423,29 @@ def test_shrink_rollback_after_double_shrink(admin, db, golden):
     golden.add("after", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
 
 
+@pytest.mark.java_bug("a missing field answers an empty 400 and leaves a template-only pull list behind; "
+                      "patched Java checks first, names the field and writes no file")
 def test_out_stock_update_without_map(operator, db, golden):
     """Body `{}`: Java creates the pull-list workbook, then NPEs on the null map -> 400,
-    rolled back, the template-only workbook stays."""
+    rolled back, the template-only workbook stays.
+
+    Patched Java (.fixed.json, followed by Python): 400 with
+    {"outStockUpdate": <message>}, checked first, so no workbook is written."""
     operator.post("/api/stock/outStock", json=OUT_STOCK)
     golden.response("update", operator.patch("/api/stock/outStock/update", json={}))
     golden.add("db", db_state(db, ["outstockrequest"]))
     golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("a second update in the same second rewrites the pull list from the template and "
+                      "drops the first update's rows; patched Java appends to the existing file")
 def test_out_stock_update_twice_in_one_second(operator, db, golden):
     """The pull-list name has second precision. Java's createNewFile rewrites the template
     even when the file exists, so a second update in the same second replaces the first
     update's rows; both requests still point at that one file.
+
+    Patched Java (.fixed.json, followed by Python): the existing file is kept and the
+    second update's row is appended after the first one's.
 
     The file name comes from the server's clock, the alignment from the client's, so on
     a slow machine the two updates can still straddle a second: start over (clean

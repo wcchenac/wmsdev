@@ -135,3 +135,23 @@ def test_broken_template_fails_before_the_report_is_touched(excel_dir, content, 
     with pytest.raises(Exception):  # noqa: B017 - any parse error, as Java's IOException/POI errors
         getattr(workbook, helper)("STKALLT", "StockAllocateRecordTemplate", report)
     assert report.read_bytes() == b"today's report"
+
+
+def test_recreate_all_leaves_every_report_when_one_template_is_missing(excel_dir):
+    """Both templates are parsed before any report is replaced (generateNewFile in the
+    patched Java checks both templates first)."""
+    import openpyxl
+
+    from app.reports import workbook
+
+    (excel_dir / "STKALLT").mkdir()
+    openpyxl.Workbook().save(excel_dir / "STKALLT" / "StockAllocateRecordTemplate.xlsx")
+    reports = [
+        ("STKALLT", "StockAllocateRecordTemplate", excel_dir / "STKALLT" / "a.xlsx"),
+        ("STKADST", "StockAdjustRecordTemplate", excel_dir / "STKADST" / "b.xlsx"),  # no template
+    ]
+    reports[0][2].write_bytes(b"today's allocation report")
+    with pytest.raises(FileNotFoundError):
+        workbook.recreate_all_from_templates(reports)
+    assert reports[0][2].read_bytes() == b"today's allocation report"
+    assert not reports[1][2].exists()

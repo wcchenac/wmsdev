@@ -1,0 +1,33 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/controllers/StockController.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/controllers/StockController.java
+@@ -1,5 +1,6 @@
+ package com.wmstool.wmstool.controllers;
+ 
++import java.util.Collections;
+ import java.util.List;
+ 
+ import javax.validation.Valid;
+@@ -126,6 +127,11 @@
+ 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
+ 	@PostMapping("/shrinkStock")
+ 	public ResponseEntity<?> shrinkStock(@RequestBody ShrinkStockRequest shrinkStockRequest) {
++		if (shrinkStockRequest.getInStockRequests() == null) {
++			// say which field is missing, in the {field: message} shape of the validation errors
++			return new ResponseEntity<>(Collections.singletonMap("inStockRequests", "必須提供切出的布卷清單"),
++					HttpStatus.BAD_REQUEST);
++		}
+ 		try {
+ 			stockService.shrinkStock(shrinkStockRequest);
+ 
+@@ -232,6 +238,11 @@
+ 	@PreAuthorize("hasAnyRole('ROLE_Operator','ROLE_Admin')")
+ 	@PatchMapping("/outStock/update")
+ 	public ResponseEntity<?> updateOutStockRequest(@RequestBody OutStockUpdateRequest outStockUpdateRequest) {
++		if (outStockUpdateRequest.getOutStockUpdate() == null) {
++			// say which field is missing, in the {field: message} shape of the validation errors
++			return new ResponseEntity<>(Collections.singletonMap("outStockUpdate", "必須提供要處理的拉貨單"),
++					HttpStatus.BAD_REQUEST);
++		}
+ 		try {
+ 			stockService.updateOutStockRequest(outStockUpdateRequest);
+ 

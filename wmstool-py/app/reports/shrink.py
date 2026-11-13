@@ -14,7 +14,7 @@ from app.reports.workbook import (
     dated_report_path,
     ensure_from_template,
     first_data_row,
-    recreate_from_template,
+    recreate_all_from_templates,
 )
 from app.stock.models import StockAdjustmentRecord, StockAllocationRecord
 
@@ -54,11 +54,13 @@ def write_adjustments(records: Sequence[StockAdjustmentRecord], day: dt.date) ->
 def rewrite_today(allocations: Sequence[StockAllocationRecord], adjustments: Sequence[StockAdjustmentRecord],
                   day: dt.date) -> None:
     """DeleteStockFunction.generateNewFile: both reports are recreated from their
-    templates first (allocation, then adjustment), and only then are rows written. A
-    missing adjustment template therefore leaves the allocation report as the template."""
-    paths = []
+    templates first, and only then are rows written. Both templates are parsed before
+    either report is replaced (as in contract-tests/java-patches/04-shrink-rollback-
+    atomic.patch), so a missing template leaves both reports as they were."""
+    targets = []
     for folder, template, prefix in (ALLOCATION, ADJUSTMENT):
         path, _ = dated_report_path(folder, prefix, f"{day:%Y%m%d}", day)
-        paths.append(recreate_from_template(folder, template, path))
-    _append(paths[0], allocations, _allocation_row)
-    _append(paths[1], adjustments, _adjustment_row)
+        targets.append((folder, template, path))
+    allocation, adjustment = recreate_all_from_templates(targets)
+    _append(allocation, allocations, _allocation_row)
+    _append(adjustment, adjustments, _adjustment_row)

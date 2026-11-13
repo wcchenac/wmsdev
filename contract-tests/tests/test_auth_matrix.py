@@ -14,7 +14,7 @@ import io
 import pytest
 import xlwt
 
-from conftest import Api, today
+from conftest import Api
 
 ALL = {"admin", "operator", "sales", "store"}
 ADMIN = {"admin"}
@@ -76,7 +76,8 @@ ENDPOINTS = [
     ("GET", "/api/stock/queryStock/history/1", ADMIN, {"params": {"id": 1}}),
     ("PATCH", "/api/stock/queryStock/updateHistory", ADMIN, {"params": {"id": 1, "childs": "2"}}),
     # /api/file (class-level @PreAuthorize: operator, admin)
-    ("GET", f"/api/file/download/allocation/StockAllocateRecord-{today():%Y%m%d}", OPS, {}),
+    # not a date: the probe never reaches the handler, and a date would rename the golden daily
+    ("GET", "/api/file/download/allocation/StockAllocateRecord-X", OPS, {}),
     ("GET", "/api/file/query/allocation/today", OPS, {}),
     ("GET", "/api/file/query/allocation/interval", OPS, {"params": RANGE}),
     ("GET", "/api/file/query/categoryList", OPS, {}),
@@ -97,6 +98,23 @@ def test_rejections(endpoint, http, golden, request):
     method, path, allowed, kwargs = endpoint
     if "/queryStock/history/" in path:
         request.applymarker(pytest.mark.java_bug("ambiguous history route answers 500 before authorization"))
+    golden.response("no_token", Api(http, None).request(method, path, **kwargs))
+    for role in sorted(ALL - allowed):
+        golden.response(f"as_{role}", Api(http, role).request(method, path, **kwargs))
+
+
+# A body missing the required field must still be rejected by authorization first:
+# @PreAuthorize runs before the method body, where the missing field is checked
+# (and named in the 400, defect 12).
+MISSING_FIELD = [
+    ("POST", "/api/stock/shrinkStock", OPS, {"json": {}}),
+    ("PATCH", "/api/stock/outStock/update", OPS, {"json": {}}),
+]
+
+
+@pytest.mark.parametrize("endpoint", MISSING_FIELD, ids=[_id(e) for e in MISSING_FIELD])
+def test_rejections_before_missing_field(endpoint, http, golden):
+    method, path, allowed, kwargs = endpoint
     golden.response("no_token", Api(http, None).request(method, path, **kwargs))
     for role in sorted(ALL - allowed):
         golden.response(f"as_{role}", Api(http, role).request(method, path, **kwargs))

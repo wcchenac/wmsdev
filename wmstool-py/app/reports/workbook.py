@@ -57,6 +57,14 @@ def recreate_from_template(folder: str, template: str, target: Path) -> Path:
     return _write(target, _read_template(folder, template))
 
 
+def recreate_all_from_templates(reports: list[tuple[str, str, Path]]) -> list[Path]:
+    """recreate_from_template for several (folder, template, target) at once: every
+    template is read and parsed before any target is replaced, so one missing or broken
+    template leaves all the reports as they were."""
+    contents = [_read_template(folder, template) for folder, template, _ in reports]
+    return [_write(target, content) for (_, _, target), content in zip(reports, contents, strict=True)]
+
+
 def write_row(sheet: Worksheet, index: int, cells: Row, font=None) -> None:  # noqa: ANN001
     for col, value in cells.items():
         if value is None:

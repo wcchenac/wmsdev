@@ -1,7 +1,5 @@
 """Daily WMS-vs-ERP stock comparison: port of CompareStockFunction.stockFullyComparison."""
 
-import logging
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -12,8 +10,6 @@ from app.reports import comparison
 from app.stock.models import Product
 from app.stock.orders import type_name, unit_name
 from app.timeconv import taipei_today
-
-logger = logging.getLogger(__name__)
 
 # {productNo: {type: {"quantity": str, "unit": str}}}, plus first-insertion key order
 Erp = dict[str, dict[str, dict[str, str]]]
@@ -50,12 +46,16 @@ def comparison_rows(session: Session) -> list[list[str | None]]:
         product_no, type_, wms_qty, unit = p.productNo or "", p.type or "", p.quantity, p.unit or ""
         erp_entry = remaining.get(product_no, {}).get(type_)
         if erp_entry is not None:
-            if wms_qty is None:  # Java parses the quantity only on this branch
-                raise TypeError("product quantity is null (Java: NullPointerException)")
             erp_qty = erp_entry["quantity"]
-            diff = java_parse_double(wms_qty) - java_parse_double(erp_qty)
             row = [product_no, type_, erp_qty, wms_qty, unit]
-            row += ["Pass"] if java_format_2f(abs(diff)) == "0.00" else ["Fail", java_format_2f(diff)]
+            if wms_qty is None:
+                # Nothing to compare: a Fail row with blank WMS quantity and difference
+                # (defect 7 fixed, as in contract-tests/java-patches/07-stock-compare-null-
+                # quantity.patch); Java's Double.parseDouble(null) failed the whole comparison.
+                row += ["Fail", None]
+            else:
+                diff = java_parse_double(wms_qty) - java_parse_double(erp_qty)
+                row += ["Pass"] if java_format_2f(abs(diff)) == "0.00" else ["Fail", java_format_2f(diff)]
             del remaining[product_no][type_]
             if not remaining[product_no]:
                 del remaining[product_no]
@@ -75,12 +75,11 @@ def comparison_rows(session: Session) -> list[list[str | None]]:
 
 
 def stock_full_comparison(session: Session) -> None:
-    """As in Java: today's report is reset to the template first, so a failure in the
-    comparison (-> 400) leaves the empty template; a failure while writing the rows
-    is only logged (Java catches it and answers 200)."""
-    path = comparison.create(taipei_today())
+    """Compare first, then replace today's report with the result (defect 6 fixed, as in
+    contract-tests/java-patches/06-stock-compare-write-after-compare.patch): a failing
+    comparison keeps today's earlier report, and a failure while writing reaches the
+    caller (400). Java reset the report before comparing and swallowed write failures.
+    A write that fails midway can still leave a partly written report."""
     rows = comparison_rows(session)
-    try:
-        comparison.append(path, rows)
-    except Exception:
-        logger.exception("writing the stock comparison report %s failed", path)
+    path = comparison.create(taipei_today())
+    comparison.append(path, rows)

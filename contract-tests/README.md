@@ -79,19 +79,42 @@ docker compose up -d --wait
 - `--golden-variant fixed --update-golden`：對修補版 Java 錄製 `.fixed.json`。
 - 防呆：`--update-golden` 對 Python 後端一律拒絕執行，golden 永遠來自 Java。
 
-目前唯一的修補是 history 路由衝突（`java-patches/history-routes.patch`：兩個 mapping 以 `params` 區分）。重錄步驟：
+`java-patches/` 裡的修補依檔名順序套用。檔名的編號是遷移時整理的 Java 缺陷清單的項目編號（那份清單沒有納入版本控制）；每個修補修了什麼，以下表為準：
+
+| 修補 | 修正 | 改變的測試 |
+|---|---|---|
+| `history-routes.patch` | 第 1 項：history 兩個 mapping 以 `params` 區分，不再一律 500 | history 相關測試、`test_auth_matrix` 的 history 路由 |
+| `03-instock-rollback-atomic.patch` | 第 3 項：入庫回滾任何一個 id 失敗就整筆回滾、回 400 | `test_in_stock_rollback`、`test_in_stock_rollback_partial_failure` |
+| `04-shrink-rollback-atomic.patch` | 第 4 項：減肥回滾任何一步失敗（重複減肥、沒減肥過、範本遺失）就整筆回滾、回 400；重建報表前先確認兩份範本都能解析 | `test_shrink_stock_rollback`、`test_shrink_rollback_after_double_shrink`、`test_shrink_rollback_template_missing_keeps_reports`、`test_shrink_rollback_adjustment_template_missing` |
+| `05-pull-list-append-same-second.patch` | 第 5 項：同一秒已有拉貨單時附加在後面，不再用範本覆寫（檔名格式不變） | `test_out_stock_update_twice_in_one_second` |
+| `06-stock-compare-write-after-compare.patch` | 第 6 項：每日比對先算完才重設當天報表；比對失敗保留舊報表，寫入失敗回 400 | `test_daily_stock_compare_failure_resets_todays_report`（用不是數字的數量讓比對失敗；NULL 數量在第 7 項之後不再失敗） |
+| `07-stock-compare-null-quantity.patch` | 第 7 項：WMS 數量為 NULL 而 ERP 有對應時寫一列 Fail（WMS 數量、差異留空），不再讓整次比對失敗 | `test_daily_stock_compare_null_quantity_with_erp_match` |
+| `08-shrink-report-failure-keeps-shrink.patch` | 第 8 項：減肥寫報表失敗（任何例外，包括 POI 對空檔或壞檔丟的 RuntimeException）時減肥照樣成立、回 200，報表失敗只記 log；兩份報表各自寫入 | `test_shrink_stock_report_template_missing`、`test_shrink_stock_template_missing_with_todays_report`、`test_shrink_stock_allocation_template_missing`、`test_shrink_stock_allocation_template_empty` |
+| `09-import-skip-blank-rows.patch` | 第 9 項：進貨匯入略過沒有任何文字的列，不再整個檔案被略過 | `test_import_cell_existence`、`test_import_trailing_rows_without_cells`、`test_import_blank_rows_between_data` |
+| `10-category-detail-missing-erp-product.patch` | 第 10 項：類別明細裡 ERP 查不到的商品，商品資訊欄留空，不再讓整份報表失敗（原本還會留下 0 byte 的報表檔） | `test_category_detail_report_product_missing_in_erp` |
+| `12-missing-field-message.patch` | 第 12 項：`shrinkStock` 缺 `inStockRequests`、`outStock/update` 缺 `outStockUpdate` 時，400 附上 `{欄位: 訊息}`；拉貨單在檢查之後才建立 | `test_shrink_stock_without_pieces_field`、`test_out_stock_update_without_map` |
+
+Python 版跟著修補版 Java 走：上表的測試在 Python 上比對 `.fixed.json`。
+
+注意第 4 項：回滾時，當天的報表在資料庫 commit 之前就重建。兩份範本會先解析，任何一份遺失或損壞時，兩份報表都不會被動到（`test_shrink_rollback_adjustment_template_missing`）。但如果寫入報表本身中途失敗（例如檔案被 Excel 開著），或資料庫 commit 失敗，資料庫會整筆回滾，已經改寫的報表卻不會還原。Java 修補版也是這樣。
+
+重錄步驟：
 
 ```bash
-./java-patches/build-patched-jar.sh          # 在暫存目錄套修補並建 jar，不動 repo 的 wmstool/
+./java-patches/build-patched-jar.sh          # 在暫存目錄套修補並建 runtime/wmstool-fixed.jar，不動 repo 的 wmstool/
 docker compose -f docker-compose.yml -f docker-compose.java-fixed.yml up -d --wait
-.venv/bin/pytest -q -k "history and not update_history" --update-golden --golden-variant fixed
+.venv/bin/pytest -q -k "<上表改到的測試>" --update-golden --golden-variant fixed
 docker compose up -d --wait                  # 換回原版 Java
 ```
+
+不要用 `-m java_bug` 全部重錄：沒有修補的缺陷（例如 `test_shrink_stock_child_limit`，第 2 項）會多出一份跟 `.json` 相同的 `.fixed.json`，看起來像已修好。
+
+確認修補版 Java 沒有改到其他行為：對修補版跑整套並比對原版的 golden（`--golden-variant java`），失敗的應該只有上表的測試。
 
 ## 切換方式（2026-11-13 決定：不並行，直接切換）
 
 - 切換後 Python 版只寫 `.xlsx`；正式機既有的 `.xls` 報表**不轉換**，Python 版的查詢（today／interval／categoryList）與下載同時認得 `.xls` 與 `.xlsx`，兩者並存時以 `.xlsx` 為準（`test_legacy_xls_reports_remain_usable`）。
-- `shrinkStock` 的調撥／調整報表在資料庫 commit 之後才寫。寫入失敗（例如範本遺失、當天報表被 Excel 開著）時減肥已保留、回 400，與 Java 相同；log 會記下需要人工補寫的報表（`test_shrink_stock_report_template_missing`）。
+- `shrinkStock` 的調撥／調整報表在資料庫 commit 之後才寫，兩份各自寫入。寫入失敗（例如範本遺失、當天報表被 Excel 開著）時減肥照樣成立、回 200（Java 原本回 400，見第 8 項修補）；log 會記下需要人工補寫的報表（`test_shrink_stock_report_template_missing`）。**切換後請監看這類 log**，因為使用者不會在畫面上看到報表沒寫成。
 
 ## 部署注意：報表範本
 

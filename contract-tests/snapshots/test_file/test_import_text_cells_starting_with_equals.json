@@ -1,0 +1,12 @@
+{
+  "import": {
+    "body": null,
+    "status": 200
+  },
+  "stockinfo": [
+    {
+      "record": "\"記錄\"",
+      "remark": "=A區"
+    }
+  ]
+}

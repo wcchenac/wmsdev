@@ -8,6 +8,7 @@ import datetime as dt
 import io
 
 import openpyxl
+import pytest
 from conftest import client_range, db_state, read_workbook, rows, today, write_report
 
 CATEGORIES = ["allocation", "adjustment", "dailyComparison", "outStockList", "categoryDetail", "bogus"]
@@ -201,8 +202,13 @@ def test_import_reuses_backlog_values(operator, db, golden):
     golden.add("db", db_state(db))
 
 
+@pytest.mark.java_bug("a trailing row without cells (here: only a height) makes Java read getCell(0) of it: "
+                      "the whole file is skipped (patched Java skips the blank row)")
 def test_import_cell_existence(operator, db, golden):
-    """POI distinguishes a styled empty cell (text "") from a missing one, and counts empty <row>s."""
+    """POI distinguishes a styled empty cell (text "") from a missing one, and counts empty <row>s.
+
+    Patched Java (.fixed.json, followed by Python): the trailing row that only has a
+    height is skipped as blank, so the second file is imported instead of skipped."""
     from openpyxl.styles import Font
 
     book = openpyxl.Workbook()
@@ -241,16 +247,68 @@ def _with_trailing_row(data: bytes, row_xml: str) -> bytes:
     return out.getvalue()
 
 
+@pytest.mark.java_bug("trailing rows without cells make Java skip the whole file (patched Java skips the rows)")
 def test_import_trailing_rows_without_cells(operator, db, golden):
     """XSSF's getLastRowNum() counts every <row> element. A trailing row with no cells,
     whether it only has a row style or no attributes at all, makes Java read getCell(0)
-    of an empty row (NullPointerException): the whole file is skipped."""
+    of an empty row (NullPointerException): the whole file is skipped.
+
+    Patched Java (.fixed.json, followed by Python): both trailing rows are skipped as
+    blank and both files are imported."""
     row = ["CF1002", "L07", "整支", "40", "碼", 0, None, None, None, "fileImport", None]
     plain = _xlsx([row])
     golden.response("styled_row", _post(operator, "styled.xlsx",
                                         _with_trailing_row(plain, '<row r="5" s="0" customFormat="1"/>')))
     golden.response("bare_row", _post(operator, "bare.xlsx", _with_trailing_row(plain, '<row r="5"/>')))
     golden.add("db", db_state(db, ["stockidentifier"]))
+
+
+@pytest.mark.java_bug("a row without data (no cells, styled empty cells, whitespace) between data rows "
+                      "makes Java read getCell(0) of it (NullPointerException): the whole file is skipped, "
+                      "and the API still answers 200")
+def test_import_blank_rows_between_data(operator, db, golden):
+    """The patched Java skips rows that are missing or whose cells are all empty after trim()."""
+    from openpyxl.styles import Font
+
+    def book_with(middle):
+        book = openpyxl.Workbook()
+        sheet = book.active
+        assert sheet is not None
+        sheet.append(IMPORT_HEADER)
+        sheet.append(["CF1001", "L01", "整支", "50", "碼", 0, None, None, None, "fileImport", None])
+        middle(sheet)
+        sheet["A4"], sheet["B4"], sheet["C4"], sheet["D4"] = "CF1002", "L07", "整支", "40"
+        sheet["E4"], sheet["F4"], sheet["J4"] = "碼", 0, "fileImport"
+        buf = io.BytesIO()
+        book.save(buf)
+        return buf.getvalue()
+
+    def styled(sheet):
+        sheet["A3"].font = Font(bold=True)
+
+    def spaces(sheet):
+        sheet["A3"], sheet["C3"] = "  ", " "
+
+    golden.response("missing_row", _post(operator, "missing.xlsx", book_with(lambda sheet: None)))
+    golden.response("styled_empty_row", _post(operator, "styled.xlsx", book_with(styled)))
+    golden.response("whitespace_row", _post(operator, "spaces.xlsx", book_with(spaces)))
+    golden.add("db", db_state(db, ["stockidentifier"]))
+
+
+def test_import_text_cells_starting_with_equals(operator, db, golden):
+    """POI's Cell.toString() drops the '=' only for formula cells (it prints the formula);
+    a text cell that starts with '=' keeps it."""
+    book = openpyxl.Workbook()
+    sheet = book.active
+    assert sheet is not None
+    sheet.append(IMPORT_HEADER)
+    sheet.append(["CF1001", "L01", "整支", "50", "碼", 0, None, "=A區", None, "fileImport", None])
+    sheet["H2"].data_type = "s"  # 備註: text that starts with '=', not a formula
+    sheet["I2"] = '="記錄"'      # 記錄: a real formula
+    buf = io.BytesIO()
+    book.save(buf)
+    golden.response("import", _post(operator, "equals.xlsx", buf.getvalue()))
+    golden.add("stockinfo", rows(db, "SELECT remark, record FROM stockinfo"))
 
 
 def test_import_java_number_grammar(operator, db, golden):

@@ -1,0 +1,19 @@
+{
+  "compare": {
+    "body": null,
+    "status": 400
+  },
+  "reports": {
+    "StockComparisonResult/<YEAR>/<MONTH>/StockComparisonResult-<TODAY:yyyyMMdd>.<excel>": [
+      [
+        "貨號",
+        "型態",
+        "ERP數量",
+        "WMS數量",
+        "單位",
+        "結果",
+        "差異"
+      ]
+    ]
+  }
+}
