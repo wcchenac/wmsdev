@@ -16,6 +16,11 @@ interface ShrinkRollbackState {
   isLoading: boolean;
   isQuery: boolean;
   productNo: string;
+  /**
+   * The product the list on screen belongs to. A rollback and its refresh use this, not the
+   * search box, which the admin may have changed since.
+   */
+  queriedProductNo: string;
   result: ShrinkRollbackObject[];
 }
 
@@ -39,6 +44,7 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
       isLoading: false,
       isQuery: false,
       productNo: "",
+      queriedProductNo: "",
       result: []
     };
     this.handleProductNoChange = this.handleProductNoChange.bind(this);
@@ -56,9 +62,10 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
     e.preventDefault();
 
     this.setState({ isLoading: true }, () => {
-      this.props.getShrinkRollbackList(this.state.productNo).then((response: { status: number }) => {
+      const { productNo } = this.state;
+      this.props.getShrinkRollbackList(productNo).then((response: { status: number }) => {
         if (response.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
+          this.setState({ isLoading: false, isQuery: true, queriedProductNo: productNo });
         }
       }).catch((error: unknown) => {
         this.setState({ isLoading: false });
@@ -71,7 +78,7 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
     this.setState({ isLoading: true }, () => {
       // The action queries the list again whatever the outcome; a failure says what happened.
       this.props
-        .shrinkRollback(stockIdentifierId, this.state.productNo)
+        .shrinkRollback(stockIdentifierId, this.state.queriedProductNo)
         .catch(notifyRollbackFailed)
         .finally(() => {
           this.setState({ isLoading: false });

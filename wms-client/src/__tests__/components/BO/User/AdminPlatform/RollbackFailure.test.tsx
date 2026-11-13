@@ -81,6 +81,10 @@ const pages = [
     '/api/stock/queryStock/inStockRollback?orderType=normal&orderNo=IN001',
     { CF1001: [{ id: 1 }, { id: 2 }] },
     { CF1001: [{ id: 2 }] },
+    (container: HTMLElement) => {
+      fireEvent.change(container.querySelector('select[name=orderType]')!, { target: { name: 'orderType', value: 'assemble' } });
+      fireEvent.change(container.querySelector('input[name=orderNo]')!, { target: { name: 'orderNo', value: 'IN999' } });
+    },
   ],
   [
     '減肥回朔 (ShrinkRollback)',
@@ -95,10 +99,13 @@ const pages = [
     '/api/stock/queryStock/shrinkRollback/CF1001',
     [{ id: 7 }, { id: 8 }],
     [{ id: 8 }],
+    (container: HTMLElement) => {
+      fireEvent.change(container.querySelector('#productNo-search')!, { target: { name: 'productNo', value: 'CF9999' } });
+    },
   ],
 ] as const;
 
-describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList) => {
+describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList, editSearch) => {
   const renderAndQuery = async () => {
     const view = render(
       <Provider store={createStore(rootReducer, applyMiddleware(thunk))}>
@@ -123,6 +130,20 @@ describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList)
     vi.mocked(API.get).mockReset();
     vi.mocked(API.patch).mockReset();
     vi.mocked(toast.error).mockReset();
+  });
+
+  test('the refresh after a rollback uses what was queried, not what the search box says now', async () => {
+    const { container } = await renderAndQuery();
+    editSearch(container);
+    vi.mocked(API.patch).mockRejectedValue(badRequest());
+    vi.mocked(API.get).mockResolvedValue({ status: 200, data: currentList });
+
+    await rollBack();
+
+    expect(API.get).toHaveBeenCalledTimes(2);
+    expect(API.get).toHaveBeenLastCalledWith(listUrl);
+    expect(toast.error).toHaveBeenCalledWith(ROLLBACK_REJECTED_MESSAGE);
+    expect(screen.getByTestId('list')).toHaveTextContent(JSON.stringify(currentList));
   });
 
   test('a rejected rollback (400) stops loading, says nothing changed and shows the list as it now is', async () => {

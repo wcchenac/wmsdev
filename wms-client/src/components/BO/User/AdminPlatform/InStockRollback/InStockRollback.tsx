@@ -20,6 +20,12 @@ const InStockRollback: React.FC = () => {
   const [orderNo, setOrderNo] = useState<string>("");
   const [orderType, setOrderType] = useState<string>("");
   const [result, setResult] = useState<InStockRollbackResult>({});
+  // The order the list on screen belongs to. A rollback and its refresh use this, not the
+  // search inputs, which the admin may have changed since.
+  const [queriedOrder, setQueriedOrder] = useState<{ orderType: string; orderNo: string }>({
+    orderType: "",
+    orderNo: "",
+  });
 
   const dispatch = useDispatch<AppDispatch>();
   const queryResult = useSelector((state: RootState) => state.stockInfo);
@@ -50,6 +56,7 @@ const InStockRollback: React.FC = () => {
         if (response.status === 200) {
           setIsLoading(false);
           setIsQuery(true);
+          setQueriedOrder({ orderType, orderNo });
         }
       }).catch((error) => {
         setIsLoading(false);
@@ -64,13 +71,13 @@ const InStockRollback: React.FC = () => {
       setIsLoading(true);
 
       // The action queries the list again whatever the outcome; a failure says what happened.
-      dispatch(inStockRollback(idList, orderType, orderNo))
+      dispatch(inStockRollback(idList, queriedOrder.orderType, queriedOrder.orderNo))
         .catch(notifyRollbackFailed)
         .finally(() => {
           setIsLoading(false);
         });
     },
-    [dispatch, orderType, orderNo]
+    [dispatch, queriedOrder]
   );
 
   const contentAlgorithm = (): React.ReactNode => {
