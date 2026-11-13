@@ -1,0 +1,37 @@
+{
+  "admin": {
+    "body": [
+      {
+        "employeeId": "admin",
+        "fullName": "管理員甲",
+        "role": "管理員"
+      },
+      {
+        "employeeId": "operator",
+        "fullName": "倉管乙",
+        "role": "庫存相關人員"
+      },
+      {
+        "employeeId": "sales",
+        "fullName": "業務丙",
+        "role": "業務"
+      },
+      {
+        "employeeId": "store",
+        "fullName": "門市丁",
+        "role": "一般人員/門市"
+      }
+    ],
+    "status": 200
+  },
+  "sales_forbidden": {
+    "body": {
+      "error": "Forbidden",
+      "message": "Forbidden",
+      "path": "/api/user/adminManagement/user/userList",
+      "status": 403,
+      "timestamp": "<timestamp>"
+    },
+    "status": 403
+  }
+}

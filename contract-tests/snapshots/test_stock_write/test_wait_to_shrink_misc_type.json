@@ -1,0 +1,31 @@
+{
+  "db": {
+    "outstockrequest": [
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "fileName": null,
+        "id": 1,
+        "isDeleted": false,
+        "isHandled": false,
+        "lotNo": "L01",
+        "outStockType": 1,
+        "productNo": "CF1003",
+        "quantity": "5",
+        "reason": "分裝",
+        "requestFrom": null,
+        "stockIdentifierId": 1,
+        "type": "雜項",
+        "unit": "公斤",
+        "updatedAt": null,
+        "updatedBy": null
+      }
+    ]
+  },
+  "mark": {
+    "body": "CF1003",
+    "status": 200
+  }
+}

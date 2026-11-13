@@ -1,0 +1,25 @@
+{
+  "no_folder": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/file/query/categoryList",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  },
+  "two_reports": {
+    "body": [
+      {
+        "label": "針織",
+        "value": "針織"
+      },
+      {
+        "label": "棉布",
+        "value": "棉布"
+      }
+    ],
+    "status": 200
+  }
+}

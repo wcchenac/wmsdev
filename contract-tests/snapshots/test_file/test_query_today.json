@@ -1,0 +1,50 @@
+{
+  "none/adjustment": {
+    "body": "File Not Found",
+    "status": 200
+  },
+  "none/allocation": {
+    "body": "File Not Found",
+    "status": 200
+  },
+  "none/bogus": {
+    "body": null,
+    "status": 400
+  },
+  "none/categoryDetail": {
+    "body": null,
+    "status": 400
+  },
+  "none/dailyComparison": {
+    "body": "File Not Found",
+    "status": 200
+  },
+  "none/outStockList": {
+    "body": null,
+    "status": 400
+  },
+  "seeded/adjustment": {
+    "body": "StockAdjustRecord-<TODAY:yyyyMMdd>.xls",
+    "status": 200
+  },
+  "seeded/allocation": {
+    "body": "StockAllocateRecord-<TODAY:yyyyMMdd>.xls",
+    "status": 200
+  },
+  "seeded/bogus": {
+    "body": null,
+    "status": 400
+  },
+  "seeded/categoryDetail": {
+    "body": null,
+    "status": 400
+  },
+  "seeded/dailyComparison": {
+    "body": "StockComparisonResult-<TODAY:yyyyMMdd>.xls",
+    "status": 200
+  },
+  "seeded/outStockList": {
+    "body": null,
+    "status": 400
+  }
+}

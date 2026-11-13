@@ -1,0 +1,32 @@
+{
+  "after_sync": {
+    "body": [
+      {
+        "label": "棉布",
+        "value": "棉布"
+      },
+      {
+        "label": "針織",
+        "value": "針織"
+      },
+      {
+        "label": "麻布",
+        "value": "麻布"
+      }
+    ],
+    "status": 200
+  },
+  "before_sync": {
+    "body": [
+      {
+        "label": "未分類",
+        "value": "未分類"
+      }
+    ],
+    "status": 200
+  },
+  "no_products": {
+    "body": [],
+    "status": 200
+  }
+}

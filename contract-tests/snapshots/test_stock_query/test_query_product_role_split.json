@@ -1,0 +1,64 @@
+{
+  "sales_detail": {
+    "body": {
+      "information": {
+        "addType": "可追加",
+        "cCCCODE": "5208.11",
+        "cCost": "85",
+        "cName": "精梳棉布",
+        "descrip": "40支精梳",
+        "eNAME": "Combed Cotton",
+        "eSPEC": "58in",
+        "packDesc": "整支約50碼",
+        "picture": "CF1001.jpg",
+        "prodDesc": "棉布系列",
+        "productNo": "CF1001",
+        "spec": "58吋",
+        "supp": "S001",
+        "suppName": "大華紡織",
+        "userField1": "夏季"
+      },
+      "nextProduct": null,
+      "prevProduct": null,
+      "productList": [],
+      "result": []
+    },
+    "status": 200
+  },
+  "store_basic": {
+    "body": {
+      "information": {
+        "addType": "可追加",
+        "cCCCODE": "5208.11",
+        "cCost": null,
+        "cName": "精梳棉布",
+        "descrip": "40支精梳",
+        "eNAME": "Combed Cotton",
+        "eSPEC": "58in",
+        "packDesc": "整支約50碼",
+        "picture": "CF1001.jpg",
+        "prodDesc": null,
+        "productNo": "CF1001",
+        "spec": "58吋",
+        "supp": null,
+        "suppName": null,
+        "userField1": null
+      },
+      "nextProduct": null,
+      "prevProduct": null,
+      "productList": [],
+      "result": []
+    },
+    "status": 200
+  },
+  "store_detail": {
+    "body": {
+      "error": "Forbidden",
+      "message": "Forbidden",
+      "path": "/api/stock/queryStock/query/1/CF1001",
+      "status": 403,
+      "timestamp": "<timestamp>"
+    },
+    "status": 403
+  }
+}

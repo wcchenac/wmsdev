@@ -1,0 +1,164 @@
+{
+  "after": {
+    "product": [
+      {
+        "cName": null,
+        "category": "麻布",
+        "createdAt": "<datetime:datetime>",
+        "id": 1,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1002",
+        "quantity": "40",
+        "safeQuantity": null,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": "<datetime:datetime>",
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "針織",
+        "createdAt": "<datetime:datetime>",
+        "id": 2,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1003",
+        "quantity": "25",
+        "safeQuantity": null,
+        "type": "板卷",
+        "unit": "公斤",
+        "updatedAt": "<datetime:datetime>",
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "棉布",
+        "createdAt": "<datetime:datetime>",
+        "id": 3,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1001",
+        "quantity": "12",
+        "safeQuantity": null,
+        "type": "板卷",
+        "unit": "碼",
+        "updatedAt": "<datetime:datetime>",
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "棉布",
+        "createdAt": "<datetime:datetime>",
+        "id": 4,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1001",
+        "quantity": "98.50",
+        "safeQuantity": null,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": "<datetime:datetime>",
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 5,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "ZZ0001",
+        "quantity": "1",
+        "safeQuantity": null,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "whType": null
+      }
+    ]
+  },
+  "before": {
+    "product": [
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 1,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1002",
+        "quantity": "40",
+        "safeQuantity": null,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 2,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1003",
+        "quantity": "25",
+        "safeQuantity": null,
+        "type": "板卷",
+        "unit": "公斤",
+        "updatedAt": null,
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 3,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1001",
+        "quantity": "12",
+        "safeQuantity": null,
+        "type": "板卷",
+        "unit": "碼",
+        "updatedAt": null,
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 4,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1001",
+        "quantity": "98.50",
+        "safeQuantity": null,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 5,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "ZZ0001",
+        "quantity": "1",
+        "safeQuantity": null,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "whType": null
+      }
+    ]
+  },
+  "sync": {
+    "body": null,
+    "status": 200
+  }
+}

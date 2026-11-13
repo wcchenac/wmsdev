@@ -1,0 +1,94 @@
+{
+  "anonymous": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  },
+  "bad_role_name": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/user/adminManagement/user/register",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  },
+  "created": {
+    "body": "Success",
+    "status": 201
+  },
+  "duplicate": {
+    "body": {
+      "message": "EmployeeId is already exists!",
+      "success": false
+    },
+    "status": 400
+  },
+  "missing_fields": {
+    "body": null,
+    "status": 400
+  },
+  "new_user_can_login": {
+    "body": {
+      "accessToken": {
+        "claims": {
+          "employeeId": "newbie",
+          "fullName": "新人戊",
+          "id": "5",
+          "role": {
+            "authority": "ROLE_Sales"
+          }
+        },
+        "lifetime_seconds": 43200,
+        "scheme": "Bearer"
+      },
+      "tokenType": "Bearer "
+    },
+    "status": 200
+  },
+  "operator_forbidden": {
+    "body": {
+      "error": "Forbidden",
+      "message": "Forbidden",
+      "path": "/api/user/adminManagement/user/register",
+      "status": 403,
+      "timestamp": "<timestamp>"
+    },
+    "status": 403
+  },
+  "users": [
+    {
+      "employeeId": "admin",
+      "fullName": "管理員甲",
+      "id": 1,
+      "role": "ROLE_Admin"
+    },
+    {
+      "employeeId": "operator",
+      "fullName": "倉管乙",
+      "id": 2,
+      "role": "ROLE_Operator"
+    },
+    {
+      "employeeId": "sales",
+      "fullName": "業務丙",
+      "id": 3,
+      "role": "ROLE_Sales"
+    },
+    {
+      "employeeId": "store",
+      "fullName": "門市丁",
+      "id": 4,
+      "role": "ROLE_Normal"
+    },
+    {
+      "employeeId": "newbie",
+      "fullName": "新人戊",
+      "id": 5,
+      "role": "ROLE_Sales"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "10_days/allocation": {
+    "body": [
+      "StockAllocateRecord-<TODAY-2:yyyyMMdd>.xls",
+      "StockAllocateRecord-<YESTERDAY:yyyyMMdd>.xls",
+      "StockAllocateRecord-<TODAY:yyyyMMdd>.xls"
+    ],
+    "status": 200
+  },
+  "3_days/adjustment": {
+    "body": [
+      "StockAdjustRecord-<TODAY-2:yyyyMMdd>.xls",
+      "StockAdjustRecord-<YESTERDAY:yyyyMMdd>.xls",
+      "StockAdjustRecord-<TODAY:yyyyMMdd>.xls"
+    ],
+    "status": 200
+  },
+  "3_days/allocation": {
+    "body": [
+      "StockAllocateRecord-<TODAY-2:yyyyMMdd>.xls",
+      "StockAllocateRecord-<YESTERDAY:yyyyMMdd>.xls",
+      "StockAllocateRecord-<TODAY:yyyyMMdd>.xls"
+    ],
+    "status": 200
+  },
+  "3_days/bogus": {
+    "body": null,
+    "status": 400
+  },
+  "3_days/categoryDetail": {
+    "body": null,
+    "status": 400
+  },
+  "3_days/dailyComparison": {
+    "body": [
+      "StockComparisonResult-<TODAY-2:yyyyMMdd>.xls",
+      "StockComparisonResult-<YESTERDAY:yyyyMMdd>.xls",
+      "StockComparisonResult-<TODAY:yyyyMMdd>.xls"
+    ],
+    "status": 200
+  },
+  "3_days/outStockList": {
+    "body": null,
+    "status": 400
+  },
+  "missing_params": {
+    "body": null,
+    "status": 400
+  }
+}

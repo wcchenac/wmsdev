@@ -1,0 +1,34 @@
+{
+  "delete_again": {
+    "body": null,
+    "status": 200
+  },
+  "delete_store": {
+    "body": null,
+    "status": 200
+  },
+  "missing_param": {
+    "body": null,
+    "status": 400
+  },
+  "users": [
+    {
+      "employeeId": "admin",
+      "fullName": "管理員甲",
+      "id": 1,
+      "role": "ROLE_Admin"
+    },
+    {
+      "employeeId": "operator",
+      "fullName": "倉管乙",
+      "id": 2,
+      "role": "ROLE_Operator"
+    },
+    {
+      "employeeId": "sales",
+      "fullName": "業務丙",
+      "id": 3,
+      "role": "ROLE_Sales"
+    }
+  ]
+}

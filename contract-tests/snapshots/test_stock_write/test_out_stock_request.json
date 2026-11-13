@@ -1,0 +1,55 @@
+{
+  "create": {
+    "body": {
+      "color": 0,
+      "createdAt": "<datetime:array>",
+      "createdBy": "倉管乙",
+      "defect": "",
+      "deleted": false,
+      "fileName": null,
+      "handled": false,
+      "id": 1,
+      "lotNo": "L07",
+      "outStockType": 2,
+      "productNo": "CF1002",
+      "quantity": "10",
+      "reason": "門市拉貨",
+      "requestFrom": null,
+      "stockIdentifierId": 0,
+      "type": "整支",
+      "unit": "碼",
+      "updatedAt": null,
+      "updatedBy": null
+    },
+    "status": 200
+  },
+  "db": {
+    "outstockrequest": [
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "fileName": null,
+        "id": 1,
+        "isDeleted": true,
+        "isHandled": false,
+        "lotNo": "L07",
+        "outStockType": 2,
+        "productNo": "CF1002",
+        "quantity": "10",
+        "reason": "門市拉貨",
+        "requestFrom": null,
+        "stockIdentifierId": 0,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": "<datetime:datetime>",
+        "updatedBy": "倉管乙"
+      }
+    ]
+  },
+  "rollback": {
+    "body": null,
+    "status": 200
+  }
+}

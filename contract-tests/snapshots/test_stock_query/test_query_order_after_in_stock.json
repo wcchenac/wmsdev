@@ -1,0 +1,64 @@
+{
+  "inStock/IN2026110001": {
+    "body": {
+      "currentStatus": {
+        "CF1001": {
+          "整支": {
+            "quantity": "100.00",
+            "unit": "碼"
+          },
+          "板卷": {
+            "quantity": "12.00",
+            "unit": "碼"
+          }
+        },
+        "CF1002": {
+          "整支": {
+            "quantity": "40.00",
+            "unit": "碼"
+          }
+        }
+      },
+      "waitHandleStatus": {
+        "CF1001": {
+          "整支": {
+            "quantity": "1.50",
+            "unit": "碼"
+          },
+          "板卷": {
+            "quantity": "0.00",
+            "unit": "碼"
+          }
+        },
+        "CF1002": {
+          "整支": {
+            "quantity": "0.00",
+            "unit": "碼"
+          }
+        }
+      }
+    },
+    "status": 200
+  },
+  "inStock/IN2026110002": {
+    "body": {
+      "currentStatus": {
+        "CF1003": {
+          "板卷": {
+            "quantity": "25.00",
+            "unit": "公斤"
+          }
+        }
+      },
+      "waitHandleStatus": {
+        "CF1003": {
+          "板卷": {
+            "quantity": "0.00",
+            "unit": "公斤"
+          }
+        }
+      }
+    },
+    "status": 200
+  }
+}

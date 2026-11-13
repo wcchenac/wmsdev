@@ -1,0 +1,24 @@
+{
+  "bad_color": {
+    "body": null,
+    "status": 200
+  },
+  "db": {
+    "stockidentifier": [],
+    "stockinfo": []
+  },
+  "no_files": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/file/import/inStockFile",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  },
+  "not_excel": {
+    "body": null,
+    "status": 200
+  }
+}

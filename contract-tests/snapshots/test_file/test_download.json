@@ -1,0 +1,45 @@
+{
+  "adjustment": {
+    "cells": [
+      [
+        "seeded by contract test"
+      ]
+    ],
+    "content-disposition": "attachment; filename=StockAdjustRecord-<TODAY:yyyyMMdd>.xls",
+    "content-type": "application/vnd.ms-excel;charset=UTF-8",
+    "status": 200
+  },
+  "allocation": {
+    "cells": [
+      [
+        "seeded by contract test"
+      ]
+    ],
+    "content-disposition": "attachment; filename=StockAllocateRecord-<TODAY:yyyyMMdd>.xls",
+    "content-type": "application/vnd.ms-excel;charset=UTF-8",
+    "status": 200
+  },
+  "bad_category": {
+    "content-disposition": null,
+    "content-type": null,
+    "status": 400
+  },
+  "categoryDetail": {
+    "cells": [
+      [
+        "seeded by contract test"
+      ]
+    ],
+    "content-disposition": "attachment; filename=CategoryDetail-??.xls",
+    "content-type": "application/vnd.ms-excel;charset=UTF-8",
+    "status": 200
+  },
+  "missing_file": {
+    "content-disposition": null,
+    "content-type": null,
+    "status": 400
+  },
+  "sales_forbidden": {
+    "status": 403
+  }
+}

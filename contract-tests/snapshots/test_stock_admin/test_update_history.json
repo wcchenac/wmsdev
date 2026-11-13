@@ -1,0 +1,67 @@
+{
+  "bad_childs": {
+    "body": null,
+    "status": 400
+  },
+  "history": [
+    {
+      "childrenIdentifierId": {
+        "java.lang.Long[]": []
+      },
+      "currentIdentifierId": 1,
+      "id": 1,
+      "rootIdentifierId": 1
+    },
+    {
+      "childrenIdentifierId": {
+        "java.lang.Long[]": [
+          3,
+          4
+        ]
+      },
+      "currentIdentifierId": 2,
+      "id": 2,
+      "rootIdentifierId": 2
+    },
+    {
+      "childrenIdentifierId": {
+        "java.lang.Long[]": []
+      },
+      "currentIdentifierId": 3,
+      "id": 3,
+      "rootIdentifierId": 3
+    },
+    {
+      "childrenIdentifierId": {
+        "java.lang.Long[]": []
+      },
+      "currentIdentifierId": 4,
+      "id": 4,
+      "rootIdentifierId": 4
+    },
+    {
+      "childrenIdentifierId": {
+        "java.lang.Long[]": []
+      },
+      "currentIdentifierId": 5,
+      "id": 5,
+      "rootIdentifierId": 5
+    }
+  ],
+  "set_children": {
+    "body": {
+      "childrenIdentifierId": [
+        3,
+        4
+      ],
+      "currentIdentifierId": 2,
+      "id": 2,
+      "rootIdentifierId": 2
+    },
+    "status": 200
+  },
+  "unknown_id": {
+    "body": null,
+    "status": 400
+  }
+}

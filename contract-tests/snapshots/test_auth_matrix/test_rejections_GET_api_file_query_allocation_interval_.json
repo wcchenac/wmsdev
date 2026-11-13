@@ -1,0 +1,29 @@
+{
+  "as_sales": {
+    "body": {
+      "error": "Forbidden",
+      "message": "Forbidden",
+      "path": "/api/file/query/allocation/interval",
+      "status": 403,
+      "timestamp": "<timestamp>"
+    },
+    "status": 403
+  },
+  "as_store": {
+    "body": {
+      "error": "Forbidden",
+      "message": "Forbidden",
+      "path": "/api/file/query/allocation/interval",
+      "status": 403,
+      "timestamp": "<timestamp>"
+    },
+    "status": 403
+  },
+  "no_token": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  }
+}
