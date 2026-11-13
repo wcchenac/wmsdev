@@ -246,6 +246,30 @@ def category_detail(category: str, request: Request, session: Session = Depends(
     return Response(status_code=200)
 
 
+@router.get("/queryStock/history/{productNo}")
+def history_route(productNo: str, request: Request, startDate: str | None = None, endDate: str | None = None,
+                  id: int | None = None, session: Session = Depends(get_session)) -> Response:
+    """Java maps history/{productNo} (tree) and history/{id} (structure) to the same
+    path and answers 500 for both. Fixed as in contract-tests/java-patches: the
+    query parameters pick the handler, before authorization (Spring's order)."""
+    is_tree = startDate is not None and endDate is not None
+    is_structure = id is not None
+    if is_tree and is_structure:
+        raise RuntimeError("Ambiguous handler methods")  # both params conditions match -> 500
+    if is_tree:
+        assert startDate is not None and endDate is not None
+        require_roles("ROLE_Sales", "ROLE_Operator", "ROLE_Admin")(request)
+        return JSONResponse(history.period_trees(session, productNo.upper(), startDate, endDate))
+    if is_structure:
+        assert id is not None
+        admin(request)
+        try:
+            return PlainTextResponse(history.structure_gson(session, id))
+        except Exception:
+            return _bad_request(session, "history structure")
+    return Response(status_code=400)  # no mapping's params condition is met
+
+
 @router.get("/outStock/waitHandleList/basic")
 def wait_handle_basic(request: Request, session: Session = Depends(get_session)) -> Response:
     ops(request)

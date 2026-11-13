@@ -1,0 +1,12 @@
+{
+  "today": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/stock/queryStock/history/CF1001",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  }
+}

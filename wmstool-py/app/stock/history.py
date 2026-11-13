@@ -1,13 +1,15 @@
 """History trees: ports of HistoryService (HistoryTreeNode = {stockInfo, nodes})."""
 
+import json
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.javacompat import deserialize_long_array
-from app.stock.models import History, StockInfo, TransactionRecord
+from app.stock.models import History, InStockOrderRecord, StockIdentifier, StockInfo, TransactionRecord
 from app.stock.serializers import stock_info_json
+from app.timeconv import client_param_to_db
 
 
 def _children(history: History) -> list[int]:
@@ -42,6 +44,32 @@ def tree_by_root(session: Session, root_id: int, info_by_id: dict[int, StockInfo
                 "nodes": [node(child) for child in _children(history)]}
 
     return node(root_id)
+
+
+def period_trees(session: Session, product_no: str, start: str, end: str) -> list[dict[str, Any]]:
+    """findPeriodStockIdentifierHistory: one tree per in-stock order record of the product in
+    [start, end]; node stockInfo only for rolls created at or after `start`."""
+    start_db, end_db = client_param_to_db(start), client_param_to_db(end)
+    orders = session.scalars(select(InStockOrderRecord).where(
+        InStockOrderRecord.productNo == product_no, InStockOrderRecord.createdAt.between(start_db, end_db))
+        .order_by(InStockOrderRecord.createdAt, InStockOrderRecord.id)).all()
+    infos = session.scalars(select(StockInfo).join(StockIdentifier, StockInfo.stockIdentifier_id == StockIdentifier.id)
+                            .where(StockIdentifier.productNo == product_no, StockIdentifier.createdAt >= start_db)
+                            .order_by(StockIdentifier.createdAt, StockIdentifier.id)).all()
+    info_by_id = {info.stockIdentifier_id: info for info in infos}
+    return [tree_by_root(session, order.stockIdentifierId or 0, info_by_id) for order in orders]
+
+
+def structure_gson(session: Session, root_id: int) -> str:
+    """HistoryService.findByRootIdentifierId: the root's histories as Gson writes them
+    (compact, declaration order, null fields omitted)."""
+    out = []
+    for h in session.scalars(select(History).where(History.rootIdentifierId == root_id).order_by(History.id)):
+        fields = {"id": h.id, "currentIdentifierId": h.currentIdentifierId,
+                  "childrenIdentifierId": _children(h) if h.childrenIdentifierId is not None else None,
+                  "rootIdentifierId": h.rootIdentifierId}
+        out.append({k: v for k, v in fields.items() if v is not None})
+    return json.dumps(out, separators=(",", ":"))
 
 
 def shrink_rollback_candidates(session: Session, product_no: str) -> list[dict[str, Any]]:
