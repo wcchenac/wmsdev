@@ -196,6 +196,37 @@ def test_shrink_rollback_adjustment_template_missing(admin, db, golden):
         golden.add("reports", generated_reports())
 
 
+def _shrink_with_broken_allocation_template(operator, db, golden, replacement):  # noqa: ANN001
+    """Shrink with both an allocation and an adjustment while the allocation template
+    (written first) is broken: patched Java keeps the shrink (200) and still writes the
+    adjustment report — each report on its own."""
+    from conftest import templates_swapped
+
+    template = "STKALLT/StockAllocateRecordTemplate"
+    with templates_swapped({f"{template}.xls": replacement, f"{template}.xlsx": replacement}):
+        seed_baseline(operator)
+        golden.response("shrink", operator.post("/api/stock/shrinkStock",
+                                                json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5)))
+        golden.add("db", db_state(db, ["stockidentifier", "stockallocationrecord", "stockadjustmentrecord"]))
+        golden.add("reports", generated_reports())
+
+
+@pytest.mark.java_bug("the allocation report's IOException ends the shrink before the adjustment is "
+                      "saved or written, and answers 400; patched Java keeps the shrink and writes the "
+                      "adjustment report")
+def test_shrink_stock_allocation_template_missing(operator, db, golden):
+    _shrink_with_broken_allocation_template(operator, db, golden, None)
+
+
+@pytest.mark.java_bug("an empty allocation template makes POI throw a RuntimeException (EmptyFileException): "
+                      "the whole shrink is rolled back (400); patched Java keeps the shrink and writes the "
+                      "adjustment report")
+def test_shrink_stock_allocation_template_empty(operator, db, golden, tmp_path):
+    empty = tmp_path / "empty"
+    empty.write_bytes(b"")
+    _shrink_with_broken_allocation_template(operator, db, golden, empty)
+
+
 @pytest.mark.java_bug("a missing field answers an empty 400; patched Java names the field "
                       "({field: message}, like the validation errors)")
 def test_shrink_stock_without_pieces_field(operator, db, golden):

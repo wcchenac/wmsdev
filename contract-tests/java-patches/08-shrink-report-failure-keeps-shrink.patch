@@ -1,6 +1,6 @@
 --- a/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/ModifyStockFunction.java
 +++ b/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/ModifyStockFunction.java
-@@ -281,9 +281,14 @@
+@@ -281,9 +281,16 @@
  
  			stockAllocationRecordRepo.save(stockAllocationRecord);
  
@@ -8,17 +8,19 @@
 -			String allocationFileName = stockAllocateRecordExcelHelper.createNewFile(now);
 -			stockAllocateRecordExcelHelper.modifyExisting(stockAllocationRecords, now, allocationFileName);
 +			// Output to file; the shrink stands even if the report cannot be written
-+			// (it is logged for a manual rewrite) — answering 400 made users shrink twice
++			// (it is logged for a manual rewrite) — answering 400 made users shrink twice.
++			// Exception, not IOException: POI reports an empty or broken workbook with
++			// RuntimeExceptions (EmptyFileException, RecordFormatException, ...)
 +			try {
 +				String allocationFileName = stockAllocateRecordExcelHelper.createNewFile(now);
 +				stockAllocateRecordExcelHelper.modifyExisting(stockAllocationRecords, now, allocationFileName);
-+			} catch (IOException e) {
++			} catch (Exception e) {
 +				e.printStackTrace();
 +			}
  		}
  
  		// Create StockAdjustmentRecord object
-@@ -310,9 +315,13 @@
+@@ -310,9 +317,13 @@
  
  			stockAdjustmentRecordRepo.save(stockAdjustmentRecord);
  
@@ -29,7 +31,7 @@
 +			try {
 +				String adjustmentFileName = stockAdjustRecordExcelHelper.createNewFile(now);
 +				stockAdjustRecordExcelHelper.modifyExisting(stockAdjustmentRecords, now, adjustmentFileName);
-+			} catch (IOException e) {
++			} catch (Exception e) {
 +				e.printStackTrace();
 +			}
  		}
