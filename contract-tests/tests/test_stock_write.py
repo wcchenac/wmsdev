@@ -331,6 +331,26 @@ def test_out_stock_update_without_map(operator, db, golden):
     golden.add("reports", generated_reports())
 
 
+def test_out_stock_update_twice_in_one_second(operator, db, golden):
+    """The pull-list name has second precision. Java's createNewFile rewrites the template
+    even when the file exists, so a second update in the same second replaces the first
+    update's rows; both requests still point at that one file."""
+    import time
+
+    from conftest import rows
+
+    operator.post("/api/stock/outStock", json=OUT_STOCK)
+    operator.post("/api/stock/outStock", json=OUT_STOCK)
+    time.sleep(1.05 - (time.time() % 1))  # start just after a second boundary
+    first = operator.patch("/api/stock/outStock/update", json={"outStockUpdate": {"1": "門市A"}})
+    second = operator.patch("/api/stock/outStock/update", json={"outStockUpdate": {"2": "門市B"}})
+    names = {r["fileName"] for r in rows(db, "SELECT fileName FROM outstockrequest")}
+    assert len(names) == 1, f"the two updates crossed a second boundary ({names}); rerun the test"
+    golden.response("first", first)
+    golden.response("second", second)
+    golden.add("reports", generated_reports())
+
+
 def test_out_stock_update_unknown_id(operator, db, golden):
     """Java creates the pull-list workbook first, then fails on id 99: 400, DB rolled
     back, but the (template-only) workbook stays on disk."""
