@@ -630,8 +630,9 @@ describe('StockActions', () => {
         // expected error
       }
 
+      // The list is queried again after a failed rollback too (see RollbackActions.test).
       const dispatchedActions = store.getActions();
-      expect(dispatchedActions[0]).toEqual({
+      expect(dispatchedActions).toContainEqual({
         type: types.GET_Errors,
         payload: errorData
       });
@@ -718,8 +719,9 @@ describe('StockActions', () => {
         // expected error
       }
 
+      // The list is queried again after a failed rollback too (see RollbackActions.test).
       const dispatchedActions = store.getActions();
-      expect(dispatchedActions[0]).toEqual({
+      expect(dispatchedActions).toContainEqual({
         type: types.GET_Errors,
         payload: errorData
       });

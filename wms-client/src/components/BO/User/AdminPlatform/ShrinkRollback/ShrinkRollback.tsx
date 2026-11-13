@@ -10,6 +10,7 @@ import QueryProductInformation, { ProductNoChange } from "../../../Stock/Utiliti
 import StockInfoContainer from "./StockInfoContainer";
 import { RootState, ShrinkRollbackObject } from "../../../../../types";
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
 
 interface ShrinkRollbackState {
   isLoading: boolean;
@@ -68,16 +69,12 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
 
   handleShrinkRollback(stockIdentifierId: number): void {
     this.setState({ isLoading: true }, () => {
+      // The action queries the list again whatever the outcome; a failure says what happened.
       this.props
         .shrinkRollback(stockIdentifierId, this.state.productNo)
-        .then((response: { status: number }) => {
-          if (response.status === 200) {
-            this.setState({ isLoading: false });
-          }
-        })
-        .catch((error: unknown) => {
+        .catch(notifyRollbackFailed)
+        .finally(() => {
           this.setState({ isLoading: false });
-          notifyRequestFailed(error);
         });
     });
   }

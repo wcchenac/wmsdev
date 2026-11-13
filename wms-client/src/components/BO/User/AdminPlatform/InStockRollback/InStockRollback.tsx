@@ -1,6 +1,7 @@
 import React, { useState, useCallback, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
   getInStockRollbackList,
@@ -62,14 +63,12 @@ const InStockRollback: React.FC = () => {
     (idList: number[]) => {
       setIsLoading(true);
 
-      dispatch(inStockRollback(idList, orderType, orderNo)).then((response: { status: number }) => {
-        if (response.status === 200) {
+      // The action queries the list again whatever the outcome; a failure says what happened.
+      dispatch(inStockRollback(idList, orderType, orderNo))
+        .catch(notifyRollbackFailed)
+        .finally(() => {
           setIsLoading(false);
-        }
-      }).catch((error) => {
-        setIsLoading(false);
-        notifyRequestFailed(error);
-      });
+        });
     },
     [dispatch, orderType, orderNo]
   );

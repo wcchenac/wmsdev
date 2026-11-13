@@ -1,5 +1,6 @@
 import { AxiosResponse } from "axios";
 import API from "../utilities/API";
+import { RollbackError, rollbackThenQueryList } from "../utilities/rollbackRequest";
 import {
   GET_Order,
   GET_StockInfoes,
@@ -373,28 +374,40 @@ export const getInStockRollbackList =
     }
   };
 
+/** Puts a failed rollback in state.errors, like the other actions. */
+const dispatchRollbackError = (dispatch: AppDispatch, err: unknown, fallbackMessage: string): void => {
+  const requestError = err instanceof RollbackError ? err.requestError : err;
+  const error = requestError as { response?: { data?: unknown } } | undefined;
+  dispatch({
+    type: GET_Errors,
+    payload: error?.response?.data || { message: fallbackMessage },
+  });
+};
+
+/**
+ * Rolls back the in-stock records, then queries the order's list again — also when the
+ * rollback fails (the backend then changed nothing and the list may be stale). Rejects with a
+ * RollbackError saying what happened, or the 401 as is.
+ */
 export const inStockRollback =
   (idList: number[], orderType: string, orderNo: string) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
-      await API.patch("/api/stock/inStocks/rollback", idList);
-
-      const res = await API.get(
-        `/api/stock/queryStock/inStockRollback?orderType=${orderType}&orderNo=${orderNo}`
+      return await rollbackThenQueryList(
+        () => API.patch("/api/stock/inStocks/rollback", idList),
+        async () => {
+          const res = await API.get(
+            `/api/stock/queryStock/inStockRollback?orderType=${orderType}&orderNo=${orderNo}`
+          );
+          dispatch({
+            type: GET_StockInfoes,
+            payload: res.data,
+          });
+          return res;
+        }
       );
-
-      dispatch({
-        type: GET_StockInfoes,
-        payload: res.data,
-      });
-
-      return res;
     } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "入庫回滾失敗" },
-      });
+      dispatchRollbackError(dispatch, err, "入庫回滾失敗");
       throw err;
     }
   };
@@ -423,28 +436,30 @@ export const getShrinkRollbackList =
     }
   };
 
+/**
+ * Rolls back a roll's shrink, then queries the product's list again — also when the rollback
+ * fails (the backend then changed nothing and the list may be stale). Rejects with a
+ * RollbackError saying what happened, or the 401 as is.
+ */
 export const shrinkRollback =
   (stockIdentifierId: number, productNo: string) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
-      await API.patch(`/api/stock/shrinkStock/rollback/${stockIdentifierId}`);
-
-      const res = await API.get(
-        `/api/stock/queryStock/shrinkRollback/${productNo}`
+      return await rollbackThenQueryList(
+        () => API.patch(`/api/stock/shrinkStock/rollback/${stockIdentifierId}`),
+        async () => {
+          const res = await API.get(
+            `/api/stock/queryStock/shrinkRollback/${productNo}`
+          );
+          dispatch({
+            type: GET_StockInfoes,
+            payload: res.data,
+          });
+          return res;
+        }
       );
-
-      dispatch({
-        type: GET_StockInfoes,
-        payload: res.data,
-      });
-
-      return res;
     } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "縮碼回滾失敗" },
-      });
+      dispatchRollbackError(dispatch, err, "縮碼回滾失敗");
       throw err;
     }
   };
