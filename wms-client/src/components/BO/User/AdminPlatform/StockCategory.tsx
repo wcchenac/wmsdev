@@ -11,6 +11,7 @@ import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import { ToastContainer, toast } from "react-toastify";
 import { RootState } from "../../../../store";
+import { AppDispatch } from "../../../../types";
 
 interface CategoryOption {
   value: string;
@@ -21,8 +22,7 @@ const StockCategory: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dispatch = useDispatch<any>();
+  const dispatch = useDispatch<AppDispatch>();
   const categoryList = useSelector((state: RootState) => state.stockInfo);
 
   useEffect(() => {

@@ -1,24 +1,17 @@
 import React from "react";
 import StockInfo from "./StockInfo";
-import { StockInfo as StockInfoType, ShipRequest } from "../../../../../types";
+import { StockInfo as StockInfoType, ShipRequest, UpdateStockInfoRequest } from "../../../../../types";
 
 // ============================================
 // Type Definitions
 // ============================================
-interface UpdateInfoRequest {
-  id?: number;
-  color?: string;
-  defect?: string;
-  record?: string;
-  remark?: string;
-}
 
 interface StockInfoContainerProps {
   typeValidation: boolean;
   stockInfoes: StockInfoType[];
   handleShip: (shipRequest: ShipRequest) => void;
   handleShrink: (id: number) => void;
-  handleStockInfoUpdate: (updateInfoRequest: UpdateInfoRequest) => void;
+  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => void;
 }
 
 // ============================================

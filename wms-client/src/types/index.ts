@@ -193,9 +193,10 @@ export interface UpdateUserRequest {
   [key: string]: unknown;
 }
 
+/** One stock identifier to ship (backend ShipRequest). */
 export interface ShipRequest {
   stockIdentifierId: number;
-  [key: string]: unknown;
+  reason: string;
 }
 
 export interface ShrinkStockInStockRequest {
@@ -225,15 +226,24 @@ export interface ShrinkStockRequest {
   shrinkType: string;
 }
 
+/** POST /api/stock/outStock: a pull request from 庫存異動 (bound to the backend OutStockRequest). */
 export interface OutStockRequestCreate {
-  stockIdentifierId: number;
-  requestQuantity: number;
-  [key: string]: unknown;
+  productNo: string;
+  type: string;
+  /** A number, or "約10~20" when the amount is a range. */
+  quantity: string;
+  unit: string;
+  reason: string;
 }
 
+/** PATCH /api/stock/updateStock (backend UpdateInfoRequest). */
 export interface UpdateStockInfoRequest {
-  stockIdentifierId: number;
-  [key: string]: unknown;
+  id?: number;
+  color?: string;
+  /** Selected defects joined as "GA/GB". */
+  defect?: string;
+  record?: string;
+  remark?: string;
 }
 
 /** One row of POST /api/stock/inStocks (backend InStockRequest). */

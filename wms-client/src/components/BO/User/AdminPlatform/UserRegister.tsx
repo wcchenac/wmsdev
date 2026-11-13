@@ -7,6 +7,7 @@ import { Spinner } from "../../../Others/Spinner";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { RootState } from "../../../../store";
+import { AppDispatch } from "../../../../types";
 
 interface UserRegisterState {
   isLoading: boolean;
@@ -28,8 +29,7 @@ const initialState: UserRegisterState = {
 
 const UserRegister: React.FC = () => {
   const [state, setState] = useState<UserRegisterState>(initialState);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dispatch = useDispatch<any>();
+  const dispatch = useDispatch<AppDispatch>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const errors = useSelector((s: RootState) => s.errors) as any;
 

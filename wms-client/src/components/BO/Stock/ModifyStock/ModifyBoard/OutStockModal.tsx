@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, KeyboardEvent } from "react";
+import { OutStockRequestCreate } from "../../../../../types";
 import { Modal, Button, Form, Row, Col, InputGroup } from "react-bootstrap";
 import Switch from "@mui/material/Switch";
 import { StockIdentifierType } from "../../../../../enums/Enums";
@@ -30,19 +31,12 @@ interface InitialState {
   outStockRequest: OutStockRequestState;
 }
 
-interface OutStockRequestSubmit {
-  productNo: string;
-  type: string;
-  quantity: string;
-  unit: string;
-  reason: string;
-}
 
 interface OutStockModalProps {
   productNo: string;
   show: boolean;
   handleModalClose: () => void;
-  handleOutStockRequestSubmit: (request: OutStockRequestSubmit) => void;
+  handleOutStockRequestCreate: (request: OutStockRequestCreate) => void;
 }
 
 // ============================================
@@ -52,7 +46,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
   productNo,
   show,
   handleModalClose,
-  handleOutStockRequestSubmit
+  handleOutStockRequestCreate
 }) => {
   const createInitialState = useCallback((): InitialState => {
     return {
@@ -132,7 +126,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
   const handleSubmit = useCallback(() => {
     setIsSubmitting(true);
 
-    const newOutStockRequest: OutStockRequestSubmit = {
+    const newOutStockRequest: OutStockRequestCreate = {
       productNo: outStockRequest.productNo,
       type: outStockRequest.type,
       unit: outStockRequest.unit,
@@ -142,9 +136,9 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
         : outStockRequest.quantity
     };
 
-    handleOutStockRequestSubmit(newOutStockRequest);
+    handleOutStockRequestCreate(newOutStockRequest);
     setIsSubmitting(false);
-  }, [assignMode, outStockRequest, handleOutStockRequestSubmit]);
+  }, [assignMode, outStockRequest, handleOutStockRequestCreate]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLFormElement>) => {
     if (e.key === "Enter" && checkFormAlgorithm(outStockRequest)) {

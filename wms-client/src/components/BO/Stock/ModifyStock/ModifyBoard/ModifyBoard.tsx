@@ -28,7 +28,9 @@ import {
   StockInfo as StockInfoType,
   StockIdentifier,
   ShipRequest,
-  StockInfoesWithResult
+  StockInfoesWithResult,
+  OutStockRequestCreate,
+  UpdateStockInfoRequest
 } from "../../../../../types";
 
 // ============================================
@@ -57,26 +59,8 @@ interface StockQuantityItem {
   unit: string;
 }
 
-interface OutStockRequestSubmit {
-  productNo: string;
-  type: string;
-  quantity: string;
-  unit: string;
-  reason: string;
-}
 
-interface UpdateInfoRequest {
-  id?: number;
-  color?: string;
-  defect?: string;
-  record?: string;
-  remark?: string;
-}
 
-interface ShipListItem {
-  stockIdentifierId: number;
-  reason: string;
-}
 
 interface StockInfoesResponse extends StockInfoesWithResult {
   information?: ProductInfo;
@@ -128,7 +112,7 @@ const ModifyBoard: React.FC = () => {
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setIsLoading(true);
-      (dispatch(getStockInfoes(productNo)) as Promise<{ status: number }>).then((response) => {
+      dispatch(getStockInfoes(productNo)).then((response) => {
         if (response.status === 200) {
           setIsLoading(false);
           setIsQuery(true);
@@ -146,7 +130,7 @@ const ModifyBoard: React.FC = () => {
       e.preventDefault();
       const select = (e.target as HTMLButtonElement).value;
       setIsLoading(true);
-      (dispatch(getStockInfoes(select)) as Promise<{ status: number }>).then((response) => {
+      dispatch(getStockInfoes(select)).then((response) => {
         if (response.status === 200) {
           setIsLoading(false);
           setIsQuery(true);
@@ -159,11 +143,11 @@ const ModifyBoard: React.FC = () => {
     [dispatch]
   );
 
-  const handleOutStockRequestSubmit = useCallback(
-    (outStockRequest: OutStockRequestSubmit) => {
+  const handleOutStockRequestCreate = useCallback(
+    (outStockRequest: OutStockRequestCreate) => {
       setIsLoading(true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (dispatch(createOutStockRequest(outStockRequest as any)) as Promise<{ status: number }>).then((response) => {
+      dispatch(createOutStockRequest(outStockRequest)).then((response) => {
         if (response.status === 200) {
           setIsLoading(false);
           setModalShow_OutStock(false);
@@ -179,7 +163,7 @@ const ModifyBoard: React.FC = () => {
   const handleShip = useCallback(
     (shipRequest: ShipRequest) => {
       setIsLoading(true);
-      (dispatch(stockIdentifierIsShiped(shipRequest)) as Promise<{ status: number }>).then((response) => {
+      dispatch(stockIdentifierIsShiped(shipRequest)).then((response) => {
         if (response.status === 200) {
           setIsLoading(false);
           setModalShow_BatchShip(false);
@@ -193,10 +177,10 @@ const ModifyBoard: React.FC = () => {
   );
 
   const handleShipList = useCallback(
-    (shipRequests: ShipListItem[]) => {
+    (shipRequests: ShipRequest[]) => {
       setIsLoading(true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (dispatch(stockIdentifiersAreShiped(productNo, shipRequests as any)) as Promise<{ status: number }>).then(
+      dispatch(stockIdentifiersAreShiped(productNo, shipRequests)).then(
         () => {
           setIsLoading(false);
           setModalShow_BatchShip(false);
@@ -212,7 +196,7 @@ const ModifyBoard: React.FC = () => {
   const handleShrink = useCallback(
     (id: number) => {
       setIsLoading(true);
-      (dispatch(stockIdentifierWaitToShrinkIsTrue(id)) as Promise<{ status: number }>).then((response) => {
+      dispatch(stockIdentifierWaitToShrinkIsTrue(id)).then((response) => {
         if (response.status === 200) {
           setIsLoading(false);
         }
@@ -225,10 +209,10 @@ const ModifyBoard: React.FC = () => {
   );
 
   const handleStockInfoUpdate = useCallback(
-    (updateInfoRequest: UpdateInfoRequest) => {
+    (updateInfoRequest: UpdateStockInfoRequest) => {
       setIsLoading(true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (dispatch(updateStockInfo(updateInfoRequest as any)) as Promise<{ status: number }>).then((response) => {
+      dispatch(updateStockInfo(updateInfoRequest)).then((response) => {
         if (response.status === 200) {
           setIsLoading(false);
         }
@@ -366,7 +350,7 @@ const ModifyBoard: React.FC = () => {
                       show
                       handleModalClose={handleModalClose_OutStock}
                       productNo={productNo.toUpperCase()}
-                      handleOutStockRequestSubmit={handleOutStockRequestSubmit}
+                      handleOutStockRequestCreate={handleOutStockRequestCreate}
                     />
                   ) : null}
                 </div>

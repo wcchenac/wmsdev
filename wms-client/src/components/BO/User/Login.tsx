@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import classnames from "classnames";
 import { login } from "../../../actions/UserActions";
 import { RootState } from "../../../store";
+import { AppDispatch } from "../../../types";
 import { useUpdateEffect } from "../../../utilities/useUpdateEffect";
 
 interface LoginErrors {
@@ -19,8 +20,7 @@ interface TouchedFields {
 }
 
 const Login: React.FC = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dispatch = useDispatch<any>();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   // Redux state

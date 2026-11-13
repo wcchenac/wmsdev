@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, ChangeEvent } from "react";
+import { ShipRequest } from "../../../../../types";
 import { Modal, Button } from "react-bootstrap";
 import ShipModalBody from "../../Utilities/ShipModalBody";
 import { DataGrid, GridColDef, GridRowId, GridRowSelectionModel } from "@mui/x-data-grid";
@@ -16,15 +17,11 @@ interface StockIdentifierData {
   unit?: string;
 }
 
-interface ShipListItem {
-  stockIdentifierId: number;
-  reason: string;
-}
 
 interface BatchShipModalProps {
   show: boolean;
   handleModalClose: () => void;
-  handleShipList: (shipList: ShipListItem[]) => void;
+  handleShipList: (shipList: ShipRequest[]) => void;
   data: StockIdentifierData[];
   typeValidation?: boolean;
 }
@@ -63,7 +60,7 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
 
   const onSave = useCallback(() => {
     const selectedRows = data.filter((item) => isRowSelected(selectedIds, item.id));
-    const shipList: ShipListItem[] = selectedRows.map((identifier) => ({
+    const shipList: ShipRequest[] = selectedRows.map((identifier) => ({
       stockIdentifierId: identifier.id,
       reason: outStockReason
     }));

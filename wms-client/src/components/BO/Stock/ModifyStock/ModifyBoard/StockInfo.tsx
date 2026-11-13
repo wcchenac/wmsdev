@@ -2,18 +2,11 @@ import React, { useState, useCallback, ChangeEvent } from "react";
 import InformationModal from "./InformationModal";
 import ShipModal from "../../Utilities/ShipModal";
 import { Button } from "react-bootstrap";
-import { StockInfo as StockInfoType, ShipRequest } from "../../../../../types";
+import { StockInfo as StockInfoType, ShipRequest, UpdateStockInfoRequest } from "../../../../../types";
 
 // ============================================
 // Type Definitions
 // ============================================
-interface UpdateInfoRequest {
-  id?: number;
-  color?: string;
-  defect?: string;
-  record?: string;
-  remark?: string;
-}
 
 interface StockInfoProps {
   stockInfo: StockInfoType;
@@ -21,7 +14,7 @@ interface StockInfoProps {
   typeValidation: boolean;
   handleShip: (shipRequest: ShipRequest) => void;
   handleShrink: (id: number) => void;
-  handleStockInfoUpdate: (updateInfoRequest: UpdateInfoRequest) => void;
+  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => void;
 }
 
 // ============================================

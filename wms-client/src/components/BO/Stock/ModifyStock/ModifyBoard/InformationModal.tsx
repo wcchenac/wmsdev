@@ -9,7 +9,7 @@ import {
   updateStockInfoCopy,
   defectStringTransToOptions
 } from "../../Utilities/StockInfoHelperMethods";
-import { StockInfo as StockInfoType, StockIdentifier } from "../../../../../types";
+import { StockInfo as StockInfoType, StockIdentifier, UpdateStockInfoRequest } from "../../../../../types";
 
 // ============================================
 // Type Definitions
@@ -19,13 +19,6 @@ interface StockInfoWithDefectOptions extends Omit<StockInfoType, 'defect'> {
   stockIdentifier: StockIdentifier;
 }
 
-interface UpdateInfoRequest {
-  id?: number;
-  color?: string;
-  defect?: string;
-  record?: string;
-  remark?: string;
-}
 
 interface InformationModalProps {
   show: boolean;
@@ -33,7 +26,7 @@ interface InformationModalProps {
   index: number;
   typeValidation: boolean;
   stockInfo: StockInfoType;
-  handleStockInfoUpdate: (updateInfoRequest: UpdateInfoRequest) => void;
+  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => void;
 }
 
 // ============================================
@@ -87,7 +80,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
   }, []);
 
   const handleUpdateSubmit = useCallback(() => {
-    const updateInfoRequest: UpdateInfoRequest = {
+    const updateInfoRequest: UpdateStockInfoRequest = {
       id: stockInfo.id,
       color: stockInfo.color,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
