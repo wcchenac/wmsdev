@@ -54,13 +54,17 @@
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "lint": "eslint src --max-warnings 0"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "env": {
+      "es2020": true
+    }
   },
   "browserslist": {
     "production": [
