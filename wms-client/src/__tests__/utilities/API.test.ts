@@ -88,6 +88,23 @@ describe('API 401 handling', () => {
     expect(vi.getTimerCount()).toBe(1);
   });
 
+  test('a 401 after the redirect has fired shows the message and redirects again', async () => {
+    // The page normally reloads at /login; if it does not (the navigation was blocked or
+    // cancelled), a later 401 must not be ignored.
+    getItem.mockReturnValue('Bearer old-token');
+    await onRejected(httpError(401)).catch(() => undefined);
+    vi.advanceTimersByTime(SESSION_EXPIRED_REDIRECT_DELAY_MS);
+    window.location.href = '';
+    vi.mocked(toast.error).mockClear();
+
+    await onRejected(httpError(401)).catch(() => undefined);
+
+    expect(toast.error).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE, expect.objectContaining({ toastId: 'session-expired' }));
+    expect(vi.getTimerCount()).toBe(1);
+    vi.advanceTimersByTime(SESSION_EXPIRED_REDIRECT_DELAY_MS);
+    expect(window.location.href).toBe('/login');
+  });
+
   test('a rejected login (wrong password) is left to the login form', async () => {
     getItem.mockReturnValue(null);
 
