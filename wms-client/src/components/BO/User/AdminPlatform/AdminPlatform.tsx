@@ -57,13 +57,13 @@ const AdminPlatform: React.FC = () => {
 
   const menuItems = [
     { name: 'userRegister', icon: 'fa-user-plus', label: '新增使用者', disabled: false },
-    { name: 'userManagement', icon: 'fa-users-cog', label: '使用者管理', disabled: false },
-    { name: 'importFile', icon: 'fa-file-import', label: '批量入庫', disabled: false },
+    { name: 'userManagement', icon: 'fa-users', label: '使用者管理', disabled: false },
+    { name: 'importFile', icon: 'fa-upload', label: '批量入庫', disabled: false },
     { name: 'inStockRollback', icon: 'fa-undo', label: '入庫回朔', disabled: false },
     { name: 'shrinkRollback', icon: 'fa-history', label: '減肥回朔', disabled: false },
     { name: 'stockCategory', icon: 'fa-tags', label: '庫存類別', disabled: false },
-    { name: 'settingWH', icon: 'fa-warehouse', label: '設定倉別', disabled: true },
-    { name: 'scheduleMission', icon: 'fa-calendar-alt', label: '任務排程', disabled: false },
+    { name: 'settingWH', icon: 'fa-building', label: '設定倉別', disabled: true },
+    { name: 'scheduleMission', icon: 'fa-calendar', label: '任務排程', disabled: false },
   ];
 
   return (
@@ -236,7 +236,7 @@ const AdminPlatform: React.FC = () => {
                   }}
                 >
                   <i
-                    className="fa fa-hand-pointer fa-4x mb-4 d-none d-md-block"
+                    className="fa fa-hand-pointer-o fa-4x mb-4 d-none d-md-block"
                     aria-hidden="true"
                     style={{ opacity: 0.5 }}
                   />

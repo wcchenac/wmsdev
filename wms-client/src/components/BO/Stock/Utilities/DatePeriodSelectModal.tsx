@@ -106,7 +106,7 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
               gap: 'var(--spacing-2)',
             }}
           >
-            <i className="fa fa-calendar-alt" aria-hidden="true" />
+            <i className="fa fa-calendar" aria-hidden="true" />
             時間區間查詢
           </h5>
           <button

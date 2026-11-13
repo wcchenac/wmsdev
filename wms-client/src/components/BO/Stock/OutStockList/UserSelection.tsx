@@ -94,7 +94,7 @@ const UserSelection: React.FC<UserSelectionProps> = ({
             transition: "var(--transition-fast)",
           }}
         >
-          <i className="fa fa-check-double" aria-hidden="true" style={{ fontSize: "0.75rem" }} />
+          <i className="fa fa-check-square-o" aria-hidden="true" style={{ fontSize: "0.75rem" }} />
           全選
         </button>
         <button
