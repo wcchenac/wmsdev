@@ -36,7 +36,7 @@ function localStorageValidate(): void {
       if (decodedJWT.exp < currentTime) {
         // Token expired - logout user
         store.dispatch(logout() as unknown as UnknownAction);
-        window.location.href = "/";
+        window.location.href = "/login";
         return;
       }
 

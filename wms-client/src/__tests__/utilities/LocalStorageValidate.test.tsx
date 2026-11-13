@@ -172,10 +172,11 @@ describe('LocalStorageValidate - localStorageValidate function', () => {
       expect(mockedStore.dispatch).toHaveBeenCalled();
     });
 
-    test('redirects to root for expired token', () => {
+    // Same destination as the API 401 handler and a malformed token.
+    test('redirects to the login page for expired token', () => {
       localStorageValidate();
 
-      expect(window.location.href).toBe('/');
+      expect(window.location.href).toBe('/login');
     });
   });
 

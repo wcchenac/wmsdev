@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import { toast } from 'react-toastify';
 
 declare global {
     interface Window {
@@ -41,6 +42,10 @@ const API: AxiosInstance = axios.create({
     timeout: 30000, // 30 second timeout
 });
 
+export const SESSION_EXPIRED_MESSAGE = '登入已逾時，請重新登入';
+/** How long the message stays on screen before the page moves to /login. */
+export const SESSION_EXPIRED_REDIRECT_DELAY_MS = 2000;
+
 // Response interceptor for error handling
 API.interceptors.response.use(
     (response: AxiosResponse) => response,
@@ -49,14 +54,18 @@ API.interceptors.response.use(
         if (!error.response) {
             console.error('Network Error: Please check your connection');
         }
-        // Handle 401 Unauthorized - token expired
+        // 401 while signed in: the JWT expired mid-session. (A wrong password on the login
+        // page has no stored token and is left to the login form.) The first 401 clears the
+        // token, so other requests failing at the same time do not repeat this.
         if (error.response && error.response.status === 401) {
-            // Token might be expired, clear localStorage
             const token = localStorage.getItem('jwtToken');
             if (token) {
                 localStorage.removeItem('jwtToken');
-                // Optionally redirect to login
-                window.location.href = '/login';
+                delete API.defaults.headers.common['Authorization'];
+                toast.error(SESSION_EXPIRED_MESSAGE, { toastId: 'session-expired' });
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, SESSION_EXPIRED_REDIRECT_DELAY_MS);
             }
         }
         return Promise.reject(error);

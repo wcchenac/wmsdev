@@ -8,7 +8,12 @@ export const REQUEST_FAILED_MESSAGE = "操作失敗，請稍後再試";
  * unhandled rejection. Uses the backend's `message` when it sends one.
  */
 export function notifyRequestFailed(error: unknown): void {
-  const data = (error as { response?: { data?: unknown } } | null)?.response?.data;
+  const response = (error as { response?: { status?: number; data?: unknown } } | null)?.response;
+  // API.ts already tells the user the session expired and sends them to /login.
+  if (response?.status === 401) {
+    return;
+  }
+  const data = response?.data;
   const message =
     data && typeof data === "object" && typeof (data as { message?: unknown }).message === "string"
       ? (data as { message: string }).message

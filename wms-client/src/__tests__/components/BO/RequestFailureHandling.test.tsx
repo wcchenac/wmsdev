@@ -130,3 +130,15 @@ test('the backend message is shown when there is one', async () => {
 
   expect(toast.error).toHaveBeenCalledWith('查無此貨號');
 });
+
+test('a 401 is left to the session-expired message instead of a second error toast', async () => {
+  vi.mocked(API.get).mockRejectedValue(
+    Object.assign(new Error('401'), { response: { status: 401, data: {} } })
+  );
+  const { container } = renderPage(QueryBoard);
+
+  await submitForm(container, '#productNo-search', 'X1');
+
+  expect(toast.error).not.toHaveBeenCalled();
+  expect(overlaysIdle()).toBe(true);
+});
