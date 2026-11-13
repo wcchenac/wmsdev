@@ -1,5 +1,7 @@
 """Daily WMS-vs-ERP stock comparison: port of CompareStockFunction.stockFullyComparison."""
 
+import logging
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -10,6 +12,8 @@ from app.reports import comparison
 from app.stock.models import Product
 from app.stock.orders import type_name, unit_name
 from app.timeconv import taipei_today
+
+logger = logging.getLogger(__name__)
 
 # {productNo: {type: {"quantity": str, "unit": str}}}, plus first-insertion key order
 Erp = dict[str, dict[str, dict[str, str]]]
@@ -71,5 +75,12 @@ def comparison_rows(session: Session) -> list[list[str]]:
 
 
 def stock_full_comparison(session: Session) -> None:
+    """As in Java: today's report is reset to the template first, so a failure in the
+    comparison (-> 400) leaves the empty template; a failure while writing the rows
+    is only logged (Java catches it and answers 200)."""
+    path = comparison.create(taipei_today())
     rows = comparison_rows(session)
-    comparison.write(rows, taipei_today())
+    try:
+        comparison.append(path, rows)
+    except Exception:
+        logger.exception("writing the stock comparison report %s failed", path)

@@ -21,6 +21,17 @@ def test_daily_stock_compare(admin, golden):
     golden.add("reports", generated_reports())
 
 
+def test_daily_stock_compare_failure_resets_todays_report(admin, db, golden):
+    """Java recreates today's report from the template *before* comparing. A failure in
+    the comparison (CF1001 整支 has a NULL quantity: NullPointerException) answers 400
+    and leaves today's earlier report replaced by the empty template."""
+    seed_baseline(admin)
+    golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+    exec_sql(db, "UPDATE product SET quantity = NULL WHERE productNo = 'CF1001' AND type = '整支'")
+    golden.response("second", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+    golden.add("reports", generated_reports())
+
+
 def test_daily_stock_compare_twice_same_day(admin, golden):
     seed_baseline(admin)
     golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))
