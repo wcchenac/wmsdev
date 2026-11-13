@@ -68,6 +68,24 @@ docker compose up -d --wait
 - Spring 預設錯誤 body：比 `status`/`error`/`path`；4xx 保留 `message`；5xx 的 `message` 是 Java 例外字串，遮蔽。
 - `HandleListResponse.userList` 來自 HashSet，順序不算契約。
 - MySQL `bit(1)` 轉成 bool；`history.childrenIdentifierId` 是 Java 序列化的 `Long[]`，解碼成數字陣列比對。
+- **報表格式不算契約**（2026-11-13 決定 Python 版改寫 `.xlsx`）：`read_workbook()` 以相同方式讀 `.xls`（xlrd）與 `.xlsx`（openpyxl）——空格讀成 `""`、整數讀成 float、去掉每列尾端空格與尾端空列、merged 區域一律為 0-based 半開區間 `[rlo, rhi, clo, chi]`。字串中的 `.xls`／`.xlsx` 正規化為 `.<excel>`，Excel 的 MIME 正規化為 `<excel>`。
+- `write_report()` 依受測後端寫 `.xls`（Java）或 `.xlsx`（Python）。`scripts/make_templates.py` 兩種範本都產生。
+
+## Golden 變體（`.fixed.json`）
+
+標了 `java_bug` 的測試，`<name>.json` 記錄 Java 原本（有缺陷）的行為。若同目錄有 `<name>.fixed.json`，它是從**套上最小修補的 Java**（`java-patches/`）錄的修正版行為：
+
+- `--golden-variant auto`（預設）：後端是 Python 時比對 `.fixed.json`（存在的話），否則比對 `.json`。
+- `--golden-variant fixed --update-golden`：對修補版 Java 錄製 `.fixed.json`。
+- 防呆：`--update-golden` 對 Python 後端一律拒絕執行，golden 永遠來自 Java。
+
+## 部署注意：報表範本
+
+Python 版讀 `.xlsx` 範本。正式機 `D:/OutputFiles` 下的 4 個範本（`OutStockList/OutStockListTemplate`、`STKADST/StockAdjustRecordTemplate`、`STKALLT/StockAllocateRecordTemplate`、`StockComparisonResult/StockComparisonResultTemplate`）需轉成 `.xlsx` 並放在原位置：
+
+```bash
+soffice --headless --convert-to xlsx --outdir <同一個資料夾> <範本>.xls
+```
 
 ## 標記 `java_bug` 的測試
 

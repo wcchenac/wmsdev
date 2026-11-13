@@ -10,6 +10,7 @@ Run `pytest --update-golden` to (re)record golden files from the current backend
 from __future__ import annotations
 
 import datetime as dt
+import io
 import json
 import os
 import pathlib
@@ -93,11 +94,18 @@ USERS = {
 }
 
 TEMPLATE_FILES = {
-    "OutStockList/OutStockListTemplate.xls",
-    "STKADST/StockAdjustRecordTemplate.xls",
-    "STKALLT/StockAllocateRecordTemplate.xls",
-    "StockComparisonResult/StockComparisonResultTemplate.xls",
+    f"{name}{ext}"
+    for name in (
+        "OutStockList/OutStockListTemplate",
+        "STKADST/StockAdjustRecordTemplate",
+        "STKALLT/StockAllocateRecordTemplate",
+        "StockComparisonResult/StockComparisonResultTemplate",
+    )
+    for ext in (".xls", ".xlsx")  # Java reads .xls templates, the Python rewrite .xlsx
 }
+
+# "java" or "python", detected from the first response (uvicorn sends `server: uvicorn`).
+BACKEND_KIND = "java"
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -113,6 +121,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--update-golden",
         action="store_true",
         help="record golden files from the running backend instead of comparing",
+    )
+    parser.addoption(
+        "--golden-variant",
+        choices=("auto", "java", "fixed"),
+        default="auto",
+        help="java_bug tests: compare/record <name>.fixed.json (recorded from the patched Java) "
+        "instead of <name>.json; 'auto' uses the fixed variant when the backend is the Python rewrite",
     )
 
 
@@ -293,13 +308,19 @@ def decode_java_long_array(blob: bytes | None) -> list[int] | None:
 
 @pytest.fixture(scope="session")
 def http(request):
+    global BACKEND_KIND
     with httpx.Client(base_url=BASE_URL, timeout=30) as client:
-        if request.config.getoption("--update-golden"):
+        server = client.post("/api/user/login", json={}).headers.get("server", "")
+        BACKEND_KIND = "python" if "uvicorn" in server.lower() else "java"
+        if request.config.getoption("--update-golden") and BACKEND_KIND == "python":
             # Golden files are recorded from the Java service only.
-            server = client.post("/api/user/login", json={}).headers.get("server", "")
-            if "uvicorn" in server.lower():
-                pytest.exit("--update-golden against the Python backend; start the Java stack first", 2)
+            pytest.exit("--update-golden against the Python backend; start the Java stack first", 2)
         yield client
+
+
+@pytest.fixture(scope="session")
+def backend_kind(http) -> str:
+    return BACKEND_KIND
 
 
 def login(http: httpx.Client, employee_id: str) -> str:
@@ -416,32 +437,75 @@ def client_range(start: dt.date, end: dt.date) -> dict[str, str]:
 # --------------------------------------------------------------------------
 
 
+def _trimmed(rows: list[list[Any]]) -> list[list[Any]]:
+    out = []
+    for row in rows:
+        row = list(row)
+        while row and row[-1] == "":
+            row.pop()
+        out.append(row)
+    while out and not out[-1]:
+        out.pop()
+    return out
+
+
+def read_workbook(source: pathlib.Path | bytes) -> dict[str, Any]:
+    """First sheet of an .xls (Java) or .xlsx (Python rewrite) workbook, format-agnostic:
+    blank cells read "", numbers read as float, trailing blanks trimmed, merged
+    ranges as sorted 0-based half-open [rlo, rhi, clo, chi] (xlrd's convention)."""
+    data = source.read_bytes() if isinstance(source, pathlib.Path) else source
+    if data[:2] == b"PK":  # OOXML is a zip
+        import openpyxl
+
+        sheet = openpyxl.load_workbook(io.BytesIO(data)).worksheets[0]
+        rows = [
+            ["" if v is None else float(v) if isinstance(v, int) and not isinstance(v, bool) else v for v in r]
+            for r in sheet.iter_rows(values_only=True)
+        ]
+        merged = [[m.min_row - 1, m.max_row, m.min_col - 1, m.max_col] for m in sheet.merged_cells.ranges]
+        name = sheet.title
+    else:
+        book = xlrd.open_workbook(file_contents=data, formatting_info=True)
+        xs = book.sheet_by_index(0)
+        rows = [[xs.cell_value(r, c) for c in range(xs.ncols)] for r in range(xs.nrows)]
+        merged = [list(m) for m in xs.merged_cells]
+        name = xs.name
+    return {"sheet": name, "cells": _trimmed(rows), "merged": sorted(merged)}
+
+
 def generated_reports() -> dict[str, list[list[Any]]]:
-    """All generated .xls reports as {relative path: rows of cell values}."""
+    """All generated reports (.xls or .xlsx) as {relative path: rows of cell values}."""
     reports: dict[str, list[list[Any]]] = {}
     if not EXCEL_DIR.exists():
         return reports
-    for path in sorted(EXCEL_DIR.rglob("*.xls")):
+    for path in sorted(p for p in EXCEL_DIR.rglob("*") if p.suffix in (".xls", ".xlsx")):
         rel = path.relative_to(EXCEL_DIR).as_posix()
         if rel in TEMPLATE_FILES:
             continue
-        book = xlrd.open_workbook(str(path))
-        sheet = book.sheet_by_index(0)
-        reports[rel] = [
-            [sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(sheet.nrows)
-        ]
+        reports[rel] = read_workbook(path)["cells"]
     return reports
 
 
 def write_report(rel_path: str) -> pathlib.Path:
-    """Place an (empty-sheet) .xls report where the backend looks for it."""
-    import xlwt
-
-    path = EXCEL_DIR / rel_path
+    """Place a one-cell report where the backend looks for it, in the backend's format
+    (.xls for Java, .xlsx for the Python rewrite). `rel_path` may omit the extension."""
+    stem = re.sub(r"\.xlsx?$", "", rel_path)
+    path = EXCEL_DIR / (stem + (".xlsx" if BACKEND_KIND == "python" else ".xls"))
     path.parent.mkdir(parents=True, exist_ok=True)
-    book = xlwt.Workbook()
-    book.add_sheet("Sheet1").write(0, 0, "seeded by contract test")
-    book.save(str(path))
+    if BACKEND_KIND == "python":
+        import openpyxl
+
+        book = openpyxl.Workbook()
+        sheet = book.active
+        assert sheet is not None
+        sheet["A1"] = "seeded by contract test"
+        book.save(path)
+    else:
+        import xlwt
+
+        xbook = xlwt.Workbook()
+        xbook.add_sheet("Sheet1").write(0, 0, "seeded by contract test")
+        xbook.save(str(path))
     return path
 
 
@@ -450,6 +514,11 @@ def write_report(rel_path: str) -> pathlib.Path:
 # --------------------------------------------------------------------------
 
 _VOLATILE_KEYS = {"createdAt", "updatedAt", "outStockAt"}
+_EXCEL_MIME = {
+    "application/vnd.ms-excel;charset=UTF-8",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+}
 
 
 def _date_tokens() -> list[tuple[str, str]]:
@@ -504,6 +573,10 @@ def normalize(value: Any, key: str | None = None) -> Any:
         lifetime = claims.pop("exp", 0) - claims.pop("iat", 0)
         return {"scheme": scheme, "claims": claims, "lifetime_seconds": lifetime}
     if isinstance(value, str):
+        if value in _EXCEL_MIME:
+            return "<excel>"
+        # Report format is not part of the contract (Java .xls, Python rewrite .xlsx).
+        value = re.sub(r"\.xlsx?\b", ".<excel>", value)
         for raw, token in _date_tokens():
             value = value.replace(raw, token)
         # OutStockList-yyyyMMddHHmmss: the time part changes every run.
@@ -516,13 +589,28 @@ def normalize(value: Any, key: str | None = None) -> Any:
 
 
 class Golden:
+    """<name>.json is recorded from the Java service. For java_bug tests a
+    <name>.fixed.json may exist, recorded from the minimally patched Java
+    (contract-tests/java-patches); the Python rewrite is held to that one."""
+
     def __init__(self, request: pytest.FixtureRequest):
         self.update = request.config.getoption("--update-golden")
-        node = request.node
-        module = pathlib.Path(node.fspath).stem
-        name = re.sub(r"[^A-Za-z0-9_.-]+", "_", node.name)
-        self.path = SNAPSHOTS / module / f"{name}.json"
+        self.variant = request.config.getoption("--golden-variant")
+        self.node = request.node
+        module = pathlib.Path(self.node.fspath).stem
+        name = re.sub(r"[^A-Za-z0-9_.-]+", "_", self.node.name)
+        self.java_path = SNAPSHOTS / module / f"{name}.json"
+        self.fixed_path = SNAPSHOTS / module / f"{name}.fixed.json"
         self.data: dict[str, Any] = {}
+
+    @property
+    def path(self) -> pathlib.Path:
+        if self.node.get_closest_marker("java_bug") is None or self.variant == "java":
+            return self.java_path
+        if self.variant == "fixed":
+            return self.fixed_path
+        # auto: the rewrite is held to the fixed behavior once it has been recorded
+        return self.fixed_path if BACKEND_KIND == "python" and self.fixed_path.exists() else self.java_path
 
     def add(self, label: str, value: Any) -> None:
         if label in self.data:

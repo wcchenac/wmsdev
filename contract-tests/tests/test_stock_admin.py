@@ -76,19 +76,11 @@ def test_category_detail_report(admin, db, golden):
 
 
 def _category_reports():
-    import xlrd
+    from conftest import EXCEL_DIR, read_workbook
 
-    from conftest import EXCEL_DIR
-
-    out = {}
-    for path in sorted((EXCEL_DIR / "CategoryDetail").glob("*.xls")) if (EXCEL_DIR / "CategoryDetail").exists() else []:
-        sheet = xlrd.open_workbook(str(path)).sheet_by_index(0)
-        out[path.name] = {
-            "sheet": sheet.name,
-            "cells": [[sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(sheet.nrows)],
-            "merged": sorted(sheet.merged_cells),
-        }
-    return out
+    folder = EXCEL_DIR / "CategoryDetail"
+    paths = sorted(p for p in folder.iterdir() if p.suffix in (".xls", ".xlsx")) if folder.exists() else []
+    return {path.name: read_workbook(path) for path in paths}
 
 
 # GET /api/stock/queryStock/history/{id} + PATCH /api/stock/queryStock/updateHistory ---

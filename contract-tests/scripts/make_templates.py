@@ -22,15 +22,27 @@ TEMPLATES = {
 
 
 def main(excel_dir: str) -> None:
+    import openpyxl
+
     root = pathlib.Path(excel_dir)
     for name, (sub, header) in TEMPLATES.items():
         folder = root / sub
         folder.mkdir(parents=True, exist_ok=True)
+        # .xls for the Java service
         book = xlwt.Workbook(encoding="utf-8")
         sheet = book.add_sheet("Sheet1")
         for col, title in enumerate(header):
             sheet.write(0, col, title)
         book.save(str(folder / f"{name}.xls"))
+        # .xlsx with the same header for the Python rewrite
+        xbook = openpyxl.Workbook()
+        xsheet = xbook.active
+        assert xsheet is not None
+        xsheet.title = "Sheet1"
+        for col, title in enumerate(header, start=1):
+            if title:
+                xsheet.cell(row=1, column=col, value=title)
+        xbook.save(folder / f"{name}.xlsx")
 
 
 if __name__ == "__main__":

@@ -1,25 +1,25 @@
 {
   "10_days/allocation": {
     "body": [
-      "StockAllocateRecord-<TODAY-2:yyyyMMdd>.xls",
-      "StockAllocateRecord-<YESTERDAY:yyyyMMdd>.xls",
-      "StockAllocateRecord-<TODAY:yyyyMMdd>.xls"
+      "StockAllocateRecord-<TODAY-2:yyyyMMdd>.<excel>",
+      "StockAllocateRecord-<YESTERDAY:yyyyMMdd>.<excel>",
+      "StockAllocateRecord-<TODAY:yyyyMMdd>.<excel>"
     ],
     "status": 200
   },
   "3_days/adjustment": {
     "body": [
-      "StockAdjustRecord-<TODAY-2:yyyyMMdd>.xls",
-      "StockAdjustRecord-<YESTERDAY:yyyyMMdd>.xls",
-      "StockAdjustRecord-<TODAY:yyyyMMdd>.xls"
+      "StockAdjustRecord-<TODAY-2:yyyyMMdd>.<excel>",
+      "StockAdjustRecord-<YESTERDAY:yyyyMMdd>.<excel>",
+      "StockAdjustRecord-<TODAY:yyyyMMdd>.<excel>"
     ],
     "status": 200
   },
   "3_days/allocation": {
     "body": [
-      "StockAllocateRecord-<TODAY-2:yyyyMMdd>.xls",
-      "StockAllocateRecord-<YESTERDAY:yyyyMMdd>.xls",
-      "StockAllocateRecord-<TODAY:yyyyMMdd>.xls"
+      "StockAllocateRecord-<TODAY-2:yyyyMMdd>.<excel>",
+      "StockAllocateRecord-<YESTERDAY:yyyyMMdd>.<excel>",
+      "StockAllocateRecord-<TODAY:yyyyMMdd>.<excel>"
     ],
     "status": 200
   },
@@ -33,9 +33,9 @@
   },
   "3_days/dailyComparison": {
     "body": [
-      "StockComparisonResult-<TODAY-2:yyyyMMdd>.xls",
-      "StockComparisonResult-<YESTERDAY:yyyyMMdd>.xls",
-      "StockComparisonResult-<TODAY:yyyyMMdd>.xls"
+      "StockComparisonResult-<TODAY-2:yyyyMMdd>.<excel>",
+      "StockComparisonResult-<YESTERDAY:yyyyMMdd>.<excel>",
+      "StockComparisonResult-<TODAY:yyyyMMdd>.<excel>"
     ],
     "status": 200
   },

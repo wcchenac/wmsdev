@@ -31,7 +31,7 @@ def download(fileCategory: str, fileName: str, request: Request) -> Response:
     header_name = path.name.encode("latin-1", "replace").decode("latin-1")
     return Response(
         content=path.read_bytes(),
-        media_type="application/vnd.ms-excel;charset=UTF-8",
+        media_type=reports.MIME,
         headers={"Content-Disposition": f"attachment; filename={header_name}"},
     )
 
