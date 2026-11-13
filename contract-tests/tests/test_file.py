@@ -227,6 +227,32 @@ def test_import_cell_existence(operator, db, golden):
     golden.add("db", db_state(db))
 
 
+def _with_trailing_row(data: bytes, row_xml: str) -> bytes:
+    """Append a raw <row> element to sheet1's sheetData (openpyxl cannot write every shape)."""
+    import zipfile
+
+    src, out = zipfile.ZipFile(io.BytesIO(data)), io.BytesIO()
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as dst:
+        for item in src.infolist():
+            content = src.read(item.filename)
+            if item.filename == "xl/worksheets/sheet1.xml":
+                content = content.replace(b"</sheetData>", row_xml.encode() + b"</sheetData>")
+            dst.writestr(item, content)
+    return out.getvalue()
+
+
+def test_import_trailing_rows_without_cells(operator, db, golden):
+    """XSSF's getLastRowNum() counts every <row> element. A trailing row with no cells,
+    whether it only has a row style or no attributes at all, makes Java read getCell(0)
+    of an empty row (NullPointerException): the whole file is skipped."""
+    row = ["CF1002", "L07", "整支", "40", "碼", 0, None, None, None, "fileImport", None]
+    plain = _xlsx([row])
+    golden.response("styled_row", _post(operator, "styled.xlsx",
+                                        _with_trailing_row(plain, '<row r="5" s="0" customFormat="1"/>')))
+    golden.response("bare_row", _post(operator, "bare.xlsx", _with_trailing_row(plain, '<row r="5"/>')))
+    golden.add("db", db_state(db, ["stockidentifier"]))
+
+
 def test_import_java_number_grammar(operator, db, golden):
     """Full-width digits: Integer.parseInt accepts them, Double.parseDouble does not."""
     def row(quantity, unit, color: object = 0, product="CF1001"):

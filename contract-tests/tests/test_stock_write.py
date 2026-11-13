@@ -130,22 +130,44 @@ def test_shrink_stock_report_template_missing(operator, db, golden):
     """The adjustment template is missing: the report write fails with an IOException.
     Java's javax @Transactional commits on checked exceptions, so the shrink is kept,
     the allocation report is written, and the answer is 400."""
-    from conftest import EXCEL_DIR
+    from conftest import templates_missing
 
-    templates = [EXCEL_DIR / "STKADST" / f"StockAdjustRecordTemplate{ext}" for ext in (".xls", ".xlsx")]
-    moved = [(t, t.with_name(t.name + ".moved")) for t in templates if t.exists()]
-    for src, dst in moved:
-        src.rename(dst)
-    try:
+    with templates_missing("STKADST/StockAdjustRecordTemplate"):
         seed_baseline(operator)
         golden.response("shrink", operator.post("/api/stock/shrinkStock",
                                                 json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5)))
         golden.add("db", db_state(db, ["stockidentifier", "transactionrecord", "stockallocationrecord",
                                        "stockadjustmentrecord"]))
         golden.add("reports", generated_reports())
-    finally:
-        for src, dst in moved:
-            dst.rename(src)
+
+
+def test_shrink_stock_template_missing_with_todays_report(operator, db, golden):
+    """Java's createNewFile reads the template even when today's report already exists:
+    with the allocation template gone, a second shrink fails while writing (400, shrink
+    kept) and today's allocation report keeps only the first shrink's row."""
+    from conftest import templates_missing
+
+    seed_baseline(operator)
+    golden.response("first", operator.post("/api/stock/shrinkStock",
+                                           json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5)))
+    with templates_missing("STKALLT/StockAllocateRecordTemplate"):
+        golden.response("second", operator.post("/api/stock/shrinkStock",
+                                                json=shrink_request(2, ["20", "28"], allocation=0.5, adjustment=0)))
+        golden.add("db", db_state(db, ["stockidentifier", "stockallocationrecord", "stockadjustmentrecord"]))
+        golden.add("reports", generated_reports())
+
+
+def test_shrink_rollback_template_missing_keeps_reports(admin, db, golden):
+    """The rollback rewrites today's reports (deleteAndCreateNewFile), which reads the
+    template before deleting: with the allocation template gone, today's reports stay."""
+    from conftest import templates_missing
+
+    seed_baseline(admin)
+    admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5))
+    with templates_missing("STKALLT/StockAllocateRecordTemplate"):
+        golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
+        golden.add("db", db_state(db, ["stockidentifier", "stockallocationrecord", "stockadjustmentrecord"]))
+        golden.add("reports", generated_reports())
 
 
 def test_shrink_stock_without_pieces_field(operator, db, golden):
@@ -194,16 +216,15 @@ def test_shrink_stock_rollback(admin, db, golden):
 def test_shrink_stock_rollback_db_error(admin, db, golden):
     """A database error in the middle of the rollback (here: deleting stockinfo) — Java
     answers 400 and the whole rollback is undone."""
-    import pymysql
-
-    from conftest import DB
+    from conftest import root_connection
 
     seed_baseline(admin)
     admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0, adjustment=0))
     golden.add("before", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
-    root = pymysql.connect(**{**DB, "user": "root", "password": "root"})
+    root = root_connection()
     try:
-        with root.cursor() as cur:  # binlog is on: creating a trigger needs root
+        with root.cursor() as cur:
+            cur.execute("DROP TRIGGER IF EXISTS contract_fail_stockinfo_delete")  # left by a killed run
             cur.execute("CREATE TRIGGER contract_fail_stockinfo_delete BEFORE DELETE ON stockinfo FOR EACH ROW "
                         "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'contract test: stockinfo delete fails'")
         golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
@@ -349,6 +370,29 @@ def test_out_stock_update_twice_in_one_second(operator, db, golden):
     golden.response("first", first)
     golden.response("second", second)
     golden.add("reports", generated_reports())
+
+
+FORMATTED_TEMPLATES = {"OutStockList": "OutStockListTemplate", "STKADST": "StockAdjustRecordTemplate",
+                       "STKALLT": "StockAllocateRecordTemplate"}
+
+
+def test_reports_from_formatted_templates(operator, golden):
+    """Hand-made templates carry rows below the header: bordered empty cells (rows 1-2)
+    and a row with only a custom height (row 3); fixtures/formatted-templates, the .xlsx
+    converted with LibreOffice as at cutover. POI's getLastRowNum() counts every row
+    record, so Java writes the first data row at row 4 and the 序號 starts at 3."""
+    from conftest import ROOT, templates_swapped
+
+    fixtures = ROOT / "fixtures" / "formatted-templates"
+    with templates_swapped({f"{folder}/{name}{ext}": fixtures / f"{name}{ext}"
+                            for folder, name in FORMATTED_TEMPLATES.items() for ext in (".xls", ".xlsx")}):
+        seed_baseline(operator)
+        golden.response("shrink", operator.post("/api/stock/shrinkStock",
+                                                json=shrink_request(1, ["30", "19"], allocation=0.5, adjustment=0.5)))
+        operator.post("/api/stock/outStock", json=OUT_STOCK)
+        golden.response("pull_list", operator.patch("/api/stock/outStock/update",
+                                                    json={"outStockUpdate": {"1": "門市A"}}))
+        golden.add("reports", generated_reports())
 
 
 def test_out_stock_update_unknown_id(operator, db, golden):

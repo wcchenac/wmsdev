@@ -6,6 +6,8 @@ queryStock/categoryList, queryStock/category/{category},
 queryStock/history/{id} (GET), queryStock/updateHistory (PATCH)
 """
 
+import contextlib
+
 import pytest
 
 from conftest import db_state, exec_sql, generated_reports, rows
@@ -39,6 +41,18 @@ def test_daily_stock_compare_null_quantity_without_erp_match(admin, db, golden):
     exec_sql(db, "UPDATE product SET quantity = NULL WHERE productNo = 'ZZ0001'")
     golden.response("compare", admin.get("/api/stock/stockManagement/daily/stockCompare"))
     golden.add("reports", generated_reports())
+
+
+def test_daily_stock_compare_template_missing_keeps_report(admin, golden):
+    """Java reads the template before it deletes today's report: with the template gone
+    the second comparison fails (400) and the first report is kept."""
+    from conftest import templates_missing
+
+    seed_baseline(admin)
+    golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+    with templates_missing("StockComparisonResult/StockComparisonResultTemplate"):
+        golden.response("second", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+        golden.add("reports", generated_reports())
 
 
 def test_daily_stock_compare_twice_same_day(admin, golden):
@@ -108,22 +122,41 @@ TINY_JPEG = (
 )
 
 
+@contextlib.contextmanager
+def _product_photo(product_no: str, content: bytes):
+    """pictures/<productNo>.jpg for the block. Like a swapped template, the backend
+    container only sees the new (or removed) file once Docker's file sharing settles."""
+    from conftest import FILES_DIR, settle_files
+
+    pictures = FILES_DIR / "pictures"
+    pictures.mkdir(parents=True, exist_ok=True)
+    picture = pictures / f"{product_no}.jpg"
+    picture.write_bytes(content)
+    settle_files()
+    try:
+        yield
+    finally:
+        picture.unlink()
+        settle_files()
+
+
 def test_category_detail_report_with_picture(admin, db, golden):
     """A product photo (pictures/<productNo>.jpg) pushes that product's table 16 rows down instead of 10."""
     import base64
 
-    from conftest import FILES_DIR
-
     _seed_category_tables(db)
-    pictures = FILES_DIR / "pictures"
-    pictures.mkdir(parents=True, exist_ok=True)
-    picture = pictures / "CF1001.jpg"
-    picture.write_bytes(base64.b64decode(TINY_JPEG))
-    try:
+    with _product_photo("CF1001", base64.b64decode(TINY_JPEG)):
         golden.response("棉布", admin.get("/api/stock/queryStock/category/棉布"))
         golden.add("reports", _category_reports())
-    finally:
-        picture.unlink()
+
+
+def test_category_detail_report_with_broken_picture(admin, db, golden):
+    """Java embeds the photo's bytes as a JPEG without decoding them: a file that is not
+    an image still answers 200 and still pushes the table 16 rows down."""
+    _seed_category_tables(db)
+    with _product_photo("CF1001", b"this is not a jpeg"):
+        golden.response("棉布", admin.get("/api/stock/queryStock/category/棉布"))
+        golden.add("reports", _category_reports())
 
 
 def _category_reports():

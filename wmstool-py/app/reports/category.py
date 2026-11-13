@@ -40,6 +40,18 @@ class _Sheet:
         self.ws.merge_cells(start_row=row + 1, start_column=first_col + 1, end_row=row + 1, end_column=last_col + 1)
 
 
+class _RawJpeg(Image):
+    """addPicture(bytes, PICTURE_TYPE_JPEG): the file's bytes are embedded as a JPEG
+    without being decoded, so a broken photo is still inserted (openpyxl's Image would
+    open it with Pillow and fail)."""
+
+    def __init__(self, data: bytes) -> None:  # no super().__init__: it decodes the image
+        self.raw, self.format, self.width, self.height = data, "jpeg", 0, 0
+
+    def _data(self) -> bytes:
+        return self.raw
+
+
 def _picture(product_no: str) -> Path:
     return Path(get_settings().picture_dir) / f"{product_no}.jpg"
 
@@ -59,7 +71,7 @@ def _first_part(s: _Sheet, product_no: str, info: ProductInfo) -> None:
         s.merge(row, 12, 13)
     photo = _picture(product_no)
     if photo.exists():
-        image = Image(str(photo))
+        image = _RawJpeg(photo.read_bytes())
         image.anchor = TwoCellAnchor(_from=AnchorMarker(col=0, row=last + 2), to=AnchorMarker(col=4, row=last + 16))
         s.ws.add_image(image)
         last += 16

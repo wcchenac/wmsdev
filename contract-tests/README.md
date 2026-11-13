@@ -101,6 +101,10 @@ Python 版讀 `.xlsx` 範本。正式機 `D:/OutputFiles` 下的 4 個範本（`
 soffice --headless --convert-to xlsx --outdir <同一個資料夾> <範本>.xls
 ```
 
+第一筆資料寫在哪一列、序號從幾開始，取決於範本的「最後一列」。Java（POI `getLastRowNum`）會把表頭下方只有格式的列也算進去，包括框線空格和只調過列高的列。Python 的 `poi_last_row` 會一併計算轉檔後保留在 `row_dimensions` 的列，結果與 Java 一致。`test_reports_from_formatted_templates` 用 `fixtures/formatted-templates/` 驗證這一點：`.xls` 由 `scripts/make_formatted_templates.py` 產生，`.xlsx` 由 `scripts/convert_templates.sh`（在容器內跑 LibreOffice）轉出。
+
+轉換正式範本之後，請把兩邊各產生的一份報表打開比對，確認第一筆資料列和序號相同。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。
+
 ## 標記 `java_bug` 的測試
 
 golden file 忠實記錄了 Java 版的缺陷。重寫版可以修正，但要**刻意**重錄該 golden file：
@@ -111,5 +115,5 @@ golden file 忠實記錄了 Java 版的缺陷。重寫版可以修正，但要**
 ## 已知限制
 
 - `categorydetail`、`salerecords` 在正式環境的真實定義（表或 view）不在 repo，這裡用表模擬。
-- 正式 Excel 範本不在 repo；`scripts/make_templates.py` 只產生有表頭的最小版本，報表內容比對的是 Java 寫入的資料列。
-- `CategoryDetail` 報表的商品圖片路徑（`file.filePathForPictures`）在測試中為空，未涵蓋插圖。
+- 正式 Excel 範本不在 repo。`scripts/make_templates.py` 只產生有表頭的最小版本；`fixtures/formatted-templates/` 模擬表頭下方有格式列的手工範本。報表內容比對的是 Java 寫入的資料列。
+- 對照測試只比對 `CategoryDetail` 報表的格子，不比對插入的圖片本身；圖片會原樣嵌入，由 wmstool-py 的單元測試確認。
