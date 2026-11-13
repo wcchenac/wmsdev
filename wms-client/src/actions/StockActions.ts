@@ -203,7 +203,7 @@ export const getShrinkList =
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得縮碼列表" },
+        payload: error.response?.data || { message: "無法取得減肥清單" },
       });
       throw err;
     }
@@ -290,7 +290,7 @@ export const stockIdentifierWaitToShrinkIsTrue =
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
-        payload: error.response?.data || { message: "設定待縮碼失敗" },
+        payload: error.response?.data || { message: "設定待減肥失敗" },
       });
       throw err;
     }
@@ -314,7 +314,7 @@ export const stockIdentifierWaitToShrinkIsFalse =
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
-        payload: error.response?.data || { message: "取消待縮碼失敗" },
+        payload: error.response?.data || { message: "取消待減肥失敗" },
       });
       throw err;
     }
@@ -344,7 +344,7 @@ export const batchCreateStockInfoesForShrink =
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: SHRINK_Errors,
-        payload: error.response?.data || { message: "縮碼入庫失敗" },
+        payload: error.response?.data || { message: "減肥入庫失敗" },
       });
       throw err;
     }
