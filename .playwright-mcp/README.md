@@ -55,3 +55,18 @@ changed box well above that is a real layout change and needs a visual check.
 
 Each script returns `fails` (steps whose selector did not match) and `errors` (uncaught page
 errors). Both should be empty before the screenshots are trusted.
+
+## Storybook check
+
+`storybook-check.js` opens every story from Storybook's `index.json` and lists the ones that
+fail. Start Storybook first:
+
+```bash
+cd /Users/wcchenac/wmsdev-feature-refactor/wms-client && npm run storybook -- --no-open --ci
+```
+
+A story fails on an uncaught page error, Storybook's error display, a render that does not
+reach the `finished` phase, or any console error. Console errors matter: Storybook 10 reports a
+failed `play` assertion only as a console error, and the story still reaches `finished`.
+
+The result is `{ total, withPlay, passed, failed }`; `failed` should be empty.
