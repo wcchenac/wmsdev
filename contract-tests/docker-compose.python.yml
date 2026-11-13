@@ -15,6 +15,7 @@ services:
     environment:
       TZ: Asia/Taipei
       EXCEL_DIR: /data/files/excels
+      PICTURE_DIR: /data/files/pictures
       WMS_DATABASE_URL: mysql+pymysql://wms:wms@mysql:3306/wms?charset=utf8mb4
       ERP_DATABASE_URL: mssql+pymssql://sa:Contract-Test-1@erp:1433/PILOT0010
       # Same test-only value as jwt.jwtSecret in config/application.properties.

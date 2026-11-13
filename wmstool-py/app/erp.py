@@ -74,6 +74,11 @@ def product_unit(code: str) -> list[tuple]:
     return _rows("SELECT UNIT FROM dbo.PRODUCT WHERE CODE= :code", code=code)
 
 
+def product_info_for_class(clas: str) -> list[tuple]:
+    # [CODE, SUPP, SUPPNAME, CCOST, CNAME, DESCRIP]
+    return _rows("SELECT CODE, SUPP, SUPPNAME, CCOST, CNAME, DESCRIP FROM dbo.ProductInfo WHERE CLAS= :clas", clas=clas)
+
+
 def product_cqty_unit() -> list[tuple]:
     # [PROD, GWN, CQTY, UNIT]
     return _rows("SELECT * FROM dbo.ProductCQTYUNIT")

@@ -87,6 +87,26 @@ def in_stock_rollback_list(session: Session, order_type: str, order_no: str) -> 
     return {k: grouped[k] for k in java_hashmap_order(grouped)}
 
 
+def category_detail_report(session: Session, category: str) -> str:
+    """findCategoryDetails: rolls of the category (MySQL), supplier info (ERP), sales summary."""
+    from app.javacompat import java_format_2f, java_parse_double
+    from app.reports import category as category_report
+
+    stock_rows = [tuple(r) for r in session.execute(
+        text("SELECT * FROM wms.categorydetail WHERE category= :c"), {"c": category})]
+    info = {erp_text(r[0]): [erp_text(v) for v in r[1:6]] for r in erp.product_info_for_class(category)}
+    sales: dict[str, dict[str, dict[str, str]]] = {}
+    for r in session.execute(text("SELECT * FROM wms.salerecords WHERE category = :c"), {"c": category}):
+        product_no, reason, quantity, unit = str(r[0]), str(r[1]), str(r[2]), str(r[3])
+        by_reason = sales.setdefault(product_no, {})
+        if reason not in by_reason:
+            by_reason[reason] = {"quantity": quantity, "unit": unit}
+        else:
+            entry = by_reason[reason]
+            entry["quantity"] = java_format_2f(java_parse_double(entry["quantity"]) + java_parse_double(quantity))
+    return category_report.write(category, stock_rows, info, sales)
+
+
 def _label_value(value: str | None) -> dict[str, str | None]:
     return {k: value for k in java_hashmap_order(["label", "value"])}
 

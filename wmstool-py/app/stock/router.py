@@ -236,6 +236,16 @@ def category_list(request: Request, session: Session = Depends(get_session)) -> 
         return _bad_request(session, "categoryList")
 
 
+@router.get("/queryStock/category/{category}")
+def category_detail(category: str, request: Request, session: Session = Depends(get_session)) -> Response:
+    admin(request)
+    try:
+        queries.category_detail_report(session, category)
+    except Exception:
+        return _bad_request(session, "category detail")
+    return Response(status_code=200)
+
+
 @router.get("/outStock/waitHandleList/basic")
 def wait_handle_basic(request: Request, session: Session = Depends(get_session)) -> Response:
     ops(request)
