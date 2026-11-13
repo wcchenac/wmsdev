@@ -1,0 +1,44 @@
+{
+  "login": {
+    "allow-methods": [
+      "delete",
+      "get",
+      "patch",
+      "post"
+    ],
+    "allow-origin": "*",
+    "expose-headers": [
+      "content-disposition"
+    ],
+    "max-age": "3600",
+    "status": 200
+  },
+  "patch": {
+    "allow-methods": [
+      "delete",
+      "get",
+      "patch",
+      "post"
+    ],
+    "allow-origin": "*",
+    "expose-headers": [
+      "content-disposition"
+    ],
+    "max-age": "1800",
+    "status": 200
+  },
+  "protected": {
+    "allow-methods": [
+      "delete",
+      "get",
+      "patch",
+      "post"
+    ],
+    "allow-origin": "*",
+    "expose-headers": [
+      "content-disposition"
+    ],
+    "max-age": "3600",
+    "status": 200
+  }
+}

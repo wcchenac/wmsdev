@@ -1,6 +1,6 @@
 """/api/user/* — login and admin user management (5 endpoints)."""
 
-from conftest import USERS, rows
+from conftest import JWT_SECRET, USERS, exec_sql, login, rows, sign_jwt
 
 
 def user_table(db):
@@ -31,6 +31,33 @@ def test_token_is_required(http, golden):
         "garbage_token",
         http.get("/api/user/adminManagement/user/userList", headers={"Authorization": "Bearer not-a-jwt"}),
     )
+
+
+def test_token_edge_cases(http, db, golden):
+    import base64
+    import time
+
+    store_token = login(http, "store")
+    admin_token = login(http, "admin")
+    exec_sql(db, "DELETE FROM user WHERE employeeId = %s", "store")  # removed after login
+    golden.response("deleted_user", http.get("/api/stock/queryStock/query/2/CF1001",
+                                             headers={"Authorization": store_token}))
+
+    user_list = "/api/user/adminManagement/user/userList"
+    now = int(time.time())
+    claims = {"id": "1", "employeeId": "admin", "fullName": "管理員甲", "role": {"authority": "ROLE_Admin"}}
+    key = base64.b64decode(JWT_SECRET)
+    expired = sign_jwt({**claims, "iat": now - 7200, "exp": now - 3600}, key)
+    other_key = sign_jwt({**claims, "iat": now, "exp": now + 3600}, b"k" * 64)
+    alg_none = sign_jwt({**claims, "iat": now, "exp": now + 3600}, None, alg="none")
+    golden.response("expired", http.get(user_list, headers={"Authorization": "Bearer " + expired}))
+    golden.response("other_key", http.get(user_list, headers={"Authorization": "Bearer " + other_key}))
+    golden.response("alg_none", http.get(user_list, headers={"Authorization": "Bearer " + alg_none}))
+
+    raw = admin_token.removeprefix("Bearer ")
+    golden.response("lowercase_bearer", http.get(user_list, headers={"Authorization": "bearer " + raw}))
+    golden.response("no_space", http.get(user_list, headers={"Authorization": "Bearer" + raw}))
+    golden.response("unimplemented_path_no_token", http.get("/api/does/not/exist"))
 
 
 # POST /api/user/adminManagement/user/register --------------------------------
@@ -76,6 +103,26 @@ def test_update_user(admin, http, db, golden):
     golden.add("users", user_table(db))
     golden.response("old_password", http.post("/api/user/login", json={"employeeId": "sales", "password": "sales123"}))
     golden.response("new_password", http.post("/api/user/login", json={"employeeId": "sales", "password": "sales999"}))
+
+
+def test_update_user_password_semantics(admin, http, golden):
+    """newPassword omitted keeps the password; "" sets it to the empty string (Java behavior)."""
+    url = "/api/user/adminManagement/user/update"
+
+    def try_login(employee_id, password):
+        return http.post("/api/user/login", json={"employeeId": employee_id, "password": password})
+
+    golden.response("omit_new_password", admin.patch(url, json={
+        "employeeId": "store", "fullName": "門市丁", "role": "ROLE_Normal"}))
+    golden.response("omit_new_password/login_old", try_login("store", "store123"))
+
+    golden.response("empty_new_password", admin.patch(url, json={
+        "employeeId": "sales", "newPassword": "", "fullName": "業務丙", "role": "ROLE_Sales"}))
+    golden.response("empty_new_password/login_empty", try_login("sales", ""))
+    golden.response("empty_new_password/login_old", try_login("sales", "sales123"))
+
+    golden.response("bad_role", admin.patch(url, json={
+        "employeeId": "operator", "fullName": "倉管乙", "role": "ROLE_Boss"}))
 
 
 # DELETE /api/user/adminManagement/user/delete --------------------------------

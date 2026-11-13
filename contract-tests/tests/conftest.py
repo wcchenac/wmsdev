@@ -42,6 +42,27 @@ DB: dict[str, Any] = dict(
 # The service runs in Asia/Taipei (production is a Taiwanese Windows host).
 TZ = ZoneInfo("Asia/Taipei")
 
+# Same test-only value as jwt.jwtSecret in config/application.properties.
+JWT_SECRET = "Y29udHJhY3QtdGVzdC1vbmx5LWp3dC1zZWNyZXQtZm9yLXdtc3Rvb2wtaHM1MTItbmVlZHMtNjQtYnl0ZXMtLS0tLQ=="
+
+
+def sign_jwt(claims: dict[str, Any], key: bytes | None, alg: str = "HS512") -> str:
+    """Hand-made JWT for probing token validation (key=None -> unsigned, alg must be 'none')."""
+    import base64
+    import hashlib
+    import hmac
+
+    def seg(obj: dict[str, Any]) -> str:
+        raw = json.dumps(obj, separators=(",", ":"), ensure_ascii=False).encode()
+        return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+    signing_input = f"{seg({'alg': alg, 'typ': 'JWT'})}.{seg(claims)}"
+    if key is None:
+        return signing_input + "."
+    sig = hmac.new(key, signing_input.encode(), hashlib.sha512).digest()
+    return signing_input + "." + base64.urlsafe_b64encode(sig).rstrip(b"=").decode()
+
+
 # Tables the backend writes. Truncated before every test so auto-increment ids
 # restart at 1 and golden files stay deterministic.
 WMS_TABLES = [
