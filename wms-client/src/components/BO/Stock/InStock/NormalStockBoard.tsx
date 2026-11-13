@@ -177,17 +177,13 @@ const NormalStockBoard: React.FC = () => {
             };
             return copyList;
           });
-          
-          // Refresh order status to update waitHandleStatus
-          dispatch(getInStockOrder(orderNo)).finally(() => {
-            setIsLoading(false);
-          });
-        } else {
-          setIsLoading(false);
         }
+        // Only the submitted product is marked; the order is not re-queried, since that would
+        // rebuild the Step 2 list and bring back products the user left unticked.
+        setIsLoading(false);
       });
     },
-    [dispatch, orderNo]
+    [dispatch]
   );
 
   // Only react to an order that arrives while this page is mounted, not one another page
