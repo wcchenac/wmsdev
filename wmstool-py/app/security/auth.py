@@ -11,8 +11,9 @@ from dataclasses import dataclass
 
 from fastapi import Request
 from sqlalchemy import select
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.responses import Response
+from starlette.concurrency import run_in_threadpool
+from starlette.datastructures import Headers
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.db import get_sessionmaker
 from app.errors import Forbidden, Unauthorized, unauthorized_response
@@ -46,15 +47,23 @@ def _principal_from_header(header: str | None) -> Principal | None:
         return Principal(user.id, user.employeeId or "", user.fullName or "", user.role.role)
 
 
-class AuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        path = request.url.path
-        if path.startswith("/api/"):
-            principal = _principal_from_header(request.headers.get("Authorization"))
-            if principal is None and path not in PUBLIC_PATHS:
-                return unauthorized_response()
-            request.state.user = principal
-        return await call_next(request)
+class AuthMiddleware:
+    """Plain ASGI middleware. (Starlette's BaseHTTPMiddleware wraps handler
+    exceptions in an ExceptionGroup, which keeps the 500 handler from sending
+    its response — the client just sees the connection drop.)"""
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http" and scope["path"].startswith("/api/"):
+            headers = Headers(scope=scope)
+            principal = await run_in_threadpool(_principal_from_header, headers.get("Authorization"))
+            if principal is None and scope["path"] not in PUBLIC_PATHS:
+                await unauthorized_response()(scope, receive, send)
+                return
+            scope.setdefault("state", {})["user"] = principal
+        await self.app(scope, receive, send)
 
 
 def current_user(request: Request) -> Principal:

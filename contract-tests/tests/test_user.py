@@ -105,6 +105,26 @@ def test_update_user(admin, http, db, golden):
     golden.response("new_password", http.post("/api/user/login", json={"employeeId": "sales", "password": "sales999"}))
 
 
+def test_update_user_password_semantics(admin, http, golden):
+    """newPassword omitted keeps the password; "" sets it to the empty string (Java behavior)."""
+    url = "/api/user/adminManagement/user/update"
+
+    def try_login(employee_id, password):
+        return http.post("/api/user/login", json={"employeeId": employee_id, "password": password})
+
+    golden.response("omit_new_password", admin.patch(url, json={
+        "employeeId": "store", "fullName": "門市丁", "role": "ROLE_Normal"}))
+    golden.response("omit_new_password/login_old", try_login("store", "store123"))
+
+    golden.response("empty_new_password", admin.patch(url, json={
+        "employeeId": "sales", "newPassword": "", "fullName": "業務丙", "role": "ROLE_Sales"}))
+    golden.response("empty_new_password/login_empty", try_login("sales", ""))
+    golden.response("empty_new_password/login_old", try_login("sales", "sales123"))
+
+    golden.response("bad_role", admin.patch(url, json={
+        "employeeId": "operator", "fullName": "倉管乙", "role": "ROLE_Boss"}))
+
+
 # DELETE /api/user/adminManagement/user/delete --------------------------------
 
 
