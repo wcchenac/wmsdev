@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router';
 import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 import Login from '../../../../components/BO/User/Login';
@@ -50,7 +50,7 @@ const renderLogin = (storeState: Partial<StoreState> = {}, initialPath: string =
 
   const result = render(
     <Provider store={store}>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }} initialEntries={[initialPath]}>
+      <MemoryRouter initialEntries={[initialPath]}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<div data-testid="home-page">Home Page</div>} />

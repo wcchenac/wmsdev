@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen, RenderResult } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import HeaderSales from '../../../../components/Layout/RoleHeader/HeaderSales';
 
 const renderHeaderSales = (): RenderResult => {
   return render(
-    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <MemoryRouter>
       <HeaderSales />
     </MemoryRouter>
   );

@@ -8,13 +8,13 @@ vi.mock('./components/Layout/Header', () => ({ default: function MockHeader() {
   return <header data-testid="mock-header">Header</header>;
 } }));
 
-// Mock react-router-dom's BrowserRouter to use MemoryRouter
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+// Mock react-router's BrowserRouter to use MemoryRouter
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual<typeof import('react-router')>('react-router');
   return {
     ...actual,
-    BrowserRouter: ({ children, future }: { children: React.ReactNode; future?: Record<string, boolean> }) => (
-      <actual.MemoryRouter initialEntries={['/']} future={future}>{children}</actual.MemoryRouter>
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => (
+      <actual.MemoryRouter initialEntries={['/']}>{children}</actual.MemoryRouter>
     )
   };
 });

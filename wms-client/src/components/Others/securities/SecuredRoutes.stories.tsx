@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router";
 import { RoleOption } from "../../../enums/Enums";
 import { withStore } from "../../../stories/withStore";
 import ProtectedRoute from "./ProtectedRoute";

@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Header from "./components/Layout/Header";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router";
 import { Provider } from "react-redux";
 import store from "./store";
 import NormalStockBoard from "./components/BO/Stock/InStock/NormalStockBoard";
@@ -29,7 +29,7 @@ function App() {
 
   return (
     <Provider store={store}>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Router>
         <div className="App">
           <Header />
           <main id="main-content" role="main" aria-label="主要內容區域">

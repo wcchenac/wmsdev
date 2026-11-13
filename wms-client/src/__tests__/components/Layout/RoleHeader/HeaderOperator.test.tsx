@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen, RenderResult } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import HeaderOperator from '../../../../components/Layout/RoleHeader/HeaderOperator';
 
 const renderHeaderOperator = (): RenderResult => {
   return render(
-    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <MemoryRouter>
       <HeaderOperator />
     </MemoryRouter>
   );

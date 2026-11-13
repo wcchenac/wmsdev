@@ -1,7 +1,7 @@
 import React from "react";
 import type { Preview } from "@storybook/react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const theme = createTheme();
@@ -27,7 +27,7 @@ const preview: Preview = {
 
       return (
         <ThemeProvider theme={theme}>
-          <MemoryRouter key={context.id} initialEntries={initialEntries} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <MemoryRouter key={context.id} initialEntries={initialEntries}>
             <Story />
           </MemoryRouter>
         </ThemeProvider>

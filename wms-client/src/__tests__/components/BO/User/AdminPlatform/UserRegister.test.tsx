@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 import UserRegister from '../../../../../components/BO/User/AdminPlatform/UserRegister';
@@ -75,7 +75,7 @@ const renderUserRegister = (storeState: Partial<StoreState> = {}): RenderUserReg
   return {
     ...render(
       <Provider store={store}>
-        <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <MemoryRouter>
           <UserRegister />
         </MemoryRouter>
       </Provider>

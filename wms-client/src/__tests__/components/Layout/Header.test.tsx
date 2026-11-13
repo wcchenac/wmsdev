@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
 import Header from '../../../components/Layout/Header';
@@ -66,7 +66,7 @@ const mockStore = configureMockStore([thunk]);
 const renderWithProviders = (store: MockStoreEnhanced<unknown>): RenderResult => {
   return render(
     <Provider store={store}>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemoryRouter>
         <Header />
       </MemoryRouter>
     </Provider>
