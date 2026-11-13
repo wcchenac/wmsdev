@@ -12,6 +12,11 @@ const manifest = JSON.parse(readFileSync(join(root, 'public/manifest.json'), 'ut
 };
 
 describe('page metadata', () => {
+  // The UI is Traditional Chinese (Taiwan); screen readers and the browser's font choice use this.
+  test('the document language is Traditional Chinese (Taiwan)', () => {
+    expect(indexHtml).toMatch(/<html lang="zh-Hant-TW">/);
+  });
+
   test('the page title is the app name shown in the navbar', () => {
     expect(indexHtml).toMatch(/<title>庫存管理工具<\/title>/);
   });
