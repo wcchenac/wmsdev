@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getOutStockToStoreOrder } from "../../../../actions/StockActions";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
@@ -43,11 +44,13 @@ const QueryOutStockToStore: React.FC = () => {
     [dispatch, orderNo]
   );
 
-  useEffect(() => {
-    if (orderInfo && orderInfo.stockInfoes) {
-      setOrderInfoes(orderInfo.stockInfoes as ProductInfo[]);
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(orderInfo.stockInfoes, (result) => {
+    if (result) {
+      setOrderInfoes(result as ProductInfo[]);
     }
-  }, [orderInfo]);
+  });
 
   useEffect(() => {
     if (orderInfoes.length > 0 || orderInfoes === undefined) {

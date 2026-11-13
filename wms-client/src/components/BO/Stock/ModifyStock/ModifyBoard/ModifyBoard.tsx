@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo, FormEvent, MouseEvent } from "react";
+import React, { useState, useCallback, useMemo, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
   getStockInfoes,
   stockIdentifierIsShiped,
@@ -101,9 +102,10 @@ const ModifyBoard: React.FC = () => {
   const [stockInfoes, setStockInfoes] = useState<StockInfoType[]>([]);
   const [stockQuantity, setStockQuantity] = useState<StockQuantityItem[]>([]);
 
-  // Effect to sync with Redux store queryResult
-  useEffect(() => {
-    const stockInfoesData = queryResult?.stockInfoes as StockInfoesResponse | undefined;
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(queryResult.stockInfoes, (result) => {
+    const stockInfoesData = result as StockInfoesResponse | undefined;
     if (
       stockInfoesData?.information?.productNo !== null &&
       stockInfoesData?.information?.productNo !== undefined
@@ -115,7 +117,7 @@ const ModifyBoard: React.FC = () => {
       setStockInfoes(stockInfoesData.result || []);
       setStockQuantity(stockInfoesData.productList || []);
     }
-  }, [queryResult]);
+  });
 
   const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setProductNo(e.target.value);

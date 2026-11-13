@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
+import React, { useState, useRef, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./Common/QueryOrder";
@@ -13,6 +13,7 @@ import {
   checkWaitHandleProductStatus,
 } from "../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../utilities/IsEmpty";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import { RootState, AppDispatch } from "../../../../types";
@@ -188,12 +189,11 @@ const StoreReturnBoard: React.FC = () => {
     [dispatch, orderNo]
   );
 
-  // Effect to handle queryReturnOrderResult changes (replaces componentDidUpdate)
-  useEffect(() => {
-    if (
-      queryReturnOrderResult?.stockInfoes
-    ) {
-      const stockInfoes = queryReturnOrderResult.stockInfoes as {
+  // Only react to an order that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(queryReturnOrderResult.stockInfoes, (result) => {
+    if (result) {
+      const stockInfoes = result as {
         currentStatus?: CurrentOrderStatus;
         waitHandleStatus?: WaitHandleStatus;
       };
@@ -218,7 +218,7 @@ const StoreReturnBoard: React.FC = () => {
         }
       }
     }
-  }, [queryReturnOrderResult, initialSelectedList]);
+  });
 
   return (
     <div className="batch_add_stockInfo">

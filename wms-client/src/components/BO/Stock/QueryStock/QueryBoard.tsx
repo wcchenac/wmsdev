@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
+import React, { useState, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getStockInfoesBasic } from "../../../../actions/StockActions";
 import StockInfoContainer from "./Common/StockInfoContainer";
 import QueryProductInformation from "../Utilities/QueryProductInformation";
@@ -59,9 +60,10 @@ const QueryBoard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const stockInfo = useSelector((state: RootState) => state.stockInfo);
 
-  // Effect to update state when stockInfo changes (replaces componentDidUpdate)
-  useEffect(() => {
-    const reduxStockInfoes = stockInfo.stockInfoes as StockInfoesResponse | undefined;
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(stockInfo.stockInfoes, (result) => {
+    const reduxStockInfoes = result as StockInfoesResponse | undefined;
 
     if (
       reduxStockInfoes &&
@@ -76,7 +78,7 @@ const QueryBoard: React.FC = () => {
       setStockInfoes(reduxStockInfoes.result || []);
       setStockQuantity(reduxStockInfoes.productList || []);
     }
-  }, [stockInfo.stockInfoes]);
+  });
 
   const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

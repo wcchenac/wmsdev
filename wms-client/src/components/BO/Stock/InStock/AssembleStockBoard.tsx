@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
+import React, { useState, useRef, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./Common/QueryOrder";
@@ -13,6 +13,7 @@ import {
   checkWaitHandleProductStatus,
 } from "../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../utilities/IsEmpty";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import { RootState, AppDispatch } from "../../../../types";
@@ -192,10 +193,11 @@ const AssembleStockBoard: React.FC = () => {
     [dispatch, orderNo]
   );
 
-  // componentDidUpdate equivalent
-  useEffect(() => {
-    if (queryAssembleOrderResult?.stockInfoes) {
-      const stockInfoes = queryAssembleOrderResult.stockInfoes as {
+  // Only react to an order that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(queryAssembleOrderResult.stockInfoes, (result) => {
+    if (result) {
+      const stockInfoes = result as {
         currentStatus?: CurrentOrderStatus;
         waitHandleStatus?: WaitHandleStatus;
       };
@@ -222,7 +224,7 @@ const AssembleStockBoard: React.FC = () => {
         setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
       }
     }
-  }, [queryAssembleOrderResult, initialSelectedList]);
+  });
 
   return (
     <div className="batch_add_stockInfo">

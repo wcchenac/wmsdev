@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, ChangeEvent, FormEvent, MouseEvent } from "react";
+import React, { useState, useCallback, useRef, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./Common/QueryOrder";
@@ -13,6 +13,7 @@ import {
   checkWaitHandleProductStatus,
 } from "../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../utilities/IsEmpty";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import { RootState, AppDispatch } from "../../../../types";
@@ -77,7 +78,6 @@ const NormalStockBoard: React.FC = () => {
   const [selectedProductNoList, setSelectedProductNoList] = useState<SelectedProductNo[]>([]);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prevQueryInStockOrderResultRef = useRef<typeof queryInStockOrderResult | undefined>(undefined);
 
   const initialSelectedList = useCallback(
     (currentStatus: CurrentOrderStatus, waitHandle: WaitHandleStatus) => {
@@ -190,40 +190,35 @@ const NormalStockBoard: React.FC = () => {
     [dispatch, orderNo]
   );
 
-  // componentDidUpdate equivalent
-  useEffect(() => {
-    const prevQueryInStockOrderResult = prevQueryInStockOrderResultRef.current;
+  // Only react to an order that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(queryInStockOrderResult.stockInfoes, (result) => {
+    if (result) {
+      const stockInfoes = result as StockInfoesResponse;
+      const newCurrentOrderStatus = stockInfoes.currentStatus;
+      const newWaitHandleStatus = stockInfoes.waitHandleStatus;
 
-    if (queryInStockOrderResult !== prevQueryInStockOrderResult) {
-      if (queryInStockOrderResult?.stockInfoes) {
-        const stockInfoes = queryInStockOrderResult.stockInfoes as StockInfoesResponse;
-        const newCurrentOrderStatus = stockInfoes.currentStatus;
-        const newWaitHandleStatus = stockInfoes.waitHandleStatus;
+      if (newCurrentOrderStatus) {
+        setCurrentOrderStatus(newCurrentOrderStatus);
+      }
+      if (newWaitHandleStatus) {
+        setWaitHandleStatus(newWaitHandleStatus);
+      }
 
-        if (newCurrentOrderStatus) {
-          setCurrentOrderStatus(newCurrentOrderStatus);
-        }
-        if (newWaitHandleStatus) {
-          setWaitHandleStatus(newWaitHandleStatus);
-        }
-
-        if (
-          !newCurrentOrderStatus ||
-          isEmpty(newCurrentOrderStatus as Record<string, unknown>) ||
-          (newWaitHandleStatus && checkWaitHandleStatusCompletion(newWaitHandleStatus))
-        ) {
-          setIsOrderValid(false);
-        } else if (newCurrentOrderStatus && newWaitHandleStatus) {
-          initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
-          setIsOrderValid(true);
-          // Only auto-jump to step 2 if we are coming from step 1
-          setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
-        }
+      if (
+        !newCurrentOrderStatus ||
+        isEmpty(newCurrentOrderStatus as Record<string, unknown>) ||
+        (newWaitHandleStatus && checkWaitHandleStatusCompletion(newWaitHandleStatus))
+      ) {
+        setIsOrderValid(false);
+      } else if (newCurrentOrderStatus && newWaitHandleStatus) {
+        initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
+        setIsOrderValid(true);
+        // Only auto-jump to step 2 if we are coming from step 1
+        setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
       }
     }
-
-    prevQueryInStockOrderResultRef.current = queryInStockOrderResult;
-  }, [queryInStockOrderResult, initialSelectedList]);
+  });
 
   return (
     <div className="batch_add_stockInfo">

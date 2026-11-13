@@ -1,8 +1,10 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
+import { applyMiddleware, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
+import rootReducer from '../../../../../reducers';
+import { GET_StockInfoes } from '../../../../../types';
 import QueryBoardDetail from '../../../../../components/BO/Stock/QueryStock/QueryBoard_Detail';
 
 // /stock/2/2 shows the advanced product information (supplier, cost, ...), which only
@@ -22,26 +24,28 @@ vi.mock('../../../../../actions/StockActions', () => ({
   getStockInfoesBasic: (productNo: string) => () => mockGetStockInfoesBasic(productNo),
 }));
 
-const mockStore = configureMockStore([thunk]);
-
-const renderDetail = () =>
+// The page only shows a query result that arrives while it is mounted, so the result
+// for CF1001 is dispatched after the first render.
+const renderDetail = () => {
+  const store = createStore(rootReducer, applyMiddleware(thunk));
   render(
-    <Provider
-      store={mockStore({
-        stockInfo: {
-          stockInfoes: {
-            information: { productNo: 'CF1001' },
-            result: [],
-            prevProduct: 'CF1000',
-            nextProduct: 'CF1002',
-            productList: [],
-          },
-        },
-      })}
-    >
+    <Provider store={store}>
       <QueryBoardDetail />
     </Provider>
   );
+  act(() => {
+    store.dispatch({
+      type: GET_StockInfoes,
+      payload: {
+        information: { productNo: 'CF1001' },
+        result: [],
+        prevProduct: 'CF1000',
+        nextProduct: 'CF1002',
+        productList: [],
+      },
+    });
+  });
+};
 
 describe('QueryBoardDetail prev/next navigation', () => {
   beforeEach(() => {

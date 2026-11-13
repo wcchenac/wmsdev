@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent } from "react";
+import React, { useState, useCallback, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
   getInStockRollbackList,
   inStockRollback
@@ -21,11 +22,13 @@ const InStockRollback: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const queryResult = useSelector((state: RootState) => state.stockInfo);
 
-  useEffect(() => {
-    if (queryResult.stockInfoes) {
-      setResult(queryResult.stockInfoes as InStockRollbackResult);
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(queryResult.stockInfoes, (result) => {
+    if (result) {
+      setResult(result as InStockRollbackResult);
     }
-  }, [queryResult.stockInfoes]);
+  });
 
   const handleOrderChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getProductHistory } from "../../../../actions/StockActions";
 import { dayOfStart, dayOfEnd, setPreviousMonth } from "../Utilities/DateUtils";
 import QueryProductInformation from "../Utilities/QueryProductInformation";
@@ -49,16 +50,17 @@ function StockHistoryBoard(): React.ReactElement {
   };
 
   const treeDataTranslation = useCallback((data: RawHistoryNode[] | null | undefined): TreeNode[] => {
-    if (!data) return [];
+    // Product history is an array of root nodes; anything else (another query's result) has no tree.
+    if (!Array.isArray(data)) return [];
     return data.map((item, idx) => transversalForTreeData(item, `${idx}`));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (stockInfo?.stockInfoes) {
-      setTreeData(treeDataTranslation(stockInfo.stockInfoes as unknown as RawHistoryNode[]));
-    }
-  }, [stockInfo, treeDataTranslation]);
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(stockInfo.stockInfoes, (result) => {
+    setTreeData(treeDataTranslation(result as unknown as RawHistoryNode[]));
+  });
 
   const handleProductNoChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setProductNo(e.target.value);

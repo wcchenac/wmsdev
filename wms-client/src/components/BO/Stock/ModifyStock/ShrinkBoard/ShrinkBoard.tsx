@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
     getShrinkList,
     stockIdentifierWaitToShrinkIsFalse,
@@ -23,14 +24,13 @@ const ShrinkBoard: React.FC = () => {
     const [sameTypeModify, setSameTypeModify] = useState<boolean>(false);
     const [hardwareModify, setHardwareModify] = useState<boolean>(false);
 
-    // Effect to sync shrinkList from Redux store
-    useEffect(() => {
-        if (shrinkListFromStore?.stockInfoes) {
-            if (Array.isArray(shrinkListFromStore.stockInfoes)) {
-                setShrinkList(shrinkListFromStore.stockInfoes);
-            }
+    // Only react to a list that arrives while this page is mounted, not one another page
+    // left in the shared stockInfo slice (componentDidUpdate in dev).
+    useUpdateEffect(shrinkListFromStore.stockInfoes, (result) => {
+        if (Array.isArray(result)) {
+            setShrinkList(result);
         }
-    }, [shrinkListFromStore]);
+    });
 
     const initialComponent = useCallback((): void => {
         setIsLoading(false);
