@@ -25,10 +25,14 @@ async (page) => {
   await step('12-instock-step2', async () => { await clickText('Step 2 - 選擇入庫貨號'); });
   await step('13-instock-step2-checked', async () => { const cb = page.locator('main input[type=checkbox]'); const n = await cb.count(); for (let k = 0; k < Math.min(n, 3); k++) await cb.nth(k).check({ force: true }); });
   await step('14-instock-step3', async () => { await page.locator('main').getByRole('button', { name: '下一步' }).first().click({ timeout: 5000 }); await page.waitForTimeout(600); });
+  await step('15-instock-step3-tab2', async () => { await page.locator('main .nav-tabs .nav-link').nth(1).click({ timeout: 5000 }); await page.waitForTimeout(600); });
+  await step('16-nav-instock-open', async () => { await go('/'); await page.locator('nav').getByRole('button', { name: '入庫作業' }).click(); await page.waitForTimeout(500); });
+  await step('17-nav-modify-open', async () => { await page.locator('nav').getByRole('button', { name: '庫存異動作業' }).click(); await page.waitForTimeout(500); });
   await step('20-query-stock', async () => { await go('/stock/2/2'); await queryProduct('CF1001'); });
   await step('21-outstock-order', async () => { await go('/stock/2/3'); const i = page.locator('input[name=orderNo]'); await i.fill('OS2026001'); await i.press('Enter'); await page.waitForTimeout(1000); });
   await step('30-modify', async () => { await go('/stock/3/1'); await queryProduct('CF1001'); });
   await step('31-modify-info-modal', async () => { await page.locator('main').getByText('詳細資料', { exact: true }).first().click(); await page.waitForTimeout(600); });
+  await step('31b-modify-info-edit', async () => { await page.locator('.modal.show').getByRole('button', { name: '編輯' }).click(); await page.waitForTimeout(500); });
   await closeModal();
   await step('32-modify-ship-modal', async () => { await page.locator('main').getByText('出庫', { exact: true }).first().click(); await page.waitForTimeout(600); });
   await closeModal();
@@ -36,7 +40,10 @@ async (page) => {
   await closeModal();
   await step('34-modify-product-info', async () => { await clickText('貨號資料'); });
   await closeModal();
+  await step('35-modify-batch-ship', async () => { await page.getByRole('button', { name: '批量出庫' }).click(); await page.waitForTimeout(800); });
+  await closeModal();
   await step('40-shrink-list', async () => go('/stock/3/2'));
+  await step('41-shrink-selected', async () => { const cb = page.locator('main input[type=checkbox]'); if (await cb.count()) { await cb.first().check({ force: true }); await page.waitForTimeout(600); } });
   await step('50-pull-list', async () => go('/stock/4'));
   await step('51-pull-period-modal', async () => { await page.getByRole('button', { name: /時間區間查詢/ }).first().click(); await page.waitForTimeout(600); });
   await closeModal();
@@ -44,10 +51,14 @@ async (page) => {
   await step('70-admin-instock-rollback', async () => { await go('/admin'); await clickText('入庫回朔'); await page.locator('main select[name=orderType]').selectOption('normal'); await page.waitForTimeout(300); const i = page.locator('main input[name=orderNo]'); await i.fill('IN2026001'); await i.press('Enter'); await page.waitForTimeout(1000); });
   await step('71-admin-instock-rollback-modal', async () => { await page.locator('main').getByRole('button', { name: '詳細資料' }).first().click({ timeout: 5000 }); await page.waitForTimeout(600); });
   await closeModal();
+  await step('72-admin-register', async () => { await go('/admin'); await clickText('新增使用者'); });
+  await step('73-admin-import', async () => { await go('/admin'); await clickText('批量入庫'); });
+  await step('74-admin-category', async () => { await go('/admin'); await clickText('庫存類別'); });
+  await step('75-admin-shrink-rollback', async () => { await go('/admin'); await clickText('減肥回朔'); await queryProduct('CF1001'); });
   await step('76-admin-user-edit-modal', async () => { await go('/admin'); await clickText('使用者管理'); await page.getByRole('button', { name: '讀取員工清單' }).click(); await page.waitForTimeout(1000); await page.locator('.MuiDataGrid-row button').first().click(); await page.waitForTimeout(600); });
   await closeModal();
   await step('90-files', async () => go('/files'));
-  await step('91-files-category-modal', async () => { await page.locator('[data-target="#categorySelection"]').click({ timeout: 5000 }); await page.waitForTimeout(700); });
+  await step('91-files-category-modal', async () => { await page.locator('main').getByRole('button', { name: '選擇分類' }).click({ timeout: 5000 }); await page.waitForTimeout(700); });
   await closeModal();
   return JSON.stringify({ label: LABEL, shots: shots.length, fails, errors: [...new Set(errors)] }, null, 1);
 }

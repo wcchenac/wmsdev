@@ -2,11 +2,8 @@ async (page) => {
   // Writes compare/<name>.png: the BEFORE crop stacked over the AFTER crop.
   // Edit ITEMS to choose screenshots and crop boxes [name, x0, y0, x1, y1].
   const ITEMS = [
-    ['31-modify-info-modal', 400, 190, 1000, 290],
-    ['34-modify-product-info', 250, 100, 1140, 200],
-    ['51-pull-period-modal', 400, 310, 1000, 410],
-    ['20-query-stock', 150, 60, 700, 180],
-    ['30-modify', 0, 240, 1440, 680],
+    ['14-instock-step3', 60, 430, 1380, 640],
+    ['74-admin-category', 0, 130, 1160, 620],
   ];
   const ROOT = 'http://127.0.0.1:8765';
   const OUT = '/Users/wcchenac/wmsdev/.playwright-mcp/compare/';
