@@ -8,7 +8,7 @@ import jwt
 import pytest
 
 from app.config import get_settings
-from app.security.tokens import create_access_token, read_user_id
+from app.security.tokens import create_access_token, decode_secret, read_user_id
 
 # Same test-only value as jwt.jwtSecret in contract-tests/config/application.properties.
 SECRET = "Y29udHJhY3QtdGVzdC1vbmx5LWp3dC1zZWNyZXQtZm9yLXdtc3Rvb2wtaHM1MTItbmVlZHMtNjQtYnl0ZXMtLS0tLQ=="
@@ -48,6 +48,30 @@ def test_token_signed_with_decoded_secret():
     signing_input, _, signature = token.rpartition(".")
     expected = hmac.new(base64.b64decode(SECRET), signing_input.encode(), hashlib.sha512).digest()
     assert signature == base64.urlsafe_b64encode(expected).rstrip(b"=").decode()
+
+
+def test_accepts_token_issued_slightly_in_the_future():
+    # jjwt 0.9.1 never checks iat; a Java host whose clock runs ahead must not lock users out.
+    future = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=5)
+    assert read_user_id(create_access_token(7, "a", "b", "ROLE_Admin", now=future)) == 7
+
+
+@pytest.mark.parametrize(
+    ("secret", "expected_hex"),
+    [  # javax.xml.bind.DatatypeConverter.parseBase64Binary on Temurin 1.8.0_492
+        ("JWTSuperSecretKey", "2564d2ba97ab49e72b7ad29e"),
+        ("abcdefg", "69b71d"),
+        ("abc-def_ghij!", "69b71d79f821"),
+        ("QUJD", "414243"),
+        ("QUI=", "4142"),
+        ("QQ==", "41"),
+        ("QQ", ""),
+        ("a b\ncd", "69b71d"),
+        ("QUJD=QUJD", "414243fd0509"),
+    ],
+)
+def test_secret_decoding_matches_jjwt(secret, expected_hex):
+    assert decode_secret(secret).hex() == expected_hex
 
 
 def test_read_user_id():

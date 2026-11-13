@@ -1,0 +1,20 @@
+{
+  "authorized": {
+    "allow-methods": null,
+    "allow-origin": "*",
+    "expose-headers": [
+      "content-disposition"
+    ],
+    "max-age": null,
+    "status": 200
+  },
+  "unauthorized": {
+    "allow-methods": null,
+    "allow-origin": "*",
+    "expose-headers": [
+      "content-disposition"
+    ],
+    "max-age": null,
+    "status": 401
+  }
+}

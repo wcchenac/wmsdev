@@ -59,5 +59,7 @@ def install_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(Exception)
     async def _server_error(request: Request, exc: Exception) -> Response:
+        # The exception text stays in the log: SQLAlchemy messages carry SQL and
+        # bound parameters (password hashes included).
         logger.exception("unhandled error on %s %s", request.method, request.url.path)
-        return spring_error(request, 500, "Internal Server Error", str(exc))
+        return spring_error(request, 500, "Internal Server Error", "Internal Server Error")
