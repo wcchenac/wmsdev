@@ -243,6 +243,31 @@ def test_out_stock_request(operator, db, golden):
     golden.add("db", db_state(db, ["outstockrequest"]))
 
 
+def test_out_stock_update_follows_json_key_order(operator, db, golden):
+    """Jackson fills Map<Long, String> with a LinkedHashMap: rows follow the JSON key
+    order (2 then 17), not HashMap order (which would be 17 then 2)."""
+    for _ in range(17):
+        operator.post("/api/stock/outStock", json=OUT_STOCK)
+    golden.response("update", operator.patch("/api/stock/outStock/update",
+                                             json={"outStockUpdate": {"2": "門市A", "17": "門市B"}}))
+    golden.add("reports", generated_reports())
+
+
+@pytest.mark.java_bug(
+    "rollbackShrink catches the NonUniqueResultException itself and commits: the children's history "
+    "rows are deleted and the root's children list emptied, while the pieces and both SKO rows stay (200)"
+)
+def test_shrink_rollback_after_double_shrink(admin, db, golden):
+    """A roll shrunk twice has two SKO records. Recorded on Java (2026-11-13): 200 with a
+    half-done rollback — not the 400 a Spring-semantics reading predicted."""
+    seed_baseline(admin)
+    admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0, adjustment=0))
+    admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["10", "9"], allocation=0, adjustment=0))
+    golden.add("before", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
+    golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
+    golden.add("after", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
+
+
 def test_out_stock_update_unknown_id(operator, db, golden):
     """Java creates the pull-list workbook first, then fails on id 99: 400, DB rolled
     back, but the (template-only) workbook stays on disk."""
