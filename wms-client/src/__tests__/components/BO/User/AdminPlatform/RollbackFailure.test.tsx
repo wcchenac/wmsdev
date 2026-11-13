@@ -6,6 +6,7 @@ import { thunk } from 'redux-thunk';
 import { toast } from 'react-toastify';
 import rootReducer from '../../../../../reducers';
 import API from '../../../../../utilities/API';
+import { REQUEST_FAILED_MESSAGE } from '../../../../../utilities/notifyRequestFailed';
 import {
   ROLLBACK_DONE_NOT_REFRESHED_MESSAGE,
   ROLLBACK_REJECTED_MESSAGE,
@@ -160,6 +161,7 @@ describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList,
     await settle();
     // B was really queried (so this is not just the "edited but never queried" case).
     expect(API.get).toHaveBeenNthCalledWith(2, editedListUrl);
+    expect(toast.error).toHaveBeenCalledWith(REQUEST_FAILED_MESSAGE);
     expect(screen.getByTestId('list')).toHaveTextContent(JSON.stringify(staleList));
     vi.mocked(API.patch).mockRejectedValue(badRequest());
     vi.mocked(API.get).mockResolvedValue({ status: 200, data: currentList });
@@ -168,6 +170,8 @@ describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList,
 
     expect(API.get).toHaveBeenCalledTimes(3);
     expect(API.get).toHaveBeenLastCalledWith(listUrl);
+    expect(toast.error).toHaveBeenLastCalledWith(ROLLBACK_REJECTED_MESSAGE);
+    expect(overlayIdle()).toBe(true);
     expect(screen.getByTestId('list')).toHaveTextContent(JSON.stringify(currentList));
   });
 
