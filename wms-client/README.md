@@ -17,9 +17,14 @@ TypeScript runs side by side, as the TypeScript 7 release notes recommend for to
 
 `npm run storybook` opens the component workshop at http://localhost:6006. Stories run on @storybook/react-vite and use the same React 19, MUI 9, React Router 7, and Redux setup as the app.
 
-API calls go through `src/utilities/API.ts`. The base URL is `window.__WMS_CONFIG__.apiBaseUrl` when that file is set, otherwise `VITE_API_BASE_URL` or `REACT_APP_API_BASE_URL`, otherwise `/` so a reverse proxy can forward `/api`. For `npm start` against the LAN Spring Boot service, put this in `wms-client/.env.local` (gitignored):
+API calls go through `src/utilities/API.ts`. The base URL is `window.__WMS_CONFIG__.apiBaseUrl` when that file is set, otherwise `VITE_API_BASE_URL` or `REACT_APP_API_BASE_URL`, otherwise `/` so a reverse proxy can forward `/api`.
+
+With none of these set, `npm start` and `npm run preview` forward `/api` to the Spring Boot service at `http://localhost:8080` (`src/utilities/devApiProxy.ts`), so a fresh clone works against a local backend. To use another backend, put one of these in `wms-client/.env.local` (gitignored):
 
 ```bash
+# Keep calls on the dev server and proxy them (no CORS needed):
+VITE_API_PROXY_TARGET=http://192.168.20.113:8080
+# Or call the backend directly (the backend must allow CORS from the dev server):
 REACT_APP_API_BASE_URL=http://192.168.20.113:8080
 ```
 
