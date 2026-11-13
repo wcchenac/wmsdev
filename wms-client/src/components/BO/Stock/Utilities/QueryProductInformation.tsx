@@ -66,7 +66,7 @@ const QueryProductInformation: React.FC<QueryProductInformationProps> = ({
       }}
     >
       <form onSubmit={onSubmit} role="search" aria-label="貨號搜尋">
-        <div className="form-group row mb-0 align-items-center">
+        <div className="form-group row mb-0 align-items-start">
           <label
             htmlFor="productNo-search"
             className="col-md-auto col-form-label"
@@ -85,7 +85,7 @@ const QueryProductInformation: React.FC<QueryProductInformationProps> = ({
             />
             貨號查詢
           </label>
-          <div className="col-md-5 col-lg-4">
+          <div className="col-md">
             <div
               className="input-group"
               style={{
