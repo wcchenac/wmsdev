@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, ChangeEvent, FormEvent } from "react";
+import React, { useState, useCallback, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getOutStockToStoreOrder } from "../../../../actions/StockActions";
@@ -46,17 +46,13 @@ const QueryOutStockToStore: React.FC = () => {
 
   // Only react to a result that arrives while this page is mounted, not one another page
   // left in the shared stockInfo slice (componentDidUpdate in dev).
+  // The backend answers an unknown order number with an empty list, so every new result
+  // decides whether the order was found.
   useUpdateEffect(orderInfo.stockInfoes, (result) => {
-    if (result) {
-      setOrderInfoes(result as ProductInfo[]);
-    }
+    const rows = Array.isArray(result) ? (result as ProductInfo[]) : [];
+    setOrderInfoes(rows);
+    setIsOrderValid(rows.length > 0);
   });
-
-  useEffect(() => {
-    if (orderInfoes.length > 0 || orderInfoes === undefined) {
-      setIsOrderValid(orderInfoes.length > 0);
-    }
-  }, [orderInfoes]);
 
   return (
     <div className="query_outStockToStore">
