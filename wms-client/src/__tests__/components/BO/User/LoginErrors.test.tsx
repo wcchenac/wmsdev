@@ -98,3 +98,59 @@ describe('Login errors', () => {
     expect(screen.queryByText('無效的密碼')).not.toBeInTheDocument();
   });
 });
+
+describe('Login when the request itself fails', () => {
+  // No response (network down, backend unreachable): the login action stores
+  // { message: "登入失敗，請檢查帳號密碼" }, which belongs to neither field.
+  beforeEach(() => {
+    vi.mocked(API.post).mockReset().mockRejectedValue(new Error('Network Error'));
+  });
+
+  test('shows the message above the login button', async () => {
+    const { container } = renderLogin();
+
+    await submit(container, 'admin', 'admin123');
+
+    // The field messages are alerts too, so look the form message up by its text.
+    const alert = screen.getByText('登入失敗，請檢查帳號密碼').closest<HTMLElement>('[role=alert]')!;
+    expect(alert).toHaveClass('alert', 'alert-danger');
+    expect(alert.compareDocumentPosition(container.querySelector('button[type=submit]')!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+    // It is not a field error.
+    const { employeeId, password } = fields(container);
+    expect(employeeId).not.toHaveClass('is-invalid');
+    expect(password).not.toHaveClass('is-invalid');
+  });
+
+  test('typing in either field clears the message', async () => {
+    const { container } = renderLogin();
+    await submit(container, 'admin', 'admin123');
+
+    fireEvent.change(fields(container).employeeId, { target: { name: 'employeeId', value: 'admin2' } });
+
+    expect(screen.queryByText('登入失敗，請檢查帳號密碼')).not.toBeInTheDocument();
+  });
+
+  test('a later rejected login replaces it with the field messages', async () => {
+    const { container } = renderLogin();
+    await submit(container, 'admin', 'admin123');
+
+    vi.mocked(API.post).mockRejectedValue(
+      Object.assign(new Error('401'), { response: { status: 401, data: invalidLogin } })
+    );
+    await submit(container, 'admin', 'wrong-password');
+
+    expect(screen.queryByText('登入失敗，請檢查帳號密碼')).not.toBeInTheDocument();
+    expect(screen.getByText('無效的密碼')).toBeInTheDocument();
+  });
+
+  test('a message from another page is not shown when the login page opens', () => {
+    const store = makeStore();
+    store.dispatch({ type: GET_Errors, payload: { message: '無法取得庫存資料' } });
+
+    renderLogin(store);
+
+    expect(screen.queryByText('無法取得庫存資料')).not.toBeInTheDocument();
+  });
+});

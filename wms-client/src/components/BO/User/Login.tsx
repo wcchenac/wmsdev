@@ -9,6 +9,8 @@ import { useUpdateEffect } from "../../../utilities/useUpdateEffect";
 interface LoginErrors {
   username?: string;
   password?: string;
+  /** Set when the request itself failed (no response): "登入失敗，請檢查帳號密碼". */
+  message?: string;
 }
 
 interface TouchedFields {
@@ -64,7 +66,8 @@ const Login: React.FC = () => {
 
     setErrors((prevErrors) => ({
       ...prevErrors,
-      [name === "employeeId" ? "username" : name]: ""
+      [name === "employeeId" ? "username" : name]: "",
+      message: ""
     }));
   };
 
@@ -223,6 +226,13 @@ const Login: React.FC = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* A failure that belongs to neither field, e.g. the backend is unreachable */}
+                  {errors.message && (
+                    <div className="alert alert-danger py-2" role="alert">
+                      {errors.message}
+                    </div>
+                  )}
 
                   {/* Submit Button */}
                   <div className="d-grid">
