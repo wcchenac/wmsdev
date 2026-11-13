@@ -146,6 +146,27 @@ describe.each(pages)('%s', (_name, Page, query, listUrl, staleList, currentList,
     expect(screen.getByTestId('list')).toHaveTextContent(JSON.stringify(currentList));
   });
 
+  test('a later query that fails leaves the refresh on the order still on screen', async () => {
+    // Query A, change the search to B, B's query fails (A's list stays on screen), roll back:
+    // the refresh must load A again, not B.
+    const { container } = await renderAndQuery();
+    editSearch(container);
+    vi.mocked(API.get).mockRejectedValueOnce(serverError());
+    await act(async () => {
+      fireEvent.submit(container.querySelector('form')!);
+    });
+    await settle();
+    expect(screen.getByTestId('list')).toHaveTextContent(JSON.stringify(staleList));
+    vi.mocked(API.patch).mockRejectedValue(badRequest());
+    vi.mocked(API.get).mockResolvedValue({ status: 200, data: currentList });
+
+    await rollBack();
+
+    expect(API.get).toHaveBeenCalledTimes(3);
+    expect(API.get).toHaveBeenLastCalledWith(listUrl);
+    expect(screen.getByTestId('list')).toHaveTextContent(JSON.stringify(currentList));
+  });
+
   test('a rejected rollback (400) stops loading, says nothing changed and shows the list as it now is', async () => {
     await renderAndQuery();
     vi.mocked(API.patch).mockRejectedValue(badRequest());
