@@ -71,6 +71,22 @@ describe('StockInfoHelperMethods', () => {
       expect(result['雜項']).toBe(2);
     });
 
+    // A freshly added row has quantity "" until the user types one; Step 3's 目前數量
+    // showed NaN because parseFloat("") is NaN.
+    test('treats rows without a numeric quantity as 0', () => {
+      const stockInfoes: StockInfoQuantity[] = [
+        { type: StockIdentifierType.roll, quantity: '' },
+        { type: StockIdentifierType.roll, quantity: '12.5' },
+        { type: StockIdentifierType.board, quantity: '' },
+        { type: StockIdentifierType.hardware, quantity: '-' }
+      ];
+      const result = quantityAccumulate(stockInfoes);
+
+      expect(result['整支']).toBe(12.5);
+      expect(result['板卷']).toBe(0);
+      expect(result['雜項']).toBe(0);
+    });
+
     test('handles empty array', () => {
       const result = quantityAccumulate([]);
 

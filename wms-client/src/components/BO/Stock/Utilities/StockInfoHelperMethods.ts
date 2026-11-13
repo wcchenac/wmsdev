@@ -103,15 +103,22 @@ export function quantityAccumulate(stockInfoes: StockInfo[]): QuantityAccumulate
   let board = 0.0;
   let item = 0.0;
 
+  // A row whose quantity is still empty (or not yet a number) counts as 0,
+  // otherwise one blank row turns the whole type's total into NaN.
+  const quantityOf = (quantity: string | number): number => {
+    const value = parseFloat(quantity as string);
+    return Number.isNaN(value) ? 0 : value;
+  };
+
   for (let i = 0; i < stockInfoes.length; i += 1) {
     if (stockInfoes[i].type === StockIdentifierType.roll) {
-      roll += parseFloat(stockInfoes[i].quantity as string);
+      roll += quantityOf(stockInfoes[i].quantity);
     }
     if (stockInfoes[i].type === StockIdentifierType.board) {
-      board += parseFloat(stockInfoes[i].quantity as string);
+      board += quantityOf(stockInfoes[i].quantity);
     }
     if (stockInfoes[i].type === StockIdentifierType.hardware) {
-      item += parseFloat(stockInfoes[i].quantity as string);
+      item += quantityOf(stockInfoes[i].quantity);
     }
   }
 
