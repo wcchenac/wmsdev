@@ -155,7 +155,8 @@ describe('UserActions', () => {
     });
 
     test('dispatches GET_Errors on login failure', async () => {
-      const errorData = { message: 'Invalid credentials' };
+      // Backend InvalidLoginResponse.
+      const errorData = { username: '無效的員工編號', password: '無效的密碼' };
       mockedAPI.post.mockRejectedValue({ response: { data: errorData } });
 
       await store.dispatch(actions.login(loginRequest));

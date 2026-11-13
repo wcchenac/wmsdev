@@ -35,6 +35,25 @@ export const registerUser =
     }
   };
 
+const LOGIN_FAILED_MESSAGE = "登入失敗，請檢查帳號密碼";
+
+/**
+ * The field messages of a rejected login (backend InvalidLoginResponse:
+ * { username, password }), keeping only those two string fields. Anything else (no response,
+ * a proxy's HTML error page, a Spring error body with the exception text) gives undefined,
+ * so the form shows LOGIN_FAILED_MESSAGE instead.
+ */
+function invalidLoginMessages(data: unknown): { username?: string; password?: string } | undefined {
+  if (typeof data !== "object" || data === null) return undefined;
+  const username = "username" in data && typeof data.username === "string" ? data.username : undefined;
+  const password = "password" in data && typeof data.password === "string" ? data.password : undefined;
+  if (username === undefined && password === undefined) return undefined;
+  return {
+    ...(username !== undefined && { username }),
+    ...(password !== undefined && { password }),
+  };
+}
+
 export const login =
   (loginRequest: LoginRequest) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse | void> => {
@@ -56,16 +75,9 @@ export const login =
       return res;
     } catch (err) {
       const error = err as { response?: { data?: unknown } };
-      const data = error.response?.data;
-      // A rejected login answers with { username, password } messages. Anything else (no
-      // response, or a proxy's HTML error page when the backend is down) gets the generic
-      // message, so the form always receives an object it can show.
       dispatch({
         type: GET_Errors,
-        payload:
-          data !== null && typeof data === "object" && !Array.isArray(data)
-            ? data
-            : { message: "登入失敗，請檢查帳號密碼" },
+        payload: invalidLoginMessages(error.response?.data) ?? { message: LOGIN_FAILED_MESSAGE },
       });
     }
   };

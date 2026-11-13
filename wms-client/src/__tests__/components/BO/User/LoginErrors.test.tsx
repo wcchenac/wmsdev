@@ -254,3 +254,59 @@ describe('Login button while signing in', () => {
     expect(button).toBeDisabled();
   });
 });
+
+describe('Login when the backend answers with something other than InvalidLoginResponse', () => {
+  // Only { username, password } is meant for the form. A Spring error body (500 with the
+  // exception text) must not end up in the store or on screen.
+  const springError = {
+    timestamp: '2026-11-13T02:00:00.000+0000',
+    status: 500,
+    error: 'Internal Server Error',
+    message: 'could not execute query; SQL [n/a]; nested exception is org.hibernate.exception.JDBCConnectionException',
+    path: '/api/user/login',
+  };
+
+  beforeEach(() => {
+    vi.mocked(API.post).mockReset().mockRejectedValue(
+      Object.assign(new Error('Request failed with status code 500'), {
+        response: { status: 500, data: springError },
+      })
+    );
+  });
+
+  test('shows the request-failed message, not the exception text', async () => {
+    const { container, store } = renderLogin();
+
+    await submit(container, 'admin', 'admin123');
+
+    expect(screen.getByText('登入失敗，請檢查帳號密碼')).toBeInTheDocument();
+    expect(screen.queryByText(/JDBCConnectionException/)).not.toBeInTheDocument();
+    expect(store.getState().errors.errors).toEqual({ message: '登入失敗，請檢查帳號密碼' });
+  });
+
+  test('keeps only the field messages when the body has other keys too', async () => {
+    vi.mocked(API.post).mockReset().mockRejectedValue(
+      Object.assign(new Error('Request failed with status code 401'), {
+        response: { status: 401, data: { ...invalidLogin, trace: 'at com.wmstool...' } },
+      })
+    );
+    const { container, store } = renderLogin();
+
+    await submit(container, 'admin', 'wrong');
+
+    expect(store.getState().errors.errors).toEqual(invalidLogin);
+  });
+
+  test('field messages that are not strings are not used', async () => {
+    vi.mocked(API.post).mockReset().mockRejectedValue(
+      Object.assign(new Error('Request failed with status code 401'), {
+        response: { status: 401, data: { username: 42, password: null } },
+      })
+    );
+    const { container, store } = renderLogin();
+
+    await submit(container, 'admin', 'wrong');
+
+    expect(store.getState().errors.errors).toEqual({ message: '登入失敗，請檢查帳號密碼' });
+  });
+});
