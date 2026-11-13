@@ -16,7 +16,6 @@ dependencies = [
     "openpyxl==3.1.5",
     "python-multipart==0.0.20",
     "pymssql==2.3.2",
-    "Pillow==11.1.0",  # openpyxl needs it to embed product photos
 ]
 
 [project.optional-dependencies]
