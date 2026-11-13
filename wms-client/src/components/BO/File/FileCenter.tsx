@@ -47,9 +47,7 @@ const FileCenter: React.FC = () => {
           }));
         }
       })
-      .catch(() => {
-        // Error handled silently
-      })
+      .catch(notifyRequestFailed)
       .finally(() => {
         setIsLoading(false);
       });
@@ -67,9 +65,7 @@ const FileCenter: React.FC = () => {
             }));
           }
         })
-        .catch(() => {
-          // Error handled silently
-        })
+        .catch(notifyRequestFailed)
         .finally(() => {
           setIsLoading(false);
         });
