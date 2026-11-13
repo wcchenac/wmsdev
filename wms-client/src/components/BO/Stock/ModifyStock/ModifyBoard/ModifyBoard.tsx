@@ -1,5 +1,7 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { useState, useCallback, useMemo, FormEvent, MouseEvent } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
   getStockInfoes,
   stockIdentifierIsShiped,
@@ -7,380 +9,351 @@ import {
   stockIdentifierWaitToShrinkIsTrue,
   createOutStockRequest,
   updateStockInfo
-} from "../../../../../actions/StockAcions";
+} from "../../../../../actions/StockActions";
 import StockInfoContainer from "./StockInfoContainer";
-import QueryProductInformation from "../../Utilities/QueryProductInformation";
-import ShowProductInformation from "../../Utilities/ShowProductInformation";
+import QueryProductInformation, { ProductNoChange } from "../../Utilities/QueryProductInformation";
+import ShowProductInformation, { ProductInfo } from "../../Utilities/ShowProductInformation";
 import OutStockModal from "./OutStockModal";
 import QueryResponseWithNoStock from "../../Utilities/QueryResponseWithNoStock";
-import LoadingOverlay from "react-loading-overlay";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../../Others/Spinner";
 import ShowProductQuantity from "../../Utilities/ShowProductQuantity";
 import { Button } from "react-bootstrap";
 import BatchShipModal from "./BatchShipModal";
 import ToolbarForNextPrev from "../../Utilities/ToolbarForNextPrev";
 import { StockIdentifierType } from "../../../../../enums/Enums";
-
-import type { RootState } from "../../../../../types/state";
-import type {
-  ApiStatus,
-  ProductInformation,
-  ProductQuantity,
-  StoredStockInfo,
+import {
+  RootState,
+  AppDispatch,
+  StockInfo as StockInfoType,
   StockIdentifier,
-} from "../../../../../types/domain";
+  ShipRequest,
+  StockInfoesWithResult,
+  OutStockRequestCreate,
+  UpdateStockInfoRequest
+} from "../../../../../types";
 
-interface ShipRequest {
-  stockIdentifierId: number;
-  reason: string;
-}
+// ============================================
+// Type Definitions
+// ============================================
 
-interface OutStockSubmit {
-  productNo: string;
+interface StockQuantityItem {
   type: string;
+  quantity: number | string;
   unit: string;
-  reason: string;
-  quantity: string;
-}
-
-interface InfoUpdate {
-  id?: number;
-  color?: string | number;
-  defect?: string;
-  record?: string;
-  remark?: string;
-}
-
-interface StateProps {
-  queryResult: {
-    stockInfoes: {
-      information?: { productNo: string | null };
-      prevProduct?: string | null;
-      nextProduct?: string | null;
-      result?: StoredStockInfo[];
-      productList?: ProductQuantity[];
-    };
-  };
-}
-
-interface DispatchProps {
-  getStockInfoes: (productNo: string) => Promise<ApiStatus | undefined>;
-  stockIdentifierIsShiped: (request: ShipRequest) => Promise<ApiStatus | undefined>;
-  stockIdentifiersAreShiped: (productNo: string, requests: ShipRequest[]) => Promise<ApiStatus | undefined>;
-  stockIdentifierWaitToShrinkIsTrue: (id: number) => Promise<ApiStatus | undefined>;
-  createOutStockRequest: (request: OutStockSubmit) => Promise<ApiStatus | undefined>;
-  updateStockInfo: (request: InfoUpdate) => Promise<ApiStatus | undefined>;
-}
-
-type Props = StateProps & DispatchProps;
-
-interface State {
-  isLoading: boolean;
-  isQuery: boolean;
-  modalShow_BatchShip: boolean;
-  modalShow_OutStock: boolean;
-  productNo: string;
-  prevProduct: string | null;
-  nextProduct: string | null;
-  productInfo: ProductInformation;
-  stockInfoes: StoredStockInfo[];
-  stockQuantity: ProductQuantity[];
 }
 
 
-class ModifyBoard extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      isQuery: false,
-      modalShow_BatchShip: false,
-      modalShow_OutStock: false,
-      productNo: "",
-      prevProduct: "",
-      nextProduct: "",
-      productInfo: {} as ProductInformation,
-      stockInfoes: [],
-      stockQuantity: {} as ProductQuantity[]
-    };
-    this.onChange = this.onChange.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
-    this.handleOutStockRequestSubmit = this.handleOutStockRequestSubmit.bind(
-      this
-    );
-    this.handleShip = this.handleShip.bind(this);
-    this.handleShipList = this.handleShipList.bind(this);
-    this.handleShrink = this.handleShrink.bind(this);
-    this.handleStockInfoUpdate = this.handleStockInfoUpdate.bind(this);
-    this.handleModalShow_BatchShip = this.handleModalShow_BatchShip.bind(this);
-    this.handleModalClose_BatchShip = this.handleModalClose_BatchShip.bind(
-      this
-    );
-    this.handleModalShow_OutStock = this.handleModalShow_OutStock.bind(this);
-    this.handleModalClose_OutStock = this.handleModalClose_OutStock.bind(this);
-    this.handleFutureProductQuery = this.handleFutureProductQuery.bind(this);
-  }
 
-  onChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.name === "productNo") {
-      this.setState({ productNo: e.target.value });
-    }
-  }
 
-  onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    this.setState({ isLoading: true }, () => {
-      this.props.getStockInfoes(this.state.productNo).then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
-        }
-      });
-    });
-  }
+interface StockInfoesResponse extends StockInfoesWithResult {
+  information?: ProductInfo;
+  prevProduct?: string;
+  nextProduct?: string;
+  productList?: StockQuantityItem[];
+}
 
-  handleFutureProductQuery(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    const select = (e.target as HTMLButtonElement).value;
+// ============================================
+// Component
+// ============================================
+const ModifyBoard: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const queryResult = useSelector((state: RootState) => state.stockInfo);
 
-    this.setState({ isLoading: true }, () => {
-      this.props.getStockInfoes(select).then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
-        }
-      });
-    });
-  }
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isQuery, setIsQuery] = useState<boolean>(false);
+  const [modalShow_BatchShip, setModalShow_BatchShip] = useState<boolean>(false);
+  const [modalShow_OutStock, setModalShow_OutStock] = useState<boolean>(false);
+  const [productNo, setProductNo] = useState<string>("");
+  const [prevProduct, setPrevProduct] = useState<string>("");
+  const [nextProduct, setNextProduct] = useState<string>("");
+  const [productInfo, setProductInfo] = useState<ProductInfo>({});
+  const [stockInfoes, setStockInfoes] = useState<StockInfoType[]>([]);
+  const [stockQuantity, setStockQuantity] = useState<StockQuantityItem[]>([]);
 
-  handleOutStockRequestSubmit(outStockRequest: OutStockSubmit) {
-    this.setState({ isLoading: true }, () => {
-      this.props.createOutStockRequest(outStockRequest).then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false, modalShow_OutStock: false });
-        }
-      });
-    });
-  }
-
-  handleShip(shipRequest: ShipRequest) {
-    this.setState({ isLoading: true }, () => {
-      this.props.stockIdentifierIsShiped(shipRequest).then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false, modalShow_BatchShip: false });
-        }
-      });
-    });
-  }
-
-  handleShipList(shipRequests: ShipRequest[]) {
-    this.setState({ isLoading: true }, () => {
-      this.props
-        .stockIdentifiersAreShiped(this.state.productNo, shipRequests)
-        .then(response => {
-          this.setState({ isLoading: false, modalShow_BatchShip: false });
-        });
-    });
-  }
-
-  handleShrink(id: number) {
-    this.setState({ isLoading: true }, () => {
-      this.props.stockIdentifierWaitToShrinkIsTrue(id).then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false });
-        }
-      });
-    });
-  }
-
-  handleStockInfoUpdate(updateInfoRequest: InfoUpdate) {
-    this.setState({ isLoading: true }, () => {
-      this.props.updateStockInfo(updateInfoRequest).then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false });
-        }
-      });
-    });
-  }
-
-  handleModalClose_BatchShip() {
-    this.setState({ modalShow_BatchShip: false });
-  }
-
-  handleModalShow_BatchShip() {
-    this.setState({ modalShow_BatchShip: true });
-  }
-
-  handleModalClose_OutStock() {
-    this.setState({ modalShow_OutStock: false });
-  }
-
-  handleModalShow_OutStock() {
-    this.setState({ modalShow_OutStock: true });
-  }
-
-  infoSimplify() {
-    const { stockInfoes } = this.state;
-    const identifiers: StockIdentifier[] = [];
-
-    stockInfoes.forEach(info => identifiers.push(info.stockIdentifier));
-
-    return identifiers;
-  }
-
-  componentDidUpdate(prevProps: Props) {
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(queryResult.stockInfoes, (result) => {
+    const stockInfoesData = result as StockInfoesResponse | undefined;
     if (
-      this.props.queryResult !== prevProps.queryResult &&
-      this.props.queryResult.stockInfoes.information!.productNo !== null
+      stockInfoesData?.information?.productNo !== null &&
+      stockInfoesData?.information?.productNo !== undefined
     ) {
-      this.setState({
-        productNo: this.props.queryResult.stockInfoes.information!.productNo as string,
-        prevProduct: this.props.queryResult.stockInfoes.prevProduct ?? null,
-        nextProduct: this.props.queryResult.stockInfoes.nextProduct ?? null,
-        productInfo: this.props.queryResult.stockInfoes.information! as ProductInformation,
-        stockInfoes: this.props.queryResult.stockInfoes.result ?? [],
-        stockQuantity: this.props.queryResult.stockInfoes.productList ?? []
+      setProductNo(stockInfoesData.information.productNo);
+      setPrevProduct(stockInfoesData.prevProduct || "");
+      setNextProduct(stockInfoesData.nextProduct || "");
+      setProductInfo(stockInfoesData.information);
+      setStockInfoes(stockInfoesData.result || []);
+      setStockQuantity(stockInfoesData.productList || []);
+    }
+  });
+
+  const onChange = useCallback((e: ProductNoChange) => {
+    setProductNo(e.target.value);
+  }, []);
+
+  const onSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsLoading(true);
+      dispatch(getStockInfoes(productNo)).then((response) => {
+        if (response.status === 200) {
+          setIsLoading(false);
+          setIsQuery(true);
+        }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
-    }
-  }
+    },
+    [dispatch, productNo]
+  );
 
-  contentAlgorithm() {
-    const { isQuery, stockInfoes, stockQuantity } = this.state;
+  const handleFutureProductQuery = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      const select = (e.target as HTMLButtonElement).value;
+      setIsLoading(true);
+      dispatch(getStockInfoes(select)).then((response) => {
+        if (response.status === 200) {
+          setIsLoading(false);
+          setIsQuery(true);
+        }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch]
+  );
 
-    if (!isQuery) {
-      return null;
-    } else {
-      if (stockInfoes.length === 0) {
-        return <QueryResponseWithNoStock />;
-      } else {
-        let typeValidation =
-          stockInfoes[0].stockIdentifier.type === StockIdentifierType.hardware;
+  const handleOutStockRequestCreate = useCallback(
+    (outStockRequest: OutStockRequestCreate) => {
+      setIsLoading(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dispatch(createOutStockRequest(outStockRequest)).then((response) => {
+        if (response.status === 200) {
+          setIsLoading(false);
+          setModalShow_OutStock(false);
+        }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch]
+  );
 
-        return (
-          <React.Fragment>
-            <ShowProductQuantity stockQuantity={stockQuantity} />
-            <br />
-            <div className="row">
-              <div className="col-md-auto mr-auto" />
-              <div className="col-md-auto">
-                <Button
-                  variant="info"
-                  size="sm"
-                  onClick={this.handleModalShow_BatchShip}
-                >
-                  批量出庫
-                </Button>
-              </div>
-              {this.state.modalShow_BatchShip ? (
-                <BatchShipModal
-                  show
-                  handleModalClose={this.handleModalClose_BatchShip}
-                  handleShipList={this.handleShipList}
-                  typeValidation={typeValidation}
-                  data={this.infoSimplify()}
-                />
-              ) : null}
-            </div>
-            <StockInfoContainer
-              typeValidation={typeValidation}
-              stockInfoes={stockInfoes}
-              handleShip={this.handleShip}
-              handleShrink={this.handleShrink}
-              handleStockInfoUpdate={this.handleStockInfoUpdate}
-            />
-          </React.Fragment>
-        );
+  const handleShip = useCallback(
+    (shipRequest: ShipRequest) => {
+      setIsLoading(true);
+      dispatch(stockIdentifierIsShiped(shipRequest)).then((response) => {
+        if (response.status === 200) {
+          setIsLoading(false);
+          setModalShow_BatchShip(false);
+        }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch]
+  );
+
+  const handleShipList = useCallback(
+    (shipRequests: ShipRequest[]) => {
+      setIsLoading(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dispatch(stockIdentifiersAreShiped(productNo, shipRequests)).then(
+        () => {
+          setIsLoading(false);
+          setModalShow_BatchShip(false);
+        }
+      ).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch, productNo]
+  );
+
+  const handleShrink = useCallback(
+    (id: number) => {
+      setIsLoading(true);
+      dispatch(stockIdentifierWaitToShrinkIsTrue(id)).then((response) => {
+        if (response.status === 200) {
+          setIsLoading(false);
+        }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch]
+  );
+
+  const handleStockInfoUpdate = useCallback(
+    (updateInfoRequest: UpdateStockInfoRequest) => {
+      setIsLoading(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dispatch(updateStockInfo(updateInfoRequest)).then((response) => {
+        if (response.status === 200) {
+          setIsLoading(false);
+        }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch]
+  );
+
+  const handleModalClose_BatchShip = useCallback(() => {
+    setModalShow_BatchShip(false);
+  }, []);
+
+  const handleModalShow_BatchShip = useCallback(() => {
+    setModalShow_BatchShip(true);
+  }, []);
+
+  const handleModalClose_OutStock = useCallback(() => {
+    setModalShow_OutStock(false);
+  }, []);
+
+  const handleModalShow_OutStock = useCallback(() => {
+    setModalShow_OutStock(true);
+  }, []);
+
+  const infoSimplify = useCallback((): StockIdentifier[] => {
+    const identifiers: StockIdentifier[] = [];
+    stockInfoes.forEach((info) => {
+      if (info.stockIdentifier) {
+        identifiers.push(info.stockIdentifier);
       }
-    }
-  }
+    });
+    return identifiers;
+  }, [stockInfoes]);
 
-  render() {
-    const {
-      isLoading,
-      isQuery,
-      productNo,
-      prevProduct,
-      nextProduct,
-      productInfo,
-      stockInfoes
-    } = this.state;
-    let outStockRequestValidate =
+  const outStockRequestValidate = useMemo(() => {
+    return (
       !isQuery ||
       productNo.toUpperCase() !== productInfo.productNo ||
       stockInfoes.length === 0 ||
-      stockInfoes[0].stockIdentifier.type === StockIdentifierType.hardware;
+      stockInfoes[0]?.stockIdentifier?.type === StockIdentifierType.hardware
+    );
+  }, [isQuery, productNo, productInfo.productNo, stockInfoes]);
+
+  const typeValidation = useMemo(() => {
+    return (
+      stockInfoes.length > 0 &&
+      stockInfoes[0]?.stockIdentifier?.type === StockIdentifierType.hardware
+    );
+  }, [stockInfoes]);
+
+  const renderContent = (): React.ReactElement | null => {
+    if (!isQuery) {
+      return null;
+    }
+
+    if (stockInfoes.length === 0) {
+      return <QueryResponseWithNoStock />;
+    }
 
     return (
-      <div className="modify_stockInfo">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-auto">
-              <QueryProductInformation
-                productNo={productNo}
-                onSubmit={this.onSubmit}
-                onChange={this.onChange}
-              />
+      <React.Fragment>
+        <ShowProductQuantity stockQuantity={stockQuantity} />
+        <br />
+        <div className="row">
+          <div className="col-md-auto me-auto" />
+          <div className="col-md-auto">
+            <Button
+              variant="info"
+              size="sm"
+              onClick={handleModalShow_BatchShip}
+            >
+              {"\u6279\u91cf\u51fa\u5eab"}
+            </Button>
+          </div>
+          {modalShow_BatchShip ? (
+            <BatchShipModal
+              show
+              handleModalClose={handleModalClose_BatchShip}
+              handleShipList={handleShipList}
+              typeValidation={typeValidation}
+              data={infoSimplify() as Parameters<typeof BatchShipModal>[0]['data']}
+            />
+          ) : null}
+        </div>
+        <StockInfoContainer
+          typeValidation={typeValidation}
+          stockInfoes={stockInfoes}
+          handleShip={handleShip}
+          handleShrink={handleShrink}
+          handleStockInfoUpdate={handleStockInfoUpdate}
+        />
+      </React.Fragment>
+    );
+  };
+
+  return (
+    <div className="modify_stockInfo">
+      <div className="container">
+        <div className="row">
+          <div className="col-md-auto">
+            <QueryProductInformation
+              productNo={productNo}
+              onSubmit={onSubmit}
+              onChange={onChange}
+            />
+          </div>
+        </div>
+        <hr />
+        <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+          <div style={{ height: "80vh" }}>
+            <div>
+              <div className="row">
+                <div className="col-md-auto me-2">
+                  <ShowProductInformation
+                    isBasic={false}
+                    isQuery={isQuery}
+                    productNo={productNo}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    productInfo={productInfo}
+                  />
+                </div>
+                <div className="col-md-auto me-auto">
+                  <Button
+                    variant="primary"
+                    disabled={outStockRequestValidate}
+                    onClick={handleModalShow_OutStock}
+                  >
+                    {"\u62c9\u8ca8\u8981\u6c42"}
+                  </Button>
+                  {modalShow_OutStock ? (
+                    <OutStockModal
+                      show
+                      handleModalClose={handleModalClose_OutStock}
+                      productNo={productNo.toUpperCase()}
+                      handleOutStockRequestCreate={handleOutStockRequestCreate}
+                    />
+                  ) : null}
+                </div>
+                <div className="col-md-auto">
+                  <ToolbarForNextPrev
+                    handleFutureProductQuery={handleFutureProductQuery}
+                    prevProduct={prevProduct}
+                    nextProduct={nextProduct}
+                  />
+                </div>
+              </div>
+              <br />
+              {renderContent()}
             </div>
           </div>
-          <hr />
-          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div style={{ height: "80vh" }}>
-              <div>
-                <div className="row">
-                  <div className="col-md-auto mr-2">
-                    <ShowProductInformation
-                      isBasic={false}
-                      isQuery={isQuery}
-                      productNo={productNo}
-                      productInfo={productInfo}
-                    />
-                  </div>
-                  <div className="col-md-auto mr-auto">
-                    <Button
-                      variant="primary"
-                      disabled={outStockRequestValidate}
-                      onClick={this.handleModalShow_OutStock}
-                    >
-                      拉貨要求
-                    </Button>
-                    {this.state.modalShow_OutStock ? (
-                      <OutStockModal
-                        show
-                        handleModalClose={this.handleModalClose_OutStock}
-                        productNo={productNo.toUpperCase()}
-                        handleOutStockRequestSubmit={
-                          this.handleOutStockRequestSubmit
-                        }
-                      />
-                    ) : null}
-                  </div>
-                  <div className="col-md-auto">
-                    <ToolbarForNextPrev
-                      handleFutureProductQuery={this.handleFutureProductQuery}
-                      prevProduct={prevProduct}
-                      nextProduct={nextProduct}
-                    />
-                  </div>
-                </div>
-                <br />
-                {this.contentAlgorithm()}
-              </div>
-            </div>
-          </LoadingOverlay>
-        </div>
+        </LoadingOverlay>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  queryResult: state.stockInfo as unknown as StateProps["queryResult"]
-});
-
-export default connect(mapStateToProps, {
-  getStockInfoes,
-  stockIdentifierIsShiped,
-  stockIdentifiersAreShiped,
-  stockIdentifierWaitToShrinkIsTrue,
-  createOutStockRequest,
-  updateStockInfo
-})(ModifyBoard);
+export default ModifyBoard;

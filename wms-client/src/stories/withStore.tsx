@@ -1,8 +1,8 @@
 import React from "react";
 import { Provider } from "react-redux";
 import { applyMiddleware, createStore } from "redux";
-import thunk from "redux-thunk";
-import type { Decorator } from "@storybook/react";
+import { thunk } from "redux-thunk";
+import type { Decorator } from "@storybook/react-vite";
 import rootReducer from "../reducers";
 
 export interface SessionArgs {

@@ -1,203 +1,188 @@
-import React, { Component } from "react";
+import React, { useState, useCallback, ChangeEvent } from "react";
 import InformationModal from "./InformationModal";
 import ShipModal from "../../Utilities/ShipModal";
 import { Button } from "react-bootstrap";
+import { StockInfo as StockInfoType, ShipRequest, UpdateStockInfoRequest } from "../../../../../types";
 
-import type { StoredStockInfo } from "../../../../../types/domain";
+// ============================================
+// Type Definitions
+// ============================================
 
-interface ShipRequest {
-  stockIdentifierId: number;
-  reason: string;
-}
-
-interface Props {
+interface StockInfoProps {
+  stockInfo: StockInfoType;
   index: number;
   typeValidation: boolean;
-  stockInfo: StoredStockInfo;
-  handleShip: (request: ShipRequest) => void;
-  handleShrink: (stockIdentifierId: number) => void;
-  handleStockInfoUpdate: (request: {
-    id?: number;
-    color?: string | number;
-    defect?: string;
-    record?: string;
-    remark?: string;
-  }) => void;
+  handleShip: (shipRequest: ShipRequest) => void;
+  handleShrink: (id: number) => void;
+  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => void;
 }
 
-interface State {
-  modalShow: boolean;
-  outStockReason: string;
-}
+// ============================================
+// Component
+// ============================================
+const StockInfo: React.FC<StockInfoProps> = ({
+  stockInfo,
+  index,
+  typeValidation,
+  handleShip,
+  handleShrink,
+  handleStockInfoUpdate
+}) => {
+  const [modalShow, setModalShow] = useState<boolean>(false);
+  const [infoShow, setInfoShow] = useState<boolean>(false);
+  const [outStockReason, setOutStockReason] = useState<string>("");
 
+  const { stockIdentifier } = stockInfo;
 
-class StockInfo extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      modalShow: false,
-      outStockReason: ""
-    };
-    this.onShipClick = this.onShipClick.bind(this);
-    this.onCancleShipClick = this.onCancleShipClick.bind(this);
-    this.onShrinkClick = this.onShrinkClick.bind(this);
-    this.onChange = this.onChange.bind(this);
-    this.handleReasonButton = this.handleReasonButton.bind(this);
-    this.handleModalShow = this.handleModalShow.bind(this);
-    this.handleModalClose = this.handleModalClose.bind(this);
-  }
-
-  onShipClick() {
-    const shipRequest = {
-      stockIdentifierId: this.props.stockInfo.stockIdentifier.id,
-      reason: this.state.outStockReason
+  const onShipClick = useCallback(() => {
+    const shipRequest: ShipRequest = {
+      stockIdentifierId: stockInfo.stockIdentifier?.id as number,
+      reason: outStockReason
     };
 
-    this.setState({ modalShow: false }, () => {
-      this.props.handleShip(shipRequest);
-    });
-  }
+    setModalShow(false);
+    handleShip(shipRequest);
+  }, [stockInfo.stockIdentifier?.id, outStockReason, handleShip]);
 
-  onCancleShipClick() {
-    this.setState({ modalShow: false, outStockReason: "" });
-  }
+  const onCancleShipClick = useCallback(() => {
+    setModalShow(false);
+    setOutStockReason("");
+  }, []);
 
-  onShrinkClick() {
-    this.props.handleShrink(this.props.stockInfo.stockIdentifier.id);
-  }
+  const onShrinkClick = useCallback(() => {
+    handleShrink(stockInfo.stockIdentifier?.id as number);
+  }, [handleShrink, stockInfo.stockIdentifier?.id]);
 
-  onChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === "outStockReason") {
-      this.setState({ outStockReason: (e.target as HTMLButtonElement).value });
+      setOutStockReason(e.target.value);
     }
-  }
+  }, []);
 
-  handleModalShow() {
-    this.setState({ modalShow: true });
-  }
+  const handleModalShow = useCallback(() => {
+    setModalShow(true);
+  }, []);
 
-  handleModalClose() {
-    this.setState({ modalShow: false });
-  }
+  const handleModalClose = useCallback(() => {
+    setModalShow(false);
+  }, []);
 
-  handleReasonButton(e: React.MouseEvent<HTMLButtonElement>) {
-    this.setState({ outStockReason: (e.target as HTMLButtonElement).value });
-  }
+  const handleReasonButton = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    setOutStockReason((e.target as HTMLButtonElement).value);
+  }, []);
 
-  btnAlgorithm(waitToShrink: boolean | undefined, typeValidation: boolean, index: number) {
+  const btnAlgorithm = (waitToShrink: boolean | undefined, typeVal: boolean, _index: number): React.ReactElement => {
     if (waitToShrink === false) {
       return (
         <React.Fragment>
           <Button
             variant="primary"
-            className="mr-2"
-            onClick={this.onShrinkClick}
+            className="me-2"
+            onClick={onShrinkClick}
           >
-            {typeValidation ? "分裝" : "減肥"}
+            {typeVal ? "\u5206\u88dd" : "\u6e1b\u80a5"}
           </Button>
           <Button
             variant="primary"
-            className="mr-2"
-            onClick={this.handleModalShow}
+            className="me-2"
+            onClick={handleModalShow}
           >
-            出庫
+            {"\u51fa\u5eab"}
           </Button>
-          {this.state.modalShow ? (
+          {modalShow ? (
             <ShipModal
               show
-              outStockReason={this.state.outStockReason}
-              onChange={this.onChange}
-              onReansonButtonChange={this.handleReasonButton}
-              onShipClick={this.onShipClick}
-              onCancleShipClick={this.onCancleShipClick}
-              handleModalClose={this.handleModalClose}
+              outStockReason={outStockReason}
+              onChange={onChange}
+              onReansonButtonChange={handleReasonButton}
+              onShipClick={onShipClick}
+              onCancleShipClick={onCancleShipClick}
+              handleModalClose={handleModalClose}
             />
           ) : null}
         </React.Fragment>
       );
     } else {
       return (
-        <button type="button" className="btn btn-secondary mr-2" disabled>
-          {typeValidation ? "分裝處理中" : "減肥處理中"}
+        <button type="button" className="btn btn-secondary me-2" disabled>
+          {typeVal ? "\u5206\u88dd\u8655\u7406\u4e2d" : "\u6e1b\u80a5\u8655\u7406\u4e2d"}
         </button>
       );
     }
-  }
+  };
 
-  render() {
-    const { stockInfo, index, typeValidation } = this.props;
-    const { stockIdentifier } = this.props.stockInfo;
-    let btnContent = this.btnAlgorithm(
-      stockIdentifier.waitToShrink,
-      typeValidation,
-      index
-    );
+  const btnContent = btnAlgorithm(
+    stockIdentifier?.waitToShrink,
+    typeValidation,
+    index
+  );
 
-    return (
-      <tr className={stockIdentifier.waitToShrink ? "table-warning" : ""}>
-        <td>
-          <button className="btn-customize" disabled>
-            {stockIdentifier.productNo}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {stockIdentifier.lotNo}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {stockIdentifier.type}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {stockIdentifier.quantity + " " + stockIdentifier.unit}
-          </button>
-        </td>
-        {typeValidation ? null : (
-          <React.Fragment>
-            <td>
-              <button className="btn-customize" disabled>
-                {stockInfo.color}
-              </button>
-            </td>
-            <td>
-              <button className="btn-customize" disabled>
-                {stockInfo.defect}
-              </button>
-            </td>
-          </React.Fragment>
-        )}
-        <td>
-          <button className="btn-customize" disabled>
-            {stockIdentifier.firstInStockAt}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {stockInfo.remark}
-          </button>
-        </td>
-        <td>
-          <button
-            className="btn btn-primary mr-2"
-            data-toggle="modal"
-            data-target={"#detailInfo-" + index}
-          >
-            詳細資料
-          </button>
-          <InformationModal
-            index={index}
-            typeValidation={typeValidation}
-            stockInfo={stockInfo}
-            handleStockInfoUpdate={this.props.handleStockInfoUpdate}
-          />
-          {btnContent}
-        </td>
-      </tr>
-    );
-  }
-}
+  return (
+    <tr className={stockIdentifier?.waitToShrink ? "table-warning" : ""}>
+      <td>
+        <button className="btn-customize" disabled>
+          {stockIdentifier?.productNo}
+        </button>
+      </td>
+      <td>
+        <button className="btn-customize" disabled>
+          {stockIdentifier?.lotNo}
+        </button>
+      </td>
+      <td>
+        <button className="btn-customize" disabled>
+          {stockIdentifier?.type}
+        </button>
+      </td>
+      <td>
+        <button className="btn-customize" disabled>
+          {stockIdentifier?.quantity + " " + stockIdentifier?.unit}
+        </button>
+      </td>
+      {typeValidation ? null : (
+        <React.Fragment>
+          <td>
+            <button className="btn-customize" disabled>
+              {stockInfo.color}
+            </button>
+          </td>
+          <td>
+            <button className="btn-customize" disabled>
+              {stockInfo.defect as string}
+            </button>
+          </td>
+        </React.Fragment>
+      )}
+      <td>
+        <button className="btn-customize" disabled>
+          {stockIdentifier?.firstInStockAt}
+        </button>
+      </td>
+      <td>
+        <button className="btn-customize" disabled>
+          {stockInfo.remark}
+        </button>
+      </td>
+      <td>
+        <button
+          type="button"
+          className="btn btn-primary me-2"
+          onClick={() => setInfoShow(true)}
+        >
+          {"\u8a73\u7d30\u8cc7\u6599"}
+        </button>
+        <InformationModal
+          show={infoShow}
+          onHide={() => setInfoShow(false)}
+          index={index}
+          typeValidation={typeValidation}
+          stockInfo={stockInfo}
+          handleStockInfoUpdate={handleStockInfoUpdate}
+        />
+        {btnContent}
+      </td>
+    </tr>
+  );
+};
 
 export default StockInfo;

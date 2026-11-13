@@ -1,125 +1,94 @@
-import { DefectOptions, StockIdentifierType } from "../../../../enums/Enums";
-import type { DefectOption, FieldErrors } from "../../../../types/domain";
+import { DefectOptions, DefectOption, StockIdentifierType } from "../../../../enums/Enums";
+import { round10 } from "../../../../utilities/DecimalAdjust";
 
-declare global {
-  interface Math {
-    round10(value: number, exp: number): number;
-    floor10(value: number, exp: number): number;
-    ceil10(value: number, exp: number): number;
-  }
-}
+/** Total quantity per stock type. */
+export type QuantityAccumulateResult = Record<"整支" | "板卷" | "雜項", number>;
 
-interface QuantityRow {
+/** The fields quantityAccumulate reads from a row. */
+export interface QuantityRow {
   type?: string;
-  quantity?: string | number;
+  quantity: string | number;
 }
 
-export interface MutableStockRow {
+/**
+ * The fields updateStockInfoesCopy writes. In-stock (入庫) and shrink (減肥) form rows both
+ * have these.
+ */
+export interface EditableStockRow {
   lotNo?: string;
   type?: string;
-  quantity?: string;
-  quantity1?: string;
-  quantity2?: string;
+  quantity: string;
   unit?: string;
-  color?: string | number;
+  color?: number | string;
   record?: string;
   remark?: string;
   outStockReason?: string;
-  reason?: string;
-  errors: FieldErrors;
-  defect?: Array<{ value?: string } | undefined> | string;
+  errors: {
+    quantity?: string;
+  };
 }
 
-type RoundMode = "round" | "floor" | "ceil";
+// Parse a row's quantity for totals. A quantity that is still empty (or not yet
+// a number) counts as 0, otherwise one blank row turns the whole total into NaN.
+export function parseQuantity(quantity: string | number | null | undefined): number {
+  const value = parseFloat(String(quantity ?? ""));
+  return Number.isNaN(value) ? 0 : value;
+}
+
+// Parse the 新增複數列數 input (a free-text field) into how many rows to add:
+// the whole-number part of a non-negative number, or 0 for anything else
+// ("", "abc", "3abc", "-2", "Infinity").
+export function parseRowCount(value: string | number): number {
+  const text = String(value).trim();
+  if (text === "") {
+    return 0;
+  }
+  const count = Number(text);
+  return Number.isFinite(count) && count > 0 ? Math.trunc(count) : 0;
+}
+
+// Most rows 新增複數列數 may add at once; a typo like 1000 would otherwise render
+// that many form rows and freeze the page.
+export const MAX_ASSIGN_ROW_COUNT = 50;
+
+export function exceedsRowCountLimit(value: string | number): boolean {
+  return parseRowCount(value) > MAX_ASSIGN_ROW_COUNT;
+}
 
 // accumulate the total quantity by type
-export function quantityAccumulate(
-  stockInfoes: QuantityRow[]
-): Record<string, number> {
-  (function () {
-    /**
-     * Decimal adjustment of a number.
-     *
-     * @param {String}  type  The type of adjustment.
-     * @param {Number}  value The number.
-     * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
-     * @returns {Number} The adjusted value.
-     */
-    function decimalAdjust(
-      type: RoundMode,
-      value: number,
-      exp: number | undefined
-    ): number {
-      // If the exp is undefined or zero...
-      if (typeof exp === "undefined" || +exp === 0) {
-        return Math[type](value);
-      }
-      let numeric = +value;
-      const exponent = +exp;
-      // If the value is not a number or the exp is not an integer...
-      if (isNaN(numeric) || !(typeof exponent === "number" && exponent % 1 === 0)) {
-        return NaN;
-      }
-      // Shift
-      const parts = numeric.toString().split("e");
-      numeric = Math[type](
-        +(parts[0] + "e" + (parts[1] ? +parts[1] - exponent : -exponent))
-      );
-      // Shift back
-      const shifted = numeric.toString().split("e");
-      return +(shifted[0] + "e" + (shifted[1] ? +shifted[1] + exponent : exponent));
-    }
-
-    // Decimal round
-    if (!Math.round10) {
-      Math.round10 = function (value, exp) {
-        return decimalAdjust("round", value, exp);
-      };
-    }
-    // Decimal floor
-    if (!Math.floor10) {
-      Math.floor10 = function (value, exp) {
-        return decimalAdjust("floor", value, exp);
-      };
-    }
-    // Decimal ceil
-    if (!Math.ceil10) {
-      Math.ceil10 = function (value, exp) {
-        return decimalAdjust("ceil", value, exp);
-      };
-    }
-  })();
-
+export function quantityAccumulate(stockInfoes: ReadonlyArray<QuantityRow>): QuantityAccumulateResult {
   let roll = 0.0;
   let board = 0.0;
   let item = 0.0;
 
   for (let i = 0; i < stockInfoes.length; i += 1) {
     if (stockInfoes[i].type === StockIdentifierType.roll) {
-      roll += parseFloat(String(stockInfoes[i].quantity));
+      roll += parseQuantity(stockInfoes[i].quantity);
     }
     if (stockInfoes[i].type === StockIdentifierType.board) {
-      board += parseFloat(String(stockInfoes[i].quantity));
+      board += parseQuantity(stockInfoes[i].quantity);
     }
     if (stockInfoes[i].type === StockIdentifierType.hardware) {
-      item += parseFloat(String(stockInfoes[i].quantity));
+      item += parseQuantity(stockInfoes[i].quantity);
     }
   }
 
   return {
-    整支: Math.round10(roll, -2),
-    板卷: Math.round10(board, -2),
-    雜項: Math.round10(item, -2),
+    整支: round10(roll, -2),
+    板卷: round10(board, -2),
+    雜項: round10(item, -2),
   };
 }
 
+
 // update the value at stockInfoesCopy[i].[name]
 export function updateStockInfoesCopy(
-  stockInfoesCopy: MutableStockRow[],
+  stockInfoesCopy: EditableStockRow[],
+  // A form field's name; fields other than the ones below are ignored.
   name: string,
   value: string,
   i: number
-) {
+): void {
   switch (name) {
     case "lotNo":
       stockInfoesCopy[i].lotNo = value;
@@ -153,12 +122,43 @@ export function updateStockInfoesCopy(
   }
 }
 
+type StockInfoCopyField =
+  | "lotNo"
+  | "type"
+  | "quantity"
+  | "quantity1"
+  | "quantity2"
+  | "unit"
+  | "color"
+  | "record"
+  | "remark"
+  | "outStockReason";
+
+// Generic interface for updateStockInfoCopy to support various stock info shapes
+interface StockInfoCopyTarget {
+  lotNo?: string;
+  type?: string;
+  quantity?: string | number;
+  quantity1?: string | number;
+  quantity2?: string | number;
+  unit?: string;
+  color?: string | number;
+  record?: string;
+  remark?: string;
+  reason?: string;
+  errors?: {
+    quantity?: string;
+    quantity1?: string;
+    quantity2?: string;
+  };
+}
+
 // update the value at stockInfoesCopy.[name]
 export function updateStockInfoCopy(
-  stockInfoCopy: MutableStockRow,
-  name: string,
+  stockInfoCopy: StockInfoCopyTarget,
+  name: StockInfoCopyField | string,
   value: string
-) {
+): void {
   switch (name) {
     case "lotNo":
       stockInfoCopy.lotNo = value;
@@ -167,21 +167,27 @@ export function updateStockInfoCopy(
       stockInfoCopy.type = value;
       break;
     case "quantity":
-      stockInfoCopy.errors.quantity = /^\d*\.?\d+$/.test(value)
-        ? ""
-        : "請輸入純數字或數量不可空白";
+      if (stockInfoCopy.errors) {
+        stockInfoCopy.errors.quantity = /^\d*\.?\d+$/.test(value)
+          ? ""
+          : "請輸入純數字或數量不可空白";
+      }
       stockInfoCopy.quantity = value;
       break;
     case "quantity1":
-      stockInfoCopy.errors.quantity1 = /^\d*\.?\d+$/.test(value)
-        ? ""
-        : "請輸入純數字或數量不可空白";
+      if (stockInfoCopy.errors) {
+        stockInfoCopy.errors.quantity1 = /^\d*\.?\d+$/.test(value)
+          ? ""
+          : "請輸入純數字或數量不可空白";
+      }
       stockInfoCopy.quantity1 = value;
       break;
     case "quantity2":
-      stockInfoCopy.errors.quantity2 = /^\d*\.?\d+$/.test(value)
-        ? ""
-        : "請輸入純數字或數量不可空白";
+      if (stockInfoCopy.errors) {
+        stockInfoCopy.errors.quantity2 = /^\d*\.?\d+$/.test(value)
+          ? ""
+          : "請輸入純數字或數量不可空白";
+      }
       stockInfoCopy.quantity2 = value;
       break;
     case "unit":
@@ -204,24 +210,23 @@ export function updateStockInfoCopy(
   }
 }
 
-// join stockInfo.defect array contents for infoes
-export function joinInfoesDefectArray(stockInfoesCopy: MutableStockRow[]) {
-  stockInfoesCopy.forEach((stockInfo, index) => {
-    stockInfoesCopy[index].defect = joinInfoDefectArray(stockInfo);
-  });
+// Interface for objects with defect array
+interface StockInfoWithDefectArray {
+  defect: (DefectOption | undefined)[] | DefectOption[];
 }
 
 // join stockInfo.defect array contents
-export function joinInfoDefectArray(stockInfo: MutableStockRow): string {
+export function joinInfoDefectArray(stockInfo: StockInfoWithDefectArray): string {
   let newDefectContent = "";
-  const defect = stockInfo.defect as Array<{ value?: string } | undefined>;
 
-  defect.forEach((object, index) => {
+  const defectArray = stockInfo.defect as (DefectOption | undefined)[];
+
+  defectArray.forEach((object, index) => {
     if (object === undefined) {
       return newDefectContent;
     }
 
-    if (index === defect.length - 1) {
+    if (index === defectArray.length - 1) {
       newDefectContent = newDefectContent + object.value;
     } else {
       newDefectContent = newDefectContent + object.value + "/";
@@ -232,8 +237,8 @@ export function joinInfoDefectArray(stockInfo: MutableStockRow): string {
 }
 
 // translate defect string to option index
-export function defectIndexMapper(part: string): number | undefined {
-  switch (part) {
+export function defectIndexMapper(string: string): number | undefined {
+  switch (string) {
     case "":
       return 0;
     case "GA":
@@ -260,8 +265,8 @@ export function defectIndexMapper(part: string): number | undefined {
 // translate composite defect string to option object
 export function defectStringTransToOptions(
   defectString: string | undefined
-): Array<DefectOption | undefined> {
-  const defectSelected: Array<DefectOption | undefined> = [];
+): DefectOption[] {
+  const defectSelected: DefectOption[] = [];
 
   if (defectString === undefined) {
     return defectSelected;
@@ -269,11 +274,11 @@ export function defectStringTransToOptions(
 
   const stringArray = defectString.split("/");
 
-  stringArray.forEach((part) => {
-    const index = defectIndexMapper(part);
-    defectSelected.push(
-      index === undefined ? undefined : DefectOptions[index]
-    );
+  stringArray.forEach((string) => {
+    const index = defectIndexMapper(string);
+    if (index !== undefined) {
+      defectSelected.push(DefectOptions[index]);
+    }
   });
 
   return defectSelected;

@@ -1,290 +1,289 @@
-import React, { Component } from "react";
+import React, { useState, useCallback, useMemo, ChangeEvent, MouseEvent } from "react";
 import classnames from "classnames";
-import Select, { ValueType } from "react-select";
-import { animatedSelectComponents } from "../../../../../types/select";
+import Select, { MultiValue } from "react-select";
+import makeAnimated from "react-select/animated";
 import {
   UnitOptions,
   ColorOptions,
   DefectOptions,
+  DefectOption,
 } from "../../../../../enums/Enums";
 import ShipModal from "../../Utilities/ShipModal";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
-import CheckBoxRoundedIcon from "@material-ui/icons/CheckBoxRounded";
-import CheckBoxOutlineBlankRoundedIcon from "@material-ui/icons/CheckBoxOutlineBlankRounded";
-import type { DefectOption, FieldErrors } from "../../../../../types/domain";
+import CheckBoxRoundedIcon from "@mui/icons-material/CheckBoxRounded";
+import CheckBoxOutlineBlankRoundedIcon from "@mui/icons-material/CheckBoxOutlineBlankRounded";
 
-export interface InStockEditorRow {
+interface StockInfoErrors {
+  quantity: string;
+}
+
+interface StockInfoData {
   productNo: string;
   lotNo: string;
   type: string;
   quantity: string;
   unit: string;
-  color?: string | number;
-  defect?: DefectOption[] | readonly DefectOption[] | string | null;
+  color: string;
+  defect: DefectOption[] | string;
   record: string;
-  remark?: string;
+  remark: string;
+  inStockType: string;
+  orderNo: string;
+  directShip: boolean;
   outStockReason: string;
-  errors: FieldErrors;
-  directShip?: boolean;
-  inStockType?: string;
-  orderNo?: string;
+  errors: StockInfoErrors;
 }
 
-type FieldChange = React.ChangeEvent<HTMLInputElement | HTMLSelectElement>;
-
-interface Props {
+interface StockInfoProps {
+  typeValidation: boolean;
+  errors: StockInfoErrors;
+  stockInfo: StockInfoData;
   index: number;
   typeList: string[];
-  typeValidation: boolean;
-  stockInfo: InStockEditorRow;
-  errors: FieldErrors;
-  handleInfoChange: (event: FieldChange, index: number) => void;
-  handleDefectChange: (
-    selectedOptions: ValueType<DefectOption, true>,
-    index: number
-  ) => void;
+  handleInfoChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>, index: number) => void;
+  handleDefectChange: (selectedOptions: MultiValue<DefectOption>, index: number) => void;
   handleShipCheck: (checked: boolean, index: number) => void;
   handleReasonButton: (value: string, index: number) => void;
+  disabled?: boolean;
 }
 
-interface State {
-  modalShow: boolean;
-}
+const StockInfo: React.FC<StockInfoProps> = ({
+  typeValidation,
+  errors,
+  stockInfo,
+  index,
+  typeList,
+  handleInfoChange,
+  handleDefectChange,
+  handleShipCheck,
+  handleReasonButton,
+  disabled = false,
+}) => {
+  const [modalShow, setModalShow] = useState(false);
 
-class StockInfo extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      modalShow: false,
-    };
-    this.onChange = this.onChange.bind(this);
-    this.onDefectChange = this.onDefectChange.bind(this);
-    this.onShipCheck = this.onShipCheck.bind(this);
-    this.onCancleShipClick = this.onCancleShipClick.bind(this);
-    this.onReansonButtonChange = this.onReansonButtonChange.bind(this);
-    this.handleModalOpen = this.handleModalOpen.bind(this);
-    this.handleModalClose = this.handleModalClose.bind(this);
-  }
+  const animatedComponents = useMemo(() => makeAnimated(), []);
 
-  onChange(e: FieldChange) {
-    this.props.handleInfoChange(e, this.props.index);
-  }
+  const onChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      handleInfoChange(e, index);
+    },
+    [handleInfoChange, index]
+  );
 
-  onDefectChange(selectedOptions: ValueType<DefectOption, true>) {
-    this.props.handleDefectChange(selectedOptions, this.props.index);
-  }
+  const onDefectChange = useCallback(
+    (selectedOptions: MultiValue<DefectOption>) => {
+      handleDefectChange(selectedOptions, index);
+    },
+    [handleDefectChange, index]
+  );
 
-  onShipCheck() {
-    this.setState({ modalShow: false }, () => {
-      this.props.handleShipCheck(
-        this.props.stockInfo.outStockReason !== "",
-        this.props.index
-      );
-    });
-  }
+  const onShipCheck = useCallback(() => {
+    setModalShow(false);
+    handleShipCheck(stockInfo.outStockReason !== "", index);
+  }, [handleShipCheck, stockInfo.outStockReason, index]);
 
-  onCancleShipClick() {
-    this.setState({ modalShow: false }, () => {
-      this.props.handleShipCheck(false, this.props.index);
-    });
-  }
+  const onCancleShipClick = useCallback(() => {
+    if (disabled) return;
+    setModalShow(false);
+    handleShipCheck(false, index);
+  }, [handleShipCheck, index, disabled]);
 
-  onReansonButtonChange(e: React.MouseEvent<HTMLButtonElement>) {
-    this.props.handleReasonButton(
-      (e.target as HTMLButtonElement).value,
-      this.props.index
-    );
-  }
+  const onReansonButtonChange = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      handleReasonButton((e.target as HTMLButtonElement).value, index);
+    },
+    [handleReasonButton, index]
+  );
 
-  handleModalOpen() {
-    this.setState({ modalShow: true });
-  }
+  const handleModalOpen = useCallback(() => {
+    if (disabled) return;
+    setModalShow(true);
+  }, [disabled]);
 
-  handleModalClose() {
-    this.setState({ modalShow: false });
-  }
+  const handleModalClose = useCallback(() => {
+    setModalShow(false);
+  }, []);
 
-  render() {
-    const { typeValidation, errors, stockInfo } = this.props;
-    const animatedComponents = animatedSelectComponents<DefectOption, true>();
-    const defectValue = Array.isArray(stockInfo.defect)
-      ? [...stockInfo.defect]
-      : [];
-
-    return (
-      <tr>
-        <td>
-          <div className="form-group mb-0">
+  return (
+    <tr>
+      <td>
+        <div className="mb-0">
+          <input
+            type="text"
+            className="form-control"
+            name="productNo"
+            value={stockInfo.productNo}
+            disabled
+          />
+        </div>
+      </td>
+      <td>
+        <div className="mb-0">
+          <input
+            type="text"
+            className="form-control"
+            name="lotNo"
+            placeholder="批號"
+            value={stockInfo.lotNo}
+            onChange={onChange}
+            disabled={disabled}
+          />
+        </div>
+      </td>
+      <td>
+        {typeValidation ? (
+          <div className="mb-0">
             <input
               type="text"
               className="form-control"
-              name="productNo"
-              value={stockInfo.productNo}
+              name="type"
+              value={stockInfo.type}
               disabled
             />
           </div>
-        </td>
-        <td>
-          <div className="form-group mb-0">
-            <input
-              type="text"
-              className="form-control"
-              name="lotNo"
-              placeholder="批號"
-              value={stockInfo.lotNo}
-              onChange={this.onChange}
-            />
+        ) : (
+          <div className="mb-0">
+            <select
+              className="form-select"
+              name="type"
+              value={stockInfo.type}
+              onChange={onChange}
+              disabled={disabled}
+            >
+              {typeList.map((type, idx) => (
+                <option key={idx} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
           </div>
-        </td>
-        <td>
-          {typeValidation ? (
-            <div className="form-group mb-0">
+        )}
+      </td>
+      <td>
+        <div className="mb-0">
+          <input
+            type="text"
+            className={classnames("form-control", {
+              "is-invalid": errors.quantity,
+            })}
+            placeholder="數量"
+            name="quantity"
+            onChange={onChange}
+            disabled={disabled}
+          />
+          {errors.quantity && (
+            <div className="invalid-feedback">{errors.quantity}</div>
+          )}
+        </div>
+      </td>
+      {typeValidation ? (
+        <React.Fragment>
+          <td>
+            <div className="mb-0">
               <input
                 type="text"
                 className="form-control"
-                name="type"
-                value={stockInfo.type}
+                name="unit"
+                value={stockInfo.unit}
                 disabled
               />
             </div>
-          ) : (
-            <div className="form-group mb-0">
+          </td>
+        </React.Fragment>
+      ) : (
+        <React.Fragment>
+          <td>
+            <div className="mb-0">
               <select
-                className="custom-select"
-                name="type"
-                value={stockInfo.type}
-                onChange={this.onChange}
+                className="form-select"
+                name="unit"
+                value={stockInfo.unit}
+                onChange={onChange}
+                disabled={disabled}
               >
-                {this.props.typeList.map((type, index) => (
-                  <option key={index} value={type}>
-                    {type}
+                {UnitOptions.map((unit, idx) => (
+                  <option key={idx} value={unit}>
+                    {unit}
                   </option>
                 ))}
               </select>
             </div>
-          )}
-        </td>
-        <td>
-          <div className="form-group mb-0">
-            <input
-              type="text"
-              className={classnames("form-control", {
-                "is-invalid": errors.quantity,
-              })}
-              placeholder="數量"
-              name="quantity"
-              onChange={this.onChange}
-            />
-            {errors.quantity && (
-              <div className="invalid-feedback">{errors.quantity}</div>
-            )}
-          </div>
-        </td>
-        {typeValidation ? (
-          <React.Fragment>
-            <td>
-              <div className="form-group mb-0">
-                <input
-                  type="text"
-                  className="form-control"
-                  name="unit"
-                  value={stockInfo.unit}
-                  disabled
-                />
-              </div>
-            </td>
-          </React.Fragment>
-        ) : (
-          <React.Fragment>
-            <td>
-              <div className="form-group mb-0">
-                <select
-                  className="custom-select"
-                  name="unit"
-                  value={stockInfo.unit}
-                  onChange={this.onChange}
-                >
-                  {UnitOptions.map((unit, index) => (
-                    <option key={index} value={unit}>
-                      {unit}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </td>
-            <td>
-              <div className="form-group mb-0">
-                <select
-                  className="custom-select"
-                  name="color"
-                  value={stockInfo.color}
-                  onChange={this.onChange}
-                >
-                  {ColorOptions.map((color, index) => (
-                    <option key={index} value={color}>
-                      {color}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </td>
-            <td>
-              <Select
-                closeMenuOnSelect
-                components={animatedComponents}
-                defaultValue={defectValue}
-                isMulti
-                name="defect"
-                options={DefectOptions}
-                onChange={this.onDefectChange}
-              />
-            </td>
-          </React.Fragment>
-        )}
-        <td>
-          <div className="form-group mb-0">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="記錄"
-              name="record"
-              value={stockInfo.record}
-              onChange={this.onChange}
-            />
-          </div>
-        </td>
-        <td>
-          <div className="form-group mt-1 ml-1">
-            {stockInfo.outStockReason !== "" ? (
-              <OverlayTrigger
-                key={this.props.index}
-                overlay={
-                  <Tooltip id={`tooltip-${this.props.index}`} placement="bottom">
-                    {stockInfo.outStockReason}
-                  </Tooltip>
-                }
+          </td>
+          <td>
+            <div className="mb-0">
+              <select
+                className="form-select"
+                name="color"
+                value={stockInfo.color}
+                onChange={onChange}
+                disabled={disabled}
               >
-                <CheckBoxRoundedIcon onClick={this.onCancleShipClick} />
-              </OverlayTrigger>
-            ) : (
-              <CheckBoxOutlineBlankRoundedIcon onClick={this.handleModalOpen} />
-            )}
-          </div>
-          {this.state.modalShow ? (
-            <ShipModal
-              outStockReason={stockInfo.outStockReason}
-              onChange={this.onChange}
-              onReansonButtonChange={this.onReansonButtonChange}
-              onShipClick={this.onShipCheck}
-              onCancleShipClick={this.onCancleShipClick}
-              handleModalClose={this.handleModalClose}
-              show
+                {ColorOptions.map((color, idx) => (
+                  <option key={idx} value={color}>
+                    {color}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </td>
+          <td>
+            <Select
+              closeMenuOnSelect
+              components={animatedComponents}
+              defaultValue={stockInfo.defect as DefectOption[]}
+              isMulti
+              name="defect"
+              options={[...DefectOptions]}
+              onChange={onDefectChange}
+              isDisabled={disabled}
             />
-          ) : null}
-        </td>
-      </tr>
-    );
-  }
-}
+          </td>
+        </React.Fragment>
+      )}
+      <td>
+        <div className="mb-0">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="記錄"
+            name="record"
+            value={stockInfo.record}
+            onChange={onChange}
+            disabled={disabled}
+          />
+        </div>
+      </td>
+      <td>
+        <div className="mb-3 mt-1 ms-1" style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}>
+          {stockInfo.outStockReason !== "" ? (
+            <OverlayTrigger
+              key={index}
+              overlay={
+                <Tooltip id={`tooltip-${index}`} placement="bottom">
+                  {stockInfo.outStockReason}
+                </Tooltip>
+              }
+            >
+              <CheckBoxRoundedIcon onClick={onCancleShipClick} />
+            </OverlayTrigger>
+          ) : (
+            <CheckBoxOutlineBlankRoundedIcon onClick={handleModalOpen} />
+          )}
+        </div>
+        {modalShow ? (
+          <ShipModal
+            outStockReason={stockInfo.outStockReason}
+            onChange={onChange}
+            onReansonButtonChange={onReansonButtonChange}
+            onShipClick={onShipCheck}
+            onCancleShipClick={onCancleShipClick}
+            handleModalClose={handleModalClose}
+            show
+          />
+        ) : null}
+      </td>
+    </tr>
+  );
+};
 
 export default StockInfo;

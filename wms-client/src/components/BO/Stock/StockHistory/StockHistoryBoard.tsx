@@ -1,239 +1,223 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { getProductHistory } from "../../../../actions/StockAcions";
+import React, { useState, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
+import { getProductHistory } from "../../../../actions/StockActions";
 import { dayOfStart, dayOfEnd, setPreviousMonth } from "../Utilities/DateUtils";
-import QueryProductInformation from "../Utilities/QueryProductInformation";
+import QueryProductInformation, { ProductNoChange } from "../Utilities/QueryProductInformation";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
-import LoadingOverlay from "react-loading-overlay";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import "react-sortable-tree/style.css";
-import SortableTree from "react-sortable-tree";
 import TreeDataNode from "./TreeDataNode";
-
-import type { RootState } from "../../../../types/state";
-import type { ApiStatus, StoredStockInfo } from "../../../../types/domain";
-import type { TreeItem } from "react-sortable-tree";
-
-interface HistorySourceNode {
-  stockInfo: StoredStockInfo;
-  nodes: HistorySourceNode[];
-}
-
-interface StateProps {
-  treeData: { stockInfoes: HistorySourceNode[] };
-}
-
-interface DispatchProps {
-  getProductHistory: (request: {
-    productNo: string;
-    startDate: string;
-    endDate: string;
-  }) => Promise<ApiStatus | undefined>;
-}
-
-type Props = StateProps & DispatchProps;
-
-interface State {
-  isLoading: boolean;
-  isQuery: boolean;
-  productNo: string;
-  startDate: Date;
-  endDate: Date;
-  treeData: TreeItem[];
-}
-
+import Box from "@mui/material/Box";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { RootState, AppDispatch, StockInfo, TreeNode, ApiResponse } from "../../../../types";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 
 const dayRangeSetting = 180;
 
-class StockHistoryBoard extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      isQuery: false,
-      productNo: "",
-      startDate: setPreviousMonth(dayOfStart(new Date()), 1),
-      endDate: dayOfEnd(new Date()),
-      treeData: []
+// Raw data structure from API
+interface RawHistoryNode {
+  stockInfo: StockInfo;
+  nodes?: RawHistoryNode[];
+}
+
+// The shared stockInfo slice also holds other pages' results; only history roots have a
+// stockInfo object.
+const isHistoryNode = (value: unknown): value is RawHistoryNode =>
+  typeof value === "object" && value !== null && "stockInfo" in value &&
+  typeof value.stockInfo === "object" && value.stockInfo !== null;
+
+function StockHistoryBoard(): React.ReactElement {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isQuery, setIsQuery] = useState<boolean>(false);
+  const [productNo, setProductNo] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date>(setPreviousMonth(dayOfStart(new Date()), 1));
+  const [endDate, setEndDate] = useState<Date>(dayOfEnd(new Date()));
+  const [treeData, setTreeData] = useState<TreeNode[]>([]);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const dispatch = useDispatch<AppDispatch>();
+  const stockInfo = useSelector((state: RootState) => state.stockInfo);
+
+  const transversalForTreeData = (raw: RawHistoryNode, path: string): TreeNode => {
+    const node: TreeNode = {
+      id: path,
+      stockInfo: raw.stockInfo,
+      children: []
     };
-    this.handleProductNoChange = this.handleProductNoChange.bind(this);
-    this.handleQuerySubmit = this.handleQuerySubmit.bind(this);
-    this.handleStartDateSelection = this.handleStartDateSelection.bind(this);
-    this.handleEndDateSelection = this.handleEndDateSelection.bind(this);
-  }
 
-  treeDataTranslation(treeData: HistorySourceNode[] | undefined): TreeItem[] {
-    if (treeData === undefined) {
-      return [];
+    if (raw.nodes && raw.nodes.length > 0) {
+      node.children = raw.nodes.map((child, idx) =>
+        transversalForTreeData(child, `${path}-${idx}`)
+      );
     }
 
-    const resultArray: TreeItem[] = [];
+    return node;
+  };
 
-    treeData.forEach(object => {
-      resultArray.push(this.transversalForTreeData(object));
-    });
+  const treeDataTranslation = useCallback((data: unknown): TreeNode[] => {
+    // Product history is an array of root nodes; anything else (another query's result) has no tree.
+    if (!Array.isArray(data)) return [];
+    return data.filter(isHistoryNode).map((item, idx) => transversalForTreeData(item, `${idx}`));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    return resultArray;
-  }
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(stockInfo.stockInfoes, (result) => {
+    setTreeData(treeDataTranslation(result));
+  });
 
-  transversalForTreeData(raw: HistorySourceNode): TreeItem {
-    // if (raw.nodes.length === 0) {
-    //   return {
-    //     title: <TreeDataNode stockIdentifier={raw.stockIdentifier} />,
-    //     children: []
-    //   };
-    // }
+  const handleProductNoChange = useCallback((e: ProductNoChange) => {
+    setProductNo(e.target.value);
+  }, []);
 
-    // const children: TreeItem[] = [];
-
-    // raw.nodes.forEach(object => {
-    //   children.push(this.transversalForTreeData(object));
-    // });
-
-    // return {
-    //   title: <TreeDataNode stockIdentifier={raw.stockIdentifier} />,
-    //   children: children
-    // };
-    if (raw.nodes.length === 0) {
-      return {
-        title: <TreeDataNode stockInfo={raw.stockInfo} />,
-        children: []
-      };
+  const handleEndDateSelection = useCallback((date: Date | null) => {
+    if (date) {
+      setEndDate(dayOfEnd(date));
     }
+  }, []);
 
-    const children: TreeItem[] = [];
-
-    raw.nodes.forEach(object => {
-      children.push(this.transversalForTreeData(object));
-    });
-
-    return {
-      title: <TreeDataNode stockInfo={raw.stockInfo} />,
-      children: children
-    };
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.treeData.stockInfoes !== prevProps.treeData.stockInfoes) {
-      this.setState({
-        treeData: this.treeDataTranslation(this.props.treeData.stockInfoes)
-      });
+  const handleStartDateSelectionWrapper = useCallback((date: Date | null) => {
+    if (date) {
+      setStartDate(dayOfStart(date));
     }
-  }
+  }, []);
 
-  handleProductNoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.name === "productNo") {
-      this.setState({ productNo: e.target.value });
-    }
-  }
+  const handleDateSelectionModeClick = useCallback(() => {
+    // No-op for StockHistory - date selection is already handled
+  }, []);
 
-  handleStartDateSelection(date: Date | null) {
-    this.setState({ startDate: dayOfStart(date as Date) });
-  }
-
-  handleEndDateSelection(date: Date | null) {
-    this.setState({ endDate: dayOfEnd(date as Date) });
-  }
-
-  handleQuerySubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleQuerySubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { productNo, startDate, endDate } = this.state;
-
-    let request = {
-      productNo: productNo,
+    const request = {
+      productNo,
       startDate: startDate.toJSON().substring(0, 19),
       endDate: endDate.toJSON().substring(0, 19)
     };
 
-    this.setState({ isLoading: true }, () => {
-      this.props.getProductHistory(request).then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
-        }
-      });
-    });
-  }
-
-  contentAlgorithm() {
-    const { isQuery, treeData } = this.state;
-
-    if (!isQuery) {
-      return null;
-    } else {
-      if (treeData.length === 0) {
-        return (
-          <div className="row justify-content-md-center">
-            <div className="col-md-6">
-              <div className="alert alert-warning" role="alert">
-                <p className="h5 text-center mb-0">
-                  查無此貨號資料 或 此貨號設定期間內無進貨資料
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      } else {
-        return (
-          <div style={{ height: "70vh" }}>
-            <SortableTree
-              treeData={treeData}
-              rowHeight={130}
-              onChange={(nextTree) => this.setState({ treeData: nextTree })}
-              canDrag={false}
-            />
-          </div>
-        );
+    setIsLoading(true);
+    dispatch(getProductHistory(request)).then((response: ApiResponse) => {
+      if (response?.status === 200) {
+        setIsLoading(false);
+        setIsQuery(true);
       }
-    }
-  }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
+    });
+  }, [dispatch, productNo, startDate, endDate]);
 
-  render() {
-    const { isLoading, startDate, endDate } = this.state;
+  const toggleNode = useCallback((nodeId: string) => {
+    setExpandedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const renderTreeNode = (node: TreeNode, level: number = 0): React.ReactElement => {
+    const hasChildren = node.children && node.children.length > 0;
+    const isExpanded = expandedIds.has(node.id);
 
     return (
-      <div className="stockHistoryBoard">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-auto">
-              <QueryProductInformation
-                value={this.state.productNo}
-                onChange={this.handleProductNoChange}
-                onSubmit={this.handleQuerySubmit}
-              />
-            </div>
-            <div className="col-md-auto">
-              <DatePeriodSelectModal
-                btnTitle={"設定時間區間"}
-                startDate={startDate}
-                endDate={endDate}
-                handleStartDateSelection={this.handleStartDateSelection}
-                handleEndDateSelection={this.handleEndDateSelection}
-                dayRange={dayRangeSetting}
-              />
-            </div>
-            <div className="col-md-auto">
-              <button className="btn-customize" disabled>
-                <small className="text-muted">若無設定，預設查詢前一個月</small>
-              </button>
+      <Box key={node.id} sx={{ ml: level * 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            py: 1,
+            borderBottom: "1px solid #eee"
+          }}
+        >
+          {hasChildren ? (
+            <Box
+              onClick={() => toggleNode(node.id)}
+              sx={{ cursor: "pointer", mr: 1, mt: 0.5 }}
+            >
+              {isExpanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+            </Box>
+          ) : (
+            <Box sx={{ width: 24, mr: 1 }} />
+          )}
+          <TreeDataNode stockInfo={node.stockInfo as Parameters<typeof TreeDataNode>[0]["stockInfo"]} />
+        </Box>
+        {hasChildren && isExpanded && (
+          <Box>
+            {node.children.map((child) => renderTreeNode(child, level + 1))}
+          </Box>
+        )}
+      </Box>
+    );
+  };
+
+  const contentAlgorithm = (): React.ReactElement | null => {
+    if (!isQuery) return null;
+
+    if (treeData.length === 0) {
+      return (
+        <div className="row justify-content-md-center">
+          <div className="col-md-6">
+            <div className="alert alert-warning" role="alert">
+              <p className="h5 text-center mb-0">
+                查無此貨號資料 或 此貨號設定期間內無進貨資料
+              </p>
             </div>
           </div>
-          <hr />
-          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div className="scrollbar-70" style={{ height: "75vh" }}>
-              {this.contentAlgorithm()}
-            </div>
-          </LoadingOverlay>
         </div>
-      </div>
+      );
+    }
+
+    return (
+      <Box sx={{ height: "70vh", overflow: "auto" }}>
+        {treeData.map((node) => renderTreeNode(node))}
+      </Box>
     );
-  }
+  };
+
+  return (
+    <div className="stockHistoryBoard">
+      <div className="container">
+        <div className="row">
+          <div className="col-md-auto">
+            <QueryProductInformation
+              productNo={productNo}
+              onChange={handleProductNoChange}
+              onSubmit={handleQuerySubmit}
+            />
+          </div>
+          <div className="col-md-auto">
+            <DatePeriodSelectModal
+              btnTitle={"設定時間區間"}
+              fileType="stockHistory"
+              startDate={startDate}
+              endDate={endDate}
+              handleStartDateSelection={handleStartDateSelectionWrapper}
+              handleEndDateSelection={handleEndDateSelection}
+              handleDateSelectionModeClick={handleDateSelectionModeClick}
+              dayRange={dayRangeSetting}
+            />
+          </div>
+          <div className="col-md-auto">
+            <button className="btn-customize" disabled>
+              <small className="text-muted">若無設定，預設查詢前一個月</small>
+            </button>
+          </div>
+        </div>
+        <hr />
+        <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+          <div className="scrollbar-70" style={{ height: "75vh" }}>
+            {contentAlgorithm()}
+          </div>
+        </LoadingOverlay>
+      </div>
+    </div>
+  );
 }
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  treeData: state.stockInfo as unknown as StateProps["treeData"]
-});
-
-export default connect(mapStateToProps, { getProductHistory })(
-  StockHistoryBoard
-);
+export default StockHistoryBoard;

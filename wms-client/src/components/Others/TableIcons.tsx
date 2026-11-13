@@ -1,47 +1,68 @@
 import React, { forwardRef } from "react";
-import type { SvgIconProps } from "@material-ui/core/SvgIcon";
-import AddBox from "@material-ui/icons/AddBox";
-import ArrowDownward from "@material-ui/icons/ArrowDownward";
-import Check from "@material-ui/icons/Check";
-import ChevronLeft from "@material-ui/icons/ChevronLeft";
-import ChevronRight from "@material-ui/icons/ChevronRight";
-import Clear from "@material-ui/icons/Clear";
-import DeleteOutline from "@material-ui/icons/DeleteOutline";
-import Edit from "@material-ui/icons/Edit";
-import FilterList from "@material-ui/icons/FilterList";
-import FirstPage from "@material-ui/icons/FirstPage";
-import LastPage from "@material-ui/icons/LastPage";
-import Remove from "@material-ui/icons/Remove";
-import SaveAlt from "@material-ui/icons/SaveAlt";
-import Search from "@material-ui/icons/Search";
-import ViewColumn from "@material-ui/icons/ViewColumn";
-import SaveIcon from "@material-ui/icons/Save";
+import { SvgIconProps } from "@mui/material/SvgIcon";
+import AddBox from "@mui/icons-material/AddBox";
+import ArrowDownward from "@mui/icons-material/ArrowDownward";
+import Check from "@mui/icons-material/Check";
+import ChevronLeft from "@mui/icons-material/ChevronLeft";
+import ChevronRight from "@mui/icons-material/ChevronRight";
+import Clear from "@mui/icons-material/Clear";
+import DeleteOutline from "@mui/icons-material/DeleteOutlineOutlined";
+import Edit from "@mui/icons-material/Edit";
+import FilterList from "@mui/icons-material/FilterList";
+import FirstPage from "@mui/icons-material/FirstPage";
+import LastPage from "@mui/icons-material/LastPage";
+import Remove from "@mui/icons-material/Remove";
+import SaveAlt from "@mui/icons-material/SaveAlt";
+import Search from "@mui/icons-material/Search";
+import ViewColumn from "@mui/icons-material/ViewColumn";
+import SaveIcon from "@mui/icons-material/Save";
 
-type IconType = React.ComponentType<SvgIconProps>;
+type IconComponent = React.ForwardRefExoticComponent<
+  SvgIconProps & React.RefAttributes<SVGSVGElement>
+>;
 
-function tableIcon(Icon: IconType) {
-  return forwardRef<SVGSVGElement, SvgIconProps>(function TableIcon(props, ref) {
-    return <Icon {...props} ref={ref} />;
-  });
+interface TableIconsType {
+  Add: IconComponent;
+  Check: IconComponent;
+  Clear: IconComponent;
+  Delete: IconComponent;
+  DetailPanel: IconComponent;
+  Edit: IconComponent;
+  Export: IconComponent;
+  Filter: IconComponent;
+  FirstPage: IconComponent;
+  LastPage: IconComponent;
+  NextPage: IconComponent;
+  PreviousPage: IconComponent;
+  ResetSearch: IconComponent;
+  Search: IconComponent;
+  SortArrow: IconComponent;
+  ThirdStateCheck: IconComponent;
+  ViewColumn: IconComponent;
+  Save: IconComponent;
 }
 
-export const tableIcons = {
-  Add: tableIcon(AddBox),
-  Check: tableIcon(Check),
-  Clear: tableIcon(Clear),
-  Delete: tableIcon(DeleteOutline),
-  DetailPanel: tableIcon(ChevronRight),
-  Edit: tableIcon(Edit),
-  Export: tableIcon(SaveAlt),
-  Filter: tableIcon(FilterList),
-  FirstPage: tableIcon(FirstPage),
-  LastPage: tableIcon(LastPage),
-  NextPage: tableIcon(ChevronRight),
-  PreviousPage: tableIcon(ChevronLeft),
-  ResetSearch: tableIcon(Clear),
-  Search: tableIcon(Search),
-  SortArrow: tableIcon(ArrowDownward),
-  ThirdStateCheck: tableIcon(Remove),
-  ViewColumn: tableIcon(ViewColumn),
-  Save: tableIcon(SaveIcon),
+export const tableIcons: TableIconsType = {
+  Add: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <AddBox {...props} ref={ref} />),
+  Check: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <Check {...props} ref={ref} />),
+  Clear: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <Clear {...props} ref={ref} />),
+  Delete: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <DeleteOutline {...props} ref={ref} />),
+  DetailPanel: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => (
+    <ChevronRight {...props} ref={ref} />
+  )),
+  Edit: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <Edit {...props} ref={ref} />),
+  Export: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <SaveAlt {...props} ref={ref} />),
+  Filter: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <FilterList {...props} ref={ref} />),
+  FirstPage: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <FirstPage {...props} ref={ref} />),
+  LastPage: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <LastPage {...props} ref={ref} />),
+  NextPage: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <ChevronRight {...props} ref={ref} />),
+  PreviousPage: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => (
+    <ChevronLeft {...props} ref={ref} />
+  )),
+  ResetSearch: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <Clear {...props} ref={ref} />),
+  Search: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <Search {...props} ref={ref} />),
+  SortArrow: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <ArrowDownward {...props} ref={ref} />),
+  ThirdStateCheck: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <Remove {...props} ref={ref} />),
+  ViewColumn: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <ViewColumn {...props} ref={ref} />),
+  Save: forwardRef<SVGSVGElement, SvgIconProps>((props, ref) => <SaveIcon {...props} ref={ref} />)
 };

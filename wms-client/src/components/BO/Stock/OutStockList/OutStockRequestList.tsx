@@ -1,5 +1,6 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import UserSelection from "./UserSelection";
 import SearchBoard from "./SearchBoard";
 import {
@@ -8,166 +9,96 @@ import {
   updateOutStockRequests,
   stockIdentifierIsNotShiped,
   deleteOutStockRequest
-} from "../../../../actions/StockAcions";
+} from "../../../../actions/StockActions";
 import { downloadFile } from "../../../../actions/FileActions";
 import "react-datepicker/dist/react-datepicker.css";
 import { copy } from "../../../../utilities/DeepCopy";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
 import { dayOfStart, dayOfEnd } from "../Utilities/DateUtils";
-import LoadingOverlay from "react-loading-overlay";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import ConfirmModal from "./ConfirmModal";
+import { RootState, AppDispatch, SelectedUser, OutStockUpdateRequest } from "../../../../types";
+import { OutStockInfo } from "./SearchInfo";
 
 import equal from "fast-deep-equal";
-
-import type { RootState } from "../../../../types/state";
-import type { ApiStatus, OutStockRequestRecord } from "../../../../types/domain";
-import type { SelectedUser } from "./UserSelection";
-
-interface ListedUser extends SelectedUser {
-  index: number;
-}
-
-interface HandlePayload {
-  userList?: string[];
-  queryResult?: Record<string, OutStockRequestRecord[]>;
-}
-
-interface StateProps {
-  queryResult: { outStockRequests: HandlePayload };
-}
-
-interface DispatchProps {
-  getWaitHandleList: () => Promise<ApiStatus | undefined>;
-  getWaitHandleListWithInterval: (start: string, end: string) => Promise<ApiStatus | undefined>;
-  updateOutStockRequests: (request: { outStockUpdate: Record<string, string> }) => Promise<ApiStatus | undefined>;
-  stockIdentifierIsNotShiped: (id: number) => Promise<ApiStatus | undefined>;
-  deleteOutStockRequest: (id: number) => Promise<ApiStatus | undefined>;
-  downloadFile: (category: string, filename: string) => void;
-}
-
-type Props = StateProps & DispatchProps;
-
-interface State {
-  isLoading: boolean;
-  modalShow: boolean;
-  queryResult: Record<string, OutStockRequestRecord[]>;
-  userList: string[];
-  selectedUserList: ListedUser[];
-  startDate: Date;
-  endDate: Date;
-  selectedOutStockRequest: OutStockRequestRecord[];
-  handlingInfo: OutStockRequestRecord;
-}
-
 const refreshTime = 1000 * 60 * 10;
 const dayIntervalRange = 7;
 
-interface OutStockRequestList {
-  apiCall?: ReturnType<typeof setInterval>;
+interface QueryResult {
+  [date: string]: OutStockInfo[];
 }
 
-class OutStockRequestList extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      modalShow: false,
-      queryResult: {} as State['queryResult'],
-      userList: [],
-      selectedUserList: [],
-      startDate: dayOfStart(new Date()),
-      endDate: dayOfEnd(new Date()),
-      selectedOutStockRequest: [],
-      handlingInfo: {} as OutStockRequestRecord
-    };
-    this.getInitialState = this.getInitialState.bind(this);
-    this.handleStartDateSelection = this.handleStartDateSelection.bind(this);
-    this.handleEndDateSelection = this.handleEndDateSelection.bind(this);
-    this.handleDateSelectionModeClick = this.handleDateSelectionModeClick.bind(
-      this
-    );
-    this.handleSubmitClick = this.handleSubmitClick.bind(this);
-    this.handleUserSelection = this.handleUserSelection.bind(this);
-    this.handleUserSelectAll = this.handleUserSelectAll.bind(this);
-    this.handleUserUnselectAll = this.handleUserUnselectAll.bind(this);
-    this.handleDeleteClick = this.handleDeleteClick.bind(this);
-    this.handleRollBackShipStatus = this.handleRollBackShipStatus.bind(this);
-    this.handleDeleteOutStockRequest = this.handleDeleteOutStockRequest.bind(
-      this
-    );
-    this.handleDownloadClick = this.handleDownloadClick.bind(this);
-    this.handleModalShow = this.handleModalShow.bind(this);
-    this.handleModalClose = this.handleModalClose.bind(this);
-  }
+const OutStockRequestList: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const queryResultFromStore = useSelector((state: RootState) => state.outStockRequests);
 
-  getInitialState() {
-    this.setState({
-      isLoading: false,
-      modalShow: false,
-      queryResult: {} as State['queryResult'],
-      userList: [],
-      selectedUserList: [],
-      startDate: dayOfStart(new Date()),
-      endDate: dayOfEnd(new Date()),
-      selectedOutStockRequest: [],
-      handlingInfo: {} as OutStockRequestRecord
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [modalShow, setModalShow] = useState<boolean>(false);
+  const [queryResult, setQueryResult] = useState<QueryResult>({});
+  const [, setUserList] = useState<string[]>([]);
+  const [selectedUserList, setSelectedUserList] = useState<SelectedUser[]>([]);
+  const [startDate, setStartDate] = useState<Date>(dayOfStart(new Date()));
+  const [endDate, setEndDate] = useState<Date>(dayOfEnd(new Date()));
+  const [handlingInfo, setHandlingInfo] = useState<OutStockInfo>({} as OutStockInfo);
+
+  const apiCallRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const loadingWaitHandleList = useCallback(() => {
+    setIsLoading(true);
+    dispatch(getWaitHandleList()).then(response => {
+      if (response.status === 200) {
+        setIsLoading(false);
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
+  }, [dispatch]);
 
-    this.loadingWaitHandleList();
-  }
+  const getInitialState = useCallback(() => {
+    setIsLoading(false);
+    setModalShow(false);
+    setQueryResult({});
+    setUserList([]);
+    setSelectedUserList([]);
+    setStartDate(dayOfStart(new Date()));
+    setEndDate(dayOfEnd(new Date()));
+    setHandlingInfo({} as OutStockInfo);
 
-  loadingWaitHandleList() {
-    this.setState({ isLoading: true }, () => {
-      this.props.getWaitHandleList().then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false });
-        }
-      });
-    });
-  }
+    loadingWaitHandleList();
+  }, [loadingWaitHandleList]);
 
-  initialSelectedUserList(userList: string[]): ListedUser[] {
-    const selectedList: ListedUser[] = [];
+  // componentDidMount and componentWillUnmount replacement
+  useEffect(() => {
+    loadingWaitHandleList();
 
-    userList.sort().forEach((element, index) => {
-      selectedList.push({
-        user: element,
-        selected: true,
-        index: index
-      });
-    });
-
-    return selectedList;
-  }
-
-  componentDidMount() {
-    this.loadingWaitHandleList();
-
-    this.apiCall = setInterval(() => {
-      this.loadingWaitHandleList();
+    apiCallRef.current = setInterval(() => {
+      loadingWaitHandleList();
     }, refreshTime);
-  }
 
-  componentWillUnmount() {
-    clearInterval(this.apiCall);
-  }
+    return () => {
+      if (apiCallRef.current) {
+        clearInterval(apiCallRef.current);
+      }
+    };
+  }, [loadingWaitHandleList]);
 
-  static getDerivedStateFromProps(nextProps: Props, prevState: State): Partial<State> | null {
-    if (nextProps === undefined) {
-      return null;
+  // getDerivedStateFromProps replacement: compare the store with the list on screen (not
+  // with the last store value), so when getInitialState clears the list after an action it is
+  // refilled even if the next query returns the same list.
+  useEffect(() => {
+    if (queryResultFromStore === undefined) {
+      return;
     }
 
-    if (
-      !equal(
-        prevState.queryResult,
-        nextProps.queryResult.outStockRequests.queryResult
-      )
-    ) {
-      const selectedList: ListedUser[] = [];
+    const newQueryResult = (queryResultFromStore.outStockRequests?.queryResult as QueryResult | undefined) || {};
 
-      if (nextProps.queryResult.outStockRequests.userList !== undefined) {
-        nextProps.queryResult.outStockRequests.userList
+    if (!equal(queryResult, newQueryResult)) {
+      const selectedList: SelectedUser[] = [];
+
+      if (queryResultFromStore.outStockRequests?.userList !== undefined) {
+        queryResultFromStore.outStockRequests.userList
           .sort()
           .forEach((element, index) => {
             selectedList.push({
@@ -178,195 +109,258 @@ class OutStockRequestList extends Component<Props, State> {
           });
       }
 
-      return {
-        ...prevState,
-        queryResult: nextProps.queryResult.outStockRequests.queryResult,
-        userList: nextProps.queryResult.outStockRequests.userList,
-        selectedUserList: selectedList
-      };
-    } else {
-      return null;
+      setQueryResult(newQueryResult);
+      setUserList(queryResultFromStore.outStockRequests?.userList || []);
+      setSelectedUserList(selectedList);
     }
-  }
+  }, [queryResultFromStore, queryResult]);
 
-  handleStartDateSelection(date: Date | null) {
-    this.setState({ startDate: dayOfStart(date as Date) });
-  }
+  // The date picker passes null when its text is cleared; keep the previous date then.
+  const handleStartDateSelection = useCallback((date: Date | null) => {
+    if (date) {
+      setStartDate(dayOfStart(date));
+    }
+  }, []);
 
-  handleEndDateSelection(date: Date | null) {
-    this.setState({ endDate: dayOfEnd(date as Date) });
-  }
+  const handleEndDateSelection = useCallback((date: Date | null) => {
+    if (date) {
+      setEndDate(dayOfEnd(date));
+    }
+  }, []);
 
-  handleDateSelectionModeClick() {
-    let startDate = this.state.startDate.toJSON().substring(0, 19);
-    let endDate = this.state.endDate.toJSON().substring(0, 19);
+  const handleDateSelectionModeClick = useCallback(() => {
+    const startDateStr = startDate.toJSON().substring(0, 19);
+    const endDateStr = endDate.toJSON().substring(0, 19);
 
-    this.setState({ isLoading: true }, () => {
-      this.props
-        .getWaitHandleListWithInterval(startDate, endDate)
-        .then(response => {
-          if (response?.status === 200) {
-            this.setState({ isLoading: false });
-          }
-        });
+    setIsLoading(true);
+    dispatch(getWaitHandleListWithInterval(startDateStr, endDateStr)).then(response => {
+      if (response.status === 200) {
+        setIsLoading(false);
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
-  }
+  }, [dispatch, startDate, endDate]);
 
-  handleSubmitClick(outStockUpdateRequest: { outStockUpdate: Record<string, string> }) {
-    this.setState({ isLoading: true }, () => {
-      this.props.updateOutStockRequests(outStockUpdateRequest).then(res => {
-        if (res?.status === 200) {
-          this.getInitialState();
-        }
-      });
+  const handleSubmitClick = useCallback((outStockUpdateRequest: OutStockUpdateRequest) => {
+    setIsLoading(true);
+    dispatch(updateOutStockRequests(outStockUpdateRequest)).then(res => {
+      if (res.status === 200) {
+        getInitialState();
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
-  }
+  }, [dispatch, getInitialState]);
 
-  handleUserSelectAll() {
-    const listCopy = copy(this.state.selectedUserList) as ListedUser[];
-
+  const handleUserSelectAll = useCallback(() => {
+    const listCopy = copy(selectedUserList) as SelectedUser[];
     listCopy.forEach(user => (user.selected = true));
+    setSelectedUserList(listCopy);
+  }, [selectedUserList]);
 
-    this.setState({ selectedUserList: listCopy });
-  }
-
-  handleUserUnselectAll() {
-    const listCopy = copy(this.state.selectedUserList) as ListedUser[];
-
+  const handleUserUnselectAll = useCallback(() => {
+    const listCopy = copy(selectedUserList) as SelectedUser[];
     listCopy.forEach(user => (user.selected = false));
+    setSelectedUserList(listCopy);
+  }, [selectedUserList]);
 
-    this.setState({ selectedUserList: listCopy });
-  }
-
-  handleUserSelection(index: number) {
-    let originCopy = [...this.state.selectedUserList];
-    let objectCopy = Object.assign({}, originCopy[index]);
+  const handleUserSelection = useCallback((index: number) => {
+    const originCopy = [...selectedUserList];
+    const objectCopy = Object.assign({}, originCopy[index]);
 
     objectCopy.selected = !objectCopy.selected;
     originCopy[index] = objectCopy;
 
-    this.setState({
-      selectedUserList: originCopy
+    setSelectedUserList(originCopy);
+  }, [selectedUserList]);
+
+  const handleDeleteClick = useCallback((info: OutStockInfo) => {
+    setModalShow(true);
+    setHandlingInfo(info);
+  }, []);
+
+  const handleRollBackShipStatus = useCallback((id: number) => {
+    setIsLoading(true);
+    dispatch(stockIdentifierIsNotShiped(id)).then(res => {
+      if (res.status === 200) {
+        getInitialState();
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
-  }
+  }, [dispatch, getInitialState]);
 
-  handleDeleteClick(info: OutStockRequestRecord) {
-    this.setState({ modalShow: true, handlingInfo: info });
-  }
-
-  handleRollBackShipStatus(id: number) {
-    this.setState({ isLoading: true }, () => {
-      this.props.stockIdentifierIsNotShiped(id).then(res => {
-        if (res?.status === 200) {
-          this.getInitialState();
-        }
-      });
+  const handleDeleteOutStockRequest = useCallback((id: number) => {
+    setIsLoading(true);
+    dispatch(deleteOutStockRequest(id)).then(res => {
+      if (res.status === 200) {
+        getInitialState();
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
-  }
+  }, [dispatch, getInitialState]);
 
-  handleDeleteOutStockRequest(id: number) {
-    this.setState({ isLoading: true }, () => {
-      this.props.deleteOutStockRequest(id).then(res => {
-        if (res?.status === 200) {
-          this.getInitialState();
-        }
-      });
-    });
-  }
+  const handleDownloadClick = useCallback((e: { target: { name: string; value: string } }) => {
+    downloadFile(e.target.name, e.target.value);
+  }, []);
 
-  handleDownloadClick(e: React.MouseEvent<HTMLButtonElement>) {
-    downloadFile(e.currentTarget.name, e.currentTarget.value);
-  }
+  const handleModalShow = useCallback(() => {
+    setModalShow(true);
+  }, []);
 
-  handleModalShow() {
-    this.setState({ modalShow: true });
-  }
+  const handleModalClose = useCallback(() => {
+    setModalShow(false);
+  }, []);
 
-  handleModalClose() {
-    this.setState({ modalShow: false });
-  }
-
-  render() {
-    const {
-      isLoading,
-      queryResult,
-      selectedUserList,
-      startDate,
-      endDate,
-      modalShow,
-      handlingInfo
-    } = this.state;
-
-    return (
-      <div className="outStock_list">
-        <div className="container">
-          <p className="h3 text-center">拉貨明細表</p>
-          <div className="col">
-            <div className="row justify-content-end">
-              <button
-                {...({ tyep: "button" } as React.ButtonHTMLAttributes<HTMLButtonElement>)}
-                className="btn btn-info mr-2"
-                onClick={this.getInitialState}
-              >
-                頁面初始化
-              </button>
-              <DatePeriodSelectModal
-                btnTitle={"時間區間查詢"}
-                startDate={startDate}
-                endDate={endDate}
-                handleStartDateSelection={this.handleStartDateSelection}
-                handleEndDateSelection={this.handleEndDateSelection}
-                handleDateSelectionModeClick={this.handleDateSelectionModeClick}
-                dayRange={dayIntervalRange}
-              />
-            </div>
+  return (
+    <div className="outStock_list">
+      <div className="container">
+        {/* Page Header - RWD Support */}
+        <div
+          className="page-header-responsive"
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 'var(--spacing-3)',
+            marginBottom: 'var(--spacing-4)',
+            padding: 'var(--spacing-4)',
+            backgroundColor: 'var(--color-white)',
+            borderRadius: 'var(--border-radius-lg)',
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        >
+          <div style={{ flex: '1 1 auto', minWidth: '200px' }}>
+            <h4
+              style={{
+                margin: 0,
+                color: 'var(--color-gray-800)',
+                fontWeight: 'var(--font-weight-semibold)',
+                fontSize: 'clamp(1rem, 2.5vw, 1.5rem)',
+              }}
+            >
+              <i className="fa fa-truck me-2" style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
+              拉貨明細表
+            </h4>
+            <p
+              className="d-none d-md-block"
+              style={{
+                margin: 0,
+                marginTop: 'var(--spacing-1)',
+                color: 'var(--color-gray-500)',
+                fontSize: 'var(--font-size-sm)',
+              }}
+            >
+              管理出庫請求及追蹤處理狀態
+            </p>
           </div>
-          <hr />
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 'var(--spacing-2)',
+              flex: '0 0 auto',
+            }}
+          >
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm btn-md-regular"
+              onClick={getInitialState}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--spacing-2)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <i className="fa fa-refresh" aria-hidden="true" />
+              <span className="d-none d-sm-inline">頁面初始化</span>
+              <span className="d-sm-none">重設</span>
+            </button>
+            <DatePeriodSelectModal
+              btnTitle={"時間區間查詢"}
+              btnSize="sm"
+              fileType="outStockRequest"
+              startDate={startDate}
+              endDate={endDate}
+              handleStartDateSelection={handleStartDateSelection}
+              handleEndDateSelection={handleEndDateSelection}
+              handleDateSelectionModeClick={handleDateSelectionModeClick}
+              dayRange={dayIntervalRange}
+            />
+          </div>
+        </div>
+
+        {/* User Selection Section */}
+        <div
+          style={{
+            backgroundColor: 'var(--color-white)',
+            borderRadius: 'var(--border-radius-lg)',
+            boxShadow: 'var(--shadow-sm)',
+            padding: 'var(--spacing-4)',
+            marginBottom: 'var(--spacing-4)',
+          }}
+        >
+          <h6
+            style={{
+              color: 'var(--color-gray-700)',
+              fontWeight: 'var(--font-weight-semibold)',
+              marginBottom: 'var(--spacing-3)',
+            }}
+          >
+            <i className="fa fa-users me-2" style={{ color: 'var(--color-info)' }} aria-hidden="true" />
+            使用者篩選
+          </h6>
           <UserSelection
             selectedUserList={selectedUserList}
-            handleSelectAll={this.handleUserSelectAll}
-            handleUnselectAll={this.handleUserUnselectAll}
-            handleUserSelection={this.handleUserSelection}
+            handleSelectAll={handleUserSelectAll}
+            handleUnselectAll={handleUserUnselectAll}
+            handleUserSelection={handleUserSelection}
           />
-          <hr />
+        </div>
+
+        {/* Main Content */}
+        <div
+          style={{
+            backgroundColor: 'var(--color-white)',
+            borderRadius: 'var(--border-radius-lg)',
+            boxShadow: 'var(--shadow-sm)',
+            overflow: 'hidden',
+          }}
+        >
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <div style={{ height: "65vh" }}>
               <SearchBoard
                 queryResult={queryResult}
                 selectedUserList={selectedUserList}
-                handleSubmitClick={this.handleSubmitClick}
-                handleDeleteClick={this.handleDeleteClick}
-                downloadFile={this.handleDownloadClick}
-                handleModalShow={this.handleModalShow}
-                initialize={this.getInitialState}
+                handleSubmitClick={handleSubmitClick}
+                handleDeleteClick={handleDeleteClick}
+                downloadFile={handleDownloadClick}
+                handleModalShow={handleModalShow}
+                initialize={getInitialState}
               />
             </div>
             {modalShow ? (
               <ConfirmModal
                 show
                 searchInfo={handlingInfo}
-                handleModalClose={this.handleModalClose}
-                cancelShip={this.handleRollBackShipStatus}
-                deleteOutStock={this.handleDeleteOutStockRequest}
+                handleModalClose={handleModalClose}
+                cancelShip={handleRollBackShipStatus}
+                deleteOutStock={handleDeleteOutStockRequest}
               />
             ) : null}
           </LoadingOverlay>
         </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  queryResult: state.outStockRequests as unknown as StateProps["queryResult"]
-});
-
-export default connect(mapStateToProps, {
-  getWaitHandleList,
-  getWaitHandleListWithInterval,
-  updateOutStockRequests,
-  stockIdentifierIsNotShiped,
-  deleteOutStockRequest,
-  downloadFile
-})(OutStockRequestList);
+export default OutStockRequestList;

@@ -1,18 +1,21 @@
-import React, { Component } from "react";
+import React from "react";
 import { RoleOption } from "../../enums/Enums";
 import HeaderAdmin from "./RoleHeader/HeaderAdmin";
 import HeaderOperator from "./RoleHeader/HeaderOperator";
 import HeaderNormal from "./RoleHeader/HeaderNormal";
 import HeaderSales from "./RoleHeader/HeaderSales";
 
-interface Props {
+interface HeaderStockFunctionsProps {
   isAuthencated: boolean;
-  authority?: string | null;
+  authority: string | null;
 }
 
-class HeaderStockFunctions extends Component<Props> {
-  userAuthencated() {
-    switch (this.props.authority) {
+const HeaderStockFunctions = ({
+  isAuthencated,
+  authority,
+}: HeaderStockFunctionsProps): React.ReactElement | null => {
+  const userAuthencated = (): React.ReactElement | null => {
+    switch (authority) {
       case RoleOption["管理員"]:
         return <HeaderAdmin />;
       case RoleOption["庫存相關人員"]:
@@ -24,11 +27,9 @@ class HeaderStockFunctions extends Component<Props> {
       default:
         return null;
     }
-  }
+  };
 
-  render() {
-    return this.props.isAuthencated ? this.userAuthencated() : null;
-  }
-}
+  return isAuthencated ? userAuthencated() : null;
+};
 
 export default HeaderStockFunctions;

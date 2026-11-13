@@ -1,48 +1,50 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { Component, FormEvent } from "react";
+import { connect, ConnectedProps } from "react-redux";
 import {
   getShrinkRollbackList,
   shrinkRollback
-} from "../../../../../actions/StockAcions";
-import LoadingOverlay from "react-loading-overlay";
+} from "../../../../../actions/StockActions";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../../Others/Spinner";
-import QueryProductInformation from "../../../Stock/Utilities/QueryProductInformation";
+import QueryProductInformation, { ProductNoChange } from "../../../Stock/Utilities/QueryProductInformation";
 import StockInfoContainer from "./StockInfoContainer";
+import { RootState, ShrinkRollbackObject } from "../../../../../types";
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
 
-import type { RootState } from "../../../../../types/state";
-import type { ApiStatus } from "../../../../../types/domain";
-import type { ShrinkHistoryNode } from "./StockInfo";
-
-interface QuerySlice {
-  stockInfoes: ShrinkHistoryNode[];
-}
-
-interface StateProps {
-  queryResult: QuerySlice;
-}
-
-interface DispatchProps {
-  getShrinkRollbackList: (productNo: string) => Promise<ApiStatus | undefined>;
-  shrinkRollback: (stockIdentifierId: number, productNo: string) => Promise<ApiStatus | undefined>;
-}
-
-type Props = StateProps & DispatchProps;
-
-interface State {
+interface ShrinkRollbackState {
   isLoading: boolean;
   isQuery: boolean;
   productNo: string;
-  result: ShrinkHistoryNode[];
+  /**
+   * The product the list on screen belongs to. A rollback and its refresh use this, not the
+   * search box, which the admin may have changed since.
+   */
+  queriedProductNo: string;
+  result: ShrinkRollbackObject[];
 }
 
+const mapStateToProps = (state: RootState) => ({
+  queryResult: state.stockInfo
+});
 
-class ShrinkRollback extends Component<Props, State> {
-  constructor(props: Props) {
+const mapDispatchToProps = {
+  getShrinkRollbackList,
+  shrinkRollback
+};
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
+  constructor(props: PropsFromRedux) {
     super(props);
     this.state = {
       isLoading: false,
       isQuery: false,
       productNo: "",
+      queriedProductNo: "",
       result: []
     };
     this.handleProductNoChange = this.handleProductNoChange.bind(this);
@@ -50,37 +52,41 @@ class ShrinkRollback extends Component<Props, State> {
     this.handleShrinkRollback = this.handleShrinkRollback.bind(this);
   }
 
-  handleProductNoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  handleProductNoChange(e: ProductNoChange): void {
     if (e.target.name === "productNo") {
       this.setState({ productNo: e.target.value });
     }
   }
 
-  handleQuerySubmit(e: React.FormEvent<HTMLFormElement>) {
+  handleQuerySubmit(e: FormEvent<HTMLFormElement>): void {
     e.preventDefault();
 
     this.setState({ isLoading: true }, () => {
-      this.props.getShrinkRollbackList(this.state.productNo).then(response => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
+      const { productNo } = this.state;
+      this.props.getShrinkRollbackList(productNo).then((response: { status: number }) => {
+        if (response.status === 200) {
+          this.setState({ isLoading: false, isQuery: true, queriedProductNo: productNo });
         }
+      }).catch((error: unknown) => {
+        this.setState({ isLoading: false });
+        notifyRequestFailed(error);
       });
     });
   }
 
-  handleShrinkRollback(stockIdentifierId: number) {
+  handleShrinkRollback(stockIdentifierId: number): void {
     this.setState({ isLoading: true }, () => {
+      // The action queries the list again whatever the outcome; a failure says what happened.
       this.props
-        .shrinkRollback(stockIdentifierId, this.state.productNo)
-        .then(response => {
-          if (response?.status === 200) {
-            this.setState({ isLoading: false });
-          }
+        .shrinkRollback(stockIdentifierId, this.state.queriedProductNo)
+        .catch(notifyRollbackFailed)
+        .finally(() => {
+          this.setState({ isLoading: false });
         });
     });
   }
 
-  contentAlgorithm() {
+  contentAlgorithm(): React.ReactNode {
     const { isQuery, result } = this.state;
 
     if (!isQuery) {
@@ -107,17 +113,17 @@ class ShrinkRollback extends Component<Props, State> {
     }
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: PropsFromRedux): void {
     if (
       this.props.queryResult.stockInfoes !== prevProps.queryResult.stockInfoes
     ) {
       this.setState({
-        result: this.props.queryResult.stockInfoes as ShrinkHistoryNode[]
+        result: this.props.queryResult.stockInfoes as ShrinkRollbackObject[]
       });
     }
   }
 
-  render() {
+  render(): React.ReactNode {
     const { isLoading, productNo } = this.state;
 
     return (
@@ -128,6 +134,7 @@ class ShrinkRollback extends Component<Props, State> {
               productNo={productNo}
               onSubmit={this.handleQuerySubmit}
               onChange={this.handleProductNoChange}
+              isLoading={isLoading}
             />
           </div>
           <div className="col-md-auto">
@@ -145,12 +152,4 @@ class ShrinkRollback extends Component<Props, State> {
   }
 }
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  queryResult: state.stockInfo as unknown as QuerySlice
-});
-
-export default connect(mapStateToProps, {
-  getShrinkRollbackList,
-  shrinkRollback
-})(ShrinkRollback);
+export default connector(ShrinkRollback);

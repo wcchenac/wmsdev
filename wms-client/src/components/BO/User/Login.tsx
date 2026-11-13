@@ -1,153 +1,284 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router";
 import classnames from "classnames";
-import { type RouteComponentProps } from "react-router-dom";
 import { login } from "../../../actions/UserActions";
-import type { RootState, UserState, ErrorState } from "../../../types/state";
+import { RootState } from "../../../store";
+import { AppDispatch } from "../../../types";
+import { useUpdateEffect } from "../../../utilities/useUpdateEffect";
 
 interface LoginErrors {
   username?: string;
   password?: string;
+  /**
+   * "登入失敗，請檢查帳號密碼", set by the login action whenever the failure is not a rejected
+   * login (InvalidLoginResponse): no response, a proxy's HTML error page, a server error or
+   * Spring error body, or field messages that are not strings.
+   */
+  message?: string;
 }
 
-interface StateProps {
-  user: UserState;
-  errors: ErrorState;
+interface TouchedFields {
+  employeeId: boolean;
+  password: boolean;
 }
 
-interface DispatchProps {
-  login: (loginRequest: { employeeId: string; password: string }) => void;
-}
+const Login: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
-type Props = StateProps & DispatchProps & RouteComponentProps;
+  // Redux state
+  const user = useSelector((state: RootState) => state.user);
+  // The error reducer keeps the last GET_Errors payload in state.errors.errors; for a rejected
+  // login that is the backend's { username, password } messages.
+  const reduxErrors = useSelector((state: RootState) => state.errors.errors) as LoginErrors | null;
 
-interface State {
-  employeeId: string;
-  password: string;
-  errors: LoginErrors;
-}
+  // Local state
+  const [employeeId, setEmployeeId] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [errors, setErrors] = useState<LoginErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [touched, setTouched] = useState<TouchedFields>({
+    employeeId: false,
+    password: false
+  });
 
-class Login extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      employeeId: "",
-      password: "",
-      errors: {},
-    };
-    this.userKeyInChange = this.userKeyInChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  componentDidMount() {
-    if (this.props.user.validToken) {
-      this.props.history.push("/");
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user.validToken) {
+      navigate("/");
     }
-  }
+  }, [user.validToken, navigate]);
 
-  UNSAFE_componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.user.validToken) {
-      this.props.history.push("/");
+  // Only errors that arrive while the page is open (dev's componentWillReceiveProps): an
+  // earlier failed login, or another page's error, must not show up when the page opens.
+  useUpdateEffect(reduxErrors, (nextErrors) => {
+    if (nextErrors) {
+      setErrors(nextErrors);
     }
+  });
 
-    if (nextProps.errors) {
-      this.setState({
-        errors: nextProps.errors as LoginErrors,
-      });
-    }
-  }
-
-  userKeyInChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const userKeyInChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    if (name === "employeeId") {
-      this.setState({ employeeId: value });
-    } else if (name === "password") {
-      this.setState({ password: value });
-    }
-  }
 
-  handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (name === "employeeId") {
+      setEmployeeId(value);
+    } else if (name === "password") {
+      setPassword(value);
+    }
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name === "employeeId" ? "username" : name]: "",
+      message: ""
+    }));
+  };
+
+  const handleBlur = (e: ChangeEvent<HTMLInputElement>): void => {
+    const { name } = e.target;
+    setTouched((prevTouched) => ({
+      ...prevTouched,
+      [name]: true
+    }));
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
 
+    // Mark all fields as touched
+    setTouched({ employeeId: true, password: true });
+    setIsSubmitting(true);
+
     const loginRequest = {
-      employeeId: this.state.employeeId,
-      password: this.state.password,
+      employeeId,
+      password
     };
 
-    this.props.login(loginRequest);
-  }
+    // The button comes back when the request settles, not when the stored error changes:
+    // the same error twice in a row leaves the store unchanged.
+    dispatch(login(loginRequest)).finally(() => {
+      setIsSubmitting(false);
+    });
+  };
 
-  render() {
-    const { errors } = this.state;
+  const hasEmployeeIdError = touched.employeeId && errors.username;
+  const hasPasswordError = touched.password && errors.password;
+  // A check mark only means "filled in"; while a login failure is on screen it would
+  // contradict the error, so neither field gets one until every error is cleared.
+  const loginFailed = Boolean(errors.message || errors.username || errors.password);
+  const showEmployeeIdValid = touched.employeeId && !loginFailed && Boolean(employeeId);
+  const showPasswordValid = touched.password && !loginFailed && Boolean(password);
 
-    return (
-      <div className="login">
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-4">
-              <p className="h5 text-center">使用者登入</p>
-              <div className="pt-2">
-                <form onSubmit={this.handleSubmit}>
-                  <div className="form-group row">
-                    <label htmlFor="employeeId" className="col-4 col-form-label">
+  return (
+    <div className="login fade-in">
+      <div className="container">
+        <div className="row justify-content-center">
+          <div className="col-12 col-sm-8 col-md-6 col-lg-4">
+            {/* Login Card */}
+            <div
+              className="card shadow-sm"
+              style={{
+                borderRadius: "var(--border-radius-lg)",
+                overflow: "hidden"
+              }}
+            >
+              {/* Card Header */}
+              <div
+                className="card-header text-center py-4"
+                style={{
+                  background: "var(--color-primary)",
+                  color: "var(--color-white)"
+                }}
+              >
+                <h1
+                  className="h4 mb-0"
+                  style={{ fontWeight: "var(--font-weight-semibold)" }}
+                >
+                  庫存管理系統
+                </h1>
+                <p className="mb-0 mt-2 small" style={{ opacity: 0.9 }}>
+                  使用者登入
+                </p>
+              </div>
+
+              {/* Card Body */}
+              <div className="card-body p-4">
+                <form onSubmit={handleSubmit} noValidate>
+                  {/* Employee ID Field */}
+                  <div className="mb-4">
+                    <label
+                      htmlFor="employeeId"
+                      className="form-label"
+                      style={{
+                        fontWeight: "var(--font-weight-medium)",
+                        color: "var(--color-gray-700)",
+                        marginBottom: "var(--spacing-2)"
+                      }}
+                    >
                       員工編號
+                      <span
+                        className="text-danger ms-1"
+                        aria-hidden="true"
+                      >
+                        *
+                      </span>
                     </label>
-                    <div className="col-8">
-                      <input
-                        type="text"
-                        id="employeeId"
-                        name="employeeId"
-                        className={classnames("form-control", {
-                          "is-invalid": errors.username,
-                        })}
-                        placeholder="員工編號"
-                        onChange={this.userKeyInChange}
-                      />
-                      {errors.username && (
-                        <div className="invalid-feedback">{errors.username}</div>
-                      )}
-                    </div>
+                    <input
+                      type="text"
+                      id="employeeId"
+                      name="employeeId"
+                      value={employeeId}
+                      className={classnames("form-control", {
+                        "is-invalid": hasEmployeeIdError,
+                        "is-valid": showEmployeeIdValid
+                      })}
+                      placeholder="請輸入員工編號"
+                      onChange={userKeyInChange}
+                      onBlur={handleBlur}
+                      aria-required="true"
+                      aria-invalid={hasEmployeeIdError ? "true" : "false"}
+                      aria-describedby={hasEmployeeIdError ? "employeeId-error" : undefined}
+                      autoComplete="username"
+                      autoFocus
+                    />
+                    {hasEmployeeIdError && (
+                      <div
+                        id="employeeId-error"
+                        className="invalid-feedback"
+                        role="alert"
+                      >
+                        {errors.username}
+                      </div>
+                    )}
                   </div>
-                  <div className="form-group row">
-                    <label htmlFor="password" className="col-4 col-form-label">
+
+                  {/* Password Field */}
+                  <div className="mb-4">
+                    <label
+                      htmlFor="password"
+                      className="form-label"
+                      style={{
+                        fontWeight: "var(--font-weight-medium)",
+                        color: "var(--color-gray-700)",
+                        marginBottom: "var(--spacing-2)"
+                      }}
+                    >
                       密碼
+                      <span
+                        className="text-danger ms-1"
+                        aria-hidden="true"
+                      >
+                        *
+                      </span>
                     </label>
-                    <div className="col-8">
-                      <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        className={classnames("form-control", {
-                          "is-invalid": errors.password,
-                        })}
-                        placeholder="密碼"
-                        onChange={this.userKeyInChange}
-                      />
-                      {errors.username && (
-                        <div className="invalid-feedback">{errors.password}</div>
-                      )}
-                    </div>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={password}
+                      className={classnames("form-control", {
+                        "is-invalid": hasPasswordError,
+                        "is-valid": showPasswordValid
+                      })}
+                      placeholder="請輸入密碼"
+                      onChange={userKeyInChange}
+                      onBlur={handleBlur}
+                      aria-required="true"
+                      aria-invalid={hasPasswordError ? "true" : "false"}
+                      aria-describedby={hasPasswordError ? "password-error" : undefined}
+                      autoComplete="current-password"
+                    />
+                    {hasPasswordError && (
+                      <div
+                        id="password-error"
+                        className="invalid-feedback"
+                        role="alert"
+                      >
+                        {errors.password}
+                      </div>
+                    )}
                   </div>
-                  <div className="row justify-content-center">
-                    <div className="col-4">
-                      <button type="submit" className="btn btn-primary btn-block">
-                        登入
-                      </button>
+
+                  {/* A failure that belongs to neither field, e.g. the backend is unreachable */}
+                  {errors.message && (
+                    <div className="alert alert-danger py-2" role="alert">
+                      {errors.message}
                     </div>
+                  )}
+
+                  {/* Submit Button */}
+                  <div className="d-grid">
+                    <button
+                      type="submit"
+                      className={classnames("btn btn-primary w-100 py-2", {
+                        "btn-loading": isSubmitting
+                      })}
+                      disabled={isSubmitting}
+                      aria-busy={isSubmitting}
+                      style={{
+                        fontSize: "var(--font-size-base)",
+                        fontWeight: "var(--font-weight-medium)"
+                      }}
+                    >
+                      {isSubmitting ? "登入中..." : "登入"}
+                    </button>
                   </div>
                 </form>
               </div>
             </div>
+
+            {/* Footer hint */}
+            <p
+              className="text-center mt-3 small"
+              style={{ color: "var(--color-gray-500)" }}
+            >
+              請使用您的員工編號和密碼登入系統
+            </p>
           </div>
         </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-const mapStateToProps = (state: RootState): StateProps => ({
-  user: state.user,
-  errors: state.errors,
-});
-
-export default connect(mapStateToProps, { login })(Login);
+export default Login;

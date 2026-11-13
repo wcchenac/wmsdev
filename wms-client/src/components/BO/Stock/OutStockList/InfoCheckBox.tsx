@@ -1,33 +1,31 @@
-import React, { PureComponent } from "react";
+import React, { memo, useCallback, ChangeEvent } from "react";
 
-interface Props {
+interface InfoCheckBoxProps {
   checked: boolean;
-  disable?: boolean;
+  disable: boolean;
   id: number;
   onInfoCheckBoxChange: (checked: boolean, id: number) => void;
 }
 
-class InfoCheckBox extends PureComponent<Props> {
-  constructor(props: Props) {
-    super(props);
-    this.onChange = this.onChange.bind(this);
-  }
+const InfoCheckBox = memo<InfoCheckBoxProps>(({ checked, disable, id, onInfoCheckBoxChange }) => {
+  const onChange = useCallback(
+    (_e: ChangeEvent<HTMLInputElement>) => {
+      onInfoCheckBoxChange(checked, id);
+    },
+    [onInfoCheckBoxChange, checked, id]
+  );
 
-  onChange() {
-    this.props.onInfoCheckBoxChange(this.props.checked, this.props.id);
-  }
+  return (
+    <input
+      type="checkbox"
+      name="info-checkbox"
+      checked={checked}
+      disabled={disable}
+      onChange={onChange}
+    />
+  );
+});
 
-  render() {
-    return (
-      <input
-        type="checkbox"
-        name="info-checkbox"
-        checked={this.props.checked}
-        disabled={this.props.disable}
-        onChange={this.onChange}
-      />
-    );
-  }
-}
+InfoCheckBox.displayName = "InfoCheckBox";
 
 export default InfoCheckBox;

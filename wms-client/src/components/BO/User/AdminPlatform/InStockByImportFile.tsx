@@ -1,36 +1,19 @@
-import React, { Component } from "react";
+import React, { useState, useCallback, ChangeEvent } from "react";
 import { inStockByImportFile } from "../../../../actions/FileActions";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
+import { isSessionExpired } from "../../../../utilities/notifyRequestFailed";
 import "react-toastify/dist/ReactToastify.css";
-import LoadingOverlay from "react-loading-overlay";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 
-interface State {
-  isLoading: boolean;
-  selectedFile: FileList | null;
-}
+const InStockByImportFile: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<FileList | null>(null);
 
-class InStockByImportFile extends Component<Record<string, never>, State> {
-  constructor(props: Record<string, never>) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      selectedFile: null,
-    };
-    this.onChangeHandler = this.onChangeHandler.bind(this);
-    this.onClickHandler = this.onClickHandler.bind(this);
-  }
+  const checkMimeType = useCallback((event: ChangeEvent<HTMLInputElement>): boolean => {
+    const files = event.target.files;
+    if (!files) return false;
 
-  onChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (this.checkMimeType(event)) {
-      this.setState({
-        selectedFile: event.target.files,
-      });
-    }
-  };
-
-  checkMimeType = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files as FileList;
     const err: string[] = [];
     const type =
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -48,62 +31,65 @@ class InStockByImportFile extends Component<Record<string, never>, State> {
     }
 
     return true;
-  };
+  }, []);
 
-  onClickHandler = () => {
+  const onChangeHandler = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
+    if (checkMimeType(event)) {
+      setSelectedFile(event.target.files);
+    }
+  }, [checkMimeType]);
+
+  const onClickHandler = useCallback((): void => {
+    if (!selectedFile) return;
+
     const data = new FormData();
-    const selectedFile = this.state.selectedFile as FileList;
 
     for (let i = 0; i < selectedFile.length; i += 1) {
       data.append("files", selectedFile[i]);
     }
 
-    this.setState({ isLoading: true }, () => {
-      inStockByImportFile(data)
-        .then(() => {
-          this.setState({ isLoading: false });
-          toast.success("upload success");
-        })
-        .catch(() => {
-          this.setState({ isLoading: false });
+    setIsLoading(true);
+    inStockByImportFile(data)
+      .then(() => {
+        setIsLoading(false);
+        toast.success("upload success");
+      })
+      .catch((error) => {
+        setIsLoading(false);
+        if (!isSessionExpired(error)) {
           toast.error("upload fail");
-        });
-    });
-  };
+        }
+      });
+  }, [selectedFile]);
 
-  render() {
-    return (
-      <div className="container">
-        <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
-          <div style={{ height: "80vh" }}>
-            <div className="row justify-content-center">
-              <div className="col-md-6">
-                <div className="form-group files">
-                  <label>上傳制式檔案(副檔名: xlsx)</label>
-                  <input
-                    type="file"
-                    name="files"
-                    multiple
-                    onChange={this.onChangeHandler}
-                  />
-                </div>
-                <div className="form-group">
-                  <ToastContainer />
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-success btn-block"
-                  onClick={this.onClickHandler}
-                >
-                  上傳
-                </button>
+  return (
+    <div className="container">
+      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+        <div style={{ height: "80vh" }}>
+          <div className="row justify-content-center">
+            <div className="col-md-6">
+              <div className="mb-3 files">
+                <label>上傳制式檔案(副檔名: xlsx)</label>
+                <input
+                  type="file"
+                  name="files"
+                  multiple
+                  onChange={onChangeHandler}
+                />
               </div>
+              <button
+                type="button"
+                className="btn btn-success w-100"
+                onClick={onClickHandler}
+              >
+                上傳
+              </button>
             </div>
           </div>
-        </LoadingOverlay>
-      </div>
-    );
-  }
-}
+        </div>
+      </LoadingOverlay>
+    </div>
+  );
+};
 
 export default InStockByImportFile;

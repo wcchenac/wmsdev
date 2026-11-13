@@ -1,30 +1,28 @@
-import React, { PureComponent } from "react";
+import React, { memo, useCallback, ChangeEvent } from "react";
 
-interface Props {
+interface HeaderCheckBoxProps {
   checked: boolean;
   onHeaderCheckBoxChange: (checked: boolean) => void;
 }
 
-class HeaderCheckBox extends PureComponent<Props> {
-  constructor(props: Props) {
-    super(props);
-    this.onChange = this.onChange.bind(this);
-  }
+const HeaderCheckBox = memo<HeaderCheckBoxProps>(({ checked, onHeaderCheckBoxChange }) => {
+  const onChange = useCallback(
+    (_e: ChangeEvent<HTMLInputElement>) => {
+      onHeaderCheckBoxChange(checked);
+    },
+    [onHeaderCheckBoxChange, checked]
+  );
 
-  onChange() {
-    this.props.onHeaderCheckBoxChange(this.props.checked);
-  }
+  return (
+    <input
+      type="checkbox"
+      name="header-checkbox"
+      checked={checked}
+      onChange={onChange}
+    />
+  );
+});
 
-  render() {
-    return (
-      <input
-        type="checkbox"
-        name="header-checkbox"
-        checked={this.props.checked}
-        onChange={this.onChange}
-      />
-    );
-  }
-}
+HeaderCheckBox.displayName = "HeaderCheckBox";
 
 export default HeaderCheckBox;

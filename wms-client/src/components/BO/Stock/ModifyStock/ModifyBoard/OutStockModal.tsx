@@ -1,13 +1,20 @@
-import React, { Component } from "react";
+import React, { useState, useEffect, useCallback, ChangeEvent, KeyboardEvent } from "react";
+import { OutStockRequestCreate } from "../../../../../types";
 import { Modal, Button, Form, Row, Col, InputGroup } from "react-bootstrap";
-import Switch from "@material-ui/core/Switch";
+import Switch from "@mui/material/Switch";
 import { StockIdentifierType } from "../../../../../enums/Enums";
 import { copy } from "../../../../../utilities/DeepCopy";
 import { updateStockInfoCopy } from "../../Utilities/StockInfoHelperMethods";
 
-import type { MutableStockRow } from "../../Utilities/StockInfoHelperMethods";
+// ============================================
+// Type Definitions
+// ============================================
+interface OutStockRequestErrors {
+  quantity1: string;
+  quantity2: string;
+}
 
-interface OutStockDraft extends MutableStockRow {
+interface OutStockRequestState {
   productNo: string;
   type: string;
   quantity: string;
@@ -15,49 +22,43 @@ interface OutStockDraft extends MutableStockRow {
   quantity2: string;
   unit: string;
   reason: string;
-  errors: { quantity?: string; quantity1?: string; quantity2?: string };
+  errors: OutStockRequestErrors;
 }
 
-interface OutStockSubmit {
-  productNo: string;
-  type: string;
-  unit: string;
-  reason: string;
-  quantity: string;
-}
-
-interface Props {
-  show: boolean;
-  productNo: string;
-  handleModalClose: () => void;
-  handleOutStockRequestSubmit: (request: OutStockSubmit) => void;
-}
-
-interface State {
+interface InitialState {
   assignMode: boolean;
-  outStockRequest: OutStockDraft;
+  isSubmitting: boolean;
+  outStockRequest: OutStockRequestState;
 }
 
 
-class OutStockModal extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = this.initialState();
-    this.handleAssignMode = this.handleAssignMode.bind(this);
-    this.handleRequestChange = this.handleRequestChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
+interface OutStockModalProps {
+  productNo: string;
+  show: boolean;
+  handleModalClose: () => void;
+  handleOutStockRequestCreate: (request: OutStockRequestCreate) => void;
+}
 
-  initialState() {
+// ============================================
+// Component
+// ============================================
+const OutStockModal: React.FC<OutStockModalProps> = ({
+  productNo,
+  show,
+  handleModalClose,
+  handleOutStockRequestCreate
+}) => {
+  const createInitialState = useCallback((): InitialState => {
     return {
       assignMode: false,
+      isSubmitting: false,
       outStockRequest: {
-        productNo: this.props.productNo,
+        productNo: productNo,
         type: StockIdentifierType.roll,
-        quantity: "隨意",
+        quantity: "\u96a8\u610f",
         quantity1: "",
         quantity2: "",
-        unit: "碼",
+        unit: "\u78bc",
         reason: "",
         errors: {
           quantity1: "",
@@ -65,234 +66,382 @@ class OutStockModal extends Component<Props, State> {
         }
       }
     };
-  }
+  }, [productNo]);
 
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.productNo !== prevProps.productNo) {
-      let initialState = this.initialState();
-      this.setState(initialState);
-    }
-  }
+  const [assignMode, setAssignMode] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [outStockRequest, setOutStockRequest] = useState<OutStockRequestState>(() => createInitialState().outStockRequest);
 
-  handleAssignMode() {
-    this.setState({ assignMode: !this.state.assignMode });
-  }
+  useEffect(() => {
+    const initialState = createInitialState();
+    setAssignMode(initialState.assignMode);
+    setIsSubmitting(initialState.isSubmitting);
+    setOutStockRequest(initialState.outStockRequest);
+  }, [productNo, createInitialState]);
 
-  handleRequestChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    const outStockRequestsCopy = copy(this.state.outStockRequest) as OutStockDraft;
+  const handleAssignMode = useCallback(() => {
+    setAssignMode(prev => !prev);
+  }, []);
+
+  const handleRequestChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
-    updateStockInfoCopy(outStockRequestsCopy, name, value);
+    setOutStockRequest(prevRequest => {
+      const outStockRequestsCopy = copy(prevRequest) as OutStockRequestState;
+      updateStockInfoCopy(outStockRequestsCopy, name, value);
 
-    if (this.state.assignMode) {
-      outStockRequestsCopy.quantity = "隨意";
-    }
+      if (assignMode) {
+        outStockRequestsCopy.quantity = "\u96a8\u610f";
+      }
 
-    this.setState({ outStockRequest: outStockRequestsCopy });
-  }
+      return outStockRequestsCopy;
+    });
+  }, [assignMode]);
 
-  handleSubmit() {
-    const { assignMode, outStockRequest } = this.state;
-    const newOutStockRequest: OutStockSubmit = {
-      productNo: outStockRequest.productNo,
-      type: outStockRequest.type ?? "",
-      unit: outStockRequest.unit ?? "",
-      reason: outStockRequest.reason ?? "",
-      quantity: "",
-    };
+  const checkFormAlgorithm = useCallback((request: OutStockRequestState): boolean => {
+    let isFormValid = false;
 
-    newOutStockRequest.quantity = assignMode
-      ? "約" + outStockRequest.quantity1 + "~" + outStockRequest.quantity2
-      : outStockRequest.quantity;
-
-    this.props.handleOutStockRequestSubmit(newOutStockRequest);
-  }
-
-  checkFormAlgorithm(outStockRequest: OutStockDraft) {
-    var isFormValid = false;
-
-    if (this.state.assignMode) {
+    if (assignMode) {
       if (
-        outStockRequest.errors.quantity1 === "" &&
-        Number(outStockRequest.quantity1) > 0 &&
-        outStockRequest.errors.quantity2 === "" &&
-        Number(outStockRequest.quantity2) > 0 &&
-        outStockRequest.reason !== ""
+        request.errors.quantity1 === "" &&
+        Number(request.quantity1) > 0 &&
+        request.errors.quantity2 === "" &&
+        Number(request.quantity2) > 0 &&
+        request.reason !== ""
       ) {
         isFormValid = true;
       } else {
         isFormValid = false;
       }
     } else {
-      if (outStockRequest.reason !== "") {
+      if (request.reason !== "") {
         isFormValid = true;
       }
     }
 
     return isFormValid;
-  }
+  }, [assignMode]);
 
-  render() {
-    const { assignMode, outStockRequest } = this.state;
-    const { errors } = this.state.outStockRequest;
-    let isFormValid = this.checkFormAlgorithm(outStockRequest);
+  const handleSubmit = useCallback(() => {
+    setIsSubmitting(true);
 
-    return (
-      <Modal
-        centered
-        show={this.props.show}
-        onHide={this.props.handleModalClose}
+    const newOutStockRequest: OutStockRequestCreate = {
+      productNo: outStockRequest.productNo,
+      type: outStockRequest.type,
+      unit: outStockRequest.unit,
+      reason: outStockRequest.reason,
+      quantity: assignMode
+        ? "\u7d04" + outStockRequest.quantity1 + "~" + outStockRequest.quantity2
+        : outStockRequest.quantity
+    };
+
+    handleOutStockRequestCreate(newOutStockRequest);
+    setIsSubmitting(false);
+  }, [assignMode, outStockRequest, handleOutStockRequestCreate]);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter" && checkFormAlgorithm(outStockRequest)) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  }, [checkFormAlgorithm, outStockRequest, handleSubmit]);
+
+  const { errors } = outStockRequest;
+  const isFormValid = checkFormAlgorithm(outStockRequest);
+
+  return (
+    <Modal
+      centered
+      show={show}
+      onHide={handleModalClose}
+      aria-labelledby="outstock-modal-title"
+      aria-describedby="outstock-modal-description"
+      backdrop="static"
+      keyboard={true}
+    >
+      <Modal.Header
+        closeButton
+        style={{
+          background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)",
+          color: "var(--color-white)",
+          borderBottom: "none",
+          padding: "var(--spacing-4)",
+        }}
+        closeVariant="white"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>拉貨要求</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="container">
-            <Form>
-              <Form.Group as={Row}>
-                <Form.Label column md={4}>
-                  貨號
-                </Form.Label>
-                <Col md={8}>
-                  <Form.Control
-                    type="text"
-                    name="productNo"
-                    value={outStockRequest.productNo}
-                    disabled
-                  />
-                </Col>
-              </Form.Group>
-              <Form.Group as={Row}>
-                <Form.Label column md={4}>
-                  型態
-                </Form.Label>
-                <Col md={8}>
-                  <Form.Control
-                    as="select"
-                    name="type"
-                    defaultValue={StockIdentifierType.roll}
-                    onChange={this.handleRequestChange}
-                  >
-                    {Object.keys(StockIdentifierType).map((type, index) => (
-                      <option
-                        key={index}
-                        value={(StockIdentifierType as Record<string, string>)[type]}
+        <Modal.Title
+          id="outstock-modal-title"
+          style={{
+            fontWeight: "var(--font-weight-semibold)",
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--spacing-2)",
+          }}
+        >
+          <i className="fa fa-shopping-cart" aria-hidden="true" />
+          拉貨要求
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body id="outstock-modal-description">
+        <div className="container">
+          <Form onKeyDown={handleKeyDown}>
+            <Form.Group as={Row} className="mb-3">
+              <Form.Label
+                column
+                md={4}
+                htmlFor="productNo"
+                style={{
+                  fontWeight: "var(--font-weight-medium)",
+                  color: "var(--color-gray-700)"
+                }}
+              >
+                {"\u8ca8\u865f"}
+              </Form.Label>
+              <Col md={8}>
+                <Form.Control
+                  type="text"
+                  id="productNo"
+                  name="productNo"
+                  value={outStockRequest.productNo}
+                  disabled
+                  aria-readonly="true"
+                  style={{
+                    backgroundColor: "var(--color-gray-100)",
+                    fontWeight: "var(--font-weight-medium)"
+                  }}
+                />
+              </Col>
+            </Form.Group>
+            <Form.Group as={Row} className="mb-3">
+              <Form.Label
+                column
+                md={4}
+                htmlFor="type"
+                style={{
+                  fontWeight: "var(--font-weight-medium)",
+                  color: "var(--color-gray-700)"
+                }}
+              >
+                {"\u578b\u614b"}
+              </Form.Label>
+              <Col md={8}>
+                <Form.Control
+                  as="select"
+                  id="type"
+                  name="type"
+                  defaultValue={StockIdentifierType.roll}
+                  onChange={handleRequestChange}
+                  aria-label="選擇庫存型態"
+                >
+                  {Object.keys(StockIdentifierType).map((type, index) => (
+                    <option key={index} value={StockIdentifierType[type]}>
+                      {StockIdentifierType[type]}
+                    </option>
+                  ))}
+                </Form.Control>
+              </Col>
+            </Form.Group>
+            <Form.Group as={Row} className="mb-3">
+              <Form.Label
+                column
+                md={2}
+                style={{
+                  fontWeight: "var(--font-weight-medium)",
+                  color: "var(--color-gray-700)"
+                }}
+              >
+                {"\u6578\u91cf"}
+              </Form.Label>
+              <Col md={2} className="d-flex align-items-center">
+                <Switch
+                  color="primary"
+                  name="assignMode"
+                  checked={assignMode}
+                  onChange={handleAssignMode}
+                  slotProps={{
+                    input: {
+                      "aria-label": assignMode ? "\u5207\u63db\u70ba\u96a8\u610f\u6578\u91cf" : "\u5207\u63db\u70ba\u6307\u5b9a\u6578\u91cf\u7bc4\u570d"
+                    }
+                  }}
+                />
+              </Col>
+              {assignMode ? (
+                <React.Fragment>
+                  <Col md={4}>
+                    <InputGroup>
+                      <InputGroup.Text
+                        style={{
+                          backgroundColor: "var(--color-primary-light)",
+                          color: "var(--color-primary-dark)",
+                          fontWeight: "var(--font-weight-medium)"
+                        }}
                       >
-                        {(StockIdentifierType as Record<string, string>)[type]}
-                      </option>
-                    ))}
-                  </Form.Control>
-                </Col>
-              </Form.Group>
-              <Form.Group as={Row}>
-                <Form.Label column md={2}>
-                  數量
-                </Form.Label>
-                <Col md={2}>
-                  <Switch
-                    color="primary"
-                    name="assignMode"
-                    checked={assignMode}
-                    onChange={this.handleAssignMode}
-                  />
-                </Col>
-                {assignMode ? (
-                  <React.Fragment>
-                    <Col md={4}>
-                      <InputGroup>
-                        <InputGroup.Prepend>
-                          <InputGroup.Text>約</InputGroup.Text>
-                        </InputGroup.Prepend>
-                        <Form.Control
-                          type="text"
-                          name="quantity1"
-                          placeholder="數量"
-                          onChange={this.handleRequestChange}
-                          isInvalid={Boolean(errors.quantity1)}
-                        />
-                        {errors.quantity1 && (
-                          <Form.Control.Feedback type="invalid">
-                            {errors.quantity1}
-                          </Form.Control.Feedback>
-                        )}
-                      </InputGroup>
-                    </Col>
-                    <Form.Label column md={1}>
-                      ~
-                    </Form.Label>
-                    <Col md={3}>
+                        {"\u7d04"}
+                      </InputGroup.Text>
                       <Form.Control
-                        type="text"
-                        name="quantity2"
-                        placeholder="數量"
-                        onChange={this.handleRequestChange}
-                        isInvalid={Boolean(errors.quantity2)}
+                        type="number"
+                        name="quantity1"
+                        placeholder="最小數量"
+                        onChange={handleRequestChange}
+                        isInvalid={!!errors.quantity1}
+                        aria-label="最小數量"
+                        aria-describedby={errors.quantity1 ? "quantity1-error" : undefined}
+                        min="0"
                       />
-                      {errors.quantity2 && (
-                        <Form.Control.Feedback type="invalid">
-                          {errors.quantity2}
+                      {errors.quantity1 && (
+                        <Form.Control.Feedback
+                          type="invalid"
+                          id="quantity1-error"
+                          role="alert"
+                        >
+                          {errors.quantity1}
                         </Form.Control.Feedback>
                       )}
-                    </Col>
-                  </React.Fragment>
-                ) : (
-                  <Col md={8}>
-                    <Form.Control
-                      type="text"
-                      name="quantity"
-                      value={outStockRequest.quantity}
-                      disabled
-                    />
+                    </InputGroup>
                   </Col>
-                )}
-              </Form.Group>
-              <Form.Group as={Row}>
-                <Form.Label column md={4}>
-                  單位
-                </Form.Label>
-                <Col md={8}>
-                  <Form.Control
-                    as="select"
-                    name="unit"
-                    defaultValue="碼"
-                    onChange={this.handleRequestChange}
+                  <Form.Label
+                    column
+                    md={1}
+                    className="text-center"
+                    style={{ color: "var(--color-gray-500)" }}
                   >
-                    <option value="碼">碼</option>
-                    <option value="尺">尺</option>
-                  </Form.Control>
-                </Col>
-              </Form.Group>
-              <Form.Group as={Row}>
-                <Form.Label column md={4}>
-                  出庫原因
-                </Form.Label>
+                    ~
+                  </Form.Label>
+                  <Col md={3}>
+                    <Form.Control
+                      type="number"
+                      name="quantity2"
+                      placeholder="最大數量"
+                      onChange={handleRequestChange}
+                      isInvalid={!!errors.quantity2}
+                      aria-label="最大數量"
+                      aria-describedby={errors.quantity2 ? "quantity2-error" : undefined}
+                      min="0"
+                    />
+                    {errors.quantity2 && (
+                      <Form.Control.Feedback
+                        type="invalid"
+                        id="quantity2-error"
+                        role="alert"
+                      >
+                        {errors.quantity2}
+                      </Form.Control.Feedback>
+                    )}
+                  </Col>
+                </React.Fragment>
+              ) : (
                 <Col md={8}>
                   <Form.Control
                     type="text"
-                    name="outStockReason"
-                    placeholder="請輸入出庫原因"
-                    onChange={this.handleRequestChange}
+                    name="quantity"
+                    value={outStockRequest.quantity}
+                    disabled
+                    aria-readonly="true"
+                    style={{
+                      backgroundColor: "var(--color-gray-100)"
+                    }}
                   />
                 </Col>
-              </Form.Group>
-            </Form>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={this.props.handleModalClose}>
-            取消
-          </Button>
-          <Button
-            variant="primary"
-            disabled={!isFormValid}
-            onClick={this.handleSubmit}
-          >
-            儲存至明細
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    );
-  }
-}
+              )}
+            </Form.Group>
+            <Form.Group as={Row} className="mb-3">
+              <Form.Label
+                column
+                md={4}
+                htmlFor="unit"
+                style={{
+                  fontWeight: "var(--font-weight-medium)",
+                  color: "var(--color-gray-700)"
+                }}
+              >
+                {"\u55ae\u4f4d"}
+              </Form.Label>
+              <Col md={8}>
+                <Form.Control
+                  as="select"
+                  id="unit"
+                  name="unit"
+                  defaultValue="碼"
+                  onChange={handleRequestChange}
+                  aria-label="選擇單位"
+                >
+                  <option value="碼">{"\u78bc"}</option>
+                  <option value="尺">{"\u5c3a"}</option>
+                </Form.Control>
+              </Col>
+            </Form.Group>
+            <Form.Group as={Row} className="mb-3">
+              <Form.Label
+                column
+                md={4}
+                htmlFor="outStockReason"
+                style={{
+                  fontWeight: "var(--font-weight-medium)",
+                  color: "var(--color-gray-700)"
+                }}
+              >
+                {"\u51fa\u5eab\u539f\u56e0"}
+                <span
+                  style={{
+                    color: "var(--color-danger)",
+                    marginLeft: "var(--spacing-1)"
+                  }}
+                  aria-hidden="true"
+                >
+                  *
+                </span>
+              </Form.Label>
+              <Col md={8}>
+                <Form.Control
+                  type="text"
+                  id="outStockReason"
+                  name="outStockReason"
+                  placeholder="請輸入出庫原因"
+                  onChange={handleRequestChange}
+                  aria-required="true"
+                  autoComplete="off"
+                />
+                <Form.Text
+                  className="text-muted"
+                  style={{ fontSize: "var(--font-size-sm)" }}
+                >
+                  {"\u8acb\u586b\u5beb\u6b64\u6b21\u51fa\u5eab\u7684\u539f\u56e0\u8aaa\u660e"}
+                </Form.Text>
+              </Col>
+            </Form.Group>
+          </Form>
+        </div>
+      </Modal.Body>
+      <Modal.Footer
+        style={{
+          backgroundColor: "var(--color-gray-50)",
+          borderTop: "1px solid var(--color-gray-200)",
+          gap: "var(--spacing-2)"
+        }}
+      >
+        <Button
+          variant="secondary"
+          onClick={handleModalClose}
+          style={{
+            fontWeight: "var(--font-weight-medium)"
+          }}
+        >
+          {"\u53d6\u6d88"}
+        </Button>
+        <Button
+          variant="primary"
+          disabled={!isFormValid || isSubmitting}
+          onClick={handleSubmit}
+          aria-busy={isSubmitting}
+          style={{
+            fontWeight: "var(--font-weight-medium)"
+          }}
+        >
+          {isSubmitting ? "\u8655\u7406\u4e2d..." : "\u5132\u5b58\u81f3\u660e\u7d30"}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
 
 export default OutStockModal;

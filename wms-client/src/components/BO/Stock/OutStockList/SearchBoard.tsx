@@ -1,40 +1,50 @@
-import React, { Component } from "react";
+import React, { Component, MouseEvent } from "react";
 import SearchContainer from "./SearchContainer";
 import { copy } from "../../../../utilities/DeepCopy";
+import { SelectedUser, OutStockUpdateRequest } from "../../../../types";
+import { OutStockInfo } from "./SearchInfo";
 
 import equal from "fast-deep-equal";
 
-import type { OutStockRequestRecord } from "../../../../types/domain";
-import type { SelectedUser } from "./UserSelection";
-
-interface SelectCell {
+interface ToBeSubmitItem {
   selected: boolean;
   whName: string;
 }
 
-type DayMap = Record<string, SelectCell>;
-type SubmitMap = Record<string, DayMap>;
+interface ToBeSubmitDateMap {
+  [id: string]: ToBeSubmitItem;
+}
 
-interface Props {
-  queryResult: Record<string, OutStockRequestRecord[]>;
+interface ToBeSubmitMap {
+  [date: string]: ToBeSubmitDateMap;
+}
+
+interface QueryResult {
+  [date: string]: OutStockInfo[];
+}
+
+interface SearchBoardProps {
+  queryResult: QueryResult;
   selectedUserList: SelectedUser[];
-  handleSubmitClick: (request: { outStockUpdate: Record<string, string> }) => void;
-  handleDeleteClick: (info: OutStockRequestRecord) => void;
-  downloadFile: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  handleSubmitClick: (request: OutStockUpdateRequest) => void;
+  handleDeleteClick: (info: OutStockInfo) => void;
+  downloadFile: (e: { target: { name: string; value: string } }) => void;
   handleModalShow: () => void;
   initialize: () => void;
 }
 
-interface State {
-  toBeSubmit: SubmitMap;
+interface SearchBoardState {
+  toBeSubmit: ToBeSubmitMap;
+  /** Date tab currently shown; falls back to the first date when unset or no longer listed. */
+  activeDate: string | null;
 }
 
-
-class SearchBoard extends Component<Props, State> {
-  constructor(props: Props) {
+class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
+  constructor(props: SearchBoardProps) {
     super(props);
     this.state = {
-      toBeSubmit: {}
+      toBeSubmit: {},
+      activeDate: null
     };
     this.handleToBeSubmitChange = this.handleToBeSubmitChange.bind(this);
     this.handleToBeSubmitWHChange = this.handleToBeSubmitWHChange.bind(this);
@@ -42,7 +52,7 @@ class SearchBoard extends Component<Props, State> {
     this.onSubmitClick = this.onSubmitClick.bind(this);
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: SearchBoardProps): void {
     if (!equal(prevProps.queryResult, this.props.queryResult)) {
       this.setState({
         toBeSubmit: this.initialToBeSubmit(
@@ -53,22 +63,22 @@ class SearchBoard extends Component<Props, State> {
     }
   }
 
-  initialToBeSubmit(queryResult: Props['queryResult'], selectedUserList: SelectedUser[]): SubmitMap {
-    const toBeSubmit: SubmitMap = {};
+  initialToBeSubmit(queryResult: QueryResult, selectedUserList: SelectedUser[]): ToBeSubmitMap {
+    const toBeSubmit: ToBeSubmitMap = {};
     const dateArray = Object.keys(queryResult).sort();
     const userArray = this.extractUser(selectedUserList);
 
     dateArray.forEach(date => {
       toBeSubmit[date] = {};
-      let outStockListFiltered = this.filterAlgorithm(
+      const outStockListFiltered = this.filterAlgorithm(
         date,
         queryResult,
         userArray
       );
-      let waitSelectList = outStockListFiltered.filter(
+      const waitSelectList = outStockListFiltered.filter(
         outStockRequest => outStockRequest.handled === false
       );
-      waitSelectList.map(
+      waitSelectList.forEach(
         object => (toBeSubmit[date][object.id] = { selected: true, whName: "" })
       );
     });
@@ -78,14 +88,14 @@ class SearchBoard extends Component<Props, State> {
   extractUser(list: SelectedUser[]): string[] {
     const array: string[] = [];
 
-    list.map(object => (object.selected ? array.push(object.user) : null));
+    list.forEach(object => (object.selected ? array.push(object.user) : null));
 
     return array;
   }
 
-  filterAlgorithm(date: string, queryResult: Props['queryResult'], userArray: string[]): OutStockRequestRecord[] {
-    let outStockList = queryResult[date];
-    const outStockListFiltered: OutStockRequestRecord[] = [];
+  filterAlgorithm(date: string, queryResult: QueryResult, userArray: string[]): OutStockInfo[] {
+    const outStockList = queryResult[date];
+    const outStockListFiltered: OutStockInfo[] = [];
 
     // filter outStockList by using user array
     userArray.forEach(user =>
@@ -96,37 +106,37 @@ class SearchBoard extends Component<Props, State> {
 
     // sort the list by productNo
     return outStockListFiltered.sort(function(a, b) {
-      let productA = a.productNo.toUpperCase();
-      let productB = b.productNo.toUpperCase();
+      const productA = a.productNo.toUpperCase();
+      const productB = b.productNo.toUpperCase();
       if (productA < productB) {
         return -1;
       }
-      if (productA < productB) {
+      if (productA > productB) {
         return 1;
       }
       return 0;
     });
   }
 
-  handleToBeSubmitChange(date: string, checked: boolean, id: number) {
-    const listCopy = copy(this.state.toBeSubmit) as SubmitMap;
+  handleToBeSubmitChange(date: string, checked: boolean, id: number): void {
+    const listCopy = copy(this.state.toBeSubmit) as ToBeSubmitMap;
 
     listCopy[date][id].selected = !checked;
 
     this.setState({ toBeSubmit: listCopy });
   }
 
-  handleToBeSubmitWHChange(date: string, value: string, id: number) {
-    const listCopy: SubmitMap = { ...this.state.toBeSubmit };
+  handleToBeSubmitWHChange(date: string, value: string, id: number): void {
+    const listCopy = { ...this.state.toBeSubmit };
 
     listCopy[date][id].whName = value;
 
     this.setState({ toBeSubmit: listCopy });
   }
 
-  allSelectMethod(date: string, selected: boolean) {
-    const listCopy = copy(this.state.toBeSubmit) as SubmitMap;
-    let keyArray = Object.keys(listCopy[date]);
+  allSelectMethod(date: string, selected: boolean): void {
+    const listCopy = copy(this.state.toBeSubmit) as ToBeSubmitMap;
+    const keyArray = Object.keys(listCopy[date]);
 
     for (let i = 0; i < keyArray.length; i += 1) {
       if (listCopy[date][keyArray[i]].selected !== selected) {
@@ -137,29 +147,29 @@ class SearchBoard extends Component<Props, State> {
     this.setState({ toBeSubmit: listCopy });
   }
 
-  onSubmitClick() {
-    const stateCopy = copy(this.state.toBeSubmit) as SubmitMap;
-    const requests: Record<string, string> = {};
+  onSubmitClick(_e: MouseEvent<HTMLButtonElement>): void {
+    const stateCopy = copy(this.state.toBeSubmit) as ToBeSubmitMap;
+    const requests: { [id: string]: string } = {};
 
-    for (let day in stateCopy) {
-      for (let id in stateCopy[day]) {
+    for (const day in stateCopy) {
+      for (const id in stateCopy[day]) {
         if (stateCopy[day][id].selected) {
           requests[id] = stateCopy[day][id].whName;
         }
       }
     }
 
-    let outStockUpdateRequest = { outStockUpdate: requests };
+    const outStockUpdateRequest: OutStockUpdateRequest = { outStockUpdate: requests };
 
     this.props.handleSubmitClick(outStockUpdateRequest);
   }
 
-  submitValidation() {
+  submitValidation(): boolean {
     const { toBeSubmit } = this.state;
-    var isValid = false;
+    let isValid = false;
 
-    for (let day in toBeSubmit) {
-      for (let id in toBeSubmit[day]) {
+    for (const day in toBeSubmit) {
+      for (const id in toBeSubmit[day]) {
         if (toBeSubmit[day][id].selected) {
           if (!equal(toBeSubmit[day][id].whName, "")) {
             isValid = true;
@@ -174,22 +184,26 @@ class SearchBoard extends Component<Props, State> {
     return !isValid;
   }
 
-  render() {
+  render(): React.ReactNode {
     const { queryResult, selectedUserList } = this.props;
-    const { toBeSubmit } = this.state;
+    const { toBeSubmit, activeDate } = this.state;
 
     if (queryResult === undefined) {
       return null;
     } else {
       const dateArray = Object.keys(queryResult).sort();
       const userArray = this.extractUser(selectedUserList);
+      const currentDate =
+        activeDate !== null && dateArray.includes(activeDate)
+          ? activeDate
+          : dateArray[0];
 
       return (
         <React.Fragment>
           <div className="row justify-content-end">
             <div className="col-md-auto">
               <button
-                className="btn btn-primary mr-2"
+                className="btn btn-primary me-2"
                 disabled={this.submitValidation()}
                 onClick={this.onSubmitClick}
               >
@@ -204,17 +218,20 @@ class SearchBoard extends Component<Props, State> {
                 return (
                   <a
                     className={
-                      index === 0
+                      date === currentDate
                         ? "nav-item nav-link active"
                         : "nav-item nav-link"
                     }
                     id={"nav-tab-" + date}
                     key={index}
-                    data-toggle="tab"
                     href={"#nav-" + date}
                     role="tab"
                     aria-controls={"nav-" + date}
-                    aria-selected={index === 0}
+                    aria-selected={date === currentDate}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      this.setState({ activeDate: date });
+                    }}
                   >
                     {date}
                   </a>
@@ -224,7 +241,7 @@ class SearchBoard extends Component<Props, State> {
           </nav>
           <div className="tab-content" id="nav-tabContent">
             {dateArray.map((date, index) => {
-              let outStockListFiltered = this.filterAlgorithm(
+              const outStockListFiltered = this.filterAlgorithm(
                 date,
                 queryResult,
                 userArray
@@ -234,6 +251,7 @@ class SearchBoard extends Component<Props, State> {
                 <SearchContainer
                   key={index}
                   index={index}
+                  active={date === currentDate}
                   date={date}
                   outStockListFiltered={outStockListFiltered}
                   toBeSubmit={toBeSubmit[date]}
@@ -253,4 +271,5 @@ class SearchBoard extends Component<Props, State> {
     }
   }
 }
+
 export default SearchBoard;

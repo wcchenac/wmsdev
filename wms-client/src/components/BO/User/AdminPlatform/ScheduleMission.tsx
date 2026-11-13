@@ -1,67 +1,57 @@
-import React, { Component } from "react";
-import { missionTrigger } from "../../../../actions/StockAcions";
-import LoadingOverlay from "react-loading-overlay";
+import React, { useState, useCallback, MouseEvent } from "react";
+import { missionTrigger } from "../../../../actions/StockActions";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 
-interface State {
-  isLoading: boolean;
-}
+const ScheduleMission: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-class ScheduleMission extends Component<Record<string, never>, State> {
-  constructor(props: Record<string, never>) {
-    super(props);
-    this.state = {
-      isLoading: false,
-    };
-    this.handleMissionTrigger = this.handleMissionTrigger.bind(this);
-  }
+  const handleMissionTrigger = useCallback((e: MouseEvent<HTMLButtonElement>): void => {
+    const arr = e.currentTarget.name.split("-");
 
-  handleMissionTrigger(e: React.MouseEvent<HTMLButtonElement>) {
-    const arr = (e.target as HTMLButtonElement).name.split("-");
-
-    this.setState({ isLoading: true }, () => {
-      missionTrigger(arr[0], arr[1]).then(() => {
-        this.setState({ isLoading: false });
-        toast.success("Misson Complete");
-      });
+    setIsLoading(true);
+    missionTrigger(arr[0], arr[1]).then(() => {
+      setIsLoading(false);
+      toast.success("Misson Complete");
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
-  }
+  }, []);
 
-  render() {
-    return (
-      <div className="container">
-        <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
-          <div style={{ height: "80vh" }}>
-            <button
-              className="btn btn-primary mr-2"
-              name="daily-stockCompare"
-              onClick={this.handleMissionTrigger}
-            >
-              每日比對
-            </button>
-            <button
-              className="btn btn-primary mr-2"
-              name="weekly-syncProductCategory"
-              onClick={this.handleMissionTrigger}
-            >
-              貨號類別同步
-            </button>
-            <button
-              className="btn btn-primary"
-              name="weekly-syncProductCategory"
-              // onClick={this.handleMissionTrigger}
-              disabled
-            >
-              貨號品名同步
-            </button>
-          </div>
-          <ToastContainer />
-        </LoadingOverlay>
-      </div>
-    );
-  }
-}
+  return (
+    <div className="container">
+      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+        <div style={{ height: "80vh" }}>
+          <button
+            className="btn btn-primary me-2"
+            name="daily-stockCompare"
+            onClick={handleMissionTrigger}
+          >
+            每日比對
+          </button>
+          <button
+            className="btn btn-primary me-2"
+            name="weekly-syncProductCategory"
+            onClick={handleMissionTrigger}
+          >
+            貨號類別同步
+          </button>
+          <button
+            className="btn btn-primary"
+            name="weekly-syncProductCategory"
+            // onClick={handleMissionTrigger}
+            disabled
+          >
+            貨號品名同步
+          </button>
+        </div>
+      </LoadingOverlay>
+    </div>
+  );
+};
 
 export default ScheduleMission;

@@ -1,244 +1,196 @@
-import React, { Component } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
+import { useDispatch } from "react-redux";
 import { RoleOption } from "../../../../enums/Enums";
-import { connect } from "react-redux";
-import { withRouter } from "react-router-dom";
 import { registerUser } from "../../../../actions/UserActions";
-import LoadingOverlay from "react-loading-overlay";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import "react-toastify/dist/ReactToastify.css";
+import { AppDispatch } from "../../../../types";
 
-import type { RouteComponentProps } from "react-router-dom";
-import type { RootState, UserState, ErrorState } from "../../../../types/state";
-
-interface Registration {
-  employeeId: string;
-  fullName: string;
-  password: string;
-  role: string;
-}
-
-interface FormErrors {
-  [field: string]: string | undefined;
-}
-
-interface StateProps {
-  user: UserState;
-  errors: ErrorState;
-}
-
-interface DispatchProps {
-  registerUser: (
-    registration: Registration,
-    history: RouteComponentProps["history"]
-  ) => Promise<{ status?: number } | undefined>;
-}
-
-type Props = StateProps & DispatchProps & RouteComponentProps;
-
-interface State {
+interface UserRegisterState {
   isLoading: boolean;
   employeeId: string;
   fullName: string;
   password: string;
   role: string;
-  errors: FormErrors;
 }
 
+/**
+ * The backend's 400 answers (ApiResponse) to a registration the admin can fix, in Chinese.
+ */
+const REGISTER_REJECTED_MESSAGES = new Map<string, string>([
+  ["EmployeeId is already exists!", "員工編號已存在"],
+  ["Role setting error", "角色設定錯誤"],
+]);
 
-class UserRegister extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = this.initialState();
-    this.userKeyInChange = this.userKeyInChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
+/** The Chinese message for a 400 the admin can fix, or undefined for any other failure. */
+function registerRejectedMessage(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("response" in error)) return undefined;
+  const response = error.response;
+  if (typeof response !== "object" || response === null) return undefined;
+  if (!("status" in response) || response.status !== 400) return undefined;
+  const data = "data" in response ? response.data : undefined;
+  if (typeof data !== "object" || data === null || !("message" in data)) return undefined;
+  const message = data.message;
+  return typeof message === "string" ? REGISTER_REJECTED_MESSAGES.get(message) : undefined;
+}
 
-  initialState() {
-    return {
-      isLoading: false,
-      employeeId: "",
-      fullName: "",
-      password: "",
-      role: "",
-      errors: {}
-    };
-  }
+const initialState: UserRegisterState = {
+  isLoading: false,
+  employeeId: "",
+  fullName: "",
+  password: "",
+  role: ""
+};
 
-  UNSAFE_componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.errors) {
-      this.setState({
-        errors: nextProps.errors as FormErrors
-      });
-    }
-  }
+const UserRegister: React.FC = () => {
+  const [state, setState] = useState<UserRegisterState>(initialState);
+  const dispatch = useDispatch<AppDispatch>();
 
-  userKeyInChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    const { name, value } = e.target;
-    if (name === "employeeId" || name === "fullName" || name === "password" || name === "role") {
-      this.setState({ [name]: value } as Pick<State, "employeeId" | "fullName" | "password" | "role">);
-    }
-  }
+  const userKeyInChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+    setState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
-  handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
 
-    const { employeeId, fullName, password, role } = this.state;
+    const { employeeId, fullName, password, role } = state;
 
-    let registration = {
-      employeeId: employeeId,
-      fullName: fullName,
-      password: password,
-      role: role
+    const registration = {
+      employeeId,
+      fullName,
+      password,
+      role,
+      username: employeeId,
+      confirmPassword: password
     };
 
-    this.setState({ isLoading: true }, () => {
-      this.props
-        .registerUser(registration, this.props.history)
-        .then(response => {
-          this.setState(this.initialState());
-          toast.success("register success");
-        })
-        .catch(err => {
-          this.setState({ isLoading: false });
-          toast.error("register fail");
-        });
-    });
-  }
+    setState((prev) => ({ ...prev, isLoading: true }));
 
-  submissionValidate() {
-    const { employeeId, fullName, password, role } = this.state;
+    dispatch(registerUser(registration))
+      .then(() => {
+        setState(initialState);
+        toast.success("新增使用者成功");
+      })
+      .catch((error) => {
+        setState((prev) => ({ ...prev, isLoading: false }));
+        // A taken employee ID or an unknown role is named so the admin can fix it; anything
+        // else (and the 401 left to API.ts) gets the usual handling.
+        const rejectedMessage = registerRejectedMessage(error);
+        if (rejectedMessage) {
+          toast.error(rejectedMessage);
+        } else {
+          notifyRequestFailed(error);
+        }
+      });
+  };
 
-    if (
-      employeeId !== "" &&
-      fullName !== "" &&
-      password !== "" &&
-      role !== ""
-    ) {
-      return false;
-    }
+  const submissionValidate = (): boolean => {
+    const { employeeId, fullName, password, role } = state;
+    return !(employeeId !== "" && fullName !== "" && password !== "" && role !== "");
+  };
 
-    return true;
-  }
-
-  render() {
-    return (
-      <div className="container">
-        <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
-          <div style={{ height: "80vh" }}>
-            <div className="row justify-content-center">
-              <div
-                className="col-4"
-                style={{ border: "1px solid black", borderRadius: "5px" }}
-              >
-                <div className="mt-2 mb-2">
-                  <p className="h5 text-center mb-3">註冊新員工</p>
-                  <form onSubmit={this.handleSubmit}>
-                    <div className="form-group row">
-                      <label
-                        htmlFor="employeeId"
-                        className="col-4 col-form-label"
-                      >
-                        員工編號
-                      </label>
-                      <div className="col-8">
-                        <input
-                          type="text"
-                          id="employeeId"
-                          name="employeeId"
-                          className="form-control"
-                          placeholder="員工編號"
-                          onChange={this.userKeyInChange}
-                        />
-                      </div>
+  return (
+    <div className="container">
+      <LoadingOverlay active={state.isLoading} spinner={<Spinner />}>
+        <div style={{ height: "80vh" }}>
+          <div className="row justify-content-center">
+            <div
+              className="col-4"
+              style={{ border: "1px solid black", borderRadius: "5px" }}
+            >
+              <div className="mt-2 mb-3">
+                <p className="h5 text-center mb-3">註冊新員工</p>
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3 row">
+                    <label htmlFor="employeeId" className="col-4 col-form-label">
+                      員工編號
+                    </label>
+                    <div className="col-8">
+                      <input
+                        type="text"
+                        id="employeeId"
+                        name="employeeId"
+                        className="form-control"
+                        placeholder="員工編號"
+                        value={state.employeeId}
+                        onChange={userKeyInChange}
+                      />
                     </div>
-                    <div className="form-group row">
-                      <label
-                        htmlFor="fullName"
-                        className="col-4 col-form-label"
-                      >
-                        姓名
-                      </label>
-                      <div className="col-8">
-                        <input
-                          type="text"
-                          id="fullName"
-                          name="fullName"
-                          className="form-control"
-                          placeholder="姓名"
-                          onChange={this.userKeyInChange}
-                        />
-                      </div>
-                    </div>
-                    <div className="form-group row">
-                      <label
-                        htmlFor="password"
-                        className="col-4 col-form-label"
-                      >
-                        密碼
-                      </label>
-                      <div className="col-8">
-                        <input
-                          type="password"
-                          id="password"
-                          name="password"
-                          className="form-control"
-                          placeholder="密碼"
-                          onChange={this.userKeyInChange}
-                        />
-                      </div>
-                    </div>
-                    <div className="form-group row">
-                      <label htmlFor="role" className="col-4 col-form-label">
-                        權限
-                      </label>
-                      <div className="col-8">
-                        <select
-                          id="role"
-                          name="role"
-                          className="custom-select"
-                          defaultValue=""
-                          onChange={this.userKeyInChange}
-                        >
-                          {Object.keys(RoleOption).map((title, index) => (
-                            <option key={index} value={(RoleOption as Record<string, string>)[title]}>
-                              {title}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="row justify-content-center">
-                      <div className="col-6">
-                        <button
-                          type="submit"
-                          className="btn btn-primary btn-block"
-                          disabled={this.submissionValidate()}
-                        >
-                          註冊
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                  <div className="form-group">
-                    <ToastContainer />
                   </div>
-                </div>
+                  <div className="mb-3 row">
+                    <label htmlFor="fullName" className="col-4 col-form-label">
+                      姓名
+                    </label>
+                    <div className="col-8">
+                      <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        className="form-control"
+                        placeholder="姓名"
+                        value={state.fullName}
+                        onChange={userKeyInChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-3 row">
+                    <label htmlFor="password" className="col-4 col-form-label">
+                      密碼
+                    </label>
+                    <div className="col-8">
+                      <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        className="form-control"
+                        placeholder="密碼"
+                        value={state.password}
+                        onChange={userKeyInChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-3 row">
+                    <label htmlFor="role" className="col-4 col-form-label">
+                      權限
+                    </label>
+                    <div className="col-8">
+                      <select
+                        id="role"
+                        name="role"
+                        className="form-select"
+                        value={state.role}
+                        onChange={userKeyInChange}
+                      >
+                        {Object.keys(RoleOption).map((title, index) => (
+                          <option key={index} value={RoleOption[title]}>
+                            {title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="row justify-content-center">
+                    <div className="col-6">
+                      <button
+                        type="submit"
+                        className="btn btn-primary w-100"
+                        disabled={submissionValidate()}
+                      >
+                        註冊
+                      </button>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
-        </LoadingOverlay>
-      </div>
-    );
-  }
-}
+        </div>
+      </LoadingOverlay>
+    </div>
+  );
+};
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  user: state.user,
-  errors: state.errors
-});
-
-export default connect(mapStateToProps, { registerUser })(
-  withRouter(UserRegister)
-);
+export default UserRegister;

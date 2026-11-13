@@ -8,21 +8,3 @@ export function AppNavbar({ children }: { children: React.ReactNode }) {
     </nav>
   );
 }
-
-export function showStaticModal(Story: React.ComponentType) {
-  return (
-    <div className="show-static-modal">
-      <style>{`
-        .show-static-modal .modal.fade {
-          display: block;
-          opacity: 1;
-          position: relative;
-        }
-        .show-static-modal .modal-dialog {
-          margin: 1rem auto;
-        }
-      `}</style>
-      <Story />
-    </div>
-  );
-}

@@ -1,146 +1,112 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import { getOutStockToStoreOrder } from "../../../../actions/StockAcions";
-import LoadingOverlay from "react-loading-overlay";
+import React, { useState, useCallback, ChangeEvent, FormEvent } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
+import { getOutStockToStoreOrder } from "../../../../actions/StockActions";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
 import QueryOrder from "../InStock/Common/QueryOrder";
-import { isEmpty } from "../../../../utilities/IsEmpty";
+import { RootState, AppDispatch } from "../../../../types";
 
-import type { RootState } from "../../../../types/state";
-import type { ApiStatus, ProductInformation } from "../../../../types/domain";
-
-interface OrderSlice {
-  stockInfoes: ProductInformation[] | Record<string, never>;
+interface ProductInfo {
+  productNo?: string;
+  cName?: string;
+  cCCCODE?: string;
+  spec?: string;
+  packDesc?: string;
 }
 
-interface StateProps {
-  orderInfo: OrderSlice;
-}
+const QueryOutStockToStore: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isQuery, setIsQuery] = useState<boolean>(false);
+  const [orderNo, setOrderNo] = useState<string>("");
+  const [orderInfoes, setOrderInfoes] = useState<ProductInfo[]>([]);
+  const [isOrderValid, setIsOrderValid] = useState<boolean | undefined>(undefined);
 
-interface DispatchProps {
-  getOutStockToStoreOrder: (orderNo: string) => Promise<ApiStatus | undefined>;
-}
+  const orderInfo = useSelector((state: RootState) => state.stockInfo);
+  const dispatch = useDispatch<AppDispatch>();
 
-type Props = StateProps & DispatchProps;
+  const handleOrderNo = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setOrderNo(e.target.value);
+  }, []);
 
-interface State {
-  isLoading: boolean;
-  isQuery: boolean;
-  orderNo: string;
-  orderInfoes: ProductInformation[];
-  isOrderValid: boolean | undefined;
-}
+  const handleQueryOrderSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
 
-
-class QueryOutStockToStore extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      isQuery: false,
-      orderNo: "",
-      orderInfoes: [],
-      isOrderValid: undefined,
-    };
-    this.handleOrderNo = this.handleOrderNo.bind(this);
-    this.handleQueryOrderSubmit = this.handleQueryOrderSubmit.bind(this);
-  }
-
-  handleOrderNo(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.name === "orderNo") {
-      this.setState({ orderNo: e.target.value });
-    }
-  }
-
-  handleQueryOrderSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    this.setState({ isLoading: true }, () => {
-      this.props
-        .getOutStockToStoreOrder(this.state.orderNo)
-        .then((response) => {
-          if (response?.status === 200) {
-            this.setState({ isLoading: false, isQuery: true });
-          }
-        });
-    });
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.orderInfo !== prevProps.orderInfo) {
-      this.setState(
-        { orderInfoes: this.props.orderInfo.stockInfoes as ProductInformation[] },
-        function (this: QueryOutStockToStore) {
-          if (isEmpty(this.state.orderInfoes)) {
-            this.setState({ isOrderValid: false });
-          } else {
-            this.setState({ isOrderValid: true });
-          }
+      setIsLoading(true);
+      dispatch(getOutStockToStoreOrder(orderNo)).then((response: { status: number }) => {
+        if (response.status === 200) {
+          setIsLoading(false);
+          setIsQuery(true);
         }
-      );
-    }
-  }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch, orderNo]
+  );
 
-  render() {
-    const { isLoading, isQuery, orderInfoes, isOrderValid } = this.state;
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  // The backend answers an unknown order number with an empty list, so every new result
+  // decides whether the order was found.
+  useUpdateEffect(orderInfo.stockInfoes, (result) => {
+    const rows = Array.isArray(result) ? (result as ProductInfo[]) : [];
+    setOrderInfoes(rows);
+    setIsOrderValid(rows.length > 0);
+  });
 
-    return (
-      <div className="query_outStockToStore">
-        <div className="container">
-          <div className="row">
-            <QueryOrder
-              type="出庫單"
-              handleOrderNo={this.handleOrderNo}
-              handleQueryOrderSubmit={this.handleQueryOrderSubmit}
-              isOrderValid={isOrderValid}
-            />
-          </div>
-          <hr />
-          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div style={{ height: "80vh" }}>
-              {!isQuery ? null : (
-                <div className="table-wrapper-scroll-y scrollbar-70">
-                  <table className="table table-sm table-hover">
-                    <thead className="thead-dark">
-                      <tr>
-                        <th style={{ width: "15%" }}>貨號</th>
-                        <th style={{ width: "25%" }}>品名</th>
-                        <th style={{ width: "25%" }}>大牌品名</th>
-                        <th style={{ width: "25%" }}>規格</th>
-                        <th style={{ width: "10%" }}>基重</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orderInfoes.map((productInfo) => {
-                        return (
-                          <React.Fragment>
-                            <tr>
-                              <td> {productInfo.productNo}</td>
-                              <td> {productInfo.cName}</td>
-                              <td> {productInfo.cCCCODE}</td>
-                              <td> {productInfo.spec}</td>
-                              <td> {productInfo.packDesc}</td>
-                            </tr>
-                          </React.Fragment>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </LoadingOverlay>
+  return (
+    <div className="query_outStockToStore">
+      <div className="container">
+        <div className="row">
+          <QueryOrder
+            type="出庫單"
+            handleOrderNo={handleOrderNo}
+            handleQueryOrderSubmit={handleQueryOrderSubmit}
+            isOrderValid={isOrderValid}
+          />
         </div>
+        <hr />
+        <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+          <div style={{ height: "80vh" }}>
+            {!isQuery ? null : (
+              <div className="table-wrapper-scroll-y scrollbar-70">
+                <table className="table table-sm table-hover">
+                  <thead className="table-dark">
+                    <tr>
+                      <th style={{ width: "15%" }}>貨號</th>
+                      <th style={{ width: "25%" }}>品名</th>
+                      <th style={{ width: "25%" }}>大牌品名</th>
+                      <th style={{ width: "25%" }}>規格</th>
+                      <th style={{ width: "10%" }}>基重</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orderInfoes.map((productInfo, index) => {
+                      return (
+                        <React.Fragment key={index}>
+                          <tr>
+                            <td> {productInfo.productNo}</td>
+                            <td> {productInfo.cName}</td>
+                            <td> {productInfo.cCCCODE}</td>
+                            <td> {productInfo.spec}</td>
+                            <td> {productInfo.packDesc}</td>
+                          </tr>
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </LoadingOverlay>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  orderInfo: state.stockInfo as unknown as OrderSlice,
-});
-
-export default connect(mapStateToProps, {
-  getOutStockToStoreOrder,
-})(QueryOutStockToStore);
+export default QueryOutStockToStore;

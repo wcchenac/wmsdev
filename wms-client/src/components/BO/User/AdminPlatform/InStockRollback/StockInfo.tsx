@@ -1,98 +1,81 @@
-import React, { Component } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Button } from "react-bootstrap";
 import RollbackModal from "./RollbackModal";
+import { StockInfo as StockInfoType } from "../../../../../types";
+import { round10 } from "../../../../../utilities/DecimalAdjust";
 
-import type { StoredStockInfo } from "../../../../../types/domain";
-
-interface Props {
+interface StockInfoProps {
   productNo: string;
-  list: StoredStockInfo[];
+  list: StockInfoType[];
   handleInStockRollback: (idList: number[]) => void;
 }
 
-interface State {
-  modalShow: boolean;
-}
+const StockInfo: React.FC<StockInfoProps> = ({
+  productNo,
+  list,
+  handleInStockRollback
+}) => {
+  const [modalShow, setModalShow] = useState<boolean>(false);
 
+  const handleModalShow = useCallback(() => {
+    setModalShow(true);
+  }, []);
 
-class StockInfo extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      modalShow: false
-    };
-    this.handleModalShow = this.handleModalShow.bind(this);
-    this.handleModalClose = this.handleModalClose.bind(this);
-    this.handleSubmitClick = this.handleSubmitClick.bind(this);
-  }
+  const handleModalClose = useCallback(() => {
+    setModalShow(false);
+  }, []);
 
-  handleModalShow() {
-    this.setState({ modalShow: true });
-  }
+  const handleSubmitClick = useCallback((idList: number[]) => {
+    setModalShow(false);
+    handleInStockRollback(idList);
+  }, [handleInStockRollback]);
 
-  handleModalClose() {
-    this.setState({ modalShow: false });
-  }
-
-  handleSubmitClick(idList: number[]) {
-    this.setState({ modalShow: false }, () => {
-      this.props.handleInStockRollback(idList);
-    });
-  }
-
-  totalQuantity() {
-    const { list } = this.props;
+  const content = useMemo(() => {
     let totalQuantity = 0;
-    let unit = list[0].stockIdentifier.unit;
+    const unit = list[0]?.stockIdentifier?.unit || "";
 
     list.forEach(object => {
-      totalQuantity += parseFloat(object.stockIdentifier.quantity);
+      totalQuantity += parseFloat(String(object.stockIdentifier?.quantity || 0));
     });
 
     return {
-      totalQuantity: Math.round(totalQuantity * 100) / 100,
+      totalQuantity: round10(totalQuantity, -2),
       unit: unit
     };
-  }
+  }, [list]);
 
-  render() {
-    const { productNo, list } = this.props;
-    const { modalShow } = this.state;
-    let content = this.totalQuantity();
-
-    return (
-      <tr>
-        <td>
-          <button className="btn-customize" disabled>
-            {productNo}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {content.totalQuantity + content.unit}
-          </button>
-        </td>
-        <td>
-          <button className="btn-customize" disabled>
-            {list.length}
-          </button>
-        </td>
-        <td>
-          <Button variant="primary" onClick={this.handleModalShow}>
-            詳細資料
-          </Button>
-          {modalShow ? (
-            <RollbackModal
-              list={list}
-              show
-              handleModalClose={this.handleModalClose}
-              handleSubmitClick={this.handleSubmitClick}
-            />
-          ) : null}
-        </td>
-      </tr>
-    );
-  }
-}
+  return (
+    <tr>
+      <td>
+        <button className="btn-customize" disabled>
+          {productNo}
+        </button>
+      </td>
+      <td>
+        <button className="btn-customize" disabled>
+          {content.totalQuantity + content.unit}
+        </button>
+      </td>
+      <td>
+        <button className="btn-customize" disabled>
+          {list.length}
+        </button>
+      </td>
+      <td>
+        <Button variant="primary" onClick={handleModalShow}>
+          詳細資料
+        </Button>
+        {modalShow ? (
+          <RollbackModal
+            list={list}
+            show
+            handleModalClose={handleModalClose}
+            handleSubmitClick={handleSubmitClick}
+          />
+        ) : null}
+      </td>
+    </tr>
+  );
+};
 
 export default StockInfo;

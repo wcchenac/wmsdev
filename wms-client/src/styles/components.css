@@ -1,0 +1,689 @@
+/**
+ * Component-Specific Styles
+ * Enhanced styling for third-party and custom components
+ */
+
+/* ========================================
+   MATERIAL-TABLE ENHANCEMENTS
+   ======================================== */
+
+/* Table container */
+.MuiPaper-root.MuiTableContainer-root,
+.MuiPaper-root {
+  border-radius: var(--border-radius-md) !important;
+  box-shadow: var(--shadow-sm) !important;
+  overflow: hidden;
+}
+
+/* Table header */
+.MuiTableHead-root .MuiTableCell-head {
+  background-color: var(--table-header-bg) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--color-gray-700) !important;
+  text-transform: uppercase;
+  font-size: var(--font-size-sm) !important;
+  letter-spacing: 0.5px;
+  padding: var(--spacing-3) var(--spacing-4) !important;
+  border-bottom: 2px solid var(--table-border-color) !important;
+  white-space: nowrap;
+}
+
+/* Table body cells */
+.MuiTableBody-root .MuiTableCell-body {
+  padding: var(--spacing-3) var(--spacing-4) !important;
+  border-bottom: 1px solid var(--table-border-color) !important;
+  font-size: var(--font-size-base) !important;
+  color: var(--color-gray-800) !important;
+}
+
+/* Table row hover */
+.MuiTableBody-root .MuiTableRow-root {
+  transition: var(--transition-fast) !important;
+}
+
+.MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: var(--color-primary-light) !important;
+}
+
+/* Alternating row colors */
+.MuiTableBody-root .MuiTableRow-root:nth-of-type(odd) {
+  background-color: var(--table-stripe-bg);
+}
+
+/* Selected row */
+.MuiTableRow-root.Mui-selected,
+.MuiTableRow-root.Mui-selected:hover {
+  background-color: var(--color-info-light) !important;
+}
+
+/* Table toolbar */
+.MuiToolbar-root {
+  padding: var(--spacing-3) var(--spacing-4) !important;
+  min-height: 56px !important;
+  gap: var(--spacing-2);
+}
+
+.MuiToolbar-root .MuiTypography-h6 {
+  font-weight: var(--font-weight-semibold) !important;
+  font-size: var(--font-size-lg) !important;
+  color: var(--color-gray-800) !important;
+}
+
+/* Search input in toolbar */
+.MuiToolbar-root .MuiInputBase-root {
+  border-radius: var(--border-radius-base) !important;
+  background-color: var(--color-gray-50) !important;
+  padding: var(--spacing-1) var(--spacing-2) !important;
+  transition: var(--transition-fast) !important;
+}
+
+.MuiToolbar-root .MuiInputBase-root:hover {
+  background-color: var(--color-gray-100) !important;
+}
+
+.MuiToolbar-root .MuiInputBase-root.Mui-focused {
+  background-color: var(--color-white) !important;
+  box-shadow: var(--shadow-focus) !important;
+}
+
+/* Pagination */
+.MuiTablePagination-root {
+  border-top: 1px solid var(--table-border-color) !important;
+  background-color: var(--color-gray-50) !important;
+}
+
+.MuiTablePagination-selectRoot {
+  margin-left: var(--spacing-2) !important;
+  margin-right: var(--spacing-4) !important;
+}
+
+/* Table action buttons */
+.MuiIconButton-root {
+  transition: var(--transition-fast) !important;
+  border-radius: var(--border-radius-base) !important;
+}
+
+.MuiIconButton-root:hover {
+  background-color: var(--color-primary-light) !important;
+  color: var(--color-primary) !important;
+}
+
+/* Edit mode cells */
+.MuiTableCell-root .MuiInput-root {
+  border-radius: var(--border-radius-sm) !important;
+  padding: var(--spacing-1) var(--spacing-2) !important;
+}
+
+.MuiTableCell-root .MuiInput-underline:before {
+  border-bottom-color: var(--color-gray-300) !important;
+}
+
+.MuiTableCell-root .MuiInput-underline:after {
+  border-bottom-color: var(--color-primary) !important;
+}
+
+/* Empty state for table */
+.MuiTableBody-root tr:only-child td {
+  text-align: center;
+  padding: var(--spacing-8) !important;
+  color: var(--color-gray-500) !important;
+}
+
+/* ========================================
+   REACT-TOASTIFY ENHANCEMENTS
+   ======================================== */
+
+/* Toast container positioning */
+.Toastify__toast-container {
+  z-index: var(--z-index-toast) !important;
+  padding: var(--spacing-4) !important;
+}
+
+.Toastify__toast-container--top-right {
+  top: calc(var(--navbar-height) + var(--spacing-4)) !important;
+  right: var(--spacing-4) !important;
+}
+
+/* Toast base styles */
+.Toastify__toast {
+  border-radius: var(--border-radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--font-family-base) !important;
+  font-size: var(--font-size-base) !important;
+  padding: var(--spacing-3) var(--spacing-4) !important;
+  min-height: auto !important;
+  margin-bottom: var(--spacing-2) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Toast types */
+.Toastify__toast--success {
+  background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%) !important;
+  color: var(--color-white) !important;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%) !important;
+  color: var(--color-white) !important;
+}
+
+.Toastify__toast--warning {
+  background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-dark) 100%) !important;
+  color: var(--color-gray-900) !important;
+}
+
+.Toastify__toast--info {
+  background: linear-gradient(135deg, var(--color-info) 0%, var(--color-info-dark) 100%) !important;
+  color: var(--color-white) !important;
+}
+
+.Toastify__toast--default {
+  background: var(--color-white) !important;
+  color: var(--color-gray-800) !important;
+  border: 1px solid var(--color-gray-200);
+}
+
+/* Toast icon */
+.Toastify__toast-icon {
+  width: 24px !important;
+  margin-right: var(--spacing-3) !important;
+}
+
+/* Toast close button */
+.Toastify__close-button {
+  color: inherit !important;
+  opacity: 0.7 !important;
+  transition: var(--transition-fast) !important;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1 !important;
+}
+
+/* Toast progress bar */
+.Toastify__progress-bar {
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+.Toastify__progress-bar--success {
+  background: rgba(255, 255, 255, 0.6) !important;
+}
+
+.Toastify__progress-bar--error {
+  background: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Toast body */
+.Toastify__toast-body {
+  padding: 0 !important;
+  margin: 0 !important;
+  font-weight: var(--font-weight-medium) !important;
+}
+
+/* Toast animations */
+.Toastify__bounce-enter--top-right {
+  animation-name: toastSlideIn !important;
+}
+
+.Toastify__bounce-exit--top-right {
+  animation-name: toastSlideOut !important;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   REACT-SELECT ENHANCEMENTS
+   ======================================== */
+
+/* Select container */
+.react-select__control {
+  border-radius: var(--border-radius-base) !important;
+  border-color: var(--input-border-color) !important;
+  min-height: var(--input-height-base) !important;
+  transition: var(--transition-fast) !important;
+  box-shadow: none !important;
+}
+
+.react-select__control:hover {
+  border-color: var(--color-gray-500) !important;
+}
+
+.react-select__control--is-focused {
+  border-color: var(--input-border-color-focus) !important;
+  box-shadow: var(--shadow-focus) !important;
+}
+
+.react-select__control--menu-is-open {
+  border-color: var(--input-border-color-focus) !important;
+}
+
+/* Select placeholder */
+.react-select__placeholder {
+  color: var(--input-placeholder-color) !important;
+}
+
+/* Select menu */
+.react-select__menu {
+  border-radius: var(--border-radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  border: 1px solid var(--color-gray-200) !important;
+  z-index: var(--z-index-dropdown) !important;
+  overflow: hidden;
+}
+
+.react-select__menu-list {
+  padding: var(--spacing-2) !important;
+}
+
+/* Select options */
+.react-select__option {
+  border-radius: var(--border-radius-sm) !important;
+  padding: var(--spacing-2) var(--spacing-3) !important;
+  cursor: pointer !important;
+  transition: var(--transition-fast) !important;
+}
+
+.react-select__option--is-focused {
+  background-color: var(--color-primary-light) !important;
+}
+
+.react-select__option--is-selected {
+  background-color: var(--color-primary) !important;
+  color: var(--color-white) !important;
+}
+
+/* Multi-select values */
+.react-select__multi-value {
+  background-color: var(--color-primary-light) !important;
+  border-radius: var(--border-radius-sm) !important;
+}
+
+.react-select__multi-value__label {
+  color: var(--color-primary-dark) !important;
+  padding: var(--spacing-1) var(--spacing-2) !important;
+}
+
+.react-select__multi-value__remove {
+  color: var(--color-primary) !important;
+  transition: var(--transition-fast) !important;
+}
+
+.react-select__multi-value__remove:hover {
+  background-color: var(--color-danger-light) !important;
+  color: var(--color-danger) !important;
+}
+
+/* Select clear indicator */
+.react-select__clear-indicator {
+  color: var(--color-gray-400) !important;
+  cursor: pointer !important;
+  transition: var(--transition-fast) !important;
+}
+
+.react-select__clear-indicator:hover {
+  color: var(--color-danger) !important;
+}
+
+/* ========================================
+   REACT-DATEPICKER ENHANCEMENTS
+   ======================================== */
+
+.react-datepicker {
+  font-family: var(--font-family-base) !important;
+  border-radius: var(--border-radius-md) !important;
+  border: 1px solid var(--color-gray-200) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.react-datepicker__header {
+  background-color: var(--color-primary) !important;
+  border-bottom: none !important;
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0 !important;
+  padding-top: var(--spacing-3) !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: var(--color-white) !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: var(--color-white) !important;
+}
+
+.react-datepicker__day {
+  border-radius: var(--border-radius-full) !important;
+  transition: var(--transition-fast) !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: var(--color-primary-light) !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: var(--color-primary) !important;
+  color: var(--color-white) !important;
+}
+
+.react-datepicker__day--today {
+  font-weight: var(--font-weight-bold) !important;
+  border: 2px solid var(--color-primary) !important;
+}
+
+.react-datepicker__input-container input {
+  border-radius: var(--border-radius-base) !important;
+  border: 1px solid var(--input-border-color) !important;
+  padding: var(--input-padding-y) var(--input-padding-x) !important;
+  transition: var(--transition-fast) !important;
+}
+
+.react-datepicker__input-container input:focus {
+  border-color: var(--input-border-color-focus) !important;
+  box-shadow: var(--shadow-focus) !important;
+  outline: none !important;
+}
+
+/* ========================================
+   LOADING OVERLAY ENHANCEMENTS
+   ======================================== */
+
+._loading_overlay_wrapper {
+  position: relative !important;
+}
+
+._loading_overlay_overlay {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(4px) !important;
+  z-index: var(--z-index-modal) !important;
+  border-radius: var(--border-radius-md);
+}
+
+._loading_overlay_content {
+  color: var(--color-gray-600) !important;
+}
+
+/* ========================================
+   REACT-SORTABLE-TREE ENHANCEMENTS
+   ======================================== */
+
+.rst__tree {
+  font-family: var(--font-family-base) !important;
+}
+
+.rst__rowContents {
+  border-radius: var(--border-radius-base) !important;
+  box-shadow: var(--shadow-xs) !important;
+  border: 1px solid var(--color-gray-200) !important;
+  padding: var(--spacing-2) var(--spacing-3) !important;
+  transition: var(--transition-fast) !important;
+}
+
+.rst__rowContents:hover {
+  box-shadow: var(--shadow-sm) !important;
+  border-color: var(--color-primary-light) !important;
+}
+
+.rst__moveHandle {
+  background-color: var(--color-gray-100) !important;
+  border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm) !important;
+  border: 1px solid var(--color-gray-200) !important;
+  cursor: grab !important;
+}
+
+.rst__moveHandle:active {
+  cursor: grabbing !important;
+}
+
+.rst__rowLabel {
+  padding: 0 var(--spacing-2) !important;
+}
+
+.rst__rowTitle {
+  font-weight: var(--font-weight-medium) !important;
+}
+
+.rst__lineHalfHorizontalRight::before,
+.rst__lineFullVertical::after,
+.rst__lineHalfVerticalTop::after,
+.rst__lineHalfVerticalBottom::after {
+  background-color: var(--color-gray-300) !important;
+}
+
+/* ========================================
+   SWITCH (MATERIAL-UI) ENHANCEMENTS
+   ======================================== */
+
+.MuiSwitch-root {
+  padding: 8px !important;
+}
+
+.MuiSwitch-track {
+  border-radius: var(--border-radius-full) !important;
+  background-color: var(--color-gray-400) !important;
+  opacity: 1 !important;
+  transition: var(--transition-fast) !important;
+}
+
+.MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: var(--color-primary-light) !important;
+}
+
+.MuiSwitch-thumb {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb {
+  background-color: var(--color-primary) !important;
+}
+
+/* ========================================
+   CHECKBOX/RADIO (MATERIAL-UI) ENHANCEMENTS
+   ======================================== */
+
+.MuiCheckbox-root,
+.MuiRadio-root {
+  color: var(--color-gray-400) !important;
+  transition: var(--transition-fast) !important;
+}
+
+.MuiCheckbox-root.Mui-checked,
+.MuiRadio-root.Mui-checked {
+  color: var(--color-primary) !important;
+}
+
+.MuiCheckbox-root:hover,
+.MuiRadio-root:hover {
+  background-color: var(--color-primary-light) !important;
+}
+
+/* ========================================
+   TABLE ACTION BUTTONS
+   ======================================== */
+
+/* Icon button base styles */
+.icon-button {
+  position: relative;
+}
+
+.icon-button::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: var(--color-gray-800);
+  color: var(--color-white);
+  font-size: var(--font-size-xs);
+  border-radius: var(--border-radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: var(--z-index-tooltip);
+  pointer-events: none;
+}
+
+.icon-button:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Action button group */
+.action-button-group {
+  display: flex;
+  align-items: center;
+}
+
+/* Table cell actions container */
+td .action-button-group {
+  justify-content: center;
+}
+
+/* Text cell styling */
+.text-cell {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Download button styling */
+.download-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-2);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius-base);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.download-button:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.download-button:focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Bootstrap table row actions */
+.table tbody tr td:last-child {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Custom scrollbar for table wrapper */
+.my-custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-400) transparent;
+}
+
+.my-custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.my-custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.my-custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-gray-400);
+  border-radius: var(--border-radius-full);
+}
+
+.my-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-500);
+}
+
+/* Table header dark theme enhancement */
+thead.table-dark th {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary-dark) !important;
+  color: var(--color-white) !important;
+  font-weight: var(--font-weight-semibold);
+  text-transform: none;
+  letter-spacing: 0.5px;
+  padding: var(--spacing-3) var(--spacing-4) !important;
+  font-size: var(--font-size-sm);
+}
+
+/* Alternative light theme header */
+thead.table-light th {
+  background-color: var(--color-gray-100) !important;
+  border-color: var(--color-gray-300) !important;
+  color: var(--color-gray-800) !important;
+  font-weight: var(--font-weight-semibold);
+  text-transform: none;
+  letter-spacing: 0.5px;
+  padding: var(--spacing-3) var(--spacing-4) !important;
+  font-size: var(--font-size-sm);
+}
+
+/* Bootstrap table hover enhancement */
+.table-hover tbody tr:hover {
+  background-color: var(--color-primary-light) !important;
+}
+
+/* Table secondary row */
+.table-secondary {
+  background-color: var(--color-gray-100) !important;
+}
+
+.table-secondary td {
+  color: var(--color-gray-600);
+}
+
+/* Select in table */
+.table .form-select {
+  min-width: 100px;
+  font-size: var(--font-size-sm);
+  border-radius: var(--border-radius-base);
+  border-color: var(--input-border-color);
+  transition: var(--transition-fast);
+}
+
+.table .form-select:focus {
+  border-color: var(--input-border-color-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Deprecated btn-customize override */
+.btn-customize {
+  background: none !important;
+  border: none !important;
+  padding: var(--spacing-2) !important;
+  color: var(--color-gray-800) !important;
+  text-align: left !important;
+  cursor: default !important;
+}

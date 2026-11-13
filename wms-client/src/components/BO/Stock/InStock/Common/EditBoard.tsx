@@ -1,33 +1,75 @@
-import React, { PureComponent } from "react";
+import React, { useEffect, useState, memo, ReactNode, MouseEvent } from "react";
+import { InStockRequest } from "../../../../../types";
 import StockInfoContainer from "./StockInfoContainer";
 import { StockIdentifierType } from "../../../../../enums/Enums";
-import equal from "fast-deep-equal";
-import type { SelectedProduct, StatusByProduct } from "../../../../../types/domain";
-import type { InStockEditorRow } from "./StockInfo";
 
-interface Props {
+import equal from "fast-deep-equal";
+
+interface WaitHandleStatusItem {
+  quantity: string | number;
+  unit: string;
+}
+
+interface WaitHandleStatus {
+  [productNo: string]: {
+    [type: string]: WaitHandleStatusItem;
+  };
+}
+
+interface SelectedProductNo {
+  productNo: string;
+  selected: boolean;
+  index: number;
+  isSubmitted: boolean;
+}
+
+
+interface EditBoardProps {
   isLoading: boolean;
-  type: string;
+  selectedProductNoList: SelectedProductNo[];
   orderNo: string;
-  selectedProductNoList: SelectedProduct[];
-  waitHandleStatus: StatusByProduct;
-  handlePrevStep: () => void;
+  type: string;
+  waitHandleStatus: WaitHandleStatus;
   getInitialize: () => void;
   handleInStockRequestSubmit: (
-    event: React.MouseEvent<HTMLButtonElement>,
+    e: MouseEvent<HTMLButtonElement>,
     index: number,
-    inStockRequests: InStockEditorRow[]
+    inStockRequests: InStockRequest[]
   ) => void;
+  handlePrevStep: () => void;
 }
 
-interface EditBoard {
-  timer?: ReturnType<typeof setTimeout> | null;
-}
+const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditBoardProps) {
+  const {
+    isLoading,
+    selectedProductNoList,
+    orderNo,
+    type,
+    waitHandleStatus,
+    getInitialize,
+    handleInStockRequestSubmit,
+    handlePrevStep,
+  } = props;
 
-class EditBoard extends PureComponent<Props> {
+  // Product tab currently shown, keyed by SelectedProductNo.index.
+  const [activeTabIndex, setActiveTabIndex] = useState<number | null>(null);
 
-  contentAlgorithm(filterSubmittedList: SelectedProduct[]) {
-    const { isLoading, selectedProductNoList, orderNo } = this.props;
+  // Every ticked product has been submitted: show the completion message and go back to
+  // Step 1 after 3 seconds. The timer lives in an effect so re-renders do not add more timers,
+  // and it is cleared if the board goes away first.
+  const isCompleted =
+    selectedProductNoList.some((object) => object.isSubmitted === true) &&
+    !selectedProductNoList.some((object) => object.selected === true && object.isSubmitted === false);
+
+  useEffect(() => {
+    if (!isCompleted) {
+      return undefined;
+    }
+    const timer = setTimeout(getInitialize, 3000);
+    return () => clearTimeout(timer);
+  }, [isCompleted, getInitialize]);
+
+  const contentAlgorithm = (filterSubmittedList: SelectedProductNo[]): ReactNode => {
     const filterSelectedList = selectedProductNoList.filter(
       (object) => object.selected === true && object.isSubmitted === false
     );
@@ -36,8 +78,6 @@ class EditBoard extends PureComponent<Props> {
 
     if (filterSelectedListLength === 0) {
       if (filterSubmittedListLength !== 0) {
-        this.timer = setTimeout(this.props.getInitialize, 3000);
-
         return (
           <div className="row justify-content-md-center">
             <div className="col-md-6">
@@ -50,6 +90,11 @@ class EditBoard extends PureComponent<Props> {
         );
       }
     } else {
+      // Fall back to the first tab when nothing is chosen yet or the chosen product was submitted.
+      const currentTab = filterSelectedList.some((object) => object.index === activeTabIndex)
+        ? activeTabIndex
+        : filterSelectedList[0].index;
+
       return (
         <div className="scrollbar-70">
           <nav>
@@ -58,17 +103,20 @@ class EditBoard extends PureComponent<Props> {
                 return (
                   <a
                     className={
-                      index === 0
+                      object.index === currentTab
                         ? "nav-item nav-link active"
                         : "nav-item nav-link"
                     }
                     id={"nav-tab-" + object.index}
                     key={index}
-                    data-toggle="tab"
                     href={"#nav-" + object.index}
                     role="tab"
                     aria-controls={"nav-" + object.index}
-                    aria-selected={index === 0}
+                    aria-selected={object.index === currentTab}
+                    onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+                      e.preventDefault();
+                      setActiveTabIndex(object.index);
+                    }}
                   >
                     {object.productNo}
                   </a>
@@ -80,22 +128,23 @@ class EditBoard extends PureComponent<Props> {
             <br />
             {filterSelectedList.map((object, index) => {
               const typeValidation = equal(
-                Object.keys(this.props.waitHandleStatus[object.productNo]).pop(),
+                Object.keys(waitHandleStatus[object.productNo]).pop(),
                 StockIdentifierType.hardware
               );
 
               return (
                 <StockInfoContainer
                   isLoading={isLoading}
-                  type={this.props.type}
+                  type={type}
                   typeValidation={typeValidation}
                   key={object.index}
                   sequence={index}
+                  active={object.index === currentTab}
                   index={object.index}
                   orderNo={orderNo}
                   productNo={object.productNo}
-                  waitHandleStatus={this.props.waitHandleStatus[object.productNo]}
-                  handleInStockRequestSubmit={this.props.handleInStockRequestSubmit}
+                  waitHandleStatus={waitHandleStatus[object.productNo]}
+                  handleInStockRequestSubmit={handleInStockRequestSubmit}
                 />
               );
             })}
@@ -103,30 +152,29 @@ class EditBoard extends PureComponent<Props> {
         </div>
       );
     }
-  }
+    return null;
+  };
 
-  render() {
-    const filterSubmittedList = this.props.selectedProductNoList.filter(
-      (object) => object.isSubmitted === true
-    );
+  const filterSubmittedList = selectedProductNoList.filter(
+    (object) => object.isSubmitted === true
+  );
 
-    return (
-      <div>
-        <div className="row">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={this.props.handlePrevStep}
-            disabled={filterSubmittedList.length !== 0}
-          >
-            上一步
-          </button>
-        </div>
-        <br />
-        {this.contentAlgorithm(filterSubmittedList)}
+  return (
+    <div>
+      <div className="d-flex">
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={handlePrevStep}
+          disabled={filterSubmittedList.length !== 0}
+        >
+          上一步
+        </button>
       </div>
-    );
-  }
-}
+      <br />
+      {contentAlgorithm(filterSubmittedList)}
+    </div>
+  );
+});
 
 export default EditBoard;

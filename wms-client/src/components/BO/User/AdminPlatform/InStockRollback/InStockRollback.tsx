@@ -1,109 +1,86 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { useState, useCallback, ChangeEvent, FormEvent } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
+import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
   getInStockRollbackList,
   inStockRollback
-} from "../../../../../actions/StockAcions";
+} from "../../../../../actions/StockActions";
 import { OrderType } from "../../../../../enums/Enums";
-import LoadingOverlay from "react-loading-overlay";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../../Others/Spinner";
 import { isEmpty } from "../../../../../utilities/IsEmpty";
 import StockInfoContainer from "./StockInfoContainer";
+import { RootState, InStockRollbackResult, AppDispatch } from "../../../../../types";
 
-import type { RootState } from "../../../../../types/state";
-import type { ApiStatus, StoredStockInfo } from "../../../../../types/domain";
+const InStockRollback: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isQuery, setIsQuery] = useState<boolean>(false);
+  const [orderNo, setOrderNo] = useState<string>("");
+  const [orderType, setOrderType] = useState<string>("");
+  const [result, setResult] = useState<InStockRollbackResult>({});
+  // The order the list on screen belongs to. A rollback and its refresh use this, not the
+  // search inputs, which the admin may have changed since.
+  const [queriedOrder, setQueriedOrder] = useState<{ orderType: string; orderNo: string }>({
+    orderType: "",
+    orderNo: "",
+  });
 
-interface QuerySlice {
-  stockInfoes: Record<string, StoredStockInfo[]>;
-}
+  const dispatch = useDispatch<AppDispatch>();
+  const queryResult = useSelector((state: RootState) => state.stockInfo);
 
-interface StateProps {
-  queryResult: QuerySlice;
-}
+  // Only react to a result that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(queryResult.stockInfoes, (result) => {
+    if (result) {
+      setResult(result as InStockRollbackResult);
+    }
+  });
 
-interface DispatchProps {
-  getInStockRollbackList: (orderType: string, orderNo: string) => Promise<ApiStatus | undefined>;
-  inStockRollback: (
-    idList: number[],
-    orderType: string,
-    orderNo: string
-  ) => Promise<ApiStatus | undefined>;
-}
-
-type Props = StateProps & DispatchProps;
-
-interface State {
-  isLoading: boolean;
-  isQuery: boolean;
-  orderNo: string;
-  orderType: string;
-  result: Record<string, StoredStockInfo[]>;
-}
-
-
-class InStockRollback extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      isQuery: false,
-      orderNo: "",
-      orderType: "",
-      result: {}
-    };
-    this.handleOrderChange = this.handleOrderChange.bind(this);
-    this.handleOrderQuerySubmit = this.handleOrderQuerySubmit.bind(this);
-    this.handleInStockRollback = this.handleInStockRollback.bind(this);
-  }
-
-  handleOrderChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+  const handleOrderChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === "orderNo") {
-      this.setState({ orderNo: value });
+      setOrderNo(value);
     } else if (name === "orderType") {
-      this.setState({ orderType: value });
+      setOrderType(value);
     }
-  }
+  }, []);
 
-  handleOrderQuerySubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const handleOrderQuerySubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsLoading(true);
 
-    this.setState({ isLoading: true }, () => {
-      this.props
-        .getInStockRollbackList(this.state.orderType, this.state.orderNo)
-        .then(response => {
-          if (response?.status === 200) {
-            this.setState({ isLoading: false, isQuery: true });
-          }
-        });
-    });
-  }
-
-  handleInStockRollback(idList: number[]) {
-    this.setState({ isLoading: true }, () => {
-      this.props
-        .inStockRollback(idList, this.state.orderType, this.state.orderNo)
-        .then(response => {
-          if (response?.status === 200) {
-            this.setState({ isLoading: false });
-          }
-        });
-    });
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (
-      this.props.queryResult.stockInfoes !== prevProps.queryResult.stockInfoes
-    ) {
-      this.setState({
-        result: this.props.queryResult.stockInfoes as Record<string, StoredStockInfo[]>
+      dispatch(getInStockRollbackList(orderType, orderNo)).then((response: { status: number }) => {
+        if (response.status === 200) {
+          setIsLoading(false);
+          setIsQuery(true);
+          setQueriedOrder({ orderType, orderNo });
+        }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
-    }
-  }
+    },
+    [dispatch, orderType, orderNo]
+  );
 
-  contentAlgorithm() {
-    const { isQuery, result } = this.state;
+  const handleInStockRollback = useCallback(
+    (idList: number[]) => {
+      setIsLoading(true);
 
+      // The action queries the list again whatever the outcome; a failure says what happened.
+      dispatch(inStockRollback(idList, queriedOrder.orderType, queriedOrder.orderNo))
+        .catch(notifyRollbackFailed)
+        .finally(() => {
+          setIsLoading(false);
+        });
+    },
+    [dispatch, queriedOrder]
+  );
+
+  const contentAlgorithm = (): React.ReactNode => {
     if (!isQuery) {
       return null;
     } else {
@@ -121,76 +98,64 @@ class InStockRollback extends Component<Props, State> {
         return (
           <StockInfoContainer
             result={result}
-            handleInStockRollback={this.handleInStockRollback}
+            handleInStockRollback={handleInStockRollback}
           />
         );
       }
     }
-  }
+  };
 
-  render() {
-    const { orderNo, orderType, isLoading } = this.state;
-
-    return (
-      <div className="container">
-        <form onSubmit={this.handleOrderQuerySubmit}>
-          <div className="form-group row mb-0">
-            <label className="col-md-auto col-form-label text-center">
-              進貨方式:
-            </label>
-            <div className="col-md-auto">
-              <select
-                className="custom-select"
-                name="orderType"
-                defaultValue=""
-                onChange={this.handleOrderChange}
-              >
-                {Object.keys(OrderType).map((type, index) => (
-                  <option key={index} value={(OrderType as Record<string, string>)[type]}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <label className="col-md-auto col-form-label text-center">
-              單號:
-            </label>
-            <div className="col-md-auto">
-              <input
-                className="form-control"
-                type="text"
-                name="orderNo"
-                placeholder="請輸入單號"
-                disabled={this.state.orderType === ""}
-                onChange={this.handleOrderChange}
-              />
-            </div>
-            <div className="col-md-auto">
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={orderType === "" || orderNo === ""}
-              >
-                查詢
-              </button>
-            </div>
+  return (
+    <div className="container">
+      <form onSubmit={handleOrderQuerySubmit}>
+        <div className="row mb-0">
+          <label className="col-md-auto col-form-label text-center">
+            進貨方式:
+          </label>
+          <div className="col-md-auto">
+            <select
+              className="form-select"
+              name="orderType"
+              defaultValue=""
+              onChange={handleOrderChange}
+            >
+              {Object.keys(OrderType).map((type, index) => (
+                <option key={index} value={OrderType[type as keyof typeof OrderType]}>
+                  {type}
+                </option>
+              ))}
+            </select>
           </div>
-        </form>
-        <hr />
-        <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-          <div style={{ height: "70vh" }}>{this.contentAlgorithm()}</div>
-        </LoadingOverlay>
-      </div>
-    );
-  }
-}
+          <label className="col-md-auto col-form-label text-center">
+            單號:
+          </label>
+          <div className="col-md-auto">
+            <input
+              className="form-control"
+              type="text"
+              name="orderNo"
+              placeholder="請輸入單號"
+              disabled={orderType === ""}
+              onChange={handleOrderChange}
+            />
+          </div>
+          <div className="col-md-auto">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={orderType === "" || orderNo === ""}
+            >
+              查詢
+            </button>
+          </div>
+        </div>
+      </form>
+      <hr />
+      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+        <div style={{ height: "70vh" }}>{contentAlgorithm()}</div>
+      </LoadingOverlay>
+    </div>
+  );
+};
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  queryResult: state.stockInfo as unknown as QuerySlice
-});
-
-export default connect(mapStateToProps, {
-  getInStockRollbackList,
-  inStockRollback
-})(InStockRollback);
+export default InStockRollback;

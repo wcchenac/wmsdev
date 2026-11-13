@@ -1,5 +1,6 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { useState, useCallback, MouseEvent } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../utilities/notifyRequestFailed";
 import FileContainer from "./FileContainer";
 import FileContainerForCategory from "./FileContainerForCategory";
 import {
@@ -8,212 +9,193 @@ import {
   queryCategoryDetailList,
   downloadFile
 } from "../../../actions/FileActions";
-import LoadingOverlay from "react-loading-overlay";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../Others/Spinner";
+import { RootState, AppDispatch, SelectOption } from "../../../types";
 
-import type { RootState } from "../../../types/state";
-import type { CategoryChoice } from "../User/AdminPlatform/StockCategory";
+type FileCategoryKey = "adjustment" | "allocation" | "dailyComparison" | "categoryDetail";
 
-type FileCategory = "adjustment" | "allocation" | "dailyComparison" | "categoryDetail";
-
-interface FilenameMap {
+interface FilenamesState {
   adjustment: string[];
   allocation: string[];
   dailyComparison: string[];
   categoryDetail: string[];
 }
 
-interface StateProps {
-  categoryList: CategoryChoice[];
-}
+const FileCenter: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [filenames, setFilenames] = useState<FilenamesState>({
+    adjustment: [],
+    allocation: [],
+    dailyComparison: [],
+    categoryDetail: []
+  });
 
-interface DispatchProps {
-  queryCategoryDetailList: () => void;
-}
+  const dispatch = useDispatch<AppDispatch>();
+  const categoryList = useSelector(
+    (state: RootState) => state.stockInfo.stockInfoes
+  ) as SelectOption[];
 
-type Props = StateProps & DispatchProps;
+  const handleFileCategoryCurrentQuery = useCallback((fileCategory: string) => {
+    setIsLoading(true);
+    queryFileCategoryTodayFile(fileCategory)
+      .then((res) => {
+        if (res.status === 200) {
+          setFilenames((prev) => ({
+            ...prev,
+            [fileCategory as FileCategoryKey]: [res.data]
+          }));
+        }
+      })
+      .catch(notifyRequestFailed)
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
 
-interface State {
-  isLoading: boolean;
-  filenames: FilenameMap;
-}
-
-
-class FileCenter extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      filenames: {
-        adjustment: [],
-        allocation: [],
-        dailyComparison: [],
-        categoryDetail: []
-      }
-    };
-    this.handleFileCategoryCurrentQuery = this.handleFileCategoryCurrentQuery.bind(
-      this
-    );
-    this.handleFileCategoryPeriodQuery = this.handleFileCategoryPeriodQuery.bind(
-      this
-    );
-    this.createCategoryDetailFilename = this.createCategoryDetailFilename.bind(
-      this
-    );
-    this.handleDownloadClick = this.handleDownloadClick.bind(this);
-  }
-
-  handleFileCategoryCurrentQuery(fileCatagory: string) {
-    this.setState({ isLoading: true }, () => {
-      queryFileCategoryTodayFile(fileCatagory)
-        .then(res => {
-          if (res?.status === 200) {
-            this.setState({
-              isLoading: false,
-              filenames: {
-                ...this.state.filenames,
-                [fileCatagory as FileCategory]: [String(res.data)]
-              }
-            });
+  const handleFileCategoryPeriodQuery = useCallback(
+    (fileCategory: string, startDate: string, endDate: string) => {
+      setIsLoading(true);
+      queryFileCategoryIntervalFiles(fileCategory, startDate, endDate)
+        .then((res) => {
+          if (res.status === 200) {
+            setFilenames((prev) => ({
+              ...prev,
+              [fileCategory as FileCategoryKey]: res.data
+            }));
           }
         })
-        .catch(err => {
-          this.setState({ isLoading: false });
+        .catch(notifyRequestFailed)
+        .finally(() => {
+          setIsLoading(false);
         });
-    });
-  }
+    },
+    []
+  );
 
-  handleFileCategoryPeriodQuery(fileCatagory: string, startDate: string, endDate: string) {
-    this.setState({ isLoading: true }, () => {
-      queryFileCategoryIntervalFiles(fileCatagory, startDate, endDate)
-        .then(res => {
-          if (res?.status === 200) {
-            this.setState({
-              isLoading: false,
-              filenames: {
-                ...this.state.filenames,
-                [fileCatagory as FileCategory]: res.data as string[]
-              }
-            });
-          }
-        })
-        .catch(err => {
-          this.setState({ isLoading: false });
-        });
-    });
-  }
-
-  createCategoryDetailFilename(selectedOptions: string[]) {
+  const createCategoryDetailFilename = useCallback((selectedOptions: string[]) => {
     const filenamePrefix = "CategoryDetail-";
     const fileType = ".xls";
 
-    const result: string[] = [];
+    const result = selectedOptions.map(
+      (option) => filenamePrefix + option + fileType
+    );
 
-    selectedOptions.forEach(option => {
-      result.push(filenamePrefix + option + fileType);
-    });
+    setFilenames((prev) => ({
+      ...prev,
+      categoryDetail: result
+    }));
+  }, []);
 
-    this.setState({
-      filenames: { ...this.state.filenames, categoryDetail: result }
-    });
-  }
+  const handleDownloadClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+    const target = e.target as HTMLButtonElement;
+    downloadFile(target.name, target.value);
+  }, []);
 
-  handleDownloadClick(e: React.MouseEvent<HTMLButtonElement>) {
-    downloadFile(e.currentTarget.name, e.currentTarget.value);
-  }
+  const handleQueryCategoryDetailList = useCallback(() => {
+    dispatch(queryCategoryDetailList()).catch(notifyRequestFailed);
+  }, [dispatch]);
 
-  render() {
-    const { isLoading, filenames } = this.state;
-    const dailyComparisonTitle = "每日庫存比對紀錄";
-    const allocationTitle = "每日倉庫調撥記錄";
-    const adjustmentTitle = "每日存貨調整記錄";
-    const dailyComparisonFileType = "dailyComparison";
-    const allocationFileType = "allocation";
-    const adjustmentFileType = "adjustment";
-    const categoryDetailFileType = "categoryDetail";
+  const dailyComparisonTitle = "每日庫存比對紀錄";
+  const allocationTitle = "每日倉庫調撥記錄";
+  const adjustmentTitle = "每日存貨調整記錄";
+  const dailyComparisonFileType = "dailyComparison";
+  const allocationFileType = "allocation";
+  const adjustmentFileType = "adjustment";
+  const categoryDetailFileType = "categoryDetail";
 
-    return (
-      <div className="fileCenter">
-        <div className="container">
-          <p className="h4">檔案下載</p>
-          <hr />
-          <LoadingOverlay active={isLoading} spinner={<Spinner />}>
-            <div style={{ height: "80vh" }}>
-              <div className="row">
-                <div className="col-6">
-                  <FileContainer
-                    filenames={filenames.allocation}
-                    containerTitle={allocationTitle}
-                    fileType={allocationFileType}
-                    handleFileCategoryCurrentQuery={
-                      this.handleFileCategoryCurrentQuery
-                    }
-                    handleFileCategoryPeriodQuery={
-                      this.handleFileCategoryPeriodQuery
-                    }
-                    downloadFile={this.handleDownloadClick}
-                  />
-                </div>
-                <div className="col-6">
-                  <FileContainer
-                    filenames={filenames.adjustment}
-                    containerTitle={adjustmentTitle}
-                    fileType={adjustmentFileType}
-                    handleFileCategoryCurrentQuery={
-                      this.handleFileCategoryCurrentQuery
-                    }
-                    handleFileCategoryPeriodQuery={
-                      this.handleFileCategoryPeriodQuery
-                    }
-                    downloadFile={this.handleDownloadClick}
-                  />
-                </div>
+  return (
+    <div className="fileCenter">
+      <div className="container">
+        {/* Page Header - RWD */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-3)',
+            marginBottom: 'var(--spacing-3)',
+          }}
+        >
+          <i
+            className="fa fa-download"
+            style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-xl)' }}
+            aria-hidden="true"
+          />
+          <h4
+            style={{
+              margin: 0,
+              color: 'var(--color-gray-800)',
+              fontWeight: 'var(--font-weight-semibold)',
+            }}
+          >
+            檔案下載
+          </h4>
+        </div>
+        <hr />
+        <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+          <div style={{ minHeight: "80vh" }}>
+            {/* First Row - RWD Grid */}
+            <div className="row">
+              <div className="col-12 col-md-6 mb-4">
+                <FileContainer
+                  filenames={filenames.allocation}
+                  containerTitle={allocationTitle}
+                  fileType={allocationFileType}
+                  handleFileCategoryCurrentQuery={
+                    handleFileCategoryCurrentQuery
+                  }
+                  handleFileCategoryPeriodQuery={handleFileCategoryPeriodQuery}
+                  downloadFile={handleDownloadClick}
+                />
               </div>
-              <hr />
-              <div className="row">
-                <div className="col-6">
-                  <FileContainer
-                    filenames={filenames.dailyComparison}
-                    containerTitle={dailyComparisonTitle}
-                    fileType={dailyComparisonFileType}
-                    handleFileCategoryCurrentQuery={
-                      this.handleFileCategoryCurrentQuery
-                    }
-                    handleFileCategoryPeriodQuery={
-                      this.handleFileCategoryPeriodQuery
-                    }
-                    downloadFile={this.handleDownloadClick}
-                  />
-                </div>
-              </div>
-              <hr />
-              <div className="row">
-                <div className="col-6">
-                  <FileContainerForCategory
-                    queryCategoryDetailList={this.props.queryCategoryDetailList}
-                    createCategoryDetailFilename={
-                      this.createCategoryDetailFilename
-                    }
-                    fileType={categoryDetailFileType}
-                    categoryList={this.props.categoryList}
-                    filenames={filenames.categoryDetail}
-                    downloadFile={this.handleDownloadClick}
-                  />
-                </div>
+              <div className="col-12 col-md-6 mb-4">
+                <FileContainer
+                  filenames={filenames.adjustment}
+                  containerTitle={adjustmentTitle}
+                  fileType={adjustmentFileType}
+                  handleFileCategoryCurrentQuery={
+                    handleFileCategoryCurrentQuery
+                  }
+                  handleFileCategoryPeriodQuery={handleFileCategoryPeriodQuery}
+                  downloadFile={handleDownloadClick}
+                />
               </div>
             </div>
-          </LoadingOverlay>
-        </div>
+            <hr />
+            {/* Second Row - RWD Grid */}
+            <div className="row">
+              <div className="col-12 col-md-6 mb-4">
+                <FileContainer
+                  filenames={filenames.dailyComparison}
+                  containerTitle={dailyComparisonTitle}
+                  fileType={dailyComparisonFileType}
+                  handleFileCategoryCurrentQuery={
+                    handleFileCategoryCurrentQuery
+                  }
+                  handleFileCategoryPeriodQuery={handleFileCategoryPeriodQuery}
+                  downloadFile={handleDownloadClick}
+                />
+              </div>
+            </div>
+            <hr />
+            {/* Third Row - RWD Grid */}
+            <div className="row">
+              <div className="col-12 col-md-6 mb-4">
+                <FileContainerForCategory
+                  queryCategoryDetailList={handleQueryCategoryDetailList}
+                  createCategoryDetailFilename={createCategoryDetailFilename}
+                  fileType={categoryDetailFileType}
+                  categoryList={categoryList}
+                  filenames={filenames.categoryDetail}
+                  downloadFile={handleDownloadClick}
+                />
+              </div>
+            </div>
+          </div>
+        </LoadingOverlay>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  categoryList: state.stockInfo.stockInfoes as unknown as CategoryChoice[]
-});
-
-export default connect(mapStateToProps, {
-  queryCategoryDetailList
-})(FileCenter);
+export default FileCenter;

@@ -1,119 +1,99 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
-import Select, { ValueType } from "react-select";
-import { animatedSelectComponents } from "../../../../types/select";
+import React, { useState, useCallback, useEffect, FormEvent } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed, isSessionExpired } from "../../../../utilities/notifyRequestFailed";
+import Select, { SingleValue } from "react-select";
+import makeAnimated from "react-select/animated";
 import {
   getAllCategory,
-  findCategoryDetails,
-} from "../../../../actions/StockAcions";
-import LoadingOverlay from "react-loading-overlay";
+  findCategoryDetails
+} from "../../../../actions/StockActions";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import { ToastContainer, toast } from "react-toastify";
-import type { RootState } from "../../../../types/state";
-import type { ApiStatus } from "../../../../types/domain";
+import { toast } from "react-toastify";
+import { RootState } from "../../../../store";
+import { AppDispatch } from "../../../../types";
 
-export interface CategoryChoice {
-  label: string;
+interface CategoryOption {
   value: string;
+  label: string;
 }
 
-interface StateProps {
-  categoryList: {
-    stockInfoes: CategoryChoice[];
-  };
-}
+// GET /api/stock/queryStock/categoryList returns [{ label, value }]; it shares the stockInfo
+// slice with other pages, so keep only entries of that shape.
+const isCategoryOption = (value: unknown): value is CategoryOption =>
+  typeof value === "object" && value !== null &&
+  "value" in value && typeof value.value === "string" &&
+  "label" in value && typeof value.label === "string";
 
-interface DispatchProps {
-  getAllCategory: () => void;
-  findCategoryDetails: (category: string | undefined) => Promise<ApiStatus | undefined>;
-}
+const StockCategory: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
 
-type Props = StateProps & DispatchProps;
+  const dispatch = useDispatch<AppDispatch>();
+  const categoryList = useSelector((state: RootState) => state.stockInfo);
 
-interface State {
-  isLoading: boolean;
-  selectedCategory: ValueType<CategoryChoice, false> | CategoryChoice[];
-}
+  useEffect(() => {
+    dispatch(getAllCategory()).catch(notifyRequestFailed);
+  }, [dispatch]);
 
-class StockCategory extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      selectedCategory: [],
-    };
-    this.handleCategorySelect = this.handleCategorySelect.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
+  const handleCategorySelect = useCallback((selected: SingleValue<CategoryOption>): void => {
+    setSelectedCategory(selected);
+  }, []);
 
-  componentDidMount() {
-    this.props.getAllCategory();
-  }
-
-  handleCategorySelect(selectedCategory: ValueType<CategoryChoice, false>) {
-    this.setState({ selectedCategory });
-  }
-
-  handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
+  const handleSubmit = useCallback((e: FormEvent<HTMLButtonElement>): void => {
     e.preventDefault();
-    const selected = this.state.selectedCategory as CategoryChoice;
-    const category = selected.value;
+    if (!selectedCategory) return;
 
-    this.setState({ isLoading: true }, () => {
-      this.props
-        .findCategoryDetails(selected.value)
-        .then(() => {
-          toast.success(category + "分類本建立成功");
-          this.setState({ isLoading: false });
-        })
-        .catch(() => {
+    const category = selectedCategory.value;
+
+    setIsLoading(true);
+    dispatch(findCategoryDetails(selectedCategory.value))
+      .then(() => {
+        toast.success(category + "分類本建立成功");
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        if (!isSessionExpired(error)) {
           toast.error(category + "分類本建立失敗");
-          this.setState({ isLoading: false });
-        });
-    });
-  }
+        }
+        setIsLoading(false);
+      });
+  }, [dispatch, selectedCategory]);
 
-  render() {
-    const animatedComponents = animatedSelectComponents<CategoryChoice, false>();
+  const animatedComponents = makeAnimated();
 
-    return (
-      <div className="container">
-        <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
-          <div style={{ height: "80vh" }}>
-            <div className="row justify-content-center">
-              <div className="col-6">
-                <label>請選擇想要輸出的分類...</label>
-                <Select
-                  closeMenuOnSelect
-                  components={animatedComponents}
-                  isSearchable
-                  isClearable
-                  options={this.props.categoryList.stockInfoes}
-                  onChange={this.handleCategorySelect}
-                />
-                <br />
-                <button
-                  type="button"
-                  className="btn btn-success btn-block"
-                  onClick={this.handleSubmit}
-                >
-                  送出
-                </button>
-              </div>
+  const stockInfoes: unknown = categoryList.stockInfoes;
+  const options = Array.isArray(stockInfoes) ? stockInfoes.filter(isCategoryOption) : [];
+
+  return (
+    <div className="container">
+      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+        <div style={{ height: "80vh" }}>
+          <div className="row justify-content-center">
+            <div className="col-6">
+              <label>請選擇想要輸出的分類...</label>
+              <Select<CategoryOption, false>
+                closeMenuOnSelect
+                components={animatedComponents}
+                isSearchable
+                isClearable
+                options={options}
+                onChange={handleCategorySelect}
+              />
+              <br />
+              <button
+                type="button"
+                className="btn btn-success w-100"
+                onClick={handleSubmit}
+              >
+                送出
+              </button>
             </div>
-            <ToastContainer />
           </div>
-        </LoadingOverlay>
-      </div>
-    );
-  }
-}
+        </div>
+      </LoadingOverlay>
+    </div>
+  );
+};
 
-const mapStateToProps = (state: RootState): StateProps => ({
-  categoryList: state.stockInfo as unknown as StateProps["categoryList"],
-});
-
-export default connect(mapStateToProps, {
-  getAllCategory,
-  findCategoryDetails,
-})(StockCategory);
+export default StockCategory;

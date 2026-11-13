@@ -1,174 +1,155 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { useState, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   getUserList,
   updateUser,
   deleteUser
 } from "../../../../../actions/UserActions";
-import LoadingOverlay from "react-loading-overlay";
-import MaterialTable, { Icons } from "material-table";
-import { tableIcons } from "../../../../Others/TableIcons";
+import LoadingOverlay from "react-loading-overlay-ts";
+import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Spinner } from "../../../../Others/Spinner";
 import EditModal from "./EditModal";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import IconButton from "@mui/material/IconButton";
+import { RootState } from "../../../../../store";
+import { AppDispatch, UpdateUserRequest, User } from "../../../../../types";
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 
-import type { RootState, ErrorState } from "../../../../../types/state";
-import type { ApiStatus } from "../../../../../types/domain";
-import type { EditableUser } from "./EditModal";
-
-interface StateProps {
-  queryResult: EditableUser[];
-  errors: ErrorState;
+interface UserRow extends User {
+  id: string | number;
 }
 
-interface DispatchProps {
-  getUserList: () => Promise<ApiStatus | undefined>;
-  updateUser: (request: {
-    employeeId?: string;
-    newPassword?: string;
-    fullName?: string;
-    role?: string;
-  }) => Promise<ApiStatus | undefined>;
-  deleteUser: (employeeId: string) => Promise<ApiStatus | undefined>;
-}
+const UserManagement: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isQuery, setIsQuery] = useState<boolean>(false);
+  const [modalShow, setModalShow] = useState<boolean>(false);
+  const [selectedData, setSelectedData] = useState<User>({});
 
-type Props = StateProps & DispatchProps;
+  const dispatch = useDispatch<AppDispatch>();
+  const queryResult = useSelector((state: RootState) => state.user.users);
 
-interface State {
-  isLoading: boolean;
-  isQuery: boolean;
-  modalShow: boolean;
-  data: EditableUser;
-}
-
-
-class UserManagement extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      isQuery: false,
-      modalShow: false,
-      data: {} as EditableUser
-    };
-    this.handleQueryUser = this.handleQueryUser.bind(this);
-    this.handleEditClick = this.handleEditClick.bind(this);
-    this.handleModalClose = this.handleModalClose.bind(this);
-    this.handleUpdateSubmit = this.handleUpdateSubmit.bind(this);
-    this.handleDeleteSubmit = this.handleDeleteSubmit.bind(this);
-  }
-
-  handleQueryUser() {
-    this.setState({ isLoading: true }, () => {
-      this.props.getUserList().then(response => {
-        if (response && response.status === 200) {
-          this.setState({ isLoading: false, isQuery: true });
-        }
-      });
+  const handleQueryUser = useCallback((): void => {
+    setIsLoading(true);
+    dispatch(getUserList()).then((response) => {
+      if (response?.status === 200) {
+        setIsLoading(false);
+        setIsQuery(true);
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
-  }
+  }, [dispatch]);
 
-  handleEditClick(data: EditableUser) {
-    this.setState({ modalShow: true, data: data });
-  }
+  const handleEditClick = useCallback((data: User): void => {
+    setModalShow(true);
+    setSelectedData(data);
+  }, []);
 
-  handleModalClose() {
-    this.setState({ modalShow: false, data: {} as EditableUser });
-  }
+  const handleModalClose = useCallback((): void => {
+    setModalShow(false);
+    setSelectedData({});
+  }, []);
 
-  handleUpdateSubmit(updateUserRequest: {
-    employeeId?: string;
-    newPassword?: string;
-    fullName?: string;
-    role?: string;
-  }) {
-    this.setState({ isLoading: true, modalShow: false }, () => {
-      this.props.updateUser(updateUserRequest).then(response => {
-        if (response && response.status === 200) {
-          this.setState({ data: {} as EditableUser, isLoading: false });
-        }
-      });
+  const handleUpdateSubmit = useCallback((updateUserRequest: UpdateUserRequest): void => {
+    setIsLoading(true);
+    setModalShow(false);
+    dispatch(updateUser(updateUserRequest)).then((response) => {
+      if (response?.status === 200) {
+        setSelectedData({});
+        setIsLoading(false);
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
-  }
+  }, [dispatch]);
 
-  handleDeleteSubmit(employeeId: string) {
-    this.setState({ isLoading: true }, () => {
-      this.props.deleteUser(employeeId).then(response => {
-        if (response && response.status === 200) {
-          this.setState({ isLoading: false });
-        }
-      });
+  const handleDeleteSubmit = useCallback((employeeId: string): void => {
+    setIsLoading(true);
+    dispatch(deleteUser(employeeId)).then((response) => {
+      if (response?.status === 200) {
+        setIsLoading(false);
+      }
+    }).catch((error) => {
+      setIsLoading(false);
+      notifyRequestFailed(error);
     });
-  }
+  }, [dispatch]);
 
-  render() {
-    return (
-      <div className="container">
-        <button
-          className="btn btn-sm btn-primary"
-          onClick={this.handleQueryUser}
-        >
-          讀取員工清單
-        </button>
-        <hr />
-        <LoadingOverlay active={this.state.isLoading} spinner={<Spinner />}>
-          <div className="scrollbar-70">
-            {this.state.isQuery ? (
-              <div>
-                <MaterialTable
-                  title="員工清單"
-                  columns={[
-                    { title: "員工編號", field: "employeeId" },
-                    { title: "姓名", field: "fullName" },
-                    { title: "權限", field: "role" }
-                  ]}
-                  icons={tableIcons as unknown as Icons}
-                  data={this.props.queryResult}
-                  actions={[
-                    {
-                      icon: tableIcons.Edit as unknown as () => React.ReactElement,
-                      tooltip: "Edit User",
-                      onClick: (_event, rowData) => this.handleEditClick(rowData as EditableUser)
-                    },
-                    {
-                      icon: tableIcons.Delete as unknown as () => React.ReactElement,
-                      tooltip: "Delete User",
-                      onClick: (_event, rowData) => {
-                        this.handleDeleteSubmit((rowData as EditableUser).employeeId ?? "");
-                      }
-                    }
-                  ]}
-                  options={{
-                    filtering: true,
-                    draggable: false,
-                    pageSize: 10,
-                    pageSizeOptions: [10, 20]
-                  }}
+  const columns: GridColDef[] = [
+    { field: "employeeId", headerName: "員工編號", flex: 1 },
+    { field: "fullName", headerName: "姓名", flex: 1 },
+    { field: "role", headerName: "權限", flex: 1 },
+    {
+      field: "actions",
+      headerName: "操作",
+      flex: 1,
+      sortable: false,
+      renderCell: (params: GridRenderCellParams<UserRow>) => (
+        <>
+          <IconButton
+            size="small"
+            onClick={() => handleEditClick(params.row)}
+            aria-label="編輯"
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => handleDeleteSubmit(params.row.employeeId || "")}
+            aria-label="刪除"
+            color="error"
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </>
+      )
+    }
+  ];
+
+  const rows: UserRow[] = queryResult.map((user, index) => ({
+    id: user.employeeId || index,
+    ...user
+  }));
+
+  return (
+    <div className="container">
+      <button
+        className="btn btn-sm btn-primary"
+        onClick={handleQueryUser}
+      >
+        讀取員工清單
+      </button>
+      <hr />
+      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
+        <div className="scrollbar-70">
+          {isQuery ? (
+            <div style={{ height: 500, width: "100%" }}>
+              <DataGrid
+                rows={rows}
+                columns={columns}
+                pageSizeOptions={[10, 20]}
+                initialState={{
+                  pagination: { paginationModel: { pageSize: 10 } }
+                }}
+                disableRowSelectionOnClick
+              />
+              {modalShow && (
+                <EditModal
+                  show
+                  userInfo={selectedData}
+                  handleModalClose={handleModalClose}
+                  handleUpdateSubmit={handleUpdateSubmit}
                 />
-                {this.state.modalShow ? (
-                  <EditModal
-                    show
-                    userInfo={this.state.data}
-                    handleModalClose={this.handleModalClose}
-                    handleUpdateSubmit={this.handleUpdateSubmit}
-                  />
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </LoadingOverlay>
-      </div>
-    );
-  }
-}
+              )}
+            </div>
+          ) : null}
+        </div>
+      </LoadingOverlay>
+    </div>
+  );
+};
 
-
-const mapStateToProps = (state: RootState): StateProps => ({
-  queryResult: state.user.users as EditableUser[],
-  errors: state.errors
-});
-
-export default connect(mapStateToProps, {
-  getUserList,
-  updateUser,
-  deleteUser
-})(UserManagement);
+export default UserManagement;

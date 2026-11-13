@@ -1,126 +1,124 @@
-import React, { Component } from "react";
+import React, { useState, useCallback, ChangeEvent } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { copy } from "../../../../../utilities/DeepCopy";
 import { RoleOption } from "../../../../../enums/Enums";
+import { UpdateUserRequest, User } from "../../../../../types";
 
-import type { ManagedUser } from "../../../../../types/domain";
-
-export interface EditableUser extends ManagedUser {
-  newPassword?: string;
-  role?: string;
-}
-
-interface Props {
+interface EditModalProps {
   show: boolean;
-  userInfo: EditableUser;
   handleModalClose: () => void;
-  handleUpdateSubmit: (request: {
-    employeeId?: string;
-    newPassword?: string;
-    fullName?: string;
-    role?: string;
-  }) => void;
+  handleUpdateSubmit: (updateUserRequest: UpdateUserRequest) => void;
+  userInfo: User;
 }
 
-interface State {
-  editMode: boolean;
-  userInfo: EditableUser;
+interface UserInfoState {
+  employeeId?: string;
+  username?: string;
+  fullName?: string;
+  role?: string;  // Always string in UI state
+  iat?: number;
+  exp?: number;
+  newPassword?: string;
 }
 
-
-class EditModal extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      editMode: false,
-      userInfo: this.roleTranslate(this.props.userInfo)
-    };
-    this.handleEditMode = this.handleEditMode.bind(this);
-    this.handleInfoChange = this.handleInfoChange.bind(this);
-    this.handleUpdateSubmit = this.handleUpdateSubmit.bind(this);
-  }
-
-  roleTranslate(userInfo: EditableUser) {
-    const userInfoCopy = copy(userInfo) as EditableUser;
-
-    userInfoCopy.role = (RoleOption as Record<string, string>)[userInfo.role ?? ""];
-
+const EditModal: React.FC<EditModalProps> = ({
+  show,
+  handleModalClose,
+  handleUpdateSubmit,
+  userInfo: propsUserInfo
+}) => {
+  const roleTranslate = useCallback((info: User): UserInfoState => {
+    const userInfoCopy = copy(info) as UserInfoState;
+    if (info.role) {
+      // Handle both string and object formats for role
+      const roleValue = typeof info.role === 'string'
+        ? info.role
+        : info.role.authority ?? '';
+      userInfoCopy["role"] = RoleOption[roleValue] || roleValue;
+    }
     return userInfoCopy;
-  }
+  }, []);
 
-  handleEditMode() {
-    this.setState({ editMode: !this.state.editMode });
-  }
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [userInfo, setUserInfo] = useState<UserInfoState>(() => roleTranslate(propsUserInfo));
 
-  handleInfoChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    const infoCopy = copy(this.state.userInfo) as EditableUser;
+  const handleEditMode = useCallback((): void => {
+    setEditMode(prev => !prev);
+  }, []);
+
+  const handleInfoChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
 
-    switch (name) {
-      case "fullName":
-        infoCopy["employeeId"] = value;
-        break;
-      case "newPassword":
-        infoCopy["newPassword"] = value;
-        break;
-      case "role":
-        infoCopy["role"] = value;
-        break;
-      default:
-        break;
-    }
+    setUserInfo(prevInfo => {
+      const infoCopy = copy(prevInfo) as UserInfoState;
 
-    this.setState({ userInfo: infoCopy });
-  }
+      switch (name) {
+        case "fullName":
+          infoCopy["employeeId"] = value;
+          break;
+        case "newPassword":
+          infoCopy["newPassword"] = value;
+          break;
+        case "role":
+          infoCopy["role"] = value;
+          break;
+        default:
+          break;
+      }
 
-  handleUpdateSubmit() {
-    let { userInfo } = this.state;
+      return infoCopy;
+    });
+  }, []);
 
-    const updateInfoRequest = {
-      employeeId: userInfo.employeeId,
+  const handleUpdateSubmitClick = useCallback((): void => {
+    const updateInfoRequest: UpdateUserRequest = {
+      employeeId: userInfo.employeeId || "",
       newPassword: userInfo.newPassword,
       fullName: userInfo.fullName,
       role: userInfo.role
     };
 
-    this.props.handleUpdateSubmit(updateInfoRequest);
-  }
+    handleUpdateSubmit(updateInfoRequest);
+  }, [userInfo, handleUpdateSubmit]);
 
-  renderEditModeOff() {
-    const { userInfo } = this.props;
+  const renderEditModeOff = (): React.ReactNode => {
+    // Handle both string and object formats for role display
+    const displayRole = propsUserInfo.role
+      ? typeof propsUserInfo.role === 'string'
+        ? propsUserInfo.role
+        : propsUserInfo.role.authority ?? ''
+      : '';
 
     return (
       <React.Fragment>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">員工編號</label>
-          <label className="col-6 col-form-label">{userInfo.employeeId}</label>
+          <label className="col-6 col-form-label">{propsUserInfo.employeeId}</label>
         </div>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">姓名</label>
-          <label className="col-6 col-form-label">{userInfo.fullName}</label>
+          <label className="col-6 col-form-label">{propsUserInfo.fullName}</label>
         </div>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">權限</label>
-          <label className="col-6 col-form-label">{userInfo.role}</label>
+          <label className="col-6 col-form-label">{displayRole}</label>
         </div>
       </React.Fragment>
     );
-  }
+  };
 
-  renderEditModeOn() {
-    const { userInfo } = this.state;
-
+  const renderEditModeOn = (): React.ReactNode => {
     return (
       <React.Fragment>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">員工編號</label>
           <label className="col-6 col-form-label">{userInfo.employeeId}</label>
         </div>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">姓名</label>
           <label className="col-6 col-form-label">{userInfo.fullName}</label>
         </div>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">新密碼</label>
           <div className="col-6">
             <input
@@ -128,21 +126,21 @@ class EditModal extends Component<Props, State> {
               className="form-control"
               placeholder="新密碼"
               name="newPassword"
-              onChange={this.handleInfoChange}
+              onChange={handleInfoChange}
             />
           </div>
         </div>
-        <div className="form-group row pb-0">
+        <div className="mb-3 row pb-0">
           <label className="col-6 col-form-label text-center">權限</label>
           <div className="col-6">
             <select
               name="role"
-              className="custom-select"
+              className="form-select"
               defaultValue={userInfo.role}
-              onChange={this.handleInfoChange}
+              onChange={handleInfoChange}
             >
               {Object.keys(RoleOption).map((title, index) => (
-                <option key={index} value={(RoleOption as Record<string, string>)[title]}>
+                <option key={index} value={RoleOption[title]}>
                   {title}
                 </option>
               ))}
@@ -151,49 +149,45 @@ class EditModal extends Component<Props, State> {
         </div>
       </React.Fragment>
     );
-  }
+  };
 
-  render() {
-    const { editMode } = this.state;
-
-    return (
-      <Modal
-        centered
-        show={this.props.show}
-        onHide={this.props.handleModalClose}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <div className="row">
-              <div className="col-md-auto mr-auto">
-                <p className="h5 mb-0 mt-2">更新員工資料</p>
-              </div>
-              <div className="col-md-auto">
-                <i
-                  className="fa fa-pencil"
-                  aria-hidden="true"
-                  onClick={this.handleEditMode}
-                ></i>
-              </div>
+  return (
+    <Modal
+      centered
+      show={show}
+      onHide={handleModalClose}
+    >
+      <Modal.Header closeButton>
+        <Modal.Title>
+          <div className="row">
+            <div className="col-md-auto me-auto">
+              <p className="h5 mb-0 mt-2">更新員工資料</p>
             </div>
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {editMode ? this.renderEditModeOn() : this.renderEditModeOff()}
-        </Modal.Body>
-        {editMode ? (
-          <Modal.Footer>
-            <Button variant="secondary" onClick={this.props.handleModalClose}>
-              取消
-            </Button>
-            <Button variant="primary" onClick={this.handleUpdateSubmit}>
-              儲存
-            </Button>
-          </Modal.Footer>
-        ) : null}
-      </Modal>
-    );
-  }
-}
+            <div className="col-md-auto">
+              <i
+                className="fa fa-pencil"
+                aria-hidden="true"
+                onClick={handleEditMode}
+              ></i>
+            </div>
+          </div>
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {editMode ? renderEditModeOn() : renderEditModeOff()}
+      </Modal.Body>
+      {editMode ? (
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleModalClose}>
+            取消
+          </Button>
+          <Button variant="primary" onClick={handleUpdateSubmitClick}>
+            儲存
+          </Button>
+        </Modal.Footer>
+      ) : null}
+    </Modal>
+  );
+};
 
 export default EditModal;

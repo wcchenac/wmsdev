@@ -1,5 +1,6 @@
-import React, { Component } from "react";
-import { connect } from "react-redux";
+import React, { useState, useCallback, ChangeEvent, FormEvent, MouseEvent } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import { Nav, TabContainer, TabContent, TabPane } from "react-bootstrap";
 import QueryOrder from "./Common/QueryOrder";
 import SelectionBoard from "./Common/SelectionBoard";
@@ -7,335 +8,321 @@ import EditBoard from "./Common/EditBoard";
 import {
   getAssembleOrder,
   batchCreateStockInfoes,
-} from "../../../../actions/StockAcions";
+} from "../../../../actions/StockActions";
 import {
   checkWaitHandleStatusCompletion,
   checkWaitHandleProductStatus,
 } from "../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../utilities/IsEmpty";
-import LoadingOverlay from "react-loading-overlay";
+import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
+import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import type { RootState, ErrorState } from "../../../../types/state";
-import type {
-  ApiStatus,
-  InStockRequestPayload,
-  SelectedProduct,
-  StatusByProduct,
-} from "../../../../types/domain";
-import type { InStockEditorRow } from "./Common/StockInfo";
+import { RootState, AppDispatch, InStockRequest } from "../../../../types";
 
-interface OrderSlice {
-  stockInfoes: {
-    currentStatus?: StatusByProduct;
-    waitHandleStatus?: StatusByProduct;
+interface WaitHandleStatusItem {
+  quantity: string | number;
+  unit: string;
+}
+
+interface WaitHandleStatus {
+  [productNo: string]: {
+    [type: string]: WaitHandleStatusItem;
   };
 }
 
-interface StateProps {
-  queryAssembleOrderResult: OrderSlice;
-  errors: ErrorState;
+interface CurrentOrderStatus {
+  [productNo: string]: unknown;
 }
 
-interface DispatchProps {
-  getAssembleOrder: (orderNo: string) => Promise<ApiStatus | undefined>;
-  batchCreateStockInfoes: (
-    requests: InStockRequestPayload[]
-  ) => Promise<ApiStatus | undefined>;
+interface SelectedProductNo {
+  productNo: string;
+  selected: boolean;
+  index: number;
+  isSubmitted: boolean;
 }
 
-type Props = StateProps & DispatchProps;
 
-interface State {
-  isLoading: boolean;
-  orderNo: string;
-  isOrderValid: boolean | undefined;
-  key: number | string | null;
-  currentOrderStatus: StatusByProduct;
-  waitHandleStatus: StatusByProduct;
-  selectedProductNoList: SelectedProduct[];
-}
+const AssembleStockBoard: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const queryAssembleOrderResult = useSelector((state: RootState) => state.stockInfo);
 
-interface AssembleStockBoard {
-  timer?: ReturnType<typeof setTimeout> | null;
-}
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [orderNo, setOrderNo] = useState<string>("");
+  const [isOrderValid, setIsOrderValid] = useState<boolean | undefined>(undefined);
+  const [key, setKey] = useState<number>(1);
+  const [, setCurrentOrderStatus] = useState<CurrentOrderStatus>({});
+  const [waitHandleStatus, setWaitHandleStatus] = useState<WaitHandleStatus>({});
+  const [selectedProductNoList, setSelectedProductNoList] = useState<SelectedProductNo[]>([]);
 
-class AssembleStockBoard extends Component<Props, State> {
+  const getInitialize = useCallback(() => {
+    setIsLoading(false);
+    setIsOrderValid(undefined);
+    setKey(1);
+    setCurrentOrderStatus({});
+    setWaitHandleStatus({});
+    setSelectedProductNoList([]);
+  }, []);
 
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      isLoading: false,
-      orderNo: "",
-      isOrderValid: undefined,
-      key: 1,
-      currentOrderStatus: {},
-      waitHandleStatus: {},
-      selectedProductNoList: [],
-    };
-    this.getInitialize = this.getInitialize.bind(this);
-    this.handlePrevStep = this.handlePrevStep.bind(this);
-    this.handleNextStep = this.handleNextStep.bind(this);
-    this.handleOrderNo = this.handleOrderNo.bind(this);
-    this.handleQueryOrderSubmit = this.handleQueryOrderSubmit.bind(this);
-    this.handleCheckBoxSelected = this.handleCheckBoxSelected.bind(this);
-    this.handleInStockRequestSubmit = this.handleInStockRequestSubmit.bind(this);
-    this.handleSelectionClick = this.handleSelectionClick.bind(this);
-  }
+  const initialSelectedList = useCallback(
+    (currentOrderStatusParam: CurrentOrderStatus, waitHandleStatusParam: WaitHandleStatus) => {
+      if (!isEmpty(currentOrderStatusParam as Record<string, unknown>)) {
+        const selectedList: SelectedProductNo[] = [];
 
-  getInitialize() {
-    if (this.timer !== null) {
-      clearTimeout(this.timer);
-    }
-
-    this.setState({
-      isLoading: false,
-      isOrderValid: undefined,
-      key: 1,
-      currentOrderStatus: {},
-      waitHandleStatus: {},
-      selectedProductNoList: [],
-    });
-  }
-
-  initialSelectedList(
-    currentOrderStatus: StatusByProduct,
-    waitHandleStatus: StatusByProduct
-  ) {
-    if (!isEmpty(currentOrderStatus)) {
-      const selectedList: SelectedProduct[] = [];
-
-      Object.keys(currentOrderStatus)
-        .sort()
-        .forEach((element, index) => {
-          selectedList.push({
-            productNo: element.toString(),
-            selected: checkWaitHandleProductStatus(
-              waitHandleStatus[element.toString()]
-            ),
-            index: index,
-            isSubmitted: false,
+        Object.keys(currentOrderStatusParam)
+          .sort()
+          .forEach((element, index) => {
+            selectedList.push({
+              productNo: element.toString(),
+              selected: checkWaitHandleProductStatus(
+                waitHandleStatusParam[element.toString()]
+              ),
+              index: index,
+              isSubmitted: false,
+            });
           });
-        });
 
-      this.setState({ selectedProductNoList: selectedList });
-    }
-  }
+        setSelectedProductNoList(selectedList);
+      }
+    },
+    []
+  );
 
-  handleTabSelect(key: number | string | null) {
-    this.setState({ key });
-  }
+  const handleTabSelect = useCallback((newKey: number) => {
+    setKey(newKey);
+  }, []);
 
-  handlePrevStep() {
-    this.setState({
-      key: Number(this.state.key) - 1,
-    });
-  }
+  const handlePrevStep = useCallback(() => {
+    setKey((prevKey) => prevKey - 1);
+  }, []);
 
-  handleNextStep() {
-    this.setState({
-      key: Number(this.state.key) + 1,
-    });
-  }
+  const handleNextStep = useCallback(() => {
+    setKey((prevKey) => prevKey + 1);
+  }, []);
 
-  handleOrderNo(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.name === "orderNo") {
-      this.setState({ orderNo: e.target.value });
-    }
-  }
+  const handleOrderNo = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setOrderNo(e.target.value);
+  }, []);
 
-  handleQueryOrderSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const handleQueryOrderSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
 
-    this.setState({ isLoading: true }, () => {
-      this.props.getAssembleOrder(this.state.orderNo).then((response) => {
-        if (response?.status === 200) {
-          this.setState({ isLoading: false });
+      setIsLoading(true);
+      dispatch(getAssembleOrder(orderNo)).then((response) => {
+        if (response.status === 200) {
+          setIsLoading(false);
         }
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
       });
-    });
-  }
+    },
+    [dispatch, orderNo]
+  );
 
-  handleCheckBoxSelected(
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) {
+  const handleCheckBoxSelected = useCallback((e: ChangeEvent<HTMLInputElement>, index: number) => {
     const { checked } = e.target;
-    const copyList = [...this.state.selectedProductNoList];
 
-    copyList[index] = {
-      ...this.state.selectedProductNoList[index],
-      selected: checked,
-    };
-
-    this.setState({
-      selectedProductNoList: copyList,
+    setSelectedProductNoList((prevList) => {
+      const copyList = [...prevList];
+      copyList[index] = {
+        ...copyList[index],
+        selected: checked,
+      };
+      return copyList;
     });
-  }
+  }, []);
 
-  handleSelectionClick(e: React.MouseEvent<HTMLButtonElement>) {
-    const copyList = [...this.state.selectedProductNoList];
+  const handleSelectionClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
     const value = (e.target as HTMLButtonElement).value === "true";
 
-    copyList.forEach((object) => {
-      object.selected = value;
+    setSelectedProductNoList((prevList) => {
+      return prevList.map((object) => ({
+        ...object,
+        selected: value,
+      }));
     });
+  }, []);
 
-    this.setState({
-      selectedProductNoList: copyList,
-    });
-  }
+  const handleInStockRequestSubmit = useCallback(
+    (e: MouseEvent<HTMLButtonElement>, index: number, inStockRequests: InStockRequest[]) => {
+      e.preventDefault();
 
-  handleInStockRequestSubmit(
-    e: React.MouseEvent<HTMLButtonElement>,
-    index: number,
-    inStockRequests: InStockEditorRow[]
-  ) {
-    e.preventDefault();
-    const copyList = [...this.state.selectedProductNoList];
-
-    this.setState({ isLoading: true }, () => {
-      this.props
-        .batchCreateStockInfoes(inStockRequests as InStockRequestPayload[])
-        .then((res) => {
-          if (res?.status === 200) {
+      setIsLoading(true);
+      dispatch(batchCreateStockInfoes(inStockRequests)).then((res) => {
+        if (res.status === 200) {
+          setSelectedProductNoList((prevList) => {
+            const copyList = [...prevList];
             copyList[index] = {
-              ...this.state.selectedProductNoList[index],
+              ...copyList[index],
               isSubmitted: true,
             };
-
-            this.setState({
-              isLoading: false,
-              selectedProductNoList: copyList,
-            });
-          }
-        });
-    });
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.queryAssembleOrderResult !== prevProps.queryAssembleOrderResult) {
-      this.setState(
-        {
-          currentOrderStatus: this.props.queryAssembleOrderResult.stockInfoes
-            .currentStatus as StatusByProduct,
-          waitHandleStatus: this.props.queryAssembleOrderResult.stockInfoes
-            .waitHandleStatus as StatusByProduct,
-        },
-        function (this: AssembleStockBoard) {
-          if (
-            isEmpty(this.state.currentOrderStatus) ||
-            checkWaitHandleStatusCompletion(this.state.waitHandleStatus)
-          ) {
-            this.setState({ isOrderValid: false });
-          } else {
-            this.initialSelectedList(
-              this.state.currentOrderStatus,
-              this.state.waitHandleStatus
-            );
-            this.setState({ isOrderValid: true });
-            this.handleTabSelect(2);
-          }
+            return copyList;
+          });
         }
-      );
+        // Only the submitted product is marked; the order is not re-queried, since that would
+        // rebuild the Step 2 list and bring back products the user left unticked.
+        setIsLoading(false);
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch]
+  );
+
+  // Only react to an order that arrives while this page is mounted, not one another page
+  // left in the shared stockInfo slice (componentDidUpdate in dev).
+  useUpdateEffect(queryAssembleOrderResult.stockInfoes, (result) => {
+    if (result) {
+      const stockInfoes = result as {
+        currentStatus?: CurrentOrderStatus;
+        waitHandleStatus?: WaitHandleStatus;
+      };
+      const newCurrentOrderStatus = stockInfoes.currentStatus;
+      const newWaitHandleStatus = stockInfoes.waitHandleStatus;
+
+      if (newCurrentOrderStatus) {
+        setCurrentOrderStatus(newCurrentOrderStatus);
+      }
+      if (newWaitHandleStatus) {
+        setWaitHandleStatus(newWaitHandleStatus);
+      }
+
+      if (
+        !newCurrentOrderStatus ||
+        isEmpty(newCurrentOrderStatus as Record<string, unknown>) ||
+        (newWaitHandleStatus && checkWaitHandleStatusCompletion(newWaitHandleStatus))
+      ) {
+        setIsOrderValid(false);
+      } else if (newCurrentOrderStatus && newWaitHandleStatus) {
+        initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
+        setIsOrderValid(true);
+        // Only auto-jump to step 2 if we are coming from step 1
+        setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
+      }
     }
-  }
+  });
 
-  render() {
-    const {
-      isLoading,
-      orderNo,
-      isOrderValid,
-      waitHandleStatus,
-      selectedProductNoList,
-      key,
-    } = this.state;
-
-    return (
-      <div className="batch_add_stockInfo">
-        <div className="container">
-          <TabContainer
-            id="left-tabs"
-            activeKey={key as string | number}
-            onSelect={(selected) => this.handleTabSelect(selected)}
+  return (
+    <div className="batch_add_stockInfo">
+      <div className="container">
+        <TabContainer
+          id="left-tabs"
+          activeKey={key}
+          onSelect={(k) => handleTabSelect(Number(k))}
+        >
+          {/* Responsive Step Navigation */}
+          <Nav
+            justify
+            variant="pills"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 'var(--spacing-2)',
+            }}
           >
-            <Nav justify variant="pills">
-              <Nav.Item>
-                <Nav.Link eventKey={1} disabled={key !== 1}>
-                  Step 1 - 查詢組裝單內容
-                </Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey={2} disabled={key !== 2}>
-                  Step 2 - 選擇入庫貨號
-                </Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey={3} disabled={key !== 3}>
-                  Step 3 - 輸入詳細資料及送出
-                </Nav.Link>
-              </Nav.Item>
-            </Nav>
-            <hr />
-            <TabContent>
-              <TabPane eventKey={1}>
-                <div className="container">
-                  <LoadingOverlay
-                    active={isLoading && key === 1}
-                    spinner={<Spinner />}
-                  >
-                    <div style={{ height: "80vh" }}>
-                      <QueryOrder
-                        type="組裝單"
-                        handleOrderNo={this.handleOrderNo}
-                        handleQueryOrderSubmit={this.handleQueryOrderSubmit}
-                        isOrderValid={isOrderValid}
-                      />
-                    </div>
-                  </LoadingOverlay>
-                </div>
-              </TabPane>
-              <TabPane eventKey={2}>
-                <div className="container">
-                  <SelectionBoard
-                    handlePrevStep={this.getInitialize}
-                    handleNextStep={this.handleNextStep}
-                    type="組裝單"
-                    orderNo={orderNo}
-                    waitHandleStatus={waitHandleStatus}
-                    selectedProductNoList={selectedProductNoList}
-                    handleCheckBoxSelected={this.handleCheckBoxSelected}
-                    handleSelectionClick={this.handleSelectionClick}
-                  />
-                </div>
-              </TabPane>
-              <TabPane eventKey={3}>
-                <div className="container">
-                  <EditBoard
-                    isLoading={isLoading && key === 3}
-                    type="assemble"
-                    handlePrevStep={this.handlePrevStep}
-                    orderNo={orderNo}
-                    selectedProductNoList={selectedProductNoList}
-                    waitHandleStatus={waitHandleStatus}
-                    handleInStockRequestSubmit={this.handleInStockRequestSubmit}
-                    getInitialize={this.getInitialize}
-                  />
-                </div>
-              </TabPane>
-            </TabContent>
-          </TabContainer>
-        </div>
+            <Nav.Item style={{ flex: '1 1 auto', minWidth: '120px' }}>
+              <Nav.Link
+                eventKey={1}
+                disabled={key !== 1}
+                style={{
+                  textAlign: 'center',
+                  padding: 'var(--spacing-3)',
+                  borderRadius: 'var(--border-radius-md)',
+                }}
+              >
+                <span className="d-none d-md-inline">Step 1 - 查詢組裝單內容</span>
+                <span className="d-md-none">
+                  <strong>1</strong> 查詢
+                </span>
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item style={{ flex: '1 1 auto', minWidth: '120px' }}>
+              <Nav.Link
+                eventKey={2}
+                disabled={key !== 2}
+                style={{
+                  textAlign: 'center',
+                  padding: 'var(--spacing-3)',
+                  borderRadius: 'var(--border-radius-md)',
+                }}
+              >
+                <span className="d-none d-md-inline">Step 2 - 選擇入庫貨號</span>
+                <span className="d-md-none">
+                  <strong>2</strong> 選擇
+                </span>
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item style={{ flex: '1 1 auto', minWidth: '120px' }}>
+              <Nav.Link
+                eventKey={3}
+                disabled={key !== 3}
+                style={{
+                  textAlign: 'center',
+                  padding: 'var(--spacing-3)',
+                  borderRadius: 'var(--border-radius-md)',
+                }}
+              >
+                <span className="d-none d-md-inline">Step 3 - 輸入詳細資料及送出</span>
+                <span className="d-md-none">
+                  <strong>3</strong> 送出
+                </span>
+              </Nav.Link>
+            </Nav.Item>
+          </Nav>
+          <hr />
+          <TabContent>
+            <TabPane eventKey={1}>
+              <div className="container-fluid px-0 px-md-3">
+                <LoadingOverlay
+                  active={isLoading && key === 1}
+                  spinner={<Spinner />}
+                >
+                  <div style={{ minHeight: "80vh" }}>
+                    <QueryOrder
+                      type="組裝單"
+                      handleOrderNo={handleOrderNo}
+                      handleQueryOrderSubmit={handleQueryOrderSubmit}
+                      isOrderValid={isOrderValid}
+                    />
+                  </div>
+                </LoadingOverlay>
+              </div>
+            </TabPane>
+            <TabPane eventKey={2}>
+              <div className="container-fluid px-0 px-md-3">
+                <SelectionBoard
+                  handlePrevStep={getInitialize}
+                  handleNextStep={handleNextStep}
+                  type="組裝單"
+                  orderNo={orderNo}
+                  waitHandleStatus={waitHandleStatus}
+                  selectedProductNoList={selectedProductNoList}
+                  handleCheckBoxSelected={handleCheckBoxSelected}
+                  handleSelectionClick={handleSelectionClick}
+                />
+              </div>
+            </TabPane>
+            <TabPane eventKey={3}>
+              <div className="container-fluid px-0 px-md-3">
+                <EditBoard
+                  isLoading={isLoading && key === 3}
+                  type="assemble"
+                  handlePrevStep={handlePrevStep}
+                  orderNo={orderNo}
+                  selectedProductNoList={selectedProductNoList}
+                  waitHandleStatus={waitHandleStatus}
+                  handleInStockRequestSubmit={handleInStockRequestSubmit}
+                  getInitialize={getInitialize}
+                />
+              </div>
+            </TabPane>
+          </TabContent>
+        </TabContainer>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-const mapStateToProps = (state: RootState): StateProps => ({
-  queryAssembleOrderResult: state.stockInfo as OrderSlice,
-  errors: state.errors,
-});
-
-export default connect(mapStateToProps, {
-  getAssembleOrder,
-  batchCreateStockInfoes,
-})(AssembleStockBoard);
+export default AssembleStockBoard;

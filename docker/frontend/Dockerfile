@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS build
+FROM node:22-bookworm-slim AS build
 
 WORKDIR /app
 
@@ -7,9 +7,7 @@ RUN npm ci --no-audit --no-fund
 
 COPY wms-client/ ./
 
-ENV DISABLE_ESLINT_PLUGIN=true
-ENV GENERATE_SOURCEMAP=false
-ENV CI=false
+# Vite reads REACT_APP_* as well as VITE_* (envPrefix in vite.config.ts).
 ARG REACT_APP_API_BASE_URL=
 ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 

@@ -1,178 +1,135 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import React, { useState, useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
     getShrinkList,
     stockIdentifierWaitToShrinkIsFalse,
     batchCreateStockInfoesForShrink,
-} from '../../../../../actions/StockAcions';
+} from '../../../../../actions/StockActions';
 import ShrinkList from './ShrinkList';
 import ModifyRequestBoard from './ModifyRequestBoard';
+import { RootState, AppDispatch, StockInfo, ShrinkStockRequest } from '../../../../../types';
 
-import type { RootState } from "../../../../../types/state";
-import type { ApiStatus, StoredStockInfo } from "../../../../../types/domain";
+type ModifyType = 'typeExchange' | 'sameTypeModify' | 'hardwareModify';
 
-interface ShrinkSlice {
-  stockInfoes: StoredStockInfo[];
-}
+const ShrinkBoard: React.FC = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const shrinkListFromStore = useSelector((state: RootState) => state.stockInfo);
 
-interface StateProps {
-  shrinkList: ShrinkSlice;
-}
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [waitCreateResp, setWaitCreateResp] = useState<boolean>(false);
+    const [shrinkList, setShrinkList] = useState<StockInfo[]>([]);
+    const [stockInfo, setStockInfo] = useState<StockInfo>({});
+    const [typeExchange, setTypeExchange] = useState<boolean>(false);
+    const [sameTypeModify, setSameTypeModify] = useState<boolean>(false);
+    const [hardwareModify, setHardwareModify] = useState<boolean>(false);
 
-interface DispatchProps {
-  getShrinkList: () => Promise<ApiStatus | undefined>;
-  stockIdentifierWaitToShrinkIsFalse: (stockIdentifierId: number) => Promise<ApiStatus | undefined>;
-  batchCreateStockInfoesForShrink: (request: unknown) => Promise<ApiStatus | undefined>;
-}
-
-type Props = StateProps & DispatchProps;
-
-interface State {
-  isLoading: boolean;
-  waitCreateResp: boolean;
-  shrinkList: StoredStockInfo[];
-  stockInfo: StoredStockInfo;
-  typeExchange: boolean;
-  sameTypeModify: boolean;
-  hardwareModify: boolean;
-}
-
-
-class ShrinkBoard extends Component<Props, State> {
-    constructor(props: Props) {
-        super(props);
-        this.state = {
-            isLoading: false,
-            waitCreateResp: false,
-            shrinkList: [],
-            stockInfo: {} as StoredStockInfo,
-            typeExchange: false,
-            sameTypeModify: false,
-            hardwareModify: false,
-        };
-        this.queryShrinkList = this.queryShrinkList.bind(this);
-        this.onModifyClick = this.onModifyClick.bind(this);
-        this.handleModifyRequestSubmit =
-            this.handleModifyRequestSubmit.bind(this);
-        this.onCancelShrinkClick = this.onCancelShrinkClick.bind(this);
-        this.handleGoBack = this.handleGoBack.bind(this);
-        this.initialComponent = this.initialComponent.bind(this);
-    }
-
-    componentDidUpdate(prevProps: Props) {
-        if (this.props.shrinkList !== prevProps.shrinkList) {
-            this.setState({ shrinkList: this.props.shrinkList.stockInfoes as StoredStockInfo[] });
+    // Only react to a list that arrives while this page is mounted, not one another page
+    // left in the shared stockInfo slice (componentDidUpdate in dev).
+    useUpdateEffect(shrinkListFromStore.stockInfoes, (result) => {
+        if (Array.isArray(result)) {
+            setShrinkList(result);
         }
-    }
+    });
 
-    initialComponent() {
-        this.setState({
-            isLoading: false,
-            waitCreateResp: false,
-            shrinkList: [],
-            stockInfo: {} as StoredStockInfo,
-            typeExchange: false,
-            sameTypeModify: false,
-            hardwareModify: false,
-        });
-    }
+    const initialComponent = useCallback((): void => {
+        setIsLoading(false);
+        setWaitCreateResp(false);
+        setShrinkList([]);
+        setStockInfo({});
+        setTypeExchange(false);
+        setSameTypeModify(false);
+        setHardwareModify(false);
+    }, []);
 
-    handleGoBack() {
-        this.setState({
-            typeExchange: false,
-            sameTypeModify: false,
-            hardwareModify: false,
-            stockInfo: {} as StoredStockInfo,
-        });
-    }
+    const handleGoBack = useCallback((): void => {
+        setTypeExchange(false);
+        setSameTypeModify(false);
+        setHardwareModify(false);
+        setStockInfo({});
+    }, []);
 
-    onModifyClick(type: string, stockInfo: StoredStockInfo) {
-        if (type === "typeExchange") {
-            this.setState({ typeExchange: true, stockInfo });
-        } else if (type === "sameTypeModify") {
-            this.setState({ sameTypeModify: true, stockInfo });
-        } else {
-            this.setState({ hardwareModify: true, stockInfo });
+    const onModifyClick = useCallback((type: ModifyType, info: StockInfo): void => {
+        if (type === 'typeExchange') {
+            setTypeExchange(true);
+        } else if (type === 'sameTypeModify') {
+            setSameTypeModify(true);
+        } else if (type === 'hardwareModify') {
+            setHardwareModify(true);
         }
-    }
+        setStockInfo(info);
+    }, []);
 
-    queryShrinkList() {
-        this.setState({ isLoading: true }, () => {
-            this.props.getShrinkList().then((response) => {
-                if (response?.status === 200) {
-                    this.setState({ isLoading: false });
-                }
-            });
+    const queryShrinkList = useCallback((): void => {
+        setIsLoading(true);
+        dispatch(getShrinkList()).then((response: { status: number }) => {
+            if (response.status === 200) {
+                setIsLoading(false);
+            }
+        }).catch((error) => {
+          setIsLoading(false);
+          notifyRequestFailed(error);
         });
-    }
+    }, [dispatch]);
 
-    handleModifyRequestSubmit(shrinkStockRequest: unknown) {
-        if (!this.state.waitCreateResp) {
-            this.setState({ isLoading: true, waitCreateResp: true }, () => {
-                this.props
-                    .batchCreateStockInfoesForShrink(shrinkStockRequest)
-                    .then((res) => {
-                        if (res?.status === 200) {
-                            this.initialComponent();
+    const handleModifyRequestSubmit = useCallback(
+        (shrinkStockRequest: ShrinkStockRequest): void => {
+            if (!waitCreateResp) {
+                setIsLoading(true);
+                setWaitCreateResp(true);
+                dispatch(batchCreateStockInfoesForShrink(shrinkStockRequest))
+                    .then((res: { status: number }) => {
+                        if (res.status === 200) {
+                            initialComponent();
                         }
                     })
-                    .catch((err) => console.log(err));
-            });
-        }
-    }
+                    .catch((error) => {
+                        // Reset loading state on error
+                        setIsLoading(false);
+                        setWaitCreateResp(false);
+                        notifyRequestFailed(error);
+                    });
+            }
+        },
+        [dispatch, waitCreateResp, initialComponent]
+    );
 
-    onCancelShrinkClick(stockIdentifierId: number) {
-        this.setState({ isLoading: true }, () => {
-            this.props
-                .stockIdentifierWaitToShrinkIsFalse(stockIdentifierId)
-                .then((response) => {
-                    if (response?.status === 200) {
-                        this.setState({ isLoading: false });
+    const onCancelShrinkClick = useCallback(
+        (stockIdentifierId: number): void => {
+            setIsLoading(true);
+            dispatch(stockIdentifierWaitToShrinkIsFalse(stockIdentifierId)).then(
+                (response: { status: number }) => {
+                    if (response.status === 200) {
+                        setIsLoading(false);
                     }
-                });
-        });
-    }
+                }
+            ).catch((error) => {
+              setIsLoading(false);
+              notifyRequestFailed(error);
+            });
+        },
+        [dispatch]
+    );
 
-    render() {
-        const {
-            isLoading,
-            shrinkList,
-            stockInfo,
-            typeExchange,
-            sameTypeModify,
-            hardwareModify,
-        } = this.state;
+    return typeExchange || sameTypeModify || hardwareModify ? (
+        <ModifyRequestBoard
+            stockInfo={stockInfo}
+            typeExchange={typeExchange}
+            sameTypeModify={sameTypeModify}
+            hardwareModify={hardwareModify}
+            handleGoBack={handleGoBack}
+            handleModifyRequestSubmit={handleModifyRequestSubmit}
+        />
+    ) : (
+        <ShrinkList
+            isLoading={isLoading}
+            shrinkList={shrinkList}
+            queryShrinkList={queryShrinkList}
+            onModifyClick={onModifyClick}
+            onCancelShrinkClick={onCancelShrinkClick}
+        />
+    );
+};
 
-        return typeExchange || sameTypeModify || hardwareModify ? (
-            <ModifyRequestBoard
-                isLoading={isLoading}
-                stockInfo={stockInfo}
-                typeExchange={typeExchange}
-                sameTypeModify={sameTypeModify}
-                hardwareModify={hardwareModify}
-                handleGoBack={this.handleGoBack}
-                handleModifyRequestSubmit={this.handleModifyRequestSubmit}
-                initialComponent={this.initialComponent}
-            />
-        ) : (
-            <ShrinkList
-                isLoading={isLoading}
-                shrinkList={shrinkList}
-                queryShrinkList={this.queryShrinkList}
-                onModifyClick={this.onModifyClick}
-                onCancelShrinkClick={this.onCancelShrinkClick}
-            />
-        );
-    }
-}
-
-
-const mapStateToProps = (state: RootState): StateProps => ({
-    shrinkList: state.stockInfo as unknown as ShrinkSlice,
-});
-
-export default connect(mapStateToProps, {
-    getShrinkList,
-    stockIdentifierWaitToShrinkIsFalse,
-    batchCreateStockInfoesForShrink,
-})(ShrinkBoard);
+export default ShrinkBoard;

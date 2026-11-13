@@ -1,10 +1,10 @@
 import React from "react";
-import type { Preview } from "@storybook/react";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
-import { MemoryRouter } from "react-router-dom";
+import type { Preview } from "@storybook/react-vite";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { MemoryRouter } from "react-router";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const theme = createMuiTheme();
+const theme = createTheme();
 
 interface RouterParameters {
   initialEntries?: string[];
