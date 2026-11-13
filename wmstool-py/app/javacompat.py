@@ -175,3 +175,13 @@ def java_period_days(start: dt.date, end: dt.date) -> int:
         total_months += 1
         days -= (_plus_months(end.replace(day=1), 1) - dt.timedelta(days=1)).day
     return days
+
+
+def java_parse_long(text: str) -> int:
+    """Long.parseLong / Long.valueOf: like java_parse_int, 64-bit range."""
+    if not _JAVA_INT.fullmatch(text):
+        raise ValueError(f'For input string: "{text}"')
+    value = int(text)
+    if not -(2**63) <= value < 2**63:
+        raise ValueError(f'For input string: "{text}"')
+    return value

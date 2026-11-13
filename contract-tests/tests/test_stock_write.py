@@ -77,6 +77,13 @@ def test_in_stock_rollback(admin, db, golden):
     golden.add("db", db_state(db))
 
 
+@pytest.mark.java_bug("rollback stops at the first missing id: earlier ids are deleted but product totals are not reduced")
+def test_in_stock_rollback_partial_failure(admin, db, golden):
+    seed_baseline(admin)
+    golden.response("rollback_4_99", admin.patch("/api/stock/inStocks/rollback", json=[4, 99]))
+    golden.add("db", db_state(db))
+
+
 # PATCH /api/stock/updateStock --------------------------------------------------
 
 

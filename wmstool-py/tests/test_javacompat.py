@@ -127,3 +127,12 @@ def test_parse_client_datetime_rejects(text):
 )
 def test_period_days(start, end, days):
     assert java_period_days(start, end) == days
+
+
+def test_parse_long_range():
+    from app.javacompat import java_parse_long
+
+    assert java_parse_long("9223372036854775807") == 2**63 - 1
+    for bad in ("9223372036854775808", "", " 3", "3,"):
+        with pytest.raises(ValueError):
+            java_parse_long(bad)
