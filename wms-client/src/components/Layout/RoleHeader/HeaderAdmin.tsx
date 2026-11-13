@@ -5,15 +5,17 @@ const HeaderAdmin: React.FC = () => (
   <React.Fragment>
     <ul className="navbar-nav mr-auto">
       <li className="nav-item dropdown">
-        <NavLink
+        <button
+          type="button"
           className="nav-link dropdown-toggle"
-          to="/#"
-          id="navbarDropdown"
+          id="stockInDropdown"
           data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
         >
           入庫作業
-        </NavLink>
-        <div className="dropdown-menu">
+        </button>
+        <div className="dropdown-menu" aria-labelledby="stockInDropdown">
           <NavLink className="dropdown-item" to="/stock/1/1">
             進貨單入庫
           </NavLink>
@@ -39,15 +41,17 @@ const HeaderAdmin: React.FC = () => (
         </NavLink>
       </li>
       <li className="nav-item dropdown">
-        <NavLink
+        <button
+          type="button"
           className="nav-link dropdown-toggle"
-          to="/#"
-          id="navbarDropdown"
+          id="stockModifyDropdown"
           data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
         >
           庫存異動作業
-        </NavLink>
-        <div className="dropdown-menu">
+        </button>
+        <div className="dropdown-menu" aria-labelledby="stockModifyDropdown">
           <NavLink className="dropdown-item" to="/stock/3/1">
             庫存異動
           </NavLink>

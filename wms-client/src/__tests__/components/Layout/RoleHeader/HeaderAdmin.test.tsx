@@ -125,4 +125,21 @@ describe('HeaderAdmin', () => {
       expect(navLinks.length).toBeGreaterThan(0);
     });
   });
+
+  describe('dropdown toggles', () => {
+    test('are not marked as the current page on the home route', () => {
+      renderHeaderAdmin();
+      for (const name of ['入庫作業', '庫存異動作業']) {
+        const toggle = screen.getByText(name);
+        expect(toggle).not.toHaveClass('active');
+        expect(toggle).not.toHaveAttribute('aria-current');
+      }
+    });
+
+    test('have unique ids', () => {
+      renderHeaderAdmin();
+      const ids = ['入庫作業', '庫存異動作業'].map((name) => screen.getByText(name).id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+  });
 });
