@@ -48,7 +48,6 @@ const OutStockRequestList: React.FC = () => {
   const [handlingInfo, setHandlingInfo] = useState<OutStockInfo>({} as OutStockInfo);
 
   const apiCallRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const prevQueryResultRef = useRef<QueryResult>({});
 
   const loadingWaitHandleList = useCallback(() => {
     setIsLoading(true);
@@ -90,15 +89,17 @@ const OutStockRequestList: React.FC = () => {
     };
   }, [loadingWaitHandleList]);
 
-  // getDerivedStateFromProps replacement
+  // getDerivedStateFromProps replacement: compare the store with the list on screen (not
+  // with the last store value), so when getInitialState clears the list after an action it is
+  // refilled even if the next query returns the same list.
   useEffect(() => {
     if (queryResultFromStore === undefined) {
       return;
     }
 
-    const newQueryResult = queryResultFromStore.outStockRequests?.queryResult as QueryResult | undefined;
+    const newQueryResult = (queryResultFromStore.outStockRequests?.queryResult as QueryResult | undefined) || {};
 
-    if (!equal(prevQueryResultRef.current, newQueryResult)) {
+    if (!equal(queryResult, newQueryResult)) {
       const selectedList: SelectedUser[] = [];
 
       if (queryResultFromStore.outStockRequests?.userList !== undefined) {
@@ -113,12 +114,11 @@ const OutStockRequestList: React.FC = () => {
           });
       }
 
-      setQueryResult(newQueryResult || {});
+      setQueryResult(newQueryResult);
       setUserList(queryResultFromStore.outStockRequests?.userList || []);
       setSelectedUserList(selectedList);
-      prevQueryResultRef.current = newQueryResult || {};
     }
-  }, [queryResultFromStore]);
+  }, [queryResultFromStore, queryResult]);
 
   const handleStartDateSelection = useCallback((date: Date) => {
     setStartDate(dayOfStart(date));
