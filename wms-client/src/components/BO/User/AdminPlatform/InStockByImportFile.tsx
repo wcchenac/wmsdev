@@ -77,8 +77,6 @@ const InStockByImportFile: React.FC = () => {
                   onChange={onChangeHandler}
                 />
               </div>
-              <div className="mb-3">
-              </div>
               <button
                 type="button"
                 className="btn btn-success w-100"

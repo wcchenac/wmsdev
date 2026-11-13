@@ -76,7 +76,7 @@ const UserRegister: React.FC = () => {
               className="col-4"
               style={{ border: "1px solid black", borderRadius: "5px" }}
             >
-              <div className="mt-2 mb-2">
+              <div className="mt-2 mb-3">
                 <p className="h5 text-center mb-3">註冊新員工</p>
                 <form onSubmit={handleSubmit}>
                   <div className="mb-3 row">
@@ -159,8 +159,6 @@ const UserRegister: React.FC = () => {
                     </div>
                   </div>
                 </form>
-                <div className="mb-3">
-                </div>
               </div>
             </div>
           </div>
