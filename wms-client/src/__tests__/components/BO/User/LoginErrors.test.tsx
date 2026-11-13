@@ -154,3 +154,56 @@ describe('Login when the request itself fails', () => {
     expect(screen.queryByText('無法取得庫存資料')).not.toBeInTheDocument();
   });
 });
+
+describe('Login valid marks', () => {
+  // A green check (is-valid) only means the field has a value. While a login failure is on
+  // screen it would contradict the error, so neither field gets one.
+  const marks = (container: HTMLElement) => {
+    const { employeeId, password } = fields(container);
+    return {
+      employeeId: employeeId.classList.contains('is-valid'),
+      password: password.classList.contains('is-valid'),
+    };
+  };
+
+  test('filled fields get a check before any login attempt', () => {
+    const { container } = renderLogin();
+    const { employeeId, password } = fields(container);
+    fireEvent.change(employeeId, { target: { name: 'employeeId', value: 'admin' } });
+    fireEvent.blur(employeeId);
+    fireEvent.change(password, { target: { name: 'password', value: 'admin123' } });
+    fireEvent.blur(password);
+
+    expect(marks(container)).toEqual({ employeeId: true, password: true });
+  });
+
+  test('no checks while the request-failed message is shown', async () => {
+    vi.mocked(API.post).mockReset().mockRejectedValue(new Error('Network Error'));
+    const { container } = renderLogin();
+
+    await submit(container, 'admin', 'admin123');
+
+    expect(screen.getByText('登入失敗，請檢查帳號密碼')).toBeInTheDocument();
+    expect(marks(container)).toEqual({ employeeId: false, password: false });
+  });
+
+  test('no check on a field while the other field still shows its error', async () => {
+    const { container } = renderLogin();
+    await submit(container, 'admin', 'wrong-password');
+
+    fireEvent.change(fields(container).password, { target: { name: 'password', value: 'admin123' } });
+
+    expect(screen.getByText('無效的員工編號')).toBeInTheDocument();
+    expect(marks(container)).toEqual({ employeeId: false, password: false });
+  });
+
+  test('checks come back once every error has been cleared by typing', async () => {
+    const { container } = renderLogin();
+    await submit(container, 'admin', 'wrong-password');
+
+    fireEvent.change(fields(container).employeeId, { target: { name: 'employeeId', value: 'admin2' } });
+    fireEvent.change(fields(container).password, { target: { name: 'password', value: 'admin123' } });
+
+    expect(marks(container)).toEqual({ employeeId: true, password: true });
+  });
+});

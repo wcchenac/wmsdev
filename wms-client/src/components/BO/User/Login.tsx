@@ -96,6 +96,11 @@ const Login: React.FC = () => {
 
   const hasEmployeeIdError = touched.employeeId && errors.username;
   const hasPasswordError = touched.password && errors.password;
+  // A check mark only means "filled in"; while a login failure is on screen it would
+  // contradict the error, so neither field gets one until every error is cleared.
+  const loginFailed = Boolean(errors.message || errors.username || errors.password);
+  const showEmployeeIdValid = touched.employeeId && !loginFailed && Boolean(employeeId);
+  const showPasswordValid = touched.password && !loginFailed && Boolean(password);
 
   return (
     <div className="login fade-in">
@@ -158,7 +163,7 @@ const Login: React.FC = () => {
                       value={employeeId}
                       className={classnames("form-control", {
                         "is-invalid": hasEmployeeIdError,
-                        "is-valid": touched.employeeId && !errors.username && employeeId
+                        "is-valid": showEmployeeIdValid
                       })}
                       placeholder="請輸入員工編號"
                       onChange={userKeyInChange}
@@ -206,7 +211,7 @@ const Login: React.FC = () => {
                       value={password}
                       className={classnames("form-control", {
                         "is-invalid": hasPasswordError,
-                        "is-valid": touched.password && !errors.password && password
+                        "is-valid": showPasswordValid
                       })}
                       placeholder="請輸入密碼"
                       onChange={userKeyInChange}
