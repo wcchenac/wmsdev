@@ -215,3 +215,36 @@ def java_parse_long(text: str) -> int:
     if not -(2**63) <= value < 2**63:
         raise ValueError(f'For input string: "{text}"')
     return value
+
+
+# Character.isWhitespace: Unicode space separators except the no-break ones, plus these controls
+_JAVA_WHITESPACE_CONTROLS = frozenset("\t\n\u000b\f\r\u001c\u001d\u001e\u001f")
+_NO_BREAK_SPACES = frozenset("   ")
+_HEX_DIGITS = re.compile(r"[0-9a-fA-F\d]+")  # Character.digit(c, 16), Unicode decimal digits included
+
+
+def _java_is_whitespace(c: str) -> bool:
+    import unicodedata
+
+    if c in _JAVA_WHITESPACE_CONTROLS:
+        return True
+    return unicodedata.category(c) in ("Zs", "Zl", "Zp") and c not in _NO_BREAK_SPACES
+
+
+def spring_parse_long(text: str) -> int:
+    """How Spring 5.2 binds a `long` request parameter (NumberUtils.parseNumber):
+    every whitespace character is removed (trimAllWhitespace, inside the text too);
+    "0x"/"0X"/"#" after an optional "-" is hexadecimal (Long.decode), anything else is
+    Long.valueOf. An empty value is missing. Raises ValueError where Spring answers 400."""
+    trimmed = "".join(c for c in text if not _java_is_whitespace(c))
+    sign, body = (-1, trimmed[1:]) if trimmed.startswith("-") else (1, trimmed)
+    for prefix in ("0x", "0X", "#"):
+        if body.startswith(prefix):
+            digits = body[len(prefix):]
+            if not _HEX_DIGITS.fullmatch(digits):
+                raise ValueError(f'For input string: "{text}"')
+            value = sign * int(digits, 16)
+            if not -(2**63) <= value < 2**63:
+                raise ValueError(f'For input string: "{text}"')
+            return value
+    return java_parse_long(trimmed)

@@ -14,7 +14,29 @@ from app.javacompat import (
     java_period_days,
     parse_client_datetime,
     serialize_long_array,
+    spring_parse_long,
 )
+
+
+# Spring 5.2 binding a `long` request parameter (NumberUtils.parseNumber); the contract
+# test test_history_with_non_numeric_id pins several of these on the patched Java.
+@pytest.mark.parametrize(("text", "expected"), [
+    ("1", 1), (" 1 ", 1), ("1 0", 10), ("\t1\n", 1), ("+1", 1), ("-5", -5),
+    ("0x1F", 31), ("0X1f", 31), ("#10", 16), ("-0x10", -16), ("-#10", -16), ("１２", 12),
+    ("9223372036854775807", 2**63 - 1), ("-9223372036854775808", -(2**63)),
+    ("0x7fffffffffffffff", 2**63 - 1), ("-0x8000000000000000", -(2**63)),
+])
+def test_spring_parse_long(text, expected):
+    assert spring_parse_long(text) == expected
+
+
+@pytest.mark.parametrize("text", [
+    "", "  ", "abc", "1.0", "9223372036854775808", "0x8000000000000000", "+0x1", "0x-1", "0x",
+    " 1",  # a no-break space is not Character.isWhitespace: kept, then not a digit
+])
+def test_spring_parse_long_rejects(text):
+    with pytest.raises(ValueError):
+        spring_parse_long(text)
 
 
 @pytest.mark.parametrize(

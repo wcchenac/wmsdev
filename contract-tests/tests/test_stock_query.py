@@ -147,6 +147,23 @@ def test_history_with_both_parameter_sets(admin, golden):
 
 
 @pytest.mark.java_bug("same ambiguous history route (always 500)")
+def test_history_with_non_numeric_id(admin, golden):
+    """id that is not a number. With the dates as well, the patched Spring picks the tree
+    handler, which does not bind id at all; alone, the structure handler fails to bind
+    `long id`."""
+    seed_baseline(admin)
+    d = today()
+    golden.response("with_dates", admin.get("/api/stock/queryStock/history/CF1001",
+                                            params={**client_range(d, d), "id": "abc"}))
+    golden.response("alone", admin.get("/api/stock/queryStock/history/1", params={"id": "abc"}))
+    golden.response("empty", admin.get("/api/stock/queryStock/history/1", params={"id": ""}))
+    # how Spring 5.2 binds `long id` (NumberUtils.parseNumber): which spellings of 1 work
+    for name, value in [("padded", " 1 "), ("inner_space", "1 0"), ("hex", "0x1"), ("hash_hex", "#1"),
+                        ("plus", "+1"), ("blank", "  "), ("too_big", "9223372036854775808")]:
+        golden.response(name, admin.get("/api/stock/queryStock/history/1", params={"id": value}))
+
+
+@pytest.mark.java_bug("same ambiguous history route (always 500)")
 def test_history_tree_start_boundary(admin, db, golden):
     """stockinfo is only collected for rolls created at or after `start`: a root
     created yesterday shows up with stockInfo null."""
