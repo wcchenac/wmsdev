@@ -1,5 +1,5 @@
-import { createStore, applyMiddleware, compose, StoreEnhancer, Reducer } from "redux";
-import { thunk, ThunkMiddleware } from "redux-thunk";
+import { createStore, applyMiddleware, compose } from "redux";
+import { thunk } from "redux-thunk";
 import rootReducer from "./reducers";
 
 /**
@@ -8,38 +8,38 @@ import rootReducer from "./reducers";
  * - Enables Redux DevTools in development mode
  */
 
+// The Redux DevTools browser extension adds this to window.
+declare global {
+  interface Window {
+    __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: (options?: {
+      trace?: boolean;
+      traceLimit?: number;
+    }) => typeof compose;
+  }
+}
+
 // Infer the RootState type from rootReducer
 export type RootState = ReturnType<typeof rootReducer>;
 
 // Define AppDispatch type for thunk actions
 export type AppDispatch = typeof store.dispatch;
 
-// Type for Redux DevTools Extension
-interface DevToolsExtension {
-  __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: (options?: {
-    trace?: boolean;
-    traceLimit?: number;
-  }) => typeof compose;
-}
-
-const middleware: ThunkMiddleware<RootState>[] = [thunk];
-
 // Enable Redux DevTools Extension in development
-const composeEnhancers: typeof compose =
-  import.meta.env.DEV &&
-  typeof window !== 'undefined' &&
-  (window as unknown as DevToolsExtension).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-    ? (window as unknown as DevToolsExtension).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__!({
-        // Options for DevTools
-        trace: true,
-        traceLimit: 25,
-      })
-    : compose;
+const devToolsCompose =
+  import.meta.env.DEV && typeof window !== "undefined"
+    ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
+    : undefined;
+
+const composeEnhancers: typeof compose = devToolsCompose
+  ? devToolsCompose({
+      // Options for DevTools
+      trace: true,
+      traceLimit: 25,
+    })
+  : compose;
 
 // No preloaded state: each reducer starts from its own initial state.
-const store = createStore(
-  rootReducer as Reducer<RootState>,
-  composeEnhancers(applyMiddleware(...middleware)) as StoreEnhancer
-);
+// applyMiddleware(thunk) types store.dispatch so it also accepts thunks.
+const store = createStore(rootReducer, composeEnhancers(applyMiddleware(thunk)));
 
 export default store;

@@ -1,6 +1,5 @@
 import setJWTToken from "./SetJWTToken";
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import { UnknownAction } from "redux";
 import store from "../store";
 import { logout } from "../actions/UserActions";
 import { SET_Current_User, User } from "../types";
@@ -35,7 +34,7 @@ function localStorageValidate(): void {
 
       if (decodedJWT.exp < currentTime) {
         // Token expired - logout user
-        store.dispatch(logout() as unknown as UnknownAction);
+        store.dispatch(logout());
         window.location.href = "/login";
         return;
       }
@@ -45,7 +44,7 @@ function localStorageValidate(): void {
       store.dispatch({
         type: SET_Current_User,
         payload: decodedJWT
-      } as UnknownAction);
+      });
     } catch (err) {
       // Token is malformed or invalid - clear it and redirect
       localStorage.removeItem("jwtToken");
