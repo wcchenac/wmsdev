@@ -240,3 +240,17 @@ describe('Login when the proxy answers with an error page', () => {
     expect(button()).not.toHaveTextContent('登入中');
   });
 });
+
+describe('Login button while signing in', () => {
+  test('screen readers hear 「登入中...」 once', async () => {
+    // Keep the request pending so the button stays in its busy state.
+    vi.mocked(API.post).mockReset().mockReturnValue(new Promise(() => undefined));
+    const { container } = renderLogin();
+
+    await submit(container, 'admin', 'admin123');
+
+    const button = screen.getByRole('button', { name: /登入中/ });
+    expect(button).toHaveAccessibleName('登入中...');
+    expect(button).toBeDisabled();
+  });
+});

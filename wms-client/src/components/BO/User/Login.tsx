@@ -250,19 +250,13 @@ const Login: React.FC = () => {
                         "btn-loading": isSubmitting
                       })}
                       disabled={isSubmitting}
+                      aria-busy={isSubmitting}
                       style={{
                         fontSize: "var(--font-size-base)",
                         fontWeight: "var(--font-weight-medium)"
                       }}
                     >
-                      {isSubmitting ? (
-                        <>
-                          <span className="visually-hidden">登入中...</span>
-                          登入中...
-                        </>
-                      ) : (
-                        "登入"
-                      )}
+                      {isSubmitting ? "登入中..." : "登入"}
                     </button>
                   </div>
                 </form>
