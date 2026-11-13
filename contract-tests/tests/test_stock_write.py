@@ -148,6 +148,15 @@ def test_shrink_stock_report_template_missing(operator, db, golden):
             dst.rename(src)
 
 
+def test_shrink_stock_without_pieces_field(operator, db, golden):
+    """No `inStockRequests` key: Java iterates a null list (NullPointerException) -> 400, rolled back."""
+    seed_baseline(operator)
+    body = shrink_request(1, ["30", "19"], allocation=0, adjustment=0)
+    del body["inStockRequests"]
+    golden.response("shrink", operator.post("/api/stock/shrinkStock", json=body))
+    golden.add("db", db_state(db, ["stockidentifier", "transactionrecord", "product"]))
+
+
 def test_shrink_stock_without_adjustment(operator, db, golden):
     seed_baseline(operator)
     golden.response("shrink", operator.post("/api/stock/shrinkStock",
@@ -288,6 +297,15 @@ def test_shrink_rollback_after_double_shrink(admin, db, golden):
     golden.add("before", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
     golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
     golden.add("after", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
+
+
+def test_out_stock_update_without_map(operator, db, golden):
+    """Body `{}`: Java creates the pull-list workbook, then NPEs on the null map -> 400,
+    rolled back, the template-only workbook stays."""
+    operator.post("/api/stock/outStock", json=OUT_STOCK)
+    golden.response("update", operator.patch("/api/stock/outStock/update", json={}))
+    golden.add("db", db_state(db, ["outstockrequest"]))
+    golden.add("reports", generated_reports())
 
 
 def test_out_stock_update_unknown_id(operator, db, golden):

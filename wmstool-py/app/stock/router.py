@@ -76,7 +76,7 @@ class InStockRequest(BaseModel):
 
 class ShrinkStockRequest(BaseModel):
     oldStockIdentifierId: int = 0
-    inStockRequests: list[InStockRequest] = []  # no @Valid on this list in Java
+    inStockRequests: list[InStockRequest] | None = None  # no @Valid on this list in Java; null -> 400
     allocation: float | None = None
     adjustment: float | None = None
     shrinkType: str | None = None
@@ -107,6 +107,8 @@ def in_stocks(body: list[InStockRequest], request: Request, session: Session = D
 def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
     try:
+        if body.inStockRequests is None:
+            raise TypeError("inStockRequests is null (Java: NullPointerException)")
         report_writes = shrink.shrink_stock(session, shrink.ShrinkRequest(
             old_identifier_id=body.oldStockIdentifierId, pieces=[r.to_item() for r in body.inStockRequests],
             allocation=body.allocation, adjustment=body.adjustment, shrink_type=body.shrinkType,
@@ -141,7 +143,7 @@ def shrink_rollback_list(productNo: str, request: Request, session: Session = De
 
 
 class OutStockUpdateRequest(BaseModel):
-    outStockUpdate: dict[int, str | None] = {}
+    outStockUpdate: dict[int, str | None] | None = None  # null -> 400 after the workbook is created
 
 
 @router.patch("/outStock/update")
@@ -149,7 +151,7 @@ def out_stock_update(body: OutStockUpdateRequest, request: Request,
                      session: Session = Depends(get_session)) -> Response:
     principal = ops(request)
     try:
-        moves.handle_out_stock_requests(session, dict(body.outStockUpdate), principal.full_name)
+        moves.handle_out_stock_requests(session, body.outStockUpdate, principal.full_name)
     except Exception:
         return _bad_request(session, "outStock/update")
     return Response(status_code=200)
