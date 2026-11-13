@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
+import { act, render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
@@ -282,9 +282,12 @@ describe('UserRegister', () => {
     });
 
     test('shows loading overlay during registration', async () => {
-      mockRegisterUser.mockImplementation(() => new Promise(resolve => {
-        setTimeout(() => resolve({ status: 200 }), 100);
-      }));
+      // The test decides when the request answers, and lets it finish before it ends, so no
+      // answer arrives after the test environment is gone.
+      let answer: (response: { status: number }) => void = () => undefined;
+      mockRegisterUser.mockImplementationOnce(
+        () => new Promise((resolve) => { answer = resolve; })
+      );
 
       renderUserRegister();
       fillForm();
@@ -292,6 +295,12 @@ describe('UserRegister', () => {
       fireEvent.click(screen.getByRole('button', { name: '註冊' }));
 
       expect(screen.getByTestId('loading-overlay')).toHaveAttribute('data-active', 'true');
+
+      await act(async () => {
+        answer({ status: 200 });
+      });
+
+      expect(screen.getByTestId('loading-overlay')).toHaveAttribute('data-active', 'false');
     });
 
     test('shows success toast on successful registration', async () => {

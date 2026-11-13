@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
+import { act, render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
 import { thunk } from 'redux-thunk';
@@ -247,10 +247,13 @@ describe('QueryBoard', () => {
     });
 
     test('shows loading state during query', async () => {
-      // Make the promise resolve after a delay
-      mockGetStockInfoesBasic.mockImplementation(() => new Promise(resolve => {
-        setTimeout(() => resolve({ status: 200 }), 100);
-      }));
+      // The test decides when the query answers, and lets it finish before it ends. (A query
+      // left pending on a timer used to answer after the test environment was gone, which made
+      // vitest report an unhandled rejection now and then.)
+      let answer: (response: { status: number }) => void = () => undefined;
+      mockGetStockInfoesBasic.mockImplementationOnce(
+        () => new Promise((resolve) => { answer = resolve; })
+      );
 
       renderQueryBoard();
 
@@ -260,9 +263,14 @@ describe('QueryBoard', () => {
       fireEvent.change(input, { target: { value: 'PROD001', name: 'productNo' } });
       fireEvent.submit(form);
 
-      // Loading should be active briefly
       const overlay = screen.getByTestId('loading-overlay');
       expect(overlay).toHaveAttribute('data-active', 'true');
+
+      await act(async () => {
+        answer({ status: 200 });
+      });
+
+      expect(overlay).toHaveAttribute('data-active', 'false');
     });
   });
 
