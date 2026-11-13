@@ -128,6 +128,8 @@ def test_shrink_stock_float_rounding(operator, db, golden):
     golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("the shrink is committed but the report IOException answers 400, so users shrink "
+                      "again; patched Java keeps 200 and only logs the report failure")
 def test_shrink_stock_report_template_missing(operator, db, golden):
     """The adjustment template is missing: the report write fails with an IOException.
     Java's javax @Transactional commits on checked exceptions, so the shrink is kept,
@@ -143,6 +145,8 @@ def test_shrink_stock_report_template_missing(operator, db, golden):
         golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("the shrink is committed but the report IOException answers 400, so users shrink "
+                      "again; patched Java keeps 200 and only logs the report failure")
 def test_shrink_stock_template_missing_with_todays_report(operator, db, golden):
     """Java's createNewFile reads the template even when today's report already exists:
     with the allocation template gone, a second shrink fails while writing (400, shrink
@@ -376,6 +380,8 @@ def test_out_stock_update_without_map(operator, db, golden):
     golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("a second update in the same second rewrites the pull list from the template and "
+                      "drops the first update's rows; patched Java appends to the existing file")
 def test_out_stock_update_twice_in_one_second(operator, db, golden):
     """The pull-list name has second precision. Java's createNewFile rewrites the template
     even when the file exists, so a second update in the same second replaces the first

@@ -23,6 +23,8 @@ def test_daily_stock_compare(admin, golden):
     golden.add("reports", generated_reports())
 
 
+@pytest.mark.java_bug("today's report is reset to the template before comparing, so a failing comparison "
+                      "wipes it; patched Java compares first and keeps the earlier report")
 def test_daily_stock_compare_failure_resets_todays_report(admin, db, golden):
     """Java recreates today's report from the template *before* comparing. A failure in
     the comparison (CF1001 整支 has a NULL quantity: NullPointerException) answers 400

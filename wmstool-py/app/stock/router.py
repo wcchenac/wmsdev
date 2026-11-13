@@ -116,15 +116,16 @@ def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = 
         session.commit()
     except Exception:
         return _bad_request(session, "shrinkStock")
-    # Reports only after the commit. A failed write keeps the shrink and answers 400,
-    # which is what Java does (javax @Transactional commits on its IOException).
-    try:
-        for write in report_writes:
+    # Reports only after the commit. The shrink stands whatever happens to them: each
+    # report is tried on its own and a failure is only logged for a manual rewrite
+    # (defect 8 fixed, as in contract-tests/java-patches/08-shrink-report-failure-keeps-
+    # shrink.patch). Java answered 400 for a committed shrink, so users shrank again.
+    for write in report_writes:
+        try:
             write()
-    except Exception:
-        logger.exception("shrink %s committed but a report write failed; rewrite the report by hand",
-                         body.oldStockIdentifierId)
-        return Response(status_code=400)
+        except Exception:
+            logger.exception("shrink %s committed but a report write failed; rewrite the report by hand",
+                             body.oldStockIdentifierId)
     return Response(status_code=200)
 
 

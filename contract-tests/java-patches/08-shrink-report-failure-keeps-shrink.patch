@@ -1,0 +1,37 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/ModifyStockFunction.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/ModifyStockFunction.java
+@@ -281,9 +281,14 @@
+ 
+ 			stockAllocationRecordRepo.save(stockAllocationRecord);
+ 
+-			// Output to file
+-			String allocationFileName = stockAllocateRecordExcelHelper.createNewFile(now);
+-			stockAllocateRecordExcelHelper.modifyExisting(stockAllocationRecords, now, allocationFileName);
++			// Output to file; the shrink stands even if the report cannot be written
++			// (it is logged for a manual rewrite) — answering 400 made users shrink twice
++			try {
++				String allocationFileName = stockAllocateRecordExcelHelper.createNewFile(now);
++				stockAllocateRecordExcelHelper.modifyExisting(stockAllocationRecords, now, allocationFileName);
++			} catch (IOException e) {
++				e.printStackTrace();
++			}
+ 		}
+ 
+ 		// Create StockAdjustmentRecord object
+@@ -310,9 +315,13 @@
+ 
+ 			stockAdjustmentRecordRepo.save(stockAdjustmentRecord);
+ 
+-			// Output to file
+-			String adjustmentFileName = stockAdjustRecordExcelHelper.createNewFile(now);
+-			stockAdjustRecordExcelHelper.modifyExisting(stockAdjustmentRecords, now, adjustmentFileName);
++			// Output to file; the shrink stands even if the report cannot be written
++			try {
++				String adjustmentFileName = stockAdjustRecordExcelHelper.createNewFile(now);
++				stockAdjustRecordExcelHelper.modifyExisting(stockAdjustmentRecords, now, adjustmentFileName);
++			} catch (IOException e) {
++				e.printStackTrace();
++			}
+ 		}
+ 	}
+ 

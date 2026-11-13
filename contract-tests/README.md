@@ -86,6 +86,9 @@ docker compose up -d --wait
 | `history-routes.patch` | 第 1 項：history 兩個 mapping 以 `params` 區分，不再一律 500 | history 相關測試、`test_auth_matrix` 的 history 路由 |
 | `03-instock-rollback-atomic.patch` | 第 3 項：入庫回滾任何一個 id 失敗就整筆回滾、回 400 | `test_in_stock_rollback`、`test_in_stock_rollback_partial_failure` |
 | `04-shrink-rollback-atomic.patch` | 第 4 項：減肥回滾任何一步失敗（重複減肥、沒減肥過、範本遺失）就整筆回滾、回 400；重建報表前先確認兩份範本都能解析 | `test_shrink_stock_rollback`、`test_shrink_rollback_after_double_shrink`、`test_shrink_rollback_template_missing_keeps_reports`、`test_shrink_rollback_adjustment_template_missing` |
+| `05-pull-list-append-same-second.patch` | 第 5 項：同一秒已有拉貨單時附加在後面，不再用範本覆寫（檔名格式不變） | `test_out_stock_update_twice_in_one_second` |
+| `06-stock-compare-write-after-compare.patch` | 第 6 項：每日比對先算完才重設當天報表；比對失敗保留舊報表，寫入失敗回 400 | `test_daily_stock_compare_failure_resets_todays_report` |
+| `08-shrink-report-failure-keeps-shrink.patch` | 第 8 項：減肥寫報表失敗時減肥照樣成立、回 200，報表失敗只記 log；兩份報表各自寫入 | `test_shrink_stock_report_template_missing`、`test_shrink_stock_template_missing_with_todays_report` |
 | `09-import-skip-blank-rows.patch` | 第 9 項：進貨匯入略過沒有任何文字的列，不再整個檔案被略過 | `test_import_cell_existence`、`test_import_trailing_rows_without_cells`、`test_import_blank_rows_between_data` |
 
 Python 版跟著修補版 Java 走：上表的測試在 Python 上比對 `.fixed.json`。
@@ -108,7 +111,7 @@ docker compose up -d --wait                  # 換回原版 Java
 ## 切換方式（2026-11-13 決定：不並行，直接切換）
 
 - 切換後 Python 版只寫 `.xlsx`；正式機既有的 `.xls` 報表**不轉換**，Python 版的查詢（today／interval／categoryList）與下載同時認得 `.xls` 與 `.xlsx`，兩者並存時以 `.xlsx` 為準（`test_legacy_xls_reports_remain_usable`）。
-- `shrinkStock` 的調撥／調整報表在資料庫 commit 之後才寫。寫入失敗（例如範本遺失、當天報表被 Excel 開著）時減肥已保留、回 400，與 Java 相同；log 會記下需要人工補寫的報表（`test_shrink_stock_report_template_missing`）。
+- `shrinkStock` 的調撥／調整報表在資料庫 commit 之後才寫，兩份各自寫入。寫入失敗（例如範本遺失、當天報表被 Excel 開著）時減肥照樣成立、回 200（Java 原本回 400，見第 8 項修補）；log 會記下需要人工補寫的報表（`test_shrink_stock_report_template_missing`）。**切換後請監看這類 log**，因為使用者不會在畫面上看到報表沒寫成。
 
 ## 部署注意：報表範本
 
