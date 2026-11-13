@@ -265,8 +265,10 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                   name="assignMode"
                   checked={assignMode}
                   onChange={handleAssignMode}
-                  inputProps={{
-                    "aria-label": assignMode ? "\u5207\u63db\u70ba\u96a8\u610f\u6578\u91cf" : "\u5207\u63db\u70ba\u6307\u5b9a\u6578\u91cf\u7bc4\u570d"
+                  slotProps={{
+                    input: {
+                      "aria-label": assignMode ? "\u5207\u63db\u70ba\u96a8\u610f\u6578\u91cf" : "\u5207\u63db\u70ba\u6307\u5b9a\u6578\u91cf\u7bc4\u570d"
+                    }
                   }}
                 />
               </Col>

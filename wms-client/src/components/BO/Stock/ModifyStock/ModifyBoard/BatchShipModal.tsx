@@ -1,7 +1,7 @@
-import React, { useState, useCallback, ChangeEvent } from "react";
+import React, { useState, useCallback, useMemo, ChangeEvent } from "react";
 import { Modal, Button } from "react-bootstrap";
 import ShipModalBody from "../../Utilities/ShipModalBody";
-import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridRowId, GridRowSelectionModel } from "@mui/x-data-grid";
 import SaveIcon from "@mui/icons-material/Save";
 
 // ============================================
@@ -29,6 +29,13 @@ interface BatchShipModalProps {
   typeValidation?: boolean;
 }
 
+// X Data Grid 8+ stores selection as { type, ids }. "Select all" yields
+// type "exclude" with the unchecked ids, so membership must honour the type.
+const EMPTY_SELECTION: GridRowSelectionModel = { type: "include", ids: new Set() };
+
+const isRowSelected = (model: GridRowSelectionModel, id: GridRowId): boolean =>
+  model.type === "include" ? model.ids.has(id) : !model.ids.has(id);
+
 // ============================================
 // Component
 // ============================================
@@ -39,7 +46,7 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
   data
 }) => {
   const [outStockReason, setOutStockReason] = useState<string>("");
-  const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>([]);
+  const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>(EMPTY_SELECTION);
 
   const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setOutStockReason(e.target.value);
@@ -49,8 +56,13 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
     setOutStockReason((e.target as HTMLButtonElement).value);
   }, []);
 
+  const selectedCount = useMemo(
+    () => data.filter((item) => isRowSelected(selectedIds, item.id)).length,
+    [data, selectedIds]
+  );
+
   const onSave = useCallback(() => {
-    const selectedRows = data.filter((item) => selectedIds.includes(item.id));
+    const selectedRows = data.filter((item) => isRowSelected(selectedIds, item.id));
     const shipList: ShipListItem[] = selectedRows.map((identifier) => ({
       stockIdentifierId: identifier.id,
       reason: outStockReason
@@ -132,7 +144,7 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
         <Button
           variant="primary"
           onClick={onSave}
-          disabled={outStockReason === "" || selectedIds.length === 0}
+          disabled={outStockReason === "" || selectedCount === 0}
         >
           <SaveIcon style={{ marginRight: 8, fontSize: 18 }} />
           {"\u5132\u5b58\u9078\u53d6\u9805\u76ee"}
