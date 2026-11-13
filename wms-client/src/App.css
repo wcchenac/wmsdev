@@ -124,11 +124,6 @@ img {
   display: block;
 }
 
-/* Form group spacing */
-.form-group {
-  margin-bottom: var(--spacing-4);
-}
-
 /* Form labels */
 .col-form-label {
   font-weight: var(--font-weight-medium);

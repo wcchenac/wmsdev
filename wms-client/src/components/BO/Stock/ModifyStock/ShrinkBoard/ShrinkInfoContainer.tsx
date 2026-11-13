@@ -26,7 +26,7 @@ const ShrinkInfoContainer: React.FC<ShrinkInfoContainerProps> = ({
     return (
         <div className="table-wrapper-scroll-y scrollbar-75">
             <table className="table table-hover">
-                <thead className="thead-dark">
+                <thead className="table-dark">
                     <tr>
                         <th style={{ width: '18%' }}>
                             <div className="ps-3">貨號</div>

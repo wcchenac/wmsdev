@@ -212,7 +212,8 @@ describe('Login', () => {
       const button = screen.getByRole('button', { name: '登入' });
       expect(button).toHaveClass('btn');
       expect(button).toHaveClass('btn-primary');
-      expect(button).toHaveClass('btn-block');
+      expect(button).toHaveClass('w-100');
+      expect(button).not.toHaveClass('btn-block');
     });
   });
 

@@ -65,7 +65,7 @@ const SetWarehouse: React.FC = () => {
         <div style={{ height: "80vh" }}>
           <div className="row justify-content-center">
             <div className="col-md-6">
-              <div className="form-group files">
+              <div className="mb-3 files">
                 <label>上傳制式檔案(副檔名: xlsx)</label>
                 <input
                   type="file"
@@ -74,12 +74,12 @@ const SetWarehouse: React.FC = () => {
                   onChange={onChangeHandler}
                 />
               </div>
-              <div className="form-group">
+              <div className="mb-3">
                 <ToastContainer />
               </div>
               <button
                 type="button"
-                className="btn btn-success btn-block"
+                className="btn btn-success w-100"
                 onClick={onClickHandler}
               >
                 上傳

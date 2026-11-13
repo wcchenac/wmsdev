@@ -59,7 +59,7 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
         <p>子項目清單</p>
         <hr />
         <table className="table table-sm table-hover">
-          <thead className="thead-dark">
+          <thead className="table-dark">
             <tr>
               <th>
                 <div className="ps-3">貨號</div>

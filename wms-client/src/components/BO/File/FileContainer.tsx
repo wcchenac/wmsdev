@@ -89,7 +89,7 @@ const FileContainer: React.FC<FileContainerProps> = ({
         <hr />
         <div>
           <table className="table table-bordered table-hover">
-            <thead className="thead-dark">
+            <thead className="table-dark">
               <tr>
                 <th style={{ width: "80%", padding: "0.5em 1.5em" }}>檔名</th>
                 <th

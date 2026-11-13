@@ -87,7 +87,7 @@ const UserRegister: React.FC = () => {
               <div className="mt-2 mb-2">
                 <p className="h5 text-center mb-3">註冊新員工</p>
                 <form onSubmit={handleSubmit}>
-                  <div className="form-group row">
+                  <div className="mb-3 row">
                     <label htmlFor="employeeId" className="col-4 col-form-label">
                       員工編號
                     </label>
@@ -103,7 +103,7 @@ const UserRegister: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-group row">
+                  <div className="mb-3 row">
                     <label htmlFor="fullName" className="col-4 col-form-label">
                       姓名
                     </label>
@@ -119,7 +119,7 @@ const UserRegister: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-group row">
+                  <div className="mb-3 row">
                     <label htmlFor="password" className="col-4 col-form-label">
                       密碼
                     </label>
@@ -135,7 +135,7 @@ const UserRegister: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-group row">
+                  <div className="mb-3 row">
                     <label htmlFor="role" className="col-4 col-form-label">
                       權限
                     </label>
@@ -143,7 +143,7 @@ const UserRegister: React.FC = () => {
                       <select
                         id="role"
                         name="role"
-                        className="custom-select"
+                        className="form-select"
                         value={state.role}
                         onChange={userKeyInChange}
                       >
@@ -159,7 +159,7 @@ const UserRegister: React.FC = () => {
                     <div className="col-6">
                       <button
                         type="submit"
-                        className="btn btn-primary btn-block"
+                        className="btn btn-primary w-100"
                         disabled={submissionValidate()}
                       >
                         註冊
@@ -167,7 +167,7 @@ const UserRegister: React.FC = () => {
                     </div>
                   </div>
                 </form>
-                <div className="form-group">
+                <div className="mb-3">
                   <ToastContainer />
                 </div>
               </div>

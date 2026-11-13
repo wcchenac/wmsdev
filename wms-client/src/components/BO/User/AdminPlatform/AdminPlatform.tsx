@@ -78,7 +78,7 @@ const AdminPlatform: React.FC = () => {
         >
           <button
             type="button"
-            className="btn btn-outline-primary btn-block"
+            className="btn btn-outline-primary w-100"
             onClick={toggleSidebar}
             aria-expanded={sidebarOpen}
             aria-controls="admin-sidebar"
@@ -168,7 +168,7 @@ const AdminPlatform: React.FC = () => {
               {menuItems.map((item) => (
                 <button
                   key={item.name}
-                  className={`btn btn-block text-left mb-2 ${
+                  className={`btn w-100 text-start justify-content-start mb-2 ${
                     functionSelection === item.name ? 'btn-primary' : 'btn-outline-secondary'
                   }`}
                   name={item.name as FunctionSelection}

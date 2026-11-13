@@ -106,31 +106,31 @@ const InformationModal: React.FC<InformationModalProps> = ({
     return (
       <React.Fragment>
         <div className="modal-body">
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u8ca8\u865f"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.productNo}
             </label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u6279\u865f"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.lotNo}
             </label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u578b\u614b"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.type}
             </label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u6578\u91cf"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.quantity}
             </label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u55ae\u4f4d"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.unit}
@@ -138,19 +138,19 @@ const InformationModal: React.FC<InformationModalProps> = ({
           </div>
           {typeValidation ? null : (
             <React.Fragment>
-              <div className="form-group row mb-0">
+              <div className="row mb-0">
                 <label className="col-6 col-form-label text-center">{"\u8272\u865f"}</label>
                 <label className="col-6 col-form-label">
                   {propStockInfo.color}
                 </label>
               </div>
-              <div className="form-group row mb-0">
+              <div className="row mb-0">
                 <label className="col-6 col-form-label text-center">{"\u7461\u75b5"}</label>
                 <label className="col-6 col-form-label">
                   {propStockInfo.defect as string}
                 </label>
               </div>
-              <div className="form-group row mb-0">
+              <div className="row mb-0">
                 <label className="col-6 col-form-label text-center">
                   {"\u6e1b\u80a5\u65e5\u671f"}
                 </label>
@@ -160,11 +160,11 @@ const InformationModal: React.FC<InformationModalProps> = ({
               </div>
             </React.Fragment>
           )}
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u8a3b\u89e3"}</label>
             <label className="col-6 col-form-label">{propStockInfo.remark}</label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u8a18\u9304"}</label>
             <label className="col-6 col-form-label">{propStockInfo.record}</label>
           </div>
@@ -181,31 +181,31 @@ const InformationModal: React.FC<InformationModalProps> = ({
     return (
       <React.Fragment>
         <div className="modal-body">
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u8ca8\u865f"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.productNo}
             </label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u6279\u865f"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.lotNo}
             </label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u578b\u614b"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.type}
             </label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u6578\u91cf"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.quantity}
             </label>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u55ae\u4f4d"}</label>
             <label className="col-6 col-form-label">
               {stockIdentifier?.unit}
@@ -213,11 +213,11 @@ const InformationModal: React.FC<InformationModalProps> = ({
           </div>
           {typeValidation ? null : (
             <React.Fragment>
-              <div className="form-group row mb-0">
+              <div className="row mb-0">
                 <label className="col-6 col-form-label text-center">{"\u8272\u865f"}</label>
                 <div className="col-6">
                   <select
-                    className="custom-select"
+                    className="form-select"
                     name="color"
                     value={stockInfo.color}
                     onChange={handleInfoChange}
@@ -230,7 +230,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                   </select>
                 </div>
               </div>
-              <div className="form-group row mb-0">
+              <div className="row mb-0">
                 <label className="col-6 col-form-label text-center">{"\u7461\u75b5"}</label>
                 <div className="col-6">
                   <Select
@@ -246,7 +246,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
               </div>
             </React.Fragment>
           )}
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u8a3b\u89e3"}</label>
             <div className="col-6">
               <input
@@ -259,7 +259,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
               />
             </div>
           </div>
-          <div className="form-group row mb-0">
+          <div className="row mb-0">
             <label className="col-6 col-form-label text-center">{"\u8a18\u9304"}</label>
             <div className="col-6">
               <input

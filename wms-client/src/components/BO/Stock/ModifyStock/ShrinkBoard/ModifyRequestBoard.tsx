@@ -387,7 +387,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                 <p className="h3 text-center">異動前狀態</p>
                 <hr />
                 <table className="table">
-                    <thead className="thead-dark">
+                    <thead className="table-dark">
                         <tr>
                             <th scope="col">貨號</th>
                             <th scope="col">批號</th>
@@ -400,7 +400,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                     <tbody>
                         <tr>
                             <td>
-                                <div className="form-group">
+                                <div className="mb-3">
                                     <input
                                         type="text"
                                         className="form-control"
@@ -414,7 +414,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                                 </div>
                             </td>
                             <td>
-                                <div className="form-group">
+                                <div className="mb-3">
                                     <input
                                         type="text"
                                         className="form-control"
@@ -428,7 +428,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                                 </div>
                             </td>
                             <td>
-                                <div className="form-group">
+                                <div className="mb-3">
                                     <input
                                         type="text"
                                         className="form-control"
@@ -442,7 +442,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                                 </div>
                             </td>
                             <td>
-                                <div className="form-group">
+                                <div className="mb-3">
                                     <input
                                         type="text"
                                         className="form-control"
@@ -456,7 +456,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                                 </div>
                             </td>
                             <td>
-                                <div className="form-group">
+                                <div className="mb-3">
                                     <input
                                         type="text"
                                         className="form-control"
@@ -470,7 +470,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                                 </div>
                             </td>
                             <td>
-                                <div className="form-group">
+                                <div className="mb-3">
                                     <input
                                         type="text"
                                         className="form-control"

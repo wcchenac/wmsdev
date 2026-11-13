@@ -56,7 +56,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         ariaLabel="loading-indicator"
         visible={true}
       />
-      <span className="sr-only">{label}</span>
+      <span className="visually-hidden">{label}</span>
     </div>
   );
 };

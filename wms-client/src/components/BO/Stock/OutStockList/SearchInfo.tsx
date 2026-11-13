@@ -183,7 +183,7 @@ class SearchInfo extends Component<SearchInfoProps> {
             </ActionButtonGroup>
           ) : (
             <select
-              className="custom-select custom-select-sm"
+              className="form-select form-select-sm"
               name="whName"
               defaultValue=""
               onChange={this.onChange}

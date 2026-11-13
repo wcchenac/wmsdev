@@ -23,7 +23,7 @@ const ModifyRequestContainer: React.FC<ModifyRequestContainerProps> = ({
     return (
         <div>
             <table className="table">
-                <thead className="thead-dark">
+                <thead className="table-dark">
                     <tr>
                         {typeValidation ? (
                             <React.Fragment>

@@ -80,7 +80,7 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
         <tr>
             <td>
                 {typeValidation ? (
-                    <div className="form-group mb-0">
+                    <div className="mb-0">
                         <input
                             type="text"
                             className="form-control"
@@ -90,9 +90,9 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                         />
                     </div>
                 ) : (
-                    <div className="form-group mb-0">
+                    <div className="mb-0">
                         <select
-                            className="custom-select"
+                            className="form-select"
                             name="type"
                             defaultValue={stockInfo.type}
                             onChange={handleChange}
@@ -108,7 +108,7 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                 )}
             </td>
             <td>
-                <div className="form-group mb-0">
+                <div className="mb-0">
                     <input
                         type="text"
                         className={classnames('form-control', {
@@ -128,7 +128,7 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
             {typeValidation ? (
                 <React.Fragment>
                     <td>
-                        <div className="form-group mb-0">
+                        <div className="mb-0">
                             <input
                                 type="text"
                                 className="form-control"
@@ -142,9 +142,9 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
             ) : (
                 <React.Fragment>
                     <td>
-                        <div className="form-group mb-0">
+                        <div className="mb-0">
                             <select
-                                className="custom-select"
+                                className="form-select"
                                 name="unit"
                                 defaultValue={stockInfo.unit}
                                 onChange={handleChange}
@@ -171,7 +171,7 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                 </React.Fragment>
             )}
             <td>
-                <div className="form-group mb-0">
+                <div className="mb-0">
                     <input
                         type="text"
                         className="form-control"
@@ -182,7 +182,7 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                 </div>
             </td>
             <td>
-                <div className="form-group mt-1 ms-1">
+                <div className="mb-3 mt-1 ms-1">
                     {stockInfo.outStockReason !== '' ? (
                         <OverlayTrigger
                             key={index}

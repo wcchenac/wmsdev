@@ -72,7 +72,7 @@ const QueryOutStockToStore: React.FC = () => {
             {!isQuery ? null : (
               <div className="table-wrapper-scroll-y scrollbar-70">
                 <table className="table table-sm table-hover">
-                  <thead className="thead-dark">
+                  <thead className="table-dark">
                     <tr>
                       <th style={{ width: "15%" }}>貨號</th>
                       <th style={{ width: "25%" }}>品名</th>

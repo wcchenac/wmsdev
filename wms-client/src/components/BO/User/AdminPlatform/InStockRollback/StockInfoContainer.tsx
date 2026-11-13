@@ -14,7 +14,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
   return (
     <div className="table-wrapper-scroll-y scrollbar-70">
       <table className="table table-sm table-hover">
-        <thead className="thead-dark">
+        <thead className="table-dark">
           <tr>
             <th style={{ width: "25%" }}>
               <div className="ps-3">貨號</div>

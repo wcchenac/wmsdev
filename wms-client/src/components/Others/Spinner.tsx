@@ -59,7 +59,7 @@ export function Spinner({ size = "large", message, color }: SpinnerProps): React
           {message}
         </p>
       )}
-      <span className="sr-only">{message || "Loading content..."}</span>
+      <span className="visually-hidden">{message || "Loading content..."}</span>
     </div>
   );
 }

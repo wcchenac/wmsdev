@@ -125,7 +125,7 @@ const Login: React.FC = () => {
               <div className="card-body p-4">
                 <form onSubmit={handleSubmit} noValidate>
                   {/* Employee ID Field */}
-                  <div className="form-group mb-4">
+                  <div className="mb-4">
                     <label
                       htmlFor="employeeId"
                       className="form-label"
@@ -173,7 +173,7 @@ const Login: React.FC = () => {
                   </div>
 
                   {/* Password Field */}
-                  <div className="form-group mb-4">
+                  <div className="mb-4">
                     <label
                       htmlFor="password"
                       className="form-label"
@@ -223,7 +223,7 @@ const Login: React.FC = () => {
                   <div className="d-grid">
                     <button
                       type="submit"
-                      className={classnames("btn btn-primary btn-block py-2", {
+                      className={classnames("btn btn-primary w-100 py-2", {
                         "btn-loading": isSubmitting
                       })}
                       disabled={isSubmitting}
@@ -234,7 +234,7 @@ const Login: React.FC = () => {
                     >
                       {isSubmitting ? (
                         <>
-                          <span className="sr-only">登入中...</span>
+                          <span className="visually-hidden">登入中...</span>
                           登入中...
                         </>
                       ) : (

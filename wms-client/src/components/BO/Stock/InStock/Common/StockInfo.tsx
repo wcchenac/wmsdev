@@ -107,7 +107,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
   return (
     <tr>
       <td>
-        <div className="form-group mb-0">
+        <div className="mb-0">
           <input
             type="text"
             className="form-control"
@@ -118,7 +118,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
         </div>
       </td>
       <td>
-        <div className="form-group mb-0">
+        <div className="mb-0">
           <input
             type="text"
             className="form-control"
@@ -132,7 +132,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
       </td>
       <td>
         {typeValidation ? (
-          <div className="form-group mb-0">
+          <div className="mb-0">
             <input
               type="text"
               className="form-control"
@@ -142,9 +142,9 @@ const StockInfo: React.FC<StockInfoProps> = ({
             />
           </div>
         ) : (
-          <div className="form-group mb-0">
+          <div className="mb-0">
             <select
-              className="custom-select"
+              className="form-select"
               name="type"
               value={stockInfo.type}
               onChange={onChange}
@@ -160,7 +160,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
         )}
       </td>
       <td>
-        <div className="form-group mb-0">
+        <div className="mb-0">
           <input
             type="text"
             className={classnames("form-control", {
@@ -179,7 +179,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
       {typeValidation ? (
         <React.Fragment>
           <td>
-            <div className="form-group mb-0">
+            <div className="mb-0">
               <input
                 type="text"
                 className="form-control"
@@ -193,9 +193,9 @@ const StockInfo: React.FC<StockInfoProps> = ({
       ) : (
         <React.Fragment>
           <td>
-            <div className="form-group mb-0">
+            <div className="mb-0">
               <select
-                className="custom-select"
+                className="form-select"
                 name="unit"
                 value={stockInfo.unit}
                 onChange={onChange}
@@ -210,9 +210,9 @@ const StockInfo: React.FC<StockInfoProps> = ({
             </div>
           </td>
           <td>
-            <div className="form-group mb-0">
+            <div className="mb-0">
               <select
-                className="custom-select"
+                className="form-select"
                 name="color"
                 value={stockInfo.color}
                 onChange={onChange}
@@ -241,7 +241,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
         </React.Fragment>
       )}
       <td>
-        <div className="form-group mb-0">
+        <div className="mb-0">
           <input
             type="text"
             className="form-control"
@@ -254,7 +254,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
         </div>
       </td>
       <td>
-        <div className="form-group mt-1 ms-1" style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}>
+        <div className="mb-3 mt-1 ms-1" style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}>
           {stockInfo.outStockReason !== "" ? (
             <OverlayTrigger
               key={index}

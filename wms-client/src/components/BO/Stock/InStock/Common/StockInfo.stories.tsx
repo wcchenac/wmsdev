@@ -39,7 +39,7 @@ function StockRow(props: React.ComponentProps<typeof StockInfo> & {
 }) {
   return (
     <table className="table table-sm">
-      <thead className="thead-dark">
+      <thead className="table-dark">
         <tr>
           <th>貨號</th>
           <th>批號</th>

@@ -91,15 +91,15 @@ const EditModal: React.FC<EditModalProps> = ({
 
     return (
       <React.Fragment>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">員工編號</label>
           <label className="col-6 col-form-label">{propsUserInfo.employeeId}</label>
         </div>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">姓名</label>
           <label className="col-6 col-form-label">{propsUserInfo.fullName}</label>
         </div>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">權限</label>
           <label className="col-6 col-form-label">{displayRole}</label>
         </div>
@@ -110,15 +110,15 @@ const EditModal: React.FC<EditModalProps> = ({
   const renderEditModeOn = (): React.ReactNode => {
     return (
       <React.Fragment>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">員工編號</label>
           <label className="col-6 col-form-label">{userInfo.employeeId}</label>
         </div>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">姓名</label>
           <label className="col-6 col-form-label">{userInfo.fullName}</label>
         </div>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-6 col-form-label text-center">新密碼</label>
           <div className="col-6">
             <input
@@ -130,12 +130,12 @@ const EditModal: React.FC<EditModalProps> = ({
             />
           </div>
         </div>
-        <div className="form-group row pb-0">
+        <div className="mb-3 row pb-0">
           <label className="col-6 col-form-label text-center">權限</label>
           <div className="col-6">
             <select
               name="role"
-              className="custom-select"
+              className="form-select"
               defaultValue={userInfo.role}
               onChange={handleInfoChange}
             >

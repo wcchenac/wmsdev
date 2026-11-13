@@ -34,7 +34,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
   return (
     <div className="table-wrapper-scroll-y scrollbar-70">
       <table className="table table-sm table-hover">
-        <thead className="thead-dark">
+        <thead className="table-dark">
           <tr>
             {typeValidation ? (
               <React.Fragment>

@@ -226,11 +226,12 @@ describe('AdminPlatform', () => {
       expect(container.querySelector('.container-fluid')).toBeInTheDocument();
     });
 
-    test('buttons have btn btn-block classes', () => {
+    test('buttons are full-width Bootstrap 5 buttons', () => {
       renderAdminPlatform();
       const button = screen.getByRole('button', { name: /新增使用者/ });
       // Component now uses 'btn-outline-secondary' or 'btn-primary' depending on selection state
-      expect(button).toHaveClass('btn', 'btn-block');
+      expect(button).toHaveClass('btn', 'w-100');
+      expect(button).not.toHaveClass('btn-block');
     });
   });
 });

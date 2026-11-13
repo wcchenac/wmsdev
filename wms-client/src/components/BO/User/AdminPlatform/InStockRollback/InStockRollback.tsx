@@ -92,13 +92,13 @@ const InStockRollback: React.FC = () => {
   return (
     <div className="container">
       <form onSubmit={handleOrderQuerySubmit}>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-md-auto col-form-label text-center">
             進貨方式:
           </label>
           <div className="col-md-auto">
             <select
-              className="custom-select"
+              className="form-select"
               name="orderType"
               defaultValue=""
               onChange={handleOrderChange}

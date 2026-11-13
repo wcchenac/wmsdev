@@ -335,7 +335,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
       <p className="h4 text-center">待入庫總量</p>
       <div>
         <table className="table table-sm">
-          <thead className="thead-dark">
+          <thead className="table-dark">
             <tr>
               <th style={{ width: "20%" }}>貨號</th>
               <th style={{ width: "20%" }}>型態</th>
@@ -348,7 +348,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
             {Object.keys(waitHandleStatus).map((typeKey, idx) => (
               <tr key={idx}>
                 <td>
-                  <div className="form-group mb-0">
+                  <div className="mb-0">
                     <input
                       type="text"
                       className="form-control"
@@ -359,7 +359,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
                   </div>
                 </td>
                 <td>
-                  <div className="form-group mb-0">
+                  <div className="mb-0">
                     <input
                       type="text"
                       className="form-control"
@@ -370,7 +370,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
                   </div>
                 </td>
                 <td>
-                  <div className="form-group mb-0">
+                  <div className="mb-0">
                     <input
                       type="text"
                       className="form-control"
@@ -381,7 +381,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
                   </div>
                 </td>
                 <td>
-                  <div className="form-group mb-0">
+                  <div className="mb-0">
                     <input
                       type="text"
                       className="form-control"
@@ -392,7 +392,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
                   </div>
                 </td>
                 <td>
-                  <div className="form-group mb-0">
+                  <div className="mb-0">
                     <input
                       type="text"
                       className="form-control"
@@ -420,7 +420,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
         isLoading={isLoading}
       />
       <table className="table table-sm">
-        <thead className="thead-dark">
+        <thead className="table-dark">
           <tr>
             {typeValidation ? (
               <React.Fragment>

@@ -98,7 +98,7 @@ const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <div
-      className={classnames("form-group", className)}
+      className={classnames("mb-3", className)}
       style={{
         marginBottom: "var(--spacing-4)"
       }}

@@ -73,7 +73,7 @@ const StockCategory: React.FC = () => {
               <br />
               <button
                 type="button"
-                className="btn btn-success btn-block"
+                className="btn btn-success w-100"
                 onClick={handleSubmit}
               >
                 送出

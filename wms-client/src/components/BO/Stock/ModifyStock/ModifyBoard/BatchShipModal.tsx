@@ -114,7 +114,7 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <div className="row no-gutters">
+        <div className="row g-0">
           <div className="col-5">
             <ShipModalBody
               outStockReason={outStockReason}

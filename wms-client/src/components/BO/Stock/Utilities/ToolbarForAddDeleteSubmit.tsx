@@ -45,25 +45,25 @@ const ToolbarForAddDeleteSubmit: React.FC<ToolbarForAddDeleteSubmitProps> = ({
           </button>
         </div>
         <div className="col-md-auto me-auto">
-          <form className="form-inline" onSubmit={handleRowNumSubmit}>
-            <label className="form-label me-2">新增複數列數</label>
+          <form className="d-flex align-items-center" onSubmit={handleRowNumSubmit}>
+            <label className="form-label mb-0 me-2 text-nowrap">新增複數列數</label>
 
             <input
               type="text"
-              className="form-control col-3 me-2"
+              className="form-control w-auto me-2"
               placeholder="輸入列數"
               name="assignRowNum"
               value={assignRowNum}
               onChange={handleRowNumChange}
               disabled={isLoading}
             />
-            <button className="btn btn-primary" disabled={isLoading}>新增</button>
+            <button className="btn btn-primary text-nowrap" disabled={isLoading}>新增</button>
           </form>
         </div>
         <div className="col-md-auto">
           <button
             type="button"
-            className="btn btn-primary btn-block d-flex align-items-center justify-content-center"
+            className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
             style={{ minWidth: "100px" }}
             onClick={onSubmitClick}
             disabled={submitDisabled || isLoading}

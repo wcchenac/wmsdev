@@ -355,14 +355,18 @@ describe('UserRegister', () => {
 
     test('has form with Bootstrap classes', () => {
       const { container } = renderUserRegister();
-      expect(container.querySelector('.form-group')).toBeInTheDocument();
+      expect(container.querySelector('.form-control')).toBeInTheDocument();
+      expect(container.querySelector('.form-select')).toBeInTheDocument();
+      // Bootstrap 4-only classes must not come back.
+      expect(container.querySelector('.form-group, .custom-select')).not.toBeInTheDocument();
     });
 
     test('submit button has Bootstrap classes', () => {
       renderUserRegister();
 
       const button = screen.getByRole('button', { name: '註冊' });
-      expect(button).toHaveClass('btn', 'btn-primary', 'btn-block');
+      expect(button).toHaveClass('btn', 'btn-primary', 'w-100');
+      expect(button).not.toHaveClass('btn-block');
     });
   });
 });

@@ -17,7 +17,7 @@ const QueryOrder: React.FC<QueryOrderProps> = ({
   return (
     <div className="col-md-12">
       <form onSubmit={handleQueryOrderSubmit}>
-        <div className="form-group row mb-0">
+        <div className="row mb-0">
           <label className="col-md-auto col-form-label text-center">
             {type + "單號查詢"}
           </label>

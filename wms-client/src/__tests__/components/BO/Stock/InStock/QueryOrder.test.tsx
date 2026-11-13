@@ -99,8 +99,10 @@ describe('QueryOrder', () => {
   describe('CSS structure', () => {
     test('has Bootstrap form classes', () => {
       const { container } = renderQueryOrder();
-      expect(container.querySelector('.form-group')).toBeInTheDocument();
+      expect(container.querySelector('.col-form-label')).toBeInTheDocument();
       expect(container.querySelector('.form-control')).toBeInTheDocument();
+      // Bootstrap 5 dropped .form-group; spacing comes from margin utilities.
+      expect(container.querySelector('.form-group')).not.toBeInTheDocument();
     });
 
     test('submit button has Bootstrap btn-primary class', () => {

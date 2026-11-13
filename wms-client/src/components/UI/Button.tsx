@@ -80,7 +80,7 @@ const Button: React.FC<ButtonProps> = ({
     `btn-${variant}`,
     sizeClasses[size],
     {
-      "btn-block": block,
+      "w-100": block,
       "btn-loading": loading,
       "btn-icon": icon && children
     },
@@ -99,7 +99,7 @@ const Button: React.FC<ButtonProps> = ({
     if (loading) {
       return (
         <>
-          <span className="sr-only">Loading...</span>
+          <span className="visually-hidden">Loading...</span>
           <span style={{ visibility: "hidden" }}>{children}</span>
         </>
       );

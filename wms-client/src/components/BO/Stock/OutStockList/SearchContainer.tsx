@@ -165,7 +165,7 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
         >
           <div className="table-wrapper-scroll-y my-custom-scrollbar">
             <table className="table table-hover">
-              <thead className="thead-dark">
+              <thead className="table-dark">
                 <tr>
                   <th style={{ width: "3%" }}>
                     <HeaderCheckBox

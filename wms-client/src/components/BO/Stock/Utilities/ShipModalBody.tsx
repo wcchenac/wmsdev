@@ -14,7 +14,7 @@ const ShipModalBody: React.FC<ShipModalBodyProps> = ({
 }) => {
   return (
     <React.Fragment>
-      <div className="form-group row">
+      <div className="mb-3 row">
         <label className="col-md-auto col-form-label text-center">
           出庫原因
         </label>
