@@ -1,2 +1,7 @@
 .metadata/
 .DS_Store
+
+# Playwright MCP: keep the visual-regression scripts and README, ignore screenshots and logs
+.playwright-mcp/*
+!.playwright-mcp/*.js
+!.playwright-mcp/README.md
