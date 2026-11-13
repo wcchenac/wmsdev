@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app.db import get_session
 from app.javacompat import java_is_blank
 from app.security.auth import require_roles
-from app.stock import moves, orders, queries
+from app.stock import moves, orders, queries, shrink
 from app.stock.intake import InStockItem, create_stock_infoes
 from app.stock.serializers import history_json, out_stock_request_json
 from app.users.schemas import NotBlank
@@ -70,8 +70,16 @@ class InStockRequest(BaseModel):
             productNo=self.productNo, lotNo=self.lotNo, type=self.type, quantity=self.quantity, unit=self.unit,
             color=self.color, defect=self.defect, record=self.record, remark=self.remark,
             inStockType=self.inStockType, orderNo=self.orderNo, directShip=self.directShip,
-            outStockReason=self.outStockReason,
+            outStockReason=self.outStockReason, parentId=self.parentId,
         )
+
+
+class ShrinkStockRequest(BaseModel):
+    oldStockIdentifierId: int = 0
+    inStockRequests: list[InStockRequest] = []  # no @Valid on this list in Java
+    allocation: float | None = None
+    adjustment: float | None = None
+    shrinkType: str | None = None
 
 
 class UpdateInfoRequest(BaseModel):
@@ -92,6 +100,19 @@ def in_stocks(body: list[InStockRequest], request: Request, session: Session = D
         create_stock_infoes(session, [b.to_item() for b in body], principal.full_name)
     except Exception:
         return _bad_request(session, "inStocks")
+    return Response(status_code=200)
+
+
+@router.post("/shrinkStock")
+def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = Depends(get_session)) -> Response:
+    principal = ops(request)
+    try:
+        shrink.shrink_stock(session, shrink.ShrinkRequest(
+            old_identifier_id=body.oldStockIdentifierId, pieces=[r.to_item() for r in body.inStockRequests],
+            allocation=body.allocation, adjustment=body.adjustment, shrink_type=body.shrinkType,
+        ), principal.full_name)
+    except Exception:
+        return _bad_request(session, "shrinkStock")
     return Response(status_code=200)
 
 

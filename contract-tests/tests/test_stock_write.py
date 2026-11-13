@@ -107,6 +107,25 @@ def test_shrink_stock(operator, db, golden):
     golden.add("reports", generated_reports())
 
 
+def test_shrink_stock_unit_differs_from_erp_base(operator, db, golden):
+    """CF1003's ERP base unit is 公斤; a roll stocked in 碼 records realQuantity = allocation x 3."""
+    operator.post("/api/stock/inStocks", json=[in_stock("CF1003", "30", type_="板卷", unit="碼")])
+    golden.response("shrink", operator.post("/api/stock/shrinkStock", json=shrink_request(
+        1, ["20", "9"], allocation=0.5, adjustment=0.5, product_no="CF1003", type_="板卷", unit="碼",
+        lot_no="L01", shrink_type="RB")))
+    golden.add("db", db_state(db, ["stockallocationrecord", "stockadjustmentrecord"]))
+    golden.add("reports", generated_reports())
+
+
+def test_shrink_stock_float_rounding(operator, db, golden):
+    """allocation/adjustment are Java Floats: widened to double, then %.2f HALF_UP."""
+    seed_baseline(operator)
+    golden.response("shrink", operator.post("/api/stock/shrinkStock",
+                                            json=shrink_request(1, ["30", "19"], allocation=0.1, adjustment=0.125)))
+    golden.add("db", db_state(db, ["stockidentifier", "stockallocationrecord", "stockadjustmentrecord"]))
+    golden.add("reports", generated_reports())
+
+
 def test_shrink_stock_without_adjustment(operator, db, golden):
     seed_baseline(operator)
     golden.response("shrink", operator.post("/api/stock/shrinkStock",

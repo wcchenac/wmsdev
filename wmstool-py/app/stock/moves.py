@@ -40,6 +40,11 @@ def _identifier(session: Session, identifier_id: int) -> StockIdentifier:
     return _one(session, select(StockIdentifier).where(StockIdentifier.id == identifier_id))
 
 
+def identifier(session: Session, identifier_id: int) -> StockIdentifier:
+    """stockIdentifierRepo.findById(id).get()."""
+    return _identifier(session, identifier_id)
+
+
 def _info_of(session: Session, identifier_id: int) -> StockInfo:
     return _one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
 
