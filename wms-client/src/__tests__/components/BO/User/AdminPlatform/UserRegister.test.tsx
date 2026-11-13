@@ -124,9 +124,11 @@ describe('UserRegister', () => {
       expect(screen.getByRole('button', { name: '註冊' })).toBeInTheDocument();
     });
 
-    test('renders toast container', () => {
+    // Toasts go through App's single ToastContainer; a page-level one unregisters it on
+    // unmount (see ToastContainerSingleton.test.tsx).
+    test('does not render its own toast container', () => {
       renderUserRegister();
-      expect(screen.getByTestId('toast-container')).toBeInTheDocument();
+      expect(screen.queryByTestId('toast-container')).not.toBeInTheDocument();
     });
 
     test('password input has type password', () => {

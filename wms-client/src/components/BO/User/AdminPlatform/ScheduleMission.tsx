@@ -2,7 +2,7 @@ import React, { useState, useCallback, MouseEvent } from "react";
 import { missionTrigger } from "../../../../actions/StockActions";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const ScheduleMission: React.FC = () => {
@@ -45,7 +45,6 @@ const ScheduleMission: React.FC = () => {
             貨號品名同步
           </button>
         </div>
-        <ToastContainer />
       </LoadingOverlay>
     </div>
   );

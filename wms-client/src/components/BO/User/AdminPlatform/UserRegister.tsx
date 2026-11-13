@@ -4,7 +4,7 @@ import { RoleOption } from "../../../../enums/Enums";
 import { registerUser } from "../../../../actions/UserActions";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AppDispatch } from "../../../../types";
 
@@ -157,7 +157,6 @@ const UserRegister: React.FC = () => {
                   </div>
                 </form>
                 <div className="mb-3">
-                  <ToastContainer />
                 </div>
               </div>
             </div>

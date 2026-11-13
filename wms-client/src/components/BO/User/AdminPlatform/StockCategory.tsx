@@ -9,7 +9,7 @@ import {
 } from "../../../../actions/StockActions";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { RootState } from "../../../../store";
 import { AppDispatch } from "../../../../types";
 
@@ -88,7 +88,6 @@ const StockCategory: React.FC = () => {
               </button>
             </div>
           </div>
-          <ToastContainer />
         </div>
       </LoadingOverlay>
     </div>

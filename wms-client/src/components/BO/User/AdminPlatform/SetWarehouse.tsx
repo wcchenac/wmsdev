@@ -1,6 +1,6 @@
 import React, { useState, useCallback, ChangeEvent } from "react";
 import { setWHByImportFile } from "../../../../actions/FileActions";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoadingOverlay from "react-loading-overlay-ts";
 import { Spinner } from "../../../Others/Spinner";
@@ -75,7 +75,6 @@ const SetWarehouse: React.FC = () => {
                 />
               </div>
               <div className="mb-3">
-                <ToastContainer />
               </div>
               <button
                 type="button"
