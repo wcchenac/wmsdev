@@ -7,7 +7,6 @@ setCellValue(null) leaves the cell blank).
 """
 
 import datetime as dt
-import shutil
 from pathlib import Path
 
 import openpyxl
@@ -28,19 +27,26 @@ def _template(folder: str, template: str) -> Path:
     return excel_root() / folder / f"{template}{EXTENSION}"
 
 
-def ensure_from_template(folder: str, template: str, target: Path) -> Path:
-    """Copy the template to `target` unless it already exists (createNewFile)."""
-    if not target.exists():
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(_template(folder, template), target)
+# Like Java's WorkbookFactory.create(template) at the top of every createNewFile, the
+# template is read before the target is touched: a missing template raises
+# FileNotFoundError even when today's report exists, and never deletes it.
+
+
+def _write(target: Path, content: bytes) -> Path:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(content)
     return target
 
 
+def ensure_from_template(folder: str, template: str, target: Path) -> Path:
+    """Copy the template to `target` unless it already exists (createNewFile)."""
+    content = _template(folder, template).read_bytes()
+    return target if target.exists() else _write(target, content)
+
+
 def recreate_from_template(folder: str, template: str, target: Path) -> Path:
-    """Delete `target` if present and copy the template afresh (deleteAndCreateNewFile)."""
-    if target.exists():
-        target.unlink()
-    return ensure_from_template(folder, template, target)
+    """Replace `target` with a fresh copy of the template (deleteAndCreateNewFile)."""
+    return _write(target, _template(folder, template).read_bytes())
 
 
 def poi_last_row(sheet: Worksheet) -> int:

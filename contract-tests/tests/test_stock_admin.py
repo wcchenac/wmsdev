@@ -41,6 +41,18 @@ def test_daily_stock_compare_null_quantity_without_erp_match(admin, db, golden):
     golden.add("reports", generated_reports())
 
 
+def test_daily_stock_compare_template_missing_keeps_report(admin, golden):
+    """Java reads the template before it deletes today's report: with the template gone
+    the second comparison fails (400) and the first report is kept."""
+    from conftest import templates_missing
+
+    seed_baseline(admin)
+    golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+    with templates_missing("StockComparisonResult/StockComparisonResultTemplate"):
+        golden.response("second", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+        golden.add("reports", generated_reports())
+
+
 def test_daily_stock_compare_twice_same_day(admin, golden):
     seed_baseline(admin)
     golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))

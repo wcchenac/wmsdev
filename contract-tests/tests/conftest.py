@@ -9,12 +9,14 @@ Run `pytest --update-golden` to (re)record golden files from the current backend
 
 from __future__ import annotations
 
+import contextlib
 import datetime as dt
 import io
 import json
 import os
 import pathlib
 import re
+import shutil
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -186,8 +188,33 @@ def reset_files() -> None:
                 path.rmdir()
 
 
+def root_connection() -> pymysql.connections.Connection:
+    """binlog is on: creating or dropping a trigger needs root."""
+    return pymysql.connect(**{**DB, "user": "root", "password": "root"})
+
+
+@pytest.fixture(scope="session")
+def recover_interrupted_run():
+    """A run killed mid-test can leave a fault-injection trigger (contract_*) in the
+    database and swapped templates aside as *.saved; TRUNCATE and reset_files would
+    keep the first and delete the second. Undo both once per session."""
+    root = root_connection()
+    try:
+        with root.cursor() as cur:
+            cur.execute("SELECT TRIGGER_NAME FROM information_schema.TRIGGERS "
+                        "WHERE TRIGGER_SCHEMA = %s AND TRIGGER_NAME LIKE 'contract\\_%%'", (DB["database"],))
+            for (name,) in cur.fetchall():
+                cur.execute(f"DROP TRIGGER IF EXISTS `{name}`")
+    finally:
+        root.close()
+    for rel in TEMPLATE_FILES:
+        saved = EXCEL_DIR / f"{rel}.saved"
+        if saved.exists():
+            saved.replace(EXCEL_DIR / rel)
+
+
 @pytest.fixture(autouse=True)
-def clean_state(db):
+def clean_state(db, recover_interrupted_run):
     reset_database(db)
     reset_files()
     yield
@@ -484,6 +511,42 @@ def generated_reports() -> dict[str, list[list[Any]]]:
             continue
         reports[rel] = read_workbook(path)["cells"]
     return reports
+
+
+# Docker Desktop's file sharing caches directory entries briefly: right after a
+# host-side rename the backend container can still open the old path (measured:
+# stale at 0 s, gone at 0.2 s). Wait this long after swapping shared files.
+FILE_SETTLE_SECONDS = 1.0
+
+
+def settle_files() -> None:
+    import time
+
+    time.sleep(FILE_SETTLE_SECONDS)
+
+
+@contextlib.contextmanager
+def templates_swapped(replacements: dict[str, pathlib.Path | None]):
+    """For the block, replace report templates (relative to EXCEL_DIR, with extension)
+    by the given files, or remove them (None). Each one is put back even if a later
+    swap fails; the backend sees the change before the block starts and after it ends."""
+    with contextlib.ExitStack() as restore:
+        restore.callback(settle_files)  # runs last, after every template is back
+        for rel, replacement in replacements.items():
+            path = EXCEL_DIR / rel
+            saved = path.with_name(path.name + ".saved")
+            path.rename(saved)
+            restore.callback(saved.replace, path)
+            if replacement is not None:
+                shutil.copyfile(replacement, path)
+        settle_files()
+        yield
+
+
+def templates_missing(*templates: str):
+    """Remove report templates (e.g. "STKALLT/StockAllocateRecordTemplate", both .xls
+    and .xlsx) for the block."""
+    return templates_swapped({f"{t}{ext}": None for t in templates for ext in (".xls", ".xlsx")})
 
 
 def write_legacy_report(rel_path: str) -> pathlib.Path:
