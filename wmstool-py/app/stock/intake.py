@@ -8,14 +8,19 @@ row ids and the `product` table are part of the contract:
 """
 
 import datetime as dt
-import re
 from dataclasses import dataclass
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.javacompat import java_format_2f, java_hashmap_order, serialize_long_array
+from app.javacompat import (
+    java_format_2f,
+    java_hashmap_order,
+    java_parse_double,
+    java_parse_int,
+    serialize_long_array,
+)
 from app.stock.models import (
     History,
     InStockOrderRecord,
@@ -37,7 +42,6 @@ IN_STOCK_TYPES: dict[str, tuple[str, str]] = {
     "storeReturn": ("調撥單", "SRI"),
     "fileImport": ("檔案匯入", "FI"),
 }
-_JAVA_INT = re.compile(r"^[+-]?\d+$")
 
 
 @dataclass
@@ -67,11 +71,9 @@ def taipei_today() -> str:
 def _convert_units(item: InStockItem) -> tuple[str, str]:
     """quantityConvertor: 尺 -> 碼 (/3, %.2f), 打 -> 個 (x12, integer only)."""
     if item.unit == "尺":
-        return java_format_2f(float(item.quantity) / 3.0), "碼"
+        return java_format_2f(java_parse_double(item.quantity) / 3.0), "碼"
     if item.unit == "打":
-        if not _JAVA_INT.match(item.quantity):
-            raise ValueError(f'For input string: "{item.quantity}"')  # Integer.parseInt
-        return str(int(item.quantity) * 12), "個"
+        return str(java_parse_int(item.quantity) * 12), "個"
     return item.quantity, item.unit
 
 
@@ -102,7 +104,7 @@ def _collect(totals: dict[str, dict[str, dict[str, str]]], identifier: StockIden
         by_type[identifier.type] = {"quantity": identifier.quantity, "unit": identifier.unit}
     else:
         entry = by_type[identifier.type]
-        entry["quantity"] = java_format_2f(float(entry["quantity"]) + float(identifier.quantity))
+        entry["quantity"] = java_format_2f(java_parse_double(entry["quantity"]) + java_parse_double(identifier.quantity))
 
 
 def _apply_totals(session: Session, totals: dict[str, dict[str, dict[str, str]]], now: dt.datetime) -> None:
@@ -112,7 +114,7 @@ def _apply_totals(session: Session, totals: dict[str, dict[str, dict[str, str]]]
             entry = totals[product_no][type_]
             existing = session.scalar(select(Product).where(Product.productNo == product_no, Product.type == type_))
             if existing is not None:
-                existing.quantity = java_format_2f(float(entry["quantity"]) + float(existing.quantity or "0"))
+                existing.quantity = java_format_2f(java_parse_double(entry["quantity"]) + java_parse_double(existing.quantity or "0"))
                 existing.updatedAt = now
             else:
                 session.add(Product(productNo=product_no, type=type_, quantity=entry["quantity"], unit=entry["unit"],
@@ -133,8 +135,11 @@ def create_stock_infoes(session: Session, items: list[InStockItem], editor: str)
         backlog = _backlog(session, item, quantity, unit)
         label, transaction_type = IN_STOCK_TYPES.get(item.inStockType, (None, None))
 
+        # new StockIdentifier(backlog, editor): the values come from the stored
+        # backlog row, which MySQL may have matched case-insensitively.
         identifier = StockIdentifier(
-            productNo=item.productNo, lotNo=item.lotNo, type=item.type, quantity=quantity, unit=unit,
+            productNo=backlog.productNo, lotNo=backlog.lotNo, type=backlog.type, quantity=backlog.quantity,
+            unit=backlog.unit,
             serialNo=backlog.serialNo, isExist=True, waitToShrink=False, isOutStock=False,
             inStockType=label, firstInStockAt=today if label else None, createdAt=now, createdBy=editor,
         )

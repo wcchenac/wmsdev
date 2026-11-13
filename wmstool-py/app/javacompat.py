@@ -36,12 +36,43 @@ def java_hashmap_order(keys: Iterable[str]) -> list[str]:
     for key in unique:
         h = _java_string_hash(key)
         buckets.setdefault((h ^ (h >> 16)) & (capacity - 1), []).append(key)
-    if any(len(b) >= 8 for b in buckets.values()):
+    # Java converts a bin when it gets its 9th node (treeify, or a resize while the
+    # table is under 64): only then does this model's order stop being exact.
+    if any(len(b) > 8 for b in buckets.values()):
         raise NotImplementedError("bucket would be treeified; iteration order not modelled")
     return [key for index in sorted(buckets) for key in buckets[index]]
 
 
 # ------------------------------------------------------------------- numbers
+
+
+_JAVA_DOUBLE = re.compile(
+    r"[+-]?(?:NaN|Infinity|(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?[fFdD]?)"
+)
+_JAVA_INT = re.compile(r"[+-]?\d+")  # \d: any Unicode decimal digit, as Character.digit accepts
+
+
+def java_parse_double(text: str) -> float:
+    """Double.parseDouble: String.trim()s, ASCII digits only, optional f/d suffix.
+
+    Python's float() is looser (full-width digits, '1_0', 'nan'); a value Java
+    cannot parse must not be accepted here, or the Java service would later fail
+    reading what Python stored. (Hex floats are rejected; Java would accept them.)
+    """
+    trimmed = text.strip("".join(chr(c) for c in range(0x21)))
+    if not _JAVA_DOUBLE.fullmatch(trimmed):
+        raise ValueError(f'For input string: "{text}"')
+    return float(trimmed.rstrip("fFdD").replace("Infinity", "inf"))
+
+
+def java_parse_int(text: str) -> int:
+    """Integer.parseInt: sign + decimal digits (Unicode digits allowed), no trimming."""
+    if not _JAVA_INT.fullmatch(text):
+        raise ValueError(f'For input string: "{text}"')
+    value = int(text)
+    if not -(2**31) <= value < 2**31:
+        raise ValueError(f'For input string: "{text}"')
+    return value
 
 
 def java_format_2f(x: float) -> str:

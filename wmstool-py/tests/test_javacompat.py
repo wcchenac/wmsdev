@@ -9,6 +9,8 @@ from app.javacompat import (
     java_double_to_string,
     java_format_2f,
     java_hashmap_order,
+    java_parse_double,
+    java_parse_int,
     java_period_days,
     parse_client_datetime,
     serialize_long_array,
@@ -30,6 +32,42 @@ from app.javacompat import (
 )
 def test_hashmap_order(keys, expected):
     assert java_hashmap_order(keys) == expected
+
+
+def test_hashmap_order_with_eight_keys_in_one_bucket():
+    # Java treeifies only on a bucket's 9th node; 8 in one bucket is an ordinary list.
+    keys = ["K1", "K0", "K70", "K81", "K92", "K2", "K101", "K112", "K123", "K134", "K3"]
+    assert java_hashmap_order(keys) == ["K0", "K70", "K81", "K92", "K101", "K112", "K123", "K134", "K1", "K2", "K3"]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [("12", 12.0), (" 12 ", 12.0), ("12d", 12.0), ("2\n", 2.0), ("1e2", 100.0), (".5", 0.5), ("5.", 5.0),
+     ("+3", 3.0), ("1f", 1.0), ("Infinity", float("inf"))],
+)
+def test_parse_double_accepts_java_grammar(text, expected):
+    assert java_parse_double(text) == expected
+
+
+@pytest.mark.parametrize("text", ["１２", "1_0", "nan", "0x10", "", "abc"])
+def test_parse_double_rejects_what_java_rejects(text):
+    with pytest.raises(ValueError):
+        java_parse_double(text)
+
+
+def test_parse_double_nan():
+    assert java_parse_double("NaN") != java_parse_double("NaN")
+
+
+@pytest.mark.parametrize(("text", "expected"), [("12", 12), ("１２", 12), ("+3", 3)])
+def test_parse_int_accepts_java_grammar(text, expected):
+    assert java_parse_int(text) == expected
+
+
+@pytest.mark.parametrize("text", [" 12 ", "2\n", "12d", "1_0", "1e2", "5.", ""])
+def test_parse_int_rejects_what_java_rejects(text):
+    with pytest.raises(ValueError):
+        java_parse_int(text)
 
 
 def test_hashmap_order_ignores_repeated_keys():

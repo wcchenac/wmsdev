@@ -169,6 +169,57 @@ def test_import_created_at_is_utc(operator, db, golden):
     golden.add("offset_hours", round(r["m"] / 60))
 
 
+def _post(operator, name, data):
+    return operator.post("/api/file/import/inStockFile", files=[("files", (name, data, XLSX))])
+
+
+def test_import_reuses_backlog_values(operator, db, golden):
+    """MySQL matches 'cf1001' to the stored 'CF1001' backlog; Java copies the stored values."""
+    row = ["CF1001", "L01", "整支", "50", "碼", 0, None, None, None, "fileImport", None]
+    golden.response("first", _post(operator, "a.xlsx", _xlsx([row])))
+    golden.response("lower_case", _post(operator, "b.xlsx", _xlsx([["cf1001", "l01"] + row[2:]])))
+    golden.response("both_in_one_file", _post(operator, "c.xlsx", _xlsx([row, ["cf1001", "l01"] + row[2:]])))
+    golden.add("db", db_state(db))
+
+
+def test_import_cell_existence(operator, db, golden):
+    """POI distinguishes a styled empty cell (text "") from a missing one, and counts empty <row>s."""
+    from openpyxl.styles import Font
+
+    book = openpyxl.Workbook()
+    sheet = book.active
+    assert sheet is not None
+    sheet.append(IMPORT_HEADER)
+    sheet.append(["CF1001", "L01", None, "50", "碼", 0, None, None, None, "fileImport", None])
+    sheet["C2"].font = Font(bold=True)  # 型態: formatted but empty
+    buf = io.BytesIO()
+    book.save(buf)
+    golden.response("styled_blank_type", _post(operator, "styled.xlsx", buf.getvalue()))
+
+    book = openpyxl.Workbook()
+    sheet = book.active
+    assert sheet is not None
+    sheet.append(IMPORT_HEADER)
+    sheet.append(["CF1002", "L07", "整支", "40", "碼", 0, None, None, None, "fileImport", None])
+    sheet.row_dimensions[5].height = 30  # an empty row 5 that only has a height
+    buf = io.BytesIO()
+    book.save(buf)
+    golden.response("trailing_sized_row", _post(operator, "rows.xlsx", buf.getvalue()))
+    golden.add("db", db_state(db))
+
+
+def test_import_java_number_grammar(operator, db, golden):
+    """Full-width digits: Integer.parseInt accepts them, Double.parseDouble does not."""
+    def row(quantity, unit, color: object = 0, product="CF1001"):
+        return [product, "L01", "整支", quantity, unit, color, None, None, None, "fileImport", None]
+
+    golden.response("fullwidth_feet", _post(operator, "a.xlsx", _xlsx([row("１２", "尺")])))
+    golden.response("fullwidth_dozen", _post(operator, "b.xlsx", _xlsx([row("１２", "打", product="CF1003")])))
+    golden.response("fullwidth_yards_new_product", _post(operator, "c.xlsx", _xlsx([row("１２", "碼", product="CF1002")])))
+    golden.response("fullwidth_color", _post(operator, "d.xlsx", _xlsx([row("5", "碼", color="１")])))
+    golden.add("db", db_state(db))
+
+
 def test_import_in_stock_file_bad_input(operator, db, golden):
     golden.response("not_excel", operator.post("/api/file/import/inStockFile",
                                                files=[("files", ("x.xlsx", b"not a workbook", XLSX))]))

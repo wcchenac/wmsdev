@@ -8,8 +8,9 @@ Cell.toString(), e.g. a numeric 25.5 reads "25.5" and 50 reads "50.0".
 import io
 
 import openpyxl
+from openpyxl.worksheet.worksheet import Worksheet
 
-from app.javacompat import java_double_to_string
+from app.javacompat import java_double_to_string, java_parse_double
 from app.stock.intake import InStockItem
 
 REQUIRED = (0, 2, 3, 4, 5, 9)
@@ -31,21 +32,40 @@ def poi_cell_text(value: object) -> str | None:
     return text[1:] if text.startswith("=") else text  # formula cells print without '='
 
 
+def _poi_rows(sheet: Worksheet) -> list[list[str | None]]:
+    """Rows 2..getLastRowNum()+1 as POI sees them.
+
+    A cell present in the file (even styled and empty) reads "" — None only when
+    it is absent, which is what Java's null checks test. POI's last row counts
+    any <row> element, including one that only carries a height; openpyxl keeps
+    those in row_dimensions but leaves them out of max_row.
+    """
+    present: dict[tuple[int, int], object] = {
+        (r, c): cell.value for (r, c), cell in sheet._cells.items()  # noqa: SLF001
+    }
+    rows_with_attributes = [r for r, dim in sheet.row_dimensions.items() if dim.customHeight or dim.hidden]
+    last_row = max([r for r, _ in present] + rows_with_attributes + [1])
+    out = []
+    for r in range(2, last_row + 1):
+        out.append([
+            (poi_cell_text(present[(r, c)]) or "") if (r, c) in present else None
+            for c in range(1, 12)
+        ])
+    return out
+
+
 def read_import_workbook(data: bytes) -> list[InStockItem]:
     try:
         sheet = openpyxl.load_workbook(io.BytesIO(data)).worksheets[0]
         items = []
-        for row in sheet.iter_rows(min_row=2, values_only=True):
-            cells = [poi_cell_text(v) for v in row] + [None] * max(0, 11 - len(row))
-            if all(c is None for c in cells):
-                raise ImportParseError("empty row (Java: null row)")
+        for cells in _poi_rows(sheet):
             required = [cells[i] for i in REQUIRED]
             if any(c is None for c in required):
                 raise ImportParseError("a required cell is missing")
             product_no, type_, quantity, unit, color, in_stock_type = (str(c) for c in required)
             items.append(InStockItem(
                 productNo=product_no, lotNo=cells[1] or "", type=type_, quantity=quantity, unit=unit,
-                color=int(float(color)), defect=cells[6] or "", remark=cells[7] or "", record=cells[8] or "",
+                color=int(java_parse_double(color)), defect=cells[6] or "", remark=cells[7] or "", record=cells[8] or "",
                 inStockType=in_stock_type, orderNo=cells[10] or "",
             ))
         return items
