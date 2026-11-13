@@ -8,9 +8,12 @@ import { isSessionExpired, notifyRequestFailed } from "./notifyRequestFailed";
 export const ROLLBACK_REJECTED_MESSAGE = "回朔失敗，沒有任何變更。清單可能已過期，已重新整理。";
 export const ROLLBACK_REJECTED_NOT_REFRESHED_MESSAGE =
   "回朔失敗，沒有任何變更。重新整理清單也失敗，請稍後重新查詢。";
-/** No answer (timeout, connection lost): the rollback may or may not have gone through. */
-export const ROLLBACK_UNCONFIRMED_MESSAGE = "無法確認回朔結果（連線中斷），已重新整理清單，請以畫面為準。";
-export const ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE = "無法確認回朔結果（連線中斷），請稍後重新查詢。";
+/**
+ * Any other failure (a 5xx, a gateway timeout, another 4xx, no answer at all): the rollback may
+ * or may not have gone through.
+ */
+export const ROLLBACK_UNCONFIRMED_MESSAGE = "無法確認回朔結果，已重新整理清單，請以畫面為準。";
+export const ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE = "無法確認回朔結果，請稍後重新查詢。";
 export const ROLLBACK_DONE_NOT_REFRESHED_MESSAGE = "回朔完成，但重新整理清單失敗，請重新查詢。";
 
 /** A rollback that did not end with a successful rollback and a fresh list. */
@@ -25,8 +28,11 @@ export class RollbackError extends Error {
   }
 }
 
-function hasResponse(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "response" in error && error.response != null;
+/** The backend's all-or-nothing 400: the rollback was refused and nothing changed. */
+function isRejected(error: unknown): boolean {
+  if (typeof error !== "object" || error === null || !("response" in error)) return false;
+  const response = error.response;
+  return typeof response === "object" && response !== null && "status" in response && response.status === 400;
 }
 
 /**
@@ -56,14 +62,14 @@ export async function rollbackThenQueryList<T>(
     if (isSessionExpired(listError)) throw listError;
     if (rolledBack) throw new RollbackError(ROLLBACK_DONE_NOT_REFRESHED_MESSAGE, listError);
     throw new RollbackError(
-      hasResponse(rollbackError) ? ROLLBACK_REJECTED_NOT_REFRESHED_MESSAGE : ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE,
+      isRejected(rollbackError) ? ROLLBACK_REJECTED_NOT_REFRESHED_MESSAGE : ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE,
       rollbackError
     );
   }
 
   if (!rolledBack) {
     throw new RollbackError(
-      hasResponse(rollbackError) ? ROLLBACK_REJECTED_MESSAGE : ROLLBACK_UNCONFIRMED_MESSAGE,
+      isRejected(rollbackError) ? ROLLBACK_REJECTED_MESSAGE : ROLLBACK_UNCONFIRMED_MESSAGE,
       rollbackError
     );
   }

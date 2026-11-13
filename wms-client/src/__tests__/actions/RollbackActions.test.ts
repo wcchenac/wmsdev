@@ -82,6 +82,29 @@ describe.each(cases)('%s', (_name, rollback, listUrl) => {
     expect((error as RollbackError).message).toBe(ROLLBACK_REJECTED_NOT_REFRESHED_MESSAGE);
   });
 
+  test.each([
+    ['a server error (500)', 500],
+    ['a gateway timeout (504)', 504],
+    ['a 403', 403],
+  ])('%s is not reported as 「沒有任何變更」', async (_name, status) => {
+    // Only the backend's all-or-nothing 400 means nothing changed.
+    vi.mocked(API.patch).mockRejectedValue(httpError(status));
+
+    const error = await run().catch((e: unknown) => e);
+
+    expect((error as RollbackError).message).toBe(ROLLBACK_UNCONFIRMED_MESSAGE);
+    expect(API.get).toHaveBeenCalledWith(listUrl);
+  });
+
+  test('a 500 whose list query also fails asks to query again', async () => {
+    vi.mocked(API.patch).mockRejectedValue(httpError(500));
+    vi.mocked(API.get).mockRejectedValue(httpError(500));
+
+    const error = await run().catch((e: unknown) => e);
+
+    expect((error as RollbackError).message).toBe(ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE);
+  });
+
   test('a rollback with no answer (timeout) does not claim nothing changed', async () => {
     vi.mocked(API.patch).mockRejectedValue(networkError());
 
@@ -119,6 +142,11 @@ describe.each(cases)('%s', (_name, rollback, listUrl) => {
 
 // The pages are called 入庫回朔 and 減肥回朔, so their messages say 回朔 too.
 describe('rollback wording', () => {
+  test('the 「cannot confirm」 messages do not blame the connection (they also cover 5xx)', () => {
+    expect(ROLLBACK_UNCONFIRMED_MESSAGE).not.toMatch(/連線/);
+    expect(ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE).not.toMatch(/連線/);
+  });
+
   test('every rollback message says 回朔', () => {
     const messages = Object.entries(rollbackRequest)
       .filter(([name]) => name.endsWith('_MESSAGE'))
