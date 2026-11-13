@@ -22,5 +22,12 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/setupTests.ts"],
     css: false,
+    server: {
+      deps: {
+        // react-loader-spinner 8's CJS build reads styled-components' default
+        // export wrongly under Node; let Vite transform its ESM build instead.
+        inline: ["react-loader-spinner"],
+      },
+    },
   },
 });
