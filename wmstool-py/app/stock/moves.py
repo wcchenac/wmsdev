@@ -128,3 +128,85 @@ def update_history(session: Session, history_id: int, childs: str) -> History:
     history.childrenIdentifierId = serialize_long_array([java_parse_long(p) for p in parts])
     session.flush()
     return history
+
+
+def _live_out_request(session: Session, identifier_id: int) -> OutStockRequest:
+    """findByStockIdentifierIdAndIsDeleted(id, false).get(): exactly one live request."""
+    return _one(session, select(OutStockRequest).where(
+        # `== False`, not .is_(False): MySQL rejects `bit IS 0`; this binds through BitBool.
+        OutStockRequest.stockIdentifierId == identifier_id, OutStockRequest.isDeleted == False))  # noqa: E712
+
+
+def unship_identifier(session: Session, identifier_id: int, editor: str) -> None:
+    """letStockIdentifierisNotShiped."""
+    si = _identifier(session, identifier_id)
+    si.isExist = True
+    si.eliminateType = si.eliminateReason = si.eliminateDate = None
+    si.isOutStock = False
+    si.outStockAt = None
+    _touch(si, editor)
+    request = _live_out_request(session, identifier_id)
+    request.isDeleted = True
+    _touch(request, editor)
+    shipped = _one(session, select(TransactionRecord).where(
+        TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.transactionType == "SPO"))
+    session.delete(shipped)
+    session.flush()
+    products.update_product_quantity(session, si.productNo, si.type, si.quantity, si.unit)
+
+
+def mark_wait_to_shrink(session: Session, identifier_id: int, editor: str) -> str:
+    """letStockIdentifierWaitToShrinkIsTrue; returns the productNo."""
+    si = _identifier(session, identifier_id)
+    info = _info_of(session, si.id)
+    request = OutStockRequest(
+        productNo=si.productNo, lotNo=si.lotNo, type=si.type, quantity=si.quantity, unit=si.unit,
+        stockIdentifierId=si.id, color=info.color, defect=info.defect,
+        reason="分裝" if si.type == "雜項" else "減肥", outStockType=1,
+        isHandled=False, isDeleted=False, createdAt=java_now_utc(), createdBy=editor,
+    )
+    si.waitToShrink = True
+    si.isOutStock = True
+    si.outStockAt = java_now_utc()
+    _touch(si, editor)
+    session.add(request)
+    session.flush()
+    return si.productNo
+
+
+def unmark_wait_to_shrink(session: Session, identifier_id: int, editor: str) -> None:
+    """letStockIdentifierWaitToShrinkIsFalse."""
+    si = _identifier(session, identifier_id)
+    request = _live_out_request(session, identifier_id)
+    request.isDeleted = True
+    _touch(request, editor)
+    si.waitToShrink = False
+    si.isOutStock = False
+    si.outStockAt = None
+    _touch(si, editor)
+    session.flush()
+
+
+OUT_REQUEST_FIELDS = ("productNo", "lotNo", "type", "quantity", "unit", "color", "defect", "reason",
+                      "stockIdentifierId", "fileName", "requestFrom")
+
+
+def create_out_stock_request(session: Session, fields: dict, editor: str) -> OutStockRequest:
+    """OutStockRequestFunction.createOutStockRequest: a pull request not tied to a roll (type 2)."""
+    request = OutStockRequest(
+        **{k: fields[k] for k in OUT_REQUEST_FIELDS if k in fields},
+        isHandled=bool(fields.get("handled", False)), isDeleted=bool(fields.get("deleted", False)),
+        outStockType=2, createdBy=editor, createdAt=java_now_utc(),
+    )
+    request.color = request.color or 0
+    request.stockIdentifierId = request.stockIdentifierId or 0
+    session.add(request)
+    session.flush()
+    return request
+
+
+def delete_out_stock_request(session: Session, request_id: int, editor: str) -> None:
+    request = _one(session, select(OutStockRequest).where(OutStockRequest.id == request_id))
+    request.isDeleted = True
+    _touch(request, editor)
+    session.flush()

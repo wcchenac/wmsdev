@@ -7,6 +7,7 @@ which also rolls the request's transaction back (get_session).
 """
 
 import logging
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
@@ -17,7 +18,8 @@ from app.db import get_session
 from app.security.auth import require_roles
 from app.stock import moves
 from app.stock.intake import InStockItem, create_stock_infoes
-from app.stock.serializers import history_json
+from app.stock.serializers import history_json, out_stock_request_json
+from app.users.schemas import NotBlank
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/stock")
@@ -122,3 +124,65 @@ def update_history(id: int, childs: str, request: Request, session: Session = De
     except Exception:
         return _bad_request(session, "updateHistory")
     return JSONResponse(history_json(history))
+
+
+class ShipRequest(BaseModel):
+    stockIdentifierId: int = 0
+    reason: str | None = None
+
+
+class ValidShipRequest(ShipRequest):
+    reason: NotBlank  # type: ignore[assignment]  # @Valid @RequestBody: a blank reason is a plain 400
+
+
+@router.patch("/shipStock")
+def ship_stock(body: ValidShipRequest, request: Request, session: Session = Depends(get_session)) -> Response:
+    principal = ops(request)
+    moves.ship_identifier(session, body.stockIdentifierId, body.reason, principal.full_name)
+    return Response(status_code=200)
+
+
+@router.patch("/shipStocks")
+def ship_stocks(body: list[ShipRequest], request: Request, session: Session = Depends(get_session)) -> Response:
+    errors = constraint_violations(body, "shipRequests", {"reason": "原因不可空白"})
+    if errors:
+        return JSONResponse(errors, status_code=400)
+    principal = ops(request)
+    for ship in body:  # any failure propagates: the whole request rolls back (500)
+        moves.ship_identifier(session, ship.stockIdentifierId, ship.reason, principal.full_name)
+    return Response(status_code=200)
+
+
+@router.patch("/shipStock/rollback/{stockIdentifierId}")
+def ship_stock_rollback(stockIdentifierId: int, request: Request, session: Session = Depends(get_session)) -> Response:
+    principal = ops(request)
+    moves.unship_identifier(session, stockIdentifierId, principal.full_name)
+    return Response(status_code=200)
+
+
+@router.patch("/waitToShrink/{stockIdentifierId}")
+def wait_to_shrink(stockIdentifierId: int, request: Request, session: Session = Depends(get_session)) -> Response:
+    principal = ops(request)
+    return PlainTextResponse(moves.mark_wait_to_shrink(session, stockIdentifierId, principal.full_name))
+
+
+@router.patch("/waitToShrink/rollback/{stockIdentifierId}")
+def wait_to_shrink_rollback(stockIdentifierId: int, request: Request,
+                            session: Session = Depends(get_session)) -> Response:
+    principal = ops(request)
+    moves.unmark_wait_to_shrink(session, stockIdentifierId, principal.full_name)
+    return Response(status_code=200)
+
+
+@router.post("/outStock")
+def out_stock(body: dict[str, Any], request: Request, session: Session = Depends(get_session)) -> Response:
+    principal = ops(request)
+    created = moves.create_out_stock_request(session, body, principal.full_name)
+    return JSONResponse(out_stock_request_json(created))
+
+
+@router.patch("/outStock/rollback/{outStockRequestId}")
+def out_stock_rollback(outStockRequestId: int, request: Request, session: Session = Depends(get_session)) -> Response:
+    principal = ops(request)
+    moves.delete_out_stock_request(session, outStockRequestId, principal.full_name)
+    return Response(status_code=200)

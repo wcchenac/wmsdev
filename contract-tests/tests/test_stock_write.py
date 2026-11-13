@@ -155,6 +155,24 @@ def test_ship_stocks(operator, db, golden):
     golden.add("db", db_state(db))
 
 
+def test_ship_same_identifier_twice(operator, db, golden):
+    """Java does not check isExist: a second ship creates another pull request and
+    deducts the product again; the later rollback then finds two live requests."""
+    seed_baseline(operator)
+    ship = {"stockIdentifierId": 2, "reason": "出貨"}
+    golden.response("first", operator.patch("/api/stock/shipStock", json=ship))
+    golden.response("second", operator.patch("/api/stock/shipStock", json=ship))
+    golden.response("rollback", operator.patch("/api/stock/shipStock/rollback/2"))
+    golden.add("db", db_state(db, ["stockidentifier", "outstockrequest", "transactionrecord", "product"]))
+
+
+def test_ship_stocks_partial_failure(operator, db, golden):
+    seed_baseline(operator)
+    golden.response("ship_3_and_99", operator.patch("/api/stock/shipStocks", json=[
+        {"stockIdentifierId": 3, "reason": "出貨"}, {"stockIdentifierId": 99, "reason": "出貨"}]))
+    golden.add("db", db_state(db))
+
+
 def test_ship_stock_rollback(operator, db, golden):
     seed_baseline(operator)
     operator.patch("/api/stock/shipStock", json={"stockIdentifierId": 2, "reason": "出貨"})
