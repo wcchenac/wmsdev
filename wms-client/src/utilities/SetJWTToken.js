@@ -1,5 +1,5 @@
 // import axios from "axios";
-import API from "./API";
+import API from "./apiClient";
 
 const setJWTToken = token => {
   if (token) {

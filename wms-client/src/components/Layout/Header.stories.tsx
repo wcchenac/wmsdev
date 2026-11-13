@@ -1,11 +1,18 @@
+import type { ComponentType } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import Header from "./Header";
 import { RoleOption } from "../../enums/Enums";
 import { withStore } from "../../stories/withStore";
 
+type HeaderSessionArgs = {
+  validToken?: boolean;
+  authority?: string;
+  fullName?: string;
+};
+
 const meta = {
   title: "Layout/Header",
-  component: Header,
+  component: Header as ComponentType<HeaderSessionArgs>,
   decorators: [withStore],
   parameters: { layout: "fullscreen" },
   args: {
@@ -21,7 +28,7 @@ const meta = {
     },
     fullName: { control: "text" },
   },
-} satisfies Meta<typeof Header>;
+} satisfies Meta<HeaderSessionArgs>;
 
 export default meta;
 

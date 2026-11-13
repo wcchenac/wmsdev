@@ -1,4 +1,4 @@
-import API from "../utilities/API";
+import API from "../utilities/apiClient";
 import {
   GET_Order,
   GET_StockInfoes,
