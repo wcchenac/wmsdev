@@ -268,8 +268,11 @@ describe('UserRegister', () => {
       fillForm();
       fireEvent.click(screen.getByRole('button', { name: '註冊' }));
 
-      // Use flushPromises pattern instead of waitFor
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Let the request settle inside act, so React applies the state updates it causes before
+      // the assertions run (a bare setTimeout(0) can fire before React's scheduled render).
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
       // Component now sends additional fields
       expect(mockRegisterUser).toHaveBeenCalledWith(
@@ -310,8 +313,11 @@ describe('UserRegister', () => {
 
       fireEvent.click(screen.getByRole('button', { name: '註冊' }));
 
-      // Use flushPromises pattern instead of waitFor to avoid MutationObserver issues
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Let the request settle inside act, so React applies the state updates it causes before
+      // the assertions run (a bare setTimeout(0) can fire before React's scheduled render).
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
       expect(toast.success).toHaveBeenCalledWith('新增使用者成功');
     });
@@ -377,8 +383,11 @@ describe('UserRegister', () => {
 
       fireEvent.click(screen.getByRole('button', { name: '註冊' }));
 
-      // Use flushPromises pattern
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Let the request settle inside act, so React applies the state updates it causes before
+      // the assertions run (a bare setTimeout(0) can fire before React's scheduled render).
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
       expect(toast.error).toHaveBeenCalledTimes(1);
       expect(toast.error).toHaveBeenCalledWith(shown);
@@ -392,8 +401,11 @@ describe('UserRegister', () => {
 
       fireEvent.click(screen.getByRole('button', { name: '註冊' }));
 
-      // Use flushPromises pattern
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Let the request settle inside act, so React applies the state updates it causes before
+      // the assertions run (a bare setTimeout(0) can fire before React's scheduled render).
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
       expect(screen.getByTestId('loading-overlay')).toHaveAttribute('data-active', 'false');
     });
