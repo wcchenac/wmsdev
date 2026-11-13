@@ -196,8 +196,9 @@ def root_connection() -> pymysql.connections.Connection:
 @pytest.fixture(scope="session")
 def recover_interrupted_run():
     """A run killed mid-test can leave a fault-injection trigger (contract_*) in the
-    database and swapped templates aside as *.saved; TRUNCATE and reset_files would
-    keep the first and delete the second. Undo both once per session."""
+    database, swapped templates aside as *.saved, and a product photo in pictures/;
+    TRUNCATE and reset_files would keep the first and third and delete the second.
+    Undo all three once per session. pictures/ only ever holds photos tests put there."""
     root = root_connection()
     try:
         with root.cursor() as cur:
@@ -211,6 +212,10 @@ def recover_interrupted_run():
         saved = EXCEL_DIR / f"{rel}.saved"
         if saved.exists():
             saved.replace(EXCEL_DIR / rel)
+    pictures = FILES_DIR / "pictures"
+    if pictures.exists():
+        for photo in pictures.glob("*.jpg"):
+            photo.unlink()
 
 
 @pytest.fixture(autouse=True)
@@ -513,9 +518,15 @@ def generated_reports() -> dict[str, list[list[Any]]]:
     return reports
 
 
-# Docker Desktop's file sharing caches directory entries briefly: right after a
-# host-side rename the backend container can still open the old path (measured:
-# stale at 0 s, gone at 0.2 s). Wait this long after swapping shared files.
+# Docker Desktop's file sharing caches directory entries briefly. Measured on
+# 2026-11-13 against both backends (scratch probes, request right after the host change):
+#   - rename (moving a template aside or back): the container still opens the old
+#     path at 0 s, no longer at 0.2 s  -> settle after every rename (templates_swapped);
+#   - creating a new file after the container looked it up and missed: seen at 0 s;
+#   - deleting a file the container had opened: gone at 0 s.
+# So write_report/write_legacy_report (new files) and reset_files (deletes) need no
+# wait; settling there would add ~1 s to every test for nothing. Photo tests settle
+# anyway (cheap, two tests). Re-measure if the file sharing backend changes.
 FILE_SETTLE_SECONDS = 1.0
 
 
