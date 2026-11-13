@@ -191,6 +191,29 @@ def test_shrink_stock_rollback(admin, db, golden):
 # PATCH /api/stock/shipStock(s) + shipStock/rollback/{id} --------------------------
 
 
+def test_shrink_stock_rollback_db_error(admin, db, golden):
+    """A database error in the middle of the rollback (here: deleting stockinfo) — Java
+    answers 400 and the whole rollback is undone."""
+    import pymysql
+
+    from conftest import DB
+
+    seed_baseline(admin)
+    admin.post("/api/stock/shrinkStock", json=shrink_request(1, ["30", "19"], allocation=0, adjustment=0))
+    golden.add("before", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
+    root = pymysql.connect(**{**DB, "user": "root", "password": "root"})
+    try:
+        with root.cursor() as cur:  # binlog is on: creating a trigger needs root
+            cur.execute("CREATE TRIGGER contract_fail_stockinfo_delete BEFORE DELETE ON stockinfo FOR EACH ROW "
+                        "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'contract test: stockinfo delete fails'")
+        golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
+    finally:
+        with root.cursor() as cur:
+            cur.execute("DROP TRIGGER IF EXISTS contract_fail_stockinfo_delete")
+        root.close()
+    golden.add("after", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
+
+
 def test_ship_stock(operator, db, golden):
     seed_baseline(operator)
     golden.response("ship_one", operator.patch("/api/stock/shipStock", json={"stockIdentifierId": 2, "reason": "出貨"}))

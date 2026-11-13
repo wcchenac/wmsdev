@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from sqlalchemy import delete, select
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app import erp
@@ -72,6 +73,11 @@ def rollback_shrink(session: Session, old_id: int, editor: str) -> bool:
     try:
         _rollback_shrink(session, old_id, editor)
         return True
+    except DBAPIError:
+        # A database error is different in Java: Spring marks the transaction
+        # rollback-only, the commit fails and the controller answers 400 with
+        # nothing changed (recorded: test_shrink_stock_rollback_db_error).
+        raise
     except Exception:
         logger.exception("shrink rollback of %s failed", old_id)
         return False

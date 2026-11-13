@@ -12,6 +12,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.db import get_session
@@ -132,7 +133,11 @@ def shrink_stock(body: ShrinkStockRequest, request: Request, session: Session = 
 def shrink_stock_rollback(stockIdentifierId: int, request: Request,
                           session: Session = Depends(get_session)) -> Response:
     principal = admin(request)
-    shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)  # Java ignores the result
+    try:
+        shrink.rollback_shrink(session, stockIdentifierId, principal.full_name)  # Java ignores the result
+        session.commit()
+    except DBAPIError:
+        return _bad_request(session, "shrinkStock/rollback")
     return Response(status_code=200)
 
 
