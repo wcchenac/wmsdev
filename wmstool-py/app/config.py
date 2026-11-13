@@ -4,6 +4,7 @@ They mirror wmstool's application.properties:
   WMS_DATABASE_URL   <- spring.datasource.*        (SQLAlchemy URL, mysql+pymysql://...)
   JWT_SECRET         <- jwt.jwtSecret              (base64, same value as the Java service)
   JWT_EXPIRATION_MS  <- jwt.jwtExpirationInMs
+  EXCEL_DIR          <- file.filePathForExcels     (report folders and templates)
 """
 
 from functools import lru_cache
@@ -15,6 +16,7 @@ class Settings(BaseSettings):
     wms_database_url: str
     jwt_secret: str
     jwt_expiration_ms: int = 43_200_000
+    excel_dir: str = ""
 
 
 @lru_cache

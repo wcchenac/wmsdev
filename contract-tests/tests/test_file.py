@@ -10,7 +10,7 @@ import io
 import openpyxl
 import xlrd
 
-from conftest import client_range, db_state, today, write_report
+from conftest import client_range, db_state, rows, today, write_report
 
 CATEGORIES = ["allocation", "adjustment", "dailyComparison", "outStockList", "categoryDetail", "bogus"]
 
@@ -56,6 +56,15 @@ def test_query_interval(operator, golden):
     golden.response("missing_params", operator.get("/api/file/query/allocation/interval"))
 
 
+def test_query_interval_longer_than_a_month(operator, golden):
+    """Java walks Period.between(start, end).getDays() days: only the days component."""
+    for name in ["2026/1/StockAllocateRecord-20260101", "2026/1/StockAllocateRecord-20260105",
+                 "2026/1/StockAllocateRecord-20260120", "2026/2/StockAllocateRecord-20260205"]:
+        write_report(f"STKALLT/{name}.xls")
+    golden.response("jan1_to_feb10", operator.get("/api/file/query/allocation/interval", params={
+        "startDate": "2025-12-31T16:00:00", "endDate": "2026-02-10T15:59:59"}))
+
+
 # GET /api/file/query/categoryList ------------------------------------------------
 
 
@@ -69,10 +78,12 @@ def test_query_category_list(operator, golden):
 
 
 def _download_record(resp):
+    # Error responses: only the status is contract (their content type is the
+    # servlet container's error page, not the API's).
     record = {"status": resp.status_code,
-              "content-disposition": resp.headers.get("content-disposition"),
-              "content-type": resp.headers.get("content-type")}
+              "content-disposition": resp.headers.get("content-disposition")}
     if resp.status_code == 200:
+        record["content-type"] = resp.headers.get("content-type")
         sheet = xlrd.open_workbook(file_contents=resp.content).sheet_by_index(0)
         record["cells"] = [[sheet.cell_value(r, c) for c in range(sheet.ncols)] for r in range(sheet.nrows)]
     return record
@@ -92,6 +103,17 @@ def test_download(operator, golden):
     golden.add("sales_forbidden", {"status": operator.http.get(
         f"/api/file/download/allocation/{name}",
         headers={"Authorization": _login(operator, "sales")}).status_code})
+
+
+def test_download_path_traversal(operator, golden):
+    write_report("CategoryDetail/CategoryDetail-棉布.xls")
+    base = "/api/file/download"
+    golden.add("encoded_slash", _download_record(
+        operator.get(f"{base}/categoryDetail/..%2F..%2Fconfig%2Fapplication")))
+    golden.add("encoded_backslash", _download_record(
+        operator.get(f"{base}/categoryDetail/..%5C..%5Cconfig%5Capplication")))
+    golden.add("dotdot_name", _download_record(operator.get(f"{base}/categoryDetail/..")))
+    golden.add("short_dated_name", _download_record(operator.get(f"{base}/allocation/X")))
 
 
 def _login(api, employee_id):
@@ -127,6 +149,74 @@ def test_import_in_stock_file(operator, db, golden):
     ])
     golden.response("import", operator.post("/api/file/import/inStockFile",
                                             files=[("files", ("stock.xlsx", good, XLSX))]))
+    golden.add("db", db_state(db))
+
+
+def test_import_failure_inside_intake(operator, db, golden):
+    """File B parses but fails inside stock intake ('打' needs an integer quantity)."""
+    a = _xlsx([["CF1001", "L01", "整支", "50", "碼", 0, None, None, None, "fileImport", None]])
+    b = _xlsx([["CF1003", None, "雜項", 2.5, "打", 0, None, None, None, "fileImport", None]])
+    c = _xlsx([["CF1002", "L07", "整支", "40", "碼", 0, None, None, None, "fileImport", None]])
+    golden.response("import_a_b_c", operator.post("/api/file/import/inStockFile", files=[
+        ("files", ("a.xlsx", a, XLSX)), ("files", ("b.xlsx", b, XLSX)), ("files", ("c.xlsx", c, XLSX))]))
+    golden.add("db", db_state(db))
+
+
+def test_import_created_at_is_utc(operator, db, golden):
+    row = _xlsx([["CF1001", "L01", "整支", "50", "碼", 0, None, None, None, "fileImport", None]])
+    operator.post("/api/file/import/inStockFile", files=[("files", ("a.xlsx", row, XLSX))])
+    (r,) = rows(db, "SELECT TIMESTAMPDIFF(MINUTE, UTC_TIMESTAMP(), createdAt) AS m FROM stockidentifier")
+    golden.add("offset_hours", round(r["m"] / 60))
+
+
+def _post(operator, name, data):
+    return operator.post("/api/file/import/inStockFile", files=[("files", (name, data, XLSX))])
+
+
+def test_import_reuses_backlog_values(operator, db, golden):
+    """MySQL matches 'cf1001' to the stored 'CF1001' backlog; Java copies the stored values."""
+    row = ["CF1001", "L01", "整支", "50", "碼", 0, None, None, None, "fileImport", None]
+    golden.response("first", _post(operator, "a.xlsx", _xlsx([row])))
+    golden.response("lower_case", _post(operator, "b.xlsx", _xlsx([["cf1001", "l01"] + row[2:]])))
+    golden.response("both_in_one_file", _post(operator, "c.xlsx", _xlsx([row, ["cf1001", "l01"] + row[2:]])))
+    golden.add("db", db_state(db))
+
+
+def test_import_cell_existence(operator, db, golden):
+    """POI distinguishes a styled empty cell (text "") from a missing one, and counts empty <row>s."""
+    from openpyxl.styles import Font
+
+    book = openpyxl.Workbook()
+    sheet = book.active
+    assert sheet is not None
+    sheet.append(IMPORT_HEADER)
+    sheet.append(["CF1001", "L01", None, "50", "碼", 0, None, None, None, "fileImport", None])
+    sheet["C2"].font = Font(bold=True)  # 型態: formatted but empty
+    buf = io.BytesIO()
+    book.save(buf)
+    golden.response("styled_blank_type", _post(operator, "styled.xlsx", buf.getvalue()))
+
+    book = openpyxl.Workbook()
+    sheet = book.active
+    assert sheet is not None
+    sheet.append(IMPORT_HEADER)
+    sheet.append(["CF1002", "L07", "整支", "40", "碼", 0, None, None, None, "fileImport", None])
+    sheet.row_dimensions[5].height = 30  # an empty row 5 that only has a height
+    buf = io.BytesIO()
+    book.save(buf)
+    golden.response("trailing_sized_row", _post(operator, "rows.xlsx", buf.getvalue()))
+    golden.add("db", db_state(db))
+
+
+def test_import_java_number_grammar(operator, db, golden):
+    """Full-width digits: Integer.parseInt accepts them, Double.parseDouble does not."""
+    def row(quantity, unit, color: object = 0, product="CF1001"):
+        return [product, "L01", "整支", quantity, unit, color, None, None, None, "fileImport", None]
+
+    golden.response("fullwidth_feet", _post(operator, "a.xlsx", _xlsx([row("１２", "尺")])))
+    golden.response("fullwidth_dozen", _post(operator, "b.xlsx", _xlsx([row("１２", "打", product="CF1003")])))
+    golden.response("fullwidth_yards_new_product", _post(operator, "c.xlsx", _xlsx([row("１２", "碼", product="CF1002")])))
+    golden.response("fullwidth_color", _post(operator, "d.xlsx", _xlsx([row("5", "碼", color="１")])))
     golden.add("db", db_state(db))
 
 

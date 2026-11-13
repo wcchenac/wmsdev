@@ -1,0 +1,18 @@
+{
+  "dotdot_name": {
+    "content-disposition": null,
+    "status": 404
+  },
+  "encoded_backslash": {
+    "content-disposition": null,
+    "status": 400
+  },
+  "encoded_slash": {
+    "content-disposition": null,
+    "status": 400
+  },
+  "short_dated_name": {
+    "content-disposition": null,
+    "status": 400
+  }
+}

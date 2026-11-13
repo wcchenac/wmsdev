@@ -292,8 +292,13 @@ def decode_java_long_array(blob: bytes | None) -> list[int] | None:
 
 
 @pytest.fixture(scope="session")
-def http():
+def http(request):
     with httpx.Client(base_url=BASE_URL, timeout=30) as client:
+        if request.config.getoption("--update-golden"):
+            # Golden files are recorded from the Java service only.
+            server = client.post("/api/user/login", json={}).headers.get("server", "")
+            if "uvicorn" in server.lower():
+                pytest.exit("--update-golden against the Python backend; start the Java stack first", 2)
         yield client
 
 
