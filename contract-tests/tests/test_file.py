@@ -56,6 +56,15 @@ def test_query_interval(operator, golden):
     golden.response("missing_params", operator.get("/api/file/query/allocation/interval"))
 
 
+def test_query_interval_longer_than_a_month(operator, golden):
+    """Java walks Period.between(start, end).getDays() days: only the days component."""
+    for name in ["2026/1/StockAllocateRecord-20260101", "2026/1/StockAllocateRecord-20260105",
+                 "2026/1/StockAllocateRecord-20260120", "2026/2/StockAllocateRecord-20260205"]:
+        write_report(f"STKALLT/{name}.xls")
+    golden.response("jan1_to_feb10", operator.get("/api/file/query/allocation/interval", params={
+        "startDate": "2025-12-31T16:00:00", "endDate": "2026-02-10T15:59:59"}))
+
+
 # GET /api/file/query/categoryList ------------------------------------------------
 
 
