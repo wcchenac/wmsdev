@@ -89,3 +89,49 @@ def test_rows_with_only_formatting_count_as_last_row(tmp_path):
     sheet = openpyxl.load_workbook(path).worksheets[0]
     assert [sheet.cell(row=r, column=1).value for r in (5, 6)] == ["first", "second"]
     assert poi_last_row(path) == 5
+
+
+def test_append_without_rows_leaves_the_file_alone(tmp_path):
+    """openpyxl drops a bare <row> on save; Java writes nothing when there is nothing to
+    append, so an empty append must not load and save the file."""
+    import io
+    import zipfile
+
+    import openpyxl
+
+    from app.reports.workbook import append_rows
+    from app.xlsx import poi_last_row
+
+    buf = io.BytesIO()
+    book = openpyxl.Workbook()
+    book.worksheets[0]["A1"] = "header"
+    book.save(buf)
+    src, out = zipfile.ZipFile(io.BytesIO(buf.getvalue())), io.BytesIO()
+    with zipfile.ZipFile(out, "w") as dst:
+        for item in src.infolist():
+            content = src.read(item.filename)
+            if item.filename == "xl/worksheets/sheet1.xml":
+                content = content.replace(b"</sheetData>", b'<row r="5"/></sheetData>')
+            dst.writestr(item, content)
+    path = tmp_path / "report.xlsx"
+    path.write_bytes(out.getvalue())
+    append_rows(path, [])
+    assert path.read_bytes() == out.getvalue()
+    assert poi_last_row(path) == 4
+
+
+@pytest.mark.parametrize("content", [b"", b"this is not a workbook", b"\xd0\xcf\x11\xe0 an .xls renamed"])
+@pytest.mark.parametrize("helper", ["ensure_from_template", "recreate_from_template"])
+def test_broken_template_fails_before_the_report_is_touched(excel_dir, content, helper):
+    """WorkbookFactory.create(template) parses the template first: a template that is not
+    a workbook raises, and today's report keeps its content."""
+    from app.reports import workbook
+
+    (excel_dir / "STKALLT").mkdir()
+    (excel_dir / "STKALLT" / "StockAllocateRecordTemplate.xlsx").write_bytes(content)
+    report = excel_dir / "STKALLT" / "2026" / "11" / "StockAllocateRecord-20261113.xlsx"
+    report.parent.mkdir(parents=True)
+    report.write_bytes(b"today's report")
+    with pytest.raises(Exception):  # noqa: B017 - any parse error, as Java's IOException/POI errors
+        getattr(workbook, helper)("STKALLT", "StockAllocateRecordTemplate", report)
+    assert report.read_bytes() == b"today's report"

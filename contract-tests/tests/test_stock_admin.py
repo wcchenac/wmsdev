@@ -55,6 +55,21 @@ def test_daily_stock_compare_template_missing_keeps_report(admin, golden):
         golden.add("reports", generated_reports())
 
 
+def test_daily_stock_compare_corrupt_template_keeps_report(admin, golden, tmp_path):
+    """Java parses the template (WorkbookFactory.create) before it deletes today's
+    report: a template that is not a workbook fails the comparison and keeps the report."""
+    from conftest import templates_swapped
+
+    corrupt = tmp_path / "corrupt"
+    corrupt.write_bytes(b"this is not a workbook")
+    seed_baseline(admin)
+    golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+    template = "StockComparisonResult/StockComparisonResultTemplate"
+    with templates_swapped({f"{template}.xls": corrupt, f"{template}.xlsx": corrupt}):
+        golden.response("second", admin.get("/api/stock/stockManagement/daily/stockCompare"))
+        golden.add("reports", generated_reports())
+
+
 def test_daily_stock_compare_twice_same_day(admin, golden):
     seed_baseline(admin)
     golden.response("first", admin.get("/api/stock/stockManagement/daily/stockCompare"))
