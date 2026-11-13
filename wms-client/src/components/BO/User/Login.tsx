@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import classnames from "classnames";
 import { login } from "../../../actions/UserActions";
 import { RootState } from "../../../store";
+import { useUpdateEffect } from "../../../utilities/useUpdateEffect";
 
 interface LoginErrors {
   username?: string;
@@ -22,7 +23,9 @@ const Login: React.FC = () => {
 
   // Redux state
   const user = useSelector((state: RootState) => state.user);
-  const reduxErrors = useSelector((state: RootState) => state.errors) as LoginErrors | null;
+  // The error reducer keeps the last GET_Errors payload in state.errors.errors; for a rejected
+  // login that is the backend's { username, password } messages.
+  const reduxErrors = useSelector((state: RootState) => state.errors.errors) as LoginErrors | null;
 
   // Local state
   const [employeeId, setEmployeeId] = useState<string>("");
@@ -41,12 +44,14 @@ const Login: React.FC = () => {
     }
   }, [user.validToken, navigate]);
 
-  useEffect(() => {
-    if (reduxErrors) {
-      setErrors(reduxErrors);
+  // Only errors that arrive while the page is open (dev's componentWillReceiveProps): an
+  // earlier failed login, or another page's error, must not show up when the page opens.
+  useUpdateEffect(reduxErrors, (nextErrors) => {
+    if (nextErrors) {
+      setErrors(nextErrors);
       setIsSubmitting(false);
     }
-  }, [reduxErrors]);
+  });
 
   const userKeyInChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
