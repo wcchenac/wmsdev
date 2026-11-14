@@ -30,7 +30,7 @@ services:
     image: wms-frontend:local
     environment:
       BACKEND_UPSTREAM: ${BACKEND_UPSTREAM:-http://mock:8080}
-      API_BASE_URL: ""
+      API_BASE_URL: "${API_BASE_URL:-}"
     ports:
       - "3000:80"
     depends_on:
