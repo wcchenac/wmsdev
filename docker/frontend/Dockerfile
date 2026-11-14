@@ -3,6 +3,8 @@ FROM node:22-bookworm-slim AS build
 WORKDIR /app
 
 COPY wms-client/package.json wms-client/package-lock.json wms-client/.npmrc ./
+# Keep @scarf/scarf (pulled in by @achmadk/react-loading-overlay) from sending install analytics.
+ENV SCARF_ANALYTICS=false
 RUN npm ci --no-audit --no-fund
 
 COPY wms-client/ ./
