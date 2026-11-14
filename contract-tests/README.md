@@ -93,6 +93,7 @@ docker compose up -d --wait
 | `08-shrink-report-failure-keeps-shrink.patch` | 第 8 項：減肥寫報表失敗（任何例外，包括 POI 對空檔或壞檔丟的 RuntimeException）時減肥照樣成立、回 200，報表失敗只記 log；兩份報表各自寫入 | `test_shrink_stock_report_template_missing`、`test_shrink_stock_template_missing_with_todays_report`、`test_shrink_stock_allocation_template_missing`、`test_shrink_stock_allocation_template_empty` |
 | `09-import-skip-blank-rows.patch` | 第 9 項：進貨匯入略過沒有任何文字的列，不再整個檔案被略過 | `test_import_cell_existence`、`test_import_trailing_rows_without_cells`、`test_import_blank_rows_between_data` |
 | `10-category-detail-missing-erp-product.patch` | 第 10 項：類別明細裡 ERP 查不到的商品，商品資訊欄留空，不再讓整份報表失敗（原本還會留下 0 byte 的報表檔） | `test_category_detail_report_product_missing_in_erp` |
+| `11-history-tree-stockinfo-all-nodes.patch` | 第 11 項：history 樹的每個節點都帶出 stockInfo，不再只有查詢起日之後建立的卷才有（區間仍只用來挑選要回傳的樹） | `test_history_tree_start_boundary` |
 | `12-missing-field-message.patch` | 第 12 項：`shrinkStock` 缺 `inStockRequests`、`outStock/update` 缺 `outStockUpdate` 時，400 附上 `{欄位: 訊息}`；拉貨單在檢查之後才建立 | `test_shrink_stock_without_pieces_field`、`test_out_stock_update_without_map` |
 
 Python 版跟著修補版 Java 走：上表的測試在 Python 上比對 `.fixed.json`。

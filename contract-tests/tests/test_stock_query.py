@@ -166,7 +166,11 @@ def test_history_with_non_numeric_id(admin, golden):
 @pytest.mark.java_bug("same ambiguous history route (always 500)")
 def test_history_tree_start_boundary(admin, db, golden):
     """stockinfo is only collected for rolls created at or after `start`: a root
-    created yesterday shows up with stockInfo null."""
+    created yesterday shows up with stockInfo null (and Java answers 500 anyway, the
+    ambiguous route).
+
+    Patched Java (.fixed.json, followed by Python): the period picks the trees, but
+    every node shows its stockInfo — the root created yesterday included."""
     seed_baseline(admin)
     exec_sql(db, "UPDATE stockidentifier SET createdAt = createdAt - INTERVAL 1 DAY WHERE id = 1")
     d = today()

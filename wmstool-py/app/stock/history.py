@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.javacompat import deserialize_long_array
-from app.stock.models import History, InStockOrderRecord, StockIdentifier, StockInfo, TransactionRecord
+from app.stock.models import History, InStockOrderRecord, StockInfo, TransactionRecord
 from app.stock.serializers import stock_info_json
 from app.timeconv import client_param_to_db
 
@@ -33,7 +33,7 @@ def tree_by_identifier(session: Session, identifier_id: int) -> dict[str, Any]:
 
 def tree_by_root(session: Session, root_id: int, info_by_id: dict[int, StockInfo]) -> dict[str, Any]:
     """collectDataForTreeByRootId: nodes come from the root's histories; stockInfo from
-    `info_by_id`, null when absent (rolls created before the query window)."""
+    `info_by_id`, null when the roll has no stockinfo row."""
     by_current = {h.currentIdentifierId: h for h in session.scalars(
         select(History).where(History.rootIdentifierId == root_id).order_by(History.id))}
 
@@ -48,16 +48,20 @@ def tree_by_root(session: Session, root_id: int, info_by_id: dict[int, StockInfo
 
 def period_trees(session: Session, product_no: str, start: str, end: str) -> list[dict[str, Any]]:
     """findPeriodStockIdentifierHistory: one tree per in-stock order record of the product in
-    [start, end]; node stockInfo only for rolls created at or after `start`."""
+    [start, end]. Every node shows its stockInfo, also a roll created before `start`
+    (defect 11 fixed, as in contract-tests/java-patches/11-history-tree-stockinfo-all-
+    nodes.patch); Java only loaded rolls created at or after `start` and left the others
+    null. Only the stockinfo of the trees' nodes is loaded (the patch reads the
+    product's; the nodes of a tree are all of that product, so the result is the same)."""
     start_db, end_db = client_param_to_db(start), client_param_to_db(end)
     orders = session.scalars(select(InStockOrderRecord).where(
         InStockOrderRecord.productNo == product_no, InStockOrderRecord.createdAt.between(start_db, end_db))
         .order_by(InStockOrderRecord.createdAt, InStockOrderRecord.id)).all()
-    infos = session.scalars(select(StockInfo).join(StockIdentifier, StockInfo.stockIdentifier_id == StockIdentifier.id)
-                            .where(StockIdentifier.productNo == product_no, StockIdentifier.createdAt >= start_db)
-                            .order_by(StockIdentifier.createdAt, StockIdentifier.id)).all()
+    roots = [order.stockIdentifierId or 0 for order in orders]
+    node_ids = set(session.scalars(select(History.currentIdentifierId).where(History.rootIdentifierId.in_(roots))))
+    infos = session.scalars(select(StockInfo).where(StockInfo.stockIdentifier_id.in_(node_ids))) if node_ids else []
     info_by_id = {info.stockIdentifier_id: info for info in infos}
-    return [tree_by_root(session, order.stockIdentifierId or 0, info_by_id) for order in orders]
+    return [tree_by_root(session, root, info_by_id) for root in roots]
 
 
 def structure_gson(session: Session, root_id: int) -> str:

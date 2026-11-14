@@ -3,7 +3,33 @@
     "body": [
       {
         "nodes": [],
-        "stockInfo": null
+        "stockInfo": {
+          "color": 3,
+          "defect": "",
+          "id": 1,
+          "record": "",
+          "remark": "A區",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 1,
+            "inStockType": "進貨單",
+            "lotNo": "L01",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "50",
+            "serialNo": 1,
+            "type": "整支",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
       },
       {
         "nodes": [],
