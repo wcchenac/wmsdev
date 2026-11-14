@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, memo } from 'react';
 import ShrinkInfoContainer from './ShrinkInfoContainer';
-import LoadingOverlay from 'react-loading-overlay-ts';
+import LoadingOverlay from '@achmadk/react-loading-overlay';
 import { Spinner } from '../../../../Others/Spinner';
 import { StockInfo } from '../../../../../types';
 

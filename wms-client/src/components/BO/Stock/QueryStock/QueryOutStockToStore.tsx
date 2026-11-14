@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getOutStockToStoreOrder } from "../../../../actions/StockActions";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import QueryOrder from "../InStock/Common/QueryOrder";
 import { RootState, AppDispatch } from "../../../../types";

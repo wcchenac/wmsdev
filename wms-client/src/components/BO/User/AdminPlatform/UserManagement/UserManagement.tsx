@@ -5,7 +5,7 @@ import {
   updateUser,
   deleteUser
 } from "../../../../../actions/UserActions";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Spinner } from "../../../../Others/Spinner";
 import EditModal from "./EditModal";

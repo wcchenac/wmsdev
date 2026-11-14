@@ -5,7 +5,7 @@ import { getProductHistory } from "../../../../actions/StockActions";
 import { dayOfStart, dayOfEnd, setPreviousMonth } from "../Utilities/DateUtils";
 import QueryProductInformation, { ProductNoChange } from "../Utilities/QueryProductInformation";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import TreeDataNode from "./TreeDataNode";
 import Box from "@mui/material/Box";

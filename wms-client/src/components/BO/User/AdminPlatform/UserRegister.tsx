@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent, FormEvent } from "react";
 import { useDispatch } from "react-redux";
 import { RoleOption } from "../../../../enums/Enums";
 import { registerUser } from "../../../../actions/UserActions";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
 import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";

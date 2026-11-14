@@ -7,7 +7,7 @@ import StockInfoContainer from "./Common/StockInfoContainer";
 import QueryProductInformation, { ProductNoChange } from "../Utilities/QueryProductInformation";
 import ShowProductInformation, { ProductInfo } from "../Utilities/ShowProductInformation";
 import QueryResponseWithNoStock from "../Utilities/QueryResponseWithNoStock";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import ShowProductQuantity from "../Utilities/ShowProductQuantity";
 import ToolbarForNextPrev from "../Utilities/ToolbarForNextPrev";

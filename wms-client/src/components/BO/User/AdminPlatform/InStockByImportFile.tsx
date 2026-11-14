@@ -3,7 +3,7 @@ import { inStockByImportFile } from "../../../../actions/FileActions";
 import { toast } from "react-toastify";
 import { isSessionExpired } from "../../../../utilities/notifyRequestFailed";
 import "react-toastify/dist/ReactToastify.css";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 
 const InStockByImportFile: React.FC = () => {

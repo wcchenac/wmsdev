@@ -28,8 +28,8 @@ interface RenderUserRegisterResult extends RenderResult {
   store: MockStoreEnhanced<unknown>;
 }
 
-// Mock react-loading-overlay-ts
-vi.mock('react-loading-overlay-ts', () => ({ default: (() => {
+// Mock @achmadk/react-loading-overlay
+vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
   return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>

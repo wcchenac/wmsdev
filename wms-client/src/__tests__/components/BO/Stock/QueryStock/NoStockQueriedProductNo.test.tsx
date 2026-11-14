@@ -30,7 +30,7 @@ vi.mock('../../../../../components/BO/Stock/Utilities/QueryResponseWithNoStock',
   },
 }));
 
-vi.mock('react-loading-overlay-ts', () => ({
+vi.mock('@achmadk/react-loading-overlay', () => ({
   default: function MockLoadingOverlay({ children }: { children: React.ReactNode }) {
     return <div>{children}</div>;
   },

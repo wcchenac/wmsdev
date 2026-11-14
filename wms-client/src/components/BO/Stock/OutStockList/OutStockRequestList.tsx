@@ -15,7 +15,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { copy } from "../../../../utilities/DeepCopy";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
 import { dayOfStart, dayOfEnd } from "../Utilities/DateUtils";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import ConfirmModal from "./ConfirmModal";
 import { RootState, AppDispatch, SelectedUser, OutStockUpdateRequest } from "../../../../types";

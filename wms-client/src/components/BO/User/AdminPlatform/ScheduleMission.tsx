@@ -1,6 +1,6 @@
 import React, { useState, useCallback, MouseEvent } from "react";
 import { missionTrigger } from "../../../../actions/StockActions";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

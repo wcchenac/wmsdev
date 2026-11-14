@@ -11,7 +11,7 @@ import QueryBoardDetail from '../../../../../components/BO/Stock/QueryStock/Quer
 // the full query (/api/stock/queryStock/query/1/...) returns. Navigating with
 // 上一筆 / 下一筆 must use that same query, not the basic one (/query/2/...).
 
-vi.mock('react-loading-overlay-ts', () => ({
+vi.mock('@achmadk/react-loading-overlay', () => ({
   default: function MockLoadingOverlay({ children }: { children: React.ReactNode }) {
     return <div>{children}</div>;
   },

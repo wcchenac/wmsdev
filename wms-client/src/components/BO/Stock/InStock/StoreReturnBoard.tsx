@@ -15,7 +15,7 @@ import {
 } from "../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../utilities/IsEmpty";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { RootState, AppDispatch, InStockRequest } from "../../../../types";
 

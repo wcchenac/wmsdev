@@ -26,8 +26,8 @@ interface StoreState {
   };
 }
 
-// Mock LoadingOverlay - uses react-loading-overlay-ts package
-vi.mock('react-loading-overlay-ts', () => ({ default: (() => {
+// Mock LoadingOverlay - uses @achmadk/react-loading-overlay package
+vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
   return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>

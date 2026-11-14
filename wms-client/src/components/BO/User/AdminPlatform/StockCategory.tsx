@@ -7,7 +7,7 @@ import {
   getAllCategory,
   findCategoryDetails
 } from "../../../../actions/StockActions";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
 import { RootState } from "../../../../store";

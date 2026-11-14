@@ -137,7 +137,7 @@ vi.mock('../../../../../components/BO/Stock/Utilities/ToolbarForNextPrev', () =>
   };
 })() }));
 
-vi.mock('react-loading-overlay-ts', () => ({ default: (() => {
+vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
   return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>

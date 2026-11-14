@@ -15,7 +15,7 @@ import QueryProductInformation, { ProductNoChange } from "../../Utilities/QueryP
 import ShowProductInformation, { ProductInfo } from "../../Utilities/ShowProductInformation";
 import OutStockModal from "./OutStockModal";
 import QueryResponseWithNoStock from "../../Utilities/QueryResponseWithNoStock";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
 import ShowProductQuantity from "../../Utilities/ShowProductQuantity";
 import { Button } from "react-bootstrap";

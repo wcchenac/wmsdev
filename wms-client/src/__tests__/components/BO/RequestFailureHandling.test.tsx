@@ -39,7 +39,7 @@ vi.mock('react-toastify', async (importOriginal) => {
   return { ...actual, toast: Object.assign(vi.fn(), { ...actual.toast, error: vi.fn(), success: vi.fn() }) };
 });
 
-vi.mock('react-loading-overlay-ts', () => ({
+vi.mock('@achmadk/react-loading-overlay', () => ({
   default: function MockLoadingOverlay({ active, children }: { active: boolean; children: React.ReactNode }) {
     return (
       <div data-testid="loading-overlay" data-active={String(Boolean(active))}>

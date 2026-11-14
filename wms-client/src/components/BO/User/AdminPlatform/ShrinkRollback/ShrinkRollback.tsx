@@ -4,7 +4,7 @@ import {
   getShrinkRollbackList,
   shrinkRollback
 } from "../../../../../actions/StockActions";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
 import QueryProductInformation, { ProductNoChange } from "../../../Stock/Utilities/QueryProductInformation";
 import StockInfoContainer from "./StockInfoContainer";

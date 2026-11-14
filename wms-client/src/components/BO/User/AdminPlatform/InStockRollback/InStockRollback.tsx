@@ -8,7 +8,7 @@ import {
   inStockRollback
 } from "../../../../../actions/StockActions";
 import { OrderType } from "../../../../../enums/Enums";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
 import { isEmpty } from "../../../../../utilities/IsEmpty";
 import StockInfoContainer from "./StockInfoContainer";

@@ -9,7 +9,7 @@ import {
   queryCategoryDetailList,
   downloadFile
 } from "../../../actions/FileActions";
-import LoadingOverlay from "react-loading-overlay-ts";
+import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../Others/Spinner";
 import { RootState, AppDispatch, SelectOption } from "../../../types";
 
