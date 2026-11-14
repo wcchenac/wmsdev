@@ -77,6 +77,8 @@ API_BASE_URL=http://192.168.20.113:8080 docker compose -f docker/docker-compose.
 
 `wmstool` already allows cross-origin browser calls (`WebMvcConfig` permits every origin). Leave `API_BASE_URL` empty when the nginx proxy is used.
 
+Compose reads `API_BASE_URL` (and `BACKEND_UPSTREAM`) from your shell or from `docker/.env`, and a shell value wins. If your shell already exports an `API_BASE_URL` for another tool, the frontend silently calls that URL directly instead of going through nginx. To use the proxy, run `unset API_BASE_URL` (and remove it from `docker/.env`) before `docker compose up`; `docker compose -f docker/docker-compose.yml config` shows the value it will use.
+
 For `npm start` outside Docker, set `REACT_APP_API_BASE_URL` in `wms-client/.env.local`. See `wms-client/README.md`.
 
 ## What the mock does not reproduce
