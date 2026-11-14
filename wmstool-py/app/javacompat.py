@@ -156,6 +156,28 @@ def serialize_long_array(values: Sequence[int]) -> bytes:
     return bytes(out)
 
 
+def read_long_array_prefix(blob: bytes) -> tuple[int | None, list[int]]:
+    """What can still be read from a possibly cut serialized `Long[]`: the declared
+    length (None when the blob is too short to hold it) and the elements that are
+    complete. Raises ValueError when the blob does not start like a `Long[]` at all."""
+    if not blob.startswith(_ARRAY_HEAD):
+        raise ValueError("not a serialized java.lang.Long[]")
+    pos = len(_ARRAY_HEAD)
+    if len(blob) < pos + 4:
+        return None, []
+    (count,) = struct.unpack_from(">i", blob, pos)
+    pos += 4
+    values: list[int] = []
+    for i in range(count):
+        prefix = _FIRST_LONG if i == 0 else _NEXT_LONG
+        if blob[pos : pos + len(prefix)] != prefix or len(blob) < pos + len(prefix) + 8:
+            break
+        pos += len(prefix)
+        values.append(struct.unpack_from(">q", blob, pos)[0])
+        pos += 8
+    return count, values
+
+
 def deserialize_long_array(blob: bytes) -> list[int]:
     if not blob.startswith(_ARRAY_HEAD):
         raise ValueError("not a serialized java.lang.Long[]")

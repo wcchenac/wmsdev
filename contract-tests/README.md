@@ -119,20 +119,37 @@ docker compose up -d --wait                  # 換回原版 Java
 
 ## 部署注意：history 子項欄位
 
-`history.childrenIdentifierId` 存的是 Java 序列化的 `Long[]`（106 + 14n bytes）。Hibernate 預設建成 `TINYBLOB`（255 bytes），一卷最多只能切 10 塊；Python 版的 Alembic migration `0002` 把它改成 `BLOB`（約 4,600 個子項）。序列化格式不變，既有資料不用轉換，切回 Java 也能直接讀寫。
+`history.childrenIdentifierId` 存的是 Java 序列化的 `Long[]`：有 n 個子項（n ≥ 1）時是 106 + 14n bytes，空陣列是 42 bytes。Hibernate 預設建成 `TINYBLOB`（255 bytes），一卷最多只能切 10 塊（246 bytes）；Python 版的 Alembic migration `0002` 把它改成 `BLOB`（約 4,600 個子項）。序列化格式不變，既有資料不用轉換，切回 Java 也能直接讀寫。
 
-切換時：
+### 切換順序
 
-1. 先檢查正式資料有沒有被截斷。正式機若不是 strict mode，第 11 個子項可能被靜默截成 255 bytes，這種資料無法反序列化：
+Python 容器每次啟動都會先執行 `alembic upgrade head`（見 `wmstool-py/Dockerfile`），所以**第一次啟動 Python 容器時就會套用 `0002`**。照這個順序做：
 
-   ```sql
-   SELECT id, currentIdentifierId, LENGTH(childrenIdentifierId) FROM history
-   WHERE LENGTH(childrenIdentifierId) > 246;   -- 10 個子項是 246 bytes，超過就是被截斷的
-   ```
+1. **停掉 Java 服務。** `0002` 是 `ALTER TABLE history MODIFY childrenIdentifierId BLOB`。MySQL 只能用複製整張表的方式改這個欄位型別（`ALGORITHM=COPY`），執行期間 `history` 可以讀、**不能寫**，表越大花的時間越長。Java 停機後再改，就不會有寫入被卡住。
+2. **檢查有沒有被截斷的資料**（只讀，見下一節），有的話先記下修復語句。
+3. **標記既有資料庫的版本**：在啟動 Python 容器**之前**，對正式資料庫執行 `alembic stamp 0001`，讓 Alembic 知道 baseline 已經存在（baseline 用的是 `CREATE TABLE IF NOT EXISTS`，不 stamp 也不會毀掉資料，但版本紀錄應該從 0001 開始）。
+4. **啟動 Python 容器**：它會自動執行 `alembic upgrade head`，套用 `0002`。
+5. **執行第 2 步記下的修復語句**（必須在 `0002` 之後：修好的值會超過 255 bytes），再跑一次檢查，確認全部讀得回來。
 
-   有結果的話，要依交易紀錄（`transactionrecord` 的 SKI）人工補回子項清單，再繼續。
-2. 既有的資料庫先 `alembic stamp 0001`（baseline），再 `alembic upgrade head`，套用 `0002`。
-3. `0002` 的 downgrade 在有超過 255 bytes 的資料時會拒絕執行，避免截斷資料。
+`0002` 的 downgrade 在有超過 255 bytes 的資料時會拒絕執行，避免截斷資料。
+
+### 檢查與修復被截斷的資料
+
+正式機若不是 strict mode，切出第 11 塊時，MySQL 不會報錯，而是把整串子項清單截成剛好 255 bytes（已在 MySQL 8.0 實測）。這種值 Java 和 Python 都無法反序列化，之後對那一卷的回滾、history 查詢都會失敗。
+
+用 wmstool-py 的檢查工具掃整張表（只讀，不會修改資料）：
+
+```bash
+python -m app.history_check "mysql+pymysql://<user>:<password>@<host>/wms?charset=utf8mb4"
+```
+
+全部正常時印出 `every history row reads back`、結束代碼 0。有問題的列會印出：
+
+- 宣告的子項數量，以及還讀得出來的子項 id。截成 255 bytes 的值仍完整保留子項總數和前 10 個子項，只少了第 11 個以後的。
+- 缺少子項的候選：同貨號、同批號、而且 `stockIdentifierId` 大於最後一個已知子項的 SKI（減肥入庫）交易紀錄，依 id 排序取缺少的數量。
+- 候選數量剛好等於缺少的數量時，印出修復用的 `UPDATE history SET childrenIdentifierId = 0x… WHERE id = …;`。
+
+候選只是推測，執行 `UPDATE` 之前要逐筆確認它們真的是那一次減肥切出來的：例如它們的 SKI 紀錄時間，要跟該卷的 SKO（減肥出庫）紀錄時間幾乎相同；而且同貨號同批號在那段時間沒有別的減肥。找不到候選或數量不符時，工具不會印出 `UPDATE`，要依交易紀錄人工判斷。
 
 ## 部署注意：報表範本
 
