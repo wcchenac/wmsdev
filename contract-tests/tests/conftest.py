@@ -193,6 +193,40 @@ def root_connection() -> pymysql.connections.Connection:
     return pymysql.connect(**{**DB, "user": "root", "password": "root"})
 
 
+def _children_column_type() -> str:
+    with root_connection() as conn, conn.cursor() as cur:
+        cur.execute("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = %s "
+                    "AND TABLE_NAME = 'history' AND COLUMN_NAME = 'childrenIdentifierId'", (DB["database"],))
+        row = cur.fetchone()
+        assert row is not None, "history.childrenIdentifierId not found"
+        return row[0]
+
+
+def _set_children_column_type(sql_type: str) -> None:
+    with root_connection() as conn, conn.cursor() as cur:
+        cur.execute(f"ALTER TABLE history MODIFY childrenIdentifierId {sql_type}")
+
+
+@contextlib.contextmanager
+def history_children_column(sql_type: str | None):
+    """Run the block with history.childrenIdentifierId of the given type (None: as it
+    is), then put the previous type back. A Java backend needs it set: the 10-child
+    limit lives in the column type (TINYBLOB), which the rewrite's migration 0002 widens
+    to BLOB and Hibernate never alters. History rows are deleted before narrowing back,
+    since values of 11+ children no longer fit (the next test resets the database anyway)."""
+    previous = _children_column_type()
+    changed = sql_type is not None and sql_type.lower() != previous.lower()
+    try:
+        if sql_type is not None and changed:
+            _set_children_column_type(sql_type)
+        yield
+    finally:
+        if changed:
+            with root_connection() as conn, conn.cursor() as cur:
+                cur.execute("DELETE FROM history")
+            _set_children_column_type(previous)
+
+
 def _restore_widened_children_column(cur) -> None:  # noqa: ANN001
     """Only where the rewrite's Alembic migration 0002 (TINYBLOB -> BLOB) is recorded as
     applied: a database the migration never ran on keeps its TINYBLOB, so a Python

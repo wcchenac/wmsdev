@@ -112,3 +112,33 @@ def test_children_column_downgrade_refuses_to_truncate(migrated_url):
     engine.dispose()
     command.downgrade(_config(migrated_url), "0001")
     assert _children_type(migrated_url) == "TINYBLOB"
+
+
+def _migration_0002():
+    import importlib.util
+
+    path = ROOT / "migrations" / "versions" / "0002_history_children_blob.py"
+    spec = importlib.util.spec_from_file_location("migration_0002", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_downgrade_alter_fails_instead_of_truncating_outside_strict_mode(migrated_url):
+    """The 255-byte check runs before the ALTER; a long value written in between (the
+    service still running) must not be cut silently even on a non-strict session."""
+    _upgrade(migrated_url)
+    engine = create_engine(migrated_url)
+    with engine.connect() as conn:
+        conn.execute(text("SET SESSION sql_mode = ''"))  # production may run without strict mode
+        conn.execute(text("INSERT INTO history (id, childrenIdentifierId, currentIdentifierId, rootIdentifierId) "
+                          "VALUES (1, :c, 1, 1)"), {"c": _serialized(11)})
+        conn.commit()
+        with pytest.raises(Exception, match="1406|Data too long|1265|truncated"):
+            _migration_0002()._alter_to_tinyblob(conn)
+        assert conn.execute(text("SELECT @@SESSION.sql_mode")).scalar() == ""  # the session's mode is put back
+    assert _children_type(migrated_url) == "BLOB"
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT childrenIdentifierId FROM history WHERE id = 1")).scalar() == _serialized(11)
+    engine.dispose()

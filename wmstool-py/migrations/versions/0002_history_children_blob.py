@@ -13,6 +13,7 @@ Revises: 0001
 
 from alembic import op
 from sqlalchemy import text
+from sqlalchemy.engine import Connection
 
 revision = "0002"
 down_revision = "0001"
@@ -25,7 +26,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    too_long = op.get_bind().execute(
+    bind = op.get_bind()
+    too_long = bind.execute(
         text("SELECT COUNT(*) FROM `history` WHERE LENGTH(`childrenIdentifierId`) > 255")
     ).scalar()
     if too_long:
@@ -33,4 +35,15 @@ def downgrade() -> None:
             f"{too_long} history rows hold children lists longer than 255 bytes; "
             "TINYBLOB would cut them. Resolve those rows before downgrading."
         )
-    op.execute("ALTER TABLE `history` MODIFY `childrenIdentifierId` TINYBLOB")
+    _alter_to_tinyblob(bind)
+
+
+def _alter_to_tinyblob(bind: Connection) -> None:
+    """The ALTER itself refuses to cut a value: outside strict mode MySQL would silently
+    truncate one written after the check above. The session's sql_mode is put back."""
+    previous = bind.execute(text("SELECT @@SESSION.sql_mode")).scalar()
+    bind.execute(text("SET SESSION sql_mode = CONCAT_WS(',', NULLIF(@@SESSION.sql_mode, ''), 'STRICT_ALL_TABLES')"))
+    try:
+        bind.execute(text("ALTER TABLE `history` MODIFY `childrenIdentifierId` TINYBLOB"))
+    finally:
+        bind.execute(text("SET SESSION sql_mode = :mode"), {"mode": previous})
