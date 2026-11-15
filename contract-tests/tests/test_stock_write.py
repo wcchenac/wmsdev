@@ -349,6 +349,20 @@ def test_shrink_stock_rollback_db_error(admin, db, golden):
     golden.add("after", db_state(db, ["stockidentifier", "history", "transactionrecord", "stockinfo"]))
 
 
+@pytest.mark.parametrize("stored", [None, ""], ids=["null", "empty"])
+def test_product_total_that_is_not_a_number(operator, db, golden, stored):
+    """updateProductQuantity parses the stored total: NULL is a NullPointerException,
+    "" a NumberFormatException. Either fails the request and rolls it back — for an
+    in-stock (direct call) and for a shipment (updateProductQuantityWithList)."""
+    from conftest import exec_sql
+
+    seed_baseline(operator)
+    exec_sql(db, "UPDATE product SET quantity = %s WHERE productNo = 'CF1001' AND type = '整支'", stored)
+    golden.response("in_stock", operator.post("/api/stock/inStocks", json=[in_stock("CF1001", "5", lot_no="L09")]))
+    golden.response("ship", operator.patch("/api/stock/shipStock", json={"stockIdentifierId": 1, "reason": "出貨"}))
+    golden.add("db", db_state(db, ["product", "stockidentifier"]))
+
+
 def test_ship_stock(operator, db, golden):
     seed_baseline(operator)
     golden.response("ship_one", operator.patch("/api/stock/shipStock", json={"stockIdentifierId": 2, "reason": "出貨"}))
