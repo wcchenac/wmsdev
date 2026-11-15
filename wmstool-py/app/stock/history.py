@@ -51,15 +51,24 @@ def period_trees(session: Session, product_no: str, start: str, end: str) -> lis
     [start, end]. Every node shows its stockInfo, also a roll created before `start`
     (defect 11 fixed, as in contract-tests/java-patches/11-history-tree-stockinfo-all-
     nodes.patch); Java only loaded rolls created at or after `start` and left the others
-    null. Only the stockinfo of the trees' nodes is loaded (the patch reads the
-    product's; the nodes of a tree are all of that product, so the result is the same)."""
+    null.
+
+    Only the stockinfo of the trees' nodes is loaded; the patch reads all stockinfo of the
+    product instead. Both agree as long as every node has the root's productNo, which is
+    what the client sends for a shrink. The backend does not enforce it, though: a piece
+    stored under another productNo (only through a hand-made API call) gets its stockInfo
+    here and null in the patched Java.
+
+    A roll with more than one stockinfo row (no code path creates that) shows the one
+    with the highest id: rows are read in id order and the last one wins."""
     start_db, end_db = client_param_to_db(start), client_param_to_db(end)
     orders = session.scalars(select(InStockOrderRecord).where(
         InStockOrderRecord.productNo == product_no, InStockOrderRecord.createdAt.between(start_db, end_db))
         .order_by(InStockOrderRecord.createdAt, InStockOrderRecord.id)).all()
     roots = [order.stockIdentifierId or 0 for order in orders]
     node_ids = set(session.scalars(select(History.currentIdentifierId).where(History.rootIdentifierId.in_(roots))))
-    infos = session.scalars(select(StockInfo).where(StockInfo.stockIdentifier_id.in_(node_ids))) if node_ids else []
+    infos = session.scalars(select(StockInfo).where(StockInfo.stockIdentifier_id.in_(node_ids))
+                            .order_by(StockInfo.id)) if node_ids else []
     info_by_id = {info.stockIdentifier_id: info for info in infos}
     return [tree_by_root(session, root, info_by_id) for root in roots]
 
