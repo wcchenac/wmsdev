@@ -46,6 +46,15 @@ describe('FileReducer', () => {
       const result = FileReducer(existingState, { type: CREATE_FILE });
       expect(result).not.toBe(existingState);
     });
+
+    test('resets isLoading when the settled action carries payload false', () => {
+      const loading: FileState = { isLoading: true, lastOperation: 'create' };
+      const result = FileReducer(loading, { type: CREATE_FILE, payload: false });
+
+      expect(result.isLoading).toBe(false);
+      expect(result.lastOperation).toBe('create');
+      expect(loading.isLoading).toBe(true);
+    });
   });
 
   describe('state immutability', () => {

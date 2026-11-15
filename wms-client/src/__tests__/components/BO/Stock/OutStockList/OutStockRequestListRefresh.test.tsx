@@ -72,3 +72,38 @@ test('the list is shown again after an action when the new list equals the old o
   // The user filter is rebuilt as well.
   expect(screen.getByRole('button', { name: /林倉管/ })).toBeInTheDocument();
 });
+
+test('sorting the user filter does not mutate the store userList', async () => {
+  const userList = ['zeta', 'alpha'];
+  vi.mocked(API.get).mockImplementation(async () => ({
+    status: 200,
+    data: {
+      userList,
+      queryResult: {
+        [today]: [
+          {
+            id: 21, productNo: 'CF2001', lotNo: 'L1', type: '整支', quantity: 1, unit: '碼', color: '1', defect: '',
+            reason: '中壢', outStockType: 2, stockIdentifierId: 9, fileName: '', handled: true, deleted: false,
+            requestFrom: '中壢', createdAt: `${today}T09:00:00`, updatedAt: `${today}T09:00:00`,
+            createdBy: 'alpha', updatedBy: 'alpha',
+          },
+        ],
+      },
+    },
+  }));
+
+  const store = createStore(rootReducer, applyMiddleware(thunk));
+  render(
+    <Provider store={store}>
+      <OutStockRequestList />
+    </Provider>
+  );
+  await settle();
+
+  expect(userList).toEqual(['zeta', 'alpha']);
+  expect(store.getState().outStockRequests.outStockRequests?.userList).toEqual(['zeta', 'alpha']);
+
+  const alpha = screen.getByRole('button', { name: 'alpha' });
+  const zeta = screen.getByRole('button', { name: 'zeta' });
+  expect(alpha.compareDocumentPosition(zeta) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});

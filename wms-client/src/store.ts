@@ -2,6 +2,8 @@ import { createStore, applyMiddleware, compose } from "redux";
 import { thunk } from "redux-thunk";
 import rootReducer from "./reducers";
 
+export type { RootState } from "./reducers";
+
 /**
  * Redux Store Configuration
  * - Uses Redux Thunk middleware for async actions
@@ -18,10 +20,7 @@ declare global {
   }
 }
 
-// Infer the RootState type from rootReducer
-export type RootState = ReturnType<typeof rootReducer>;
-
-// Define AppDispatch type for thunk actions
+// AppDispatch follows the store, which accepts thunks as well as plain actions.
 export type AppDispatch = typeof store.dispatch;
 
 // Enable Redux DevTools Extension in development

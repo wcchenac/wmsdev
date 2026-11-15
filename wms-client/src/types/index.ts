@@ -1,5 +1,6 @@
 import type { ThunkDispatch } from "redux-thunk";
 import type { UnknownAction } from "redux";
+import type { RootState as ReducerRootState } from "../reducers";
 
 // ============================================
 // Action Types
@@ -121,18 +122,16 @@ export interface ErrorState {
   errors: Record<string, string> | null;
   createErrors: Record<string, string> | null;
   shrinkErrors: Record<string, string> | null;
+  updateErrors: Record<string, string> | null;
 }
 
 // ============================================
 // Redux Types
 // ============================================
-export interface RootState {
-  user: UserState;
-  stockInfo: StockState;
-  outStockRequests: OutStockRequestState;
-  files: FileState;
-  errors: ErrorState;
-}
+// The combined reducer is the only definition. Re-exported so existing
+// `import { RootState } from ".../types"` call sites stay on that shape
+// (the slice is `fileName`, not `files`).
+export type RootState = ReducerRootState;
 
 export interface Action<T = unknown> {
   type: string;

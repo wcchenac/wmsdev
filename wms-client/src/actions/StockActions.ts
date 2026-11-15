@@ -213,12 +213,14 @@ export const stockIdentifierIsShiped =
   (shipRequest: ShipRequest) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
+      const res = await API.patch("/api/stock/shipStock", shipRequest);
+
       dispatch({
         type: SHIP_Stock,
         payload: shipRequest.stockIdentifierId,
       });
 
-      return await API.patch("/api/stock/shipStock", shipRequest);
+      return res;
     } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({
@@ -646,11 +648,11 @@ export const getAllCategory =
 export const findCategoryDetails =
   (category: string) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      dispatch({
-        type: CREATE_FILE,
-      });
+    dispatch({
+      type: CREATE_FILE,
+    });
 
+    try {
       return await API.get(`/api/stock/queryStock/category/${category}`);
     } catch (err) {
       const error = err as { response?: { data?: unknown } };
@@ -659,5 +661,10 @@ export const findCategoryDetails =
         payload: error.response?.data || { message: "無法取得類別詳細資訊" },
       });
       throw err;
+    } finally {
+      dispatch({
+        type: CREATE_FILE,
+        payload: false,
+      });
     }
   };

@@ -2,13 +2,15 @@ import ErrorReducer from '../../reducers/ErrorReducer';
 import {
   GET_Errors,
   CREATE_Errors,
-  SHRINK_Errors
+  SHRINK_Errors,
+  UPDATE_Errors
 } from '../../types';
 
 interface ErrorState {
   errors?: Record<string, string> | null;
-  createErrors?: Record<string, string>;
-  shrinkErrors?: Record<string, string>;
+  createErrors?: Record<string, string> | null;
+  shrinkErrors?: Record<string, string> | null;
+  updateErrors?: Record<string, string> | null;
 }
 
 interface ErrorAction {
@@ -20,7 +22,8 @@ describe('ErrorReducer', () => {
   const initialState: ErrorState = {
     errors: null,
     createErrors: null,
-    shrinkErrors: null
+    shrinkErrors: null,
+    updateErrors: null
   };
 
   describe('initial state', () => {
@@ -169,16 +172,57 @@ describe('ErrorReducer', () => {
     });
   });
 
+  describe('UPDATE_Errors', () => {
+    test('stores the payload on updateErrors and leaves the other fields', () => {
+      const existingState: ErrorState = {
+        errors: { field: 'get error' },
+        createErrors: { field: 'create error' },
+        shrinkErrors: { field: 'shrink error' },
+        updateErrors: null
+      };
+      const payload = { message: '更新庫存資訊失敗' };
+      const result = ErrorReducer(existingState, { type: UPDATE_Errors, payload });
+
+      expect(result.updateErrors).toEqual(payload);
+      expect(result.errors).toEqual({ field: 'get error' });
+      expect(result.createErrors).toEqual({ field: 'create error' });
+      expect(result.shrinkErrors).toEqual({ field: 'shrink error' });
+    });
+
+    test('replaces an existing updateErrors payload', () => {
+      const existingState: ErrorState = {
+        ...initialState,
+        updateErrors: { old: 'error' }
+      };
+      const payload = { message: '更新失敗' };
+      const result = ErrorReducer(existingState, { type: UPDATE_Errors, payload });
+
+      expect(result.updateErrors).toEqual(payload);
+    });
+
+    test('stores null when the payload is null', () => {
+      const existingState: ErrorState = {
+        ...initialState,
+        updateErrors: { old: 'error' }
+      };
+      const result = ErrorReducer(existingState, { type: UPDATE_Errors, payload: null });
+
+      expect(result.updateErrors).toBeNull();
+    });
+  });
+
   describe('multiple error types', () => {
-    test('can have all three error types simultaneously', () => {
+    test('can hold get, create, shrink, and update errors at once', () => {
       let state: ErrorState = initialState;
       state = ErrorReducer(state, { type: GET_Errors, payload: { get: 'error' } });
       state = ErrorReducer(state, { type: CREATE_Errors, payload: { create: 'error' } });
       state = ErrorReducer(state, { type: SHRINK_Errors, payload: { shrink: 'error' } });
+      state = ErrorReducer(state, { type: UPDATE_Errors, payload: { update: 'error' } });
 
       expect(state.errors).toEqual({ get: 'error' });
       expect(state.createErrors).toEqual({ create: 'error' });
       expect(state.shrinkErrors).toEqual({ shrink: 'error' });
+      expect(state.updateErrors).toEqual({ update: 'error' });
     });
   });
 
