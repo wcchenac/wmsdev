@@ -127,7 +127,7 @@ class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
   }
 
   handleToBeSubmitWHChange(date: string, value: string, id: number): void {
-    const listCopy = { ...this.state.toBeSubmit };
+    const listCopy = copy(this.state.toBeSubmit) as ToBeSubmitMap;
 
     listCopy[date][id].whName = value;
 

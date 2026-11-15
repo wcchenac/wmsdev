@@ -1,6 +1,6 @@
 import type { Mock } from 'vitest';
-import React from 'react';
-import { render, screen, RenderResult } from '@testing-library/react';
+import React, { createRef } from 'react';
+import { act, render, screen, RenderResult } from '@testing-library/react';
 import SearchBoard from '../../../../../components/BO/Stock/OutStockList/SearchBoard';
 
 interface MockSearchContainerProps {
@@ -210,6 +210,42 @@ describe('SearchBoard', () => {
       renderSearchBoard({ queryResult: {} });
       expect(screen.getByRole('button', { name: '儲存' })).toBeInTheDocument();
       expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('warehouse change', () => {
+    test('changing whName does not mutate the previous toBeSubmit state', () => {
+      const queryResult = defaultProps.queryResult;
+      if (queryResult === undefined) {
+        throw new Error('queryResult is required');
+      }
+
+      const ref = createRef<SearchBoard>();
+      render(<SearchBoard ref={ref} {...defaultProps} queryResult={queryResult} />);
+      const board = ref.current;
+      if (board === null) {
+        throw new Error('SearchBoard did not mount');
+      }
+
+      act(() => {
+        board.setState({
+          toBeSubmit: board.initialToBeSubmit(queryResult, defaultProps.selectedUserList)
+        });
+      });
+
+      const before = board.state.toBeSubmit;
+      expect(before['2024-01-01'][1].whName).toBe('');
+
+      act(() => {
+        board.handleToBeSubmitWHChange('2024-01-01', '內倉', 1);
+      });
+
+      expect(before['2024-01-01'][1].whName).toBe('');
+      expect(before['2024-01-01'][1]).toEqual({ selected: true, whName: '' });
+      expect(board.state.toBeSubmit).not.toBe(before);
+      expect(board.state.toBeSubmit['2024-01-01']).not.toBe(before['2024-01-01']);
+      expect(board.state.toBeSubmit['2024-01-01'][1].whName).toBe('內倉');
+      expect(board.state.toBeSubmit['2024-01-01'][1].selected).toBe(true);
     });
   });
 });
