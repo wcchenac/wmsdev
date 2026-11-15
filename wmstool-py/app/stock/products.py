@@ -26,11 +26,17 @@ def collect(totals: Totals, product_no: str, type_: str, quantity: str, unit: st
 
 
 def update_product_quantity(session: Session, product_no: str, type_: str, quantity: str, unit: str) -> None:
-    """updateProductQuantity: add to an existing (productNo, type) row, else insert it uncategorised."""
+    """updateProductQuantity: add to an existing (productNo, type) row, else insert it uncategorised.
+
+    A stored total that is not a number fails the whole request, as in Java: NULL is
+    a NullPointerException, "" a NumberFormatException (java_parse_double raises).
+    Reading it as 0 would silently overwrite the total with this change alone."""
     existing = session.scalar(select(Product).where(Product.productNo == product_no, Product.type == type_))
     now = java_now_utc()
     if existing is not None:
-        existing.quantity = java_format_2f(java_parse_double(quantity) + java_parse_double(existing.quantity or "0"))
+        if existing.quantity is None:
+            raise TypeError(f"product {product_no} {type_} has a NULL quantity (Java: NullPointerException)")
+        existing.quantity = java_format_2f(java_parse_double(quantity) + java_parse_double(existing.quantity))
         existing.updatedAt = now
     else:
         session.add(Product(productNo=product_no, type=type_, quantity=quantity, unit=unit,
