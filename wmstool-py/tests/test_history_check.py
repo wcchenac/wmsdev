@@ -60,35 +60,47 @@ def database_url():
     admin.dispose()
 
 
-def _identifier(conn, identifier_id: int, lot_no: str = "L01") -> None:  # noqa: ANN001
+def _identifier(conn, identifier_id: int, lot_no: str | None = "L01") -> None:  # noqa: ANN001
     conn.execute(text(
         "INSERT INTO stockidentifier (id, isExist, isOutStock, lotNo, productNo, quantity, serialNo, type, unit, "
         "waitToShrink) VALUES (:id, 1, 0, :lot, 'CF1001', '4', :id, '整支', '碼', 0)"), {"id": identifier_id, "lot": lot_no})
 
 
-def _ski(conn, identifier_id: int, lot_no: str = "L01") -> None:  # noqa: ANN001
+def _ski(conn, identifier_id: int, lot_no: str | None = "L01") -> None:  # noqa: ANN001
     conn.execute(text(
         "INSERT INTO transactionrecord (lotNo, productNo, stockIdentifierId, transactionType) "
         "VALUES (:lot, 'CF1001', :id, 'SKI')"), {"id": identifier_id, "lot": lot_no})
 
 
-def _history(conn, history_id: int, current: int, children: bytes | None) -> None:  # noqa: ANN001
+def _history(conn, history_id: int, current: int, children: bytes | None, root: int | None = None) -> None:  # noqa: ANN001
     conn.execute(text(
         "INSERT INTO history (id, childrenIdentifierId, currentIdentifierId, rootIdentifierId) "
-        "VALUES (:id, :c, :cur, :cur)"), {"id": history_id, "c": children, "cur": current})
+        "VALUES (:id, :c, :cur, :root)"),
+        {"id": history_id, "c": children, "cur": current, "root": current if root is None else root})
+
+
+def _piece(conn, identifier_id: int, root: int, lot_no: str | None = "L01") -> None:  # noqa: ANN001
+    """A piece cut in a shrink, as Java stores it: the identifier, its SKI record, and its
+    own history row under the tree's root (written before the parent's list is updated)."""
+    _identifier(conn, identifier_id, lot_no=lot_no)
+    _ski(conn, identifier_id, lot_no=lot_no)
+    _history(conn, identifier_id, identifier_id, serialize_long_array([]), root=root)
+
+
+def _shrunk_roll(conn, lot_no: str | None = "L01") -> None:  # noqa: ANN001
+    """Roll 1 shrunk into 2..12 (11 pieces); its children list was cut at 255 bytes."""
+    _identifier(conn, 1, lot_no=lot_no)
+    _history(conn, 1, 1, _truncated(list(range(2, 13))))
+    for child in range(2, 13):
+        _piece(conn, child, root=1, lot_no=lot_no)
 
 
 def test_main_reports_a_truncated_row_with_its_missing_children(database_url, capsys):
     engine = create_engine(database_url)
     with engine.begin() as conn:
-        for identifier_id in range(1, 13):  # roll 1 shrunk into 2..12
-            _identifier(conn, identifier_id)
-        for child in range(2, 13):
-            _ski(conn, child)
+        _shrunk_roll(conn)
         _identifier(conn, 20, lot_no="OTHER")  # another lot's piece: never a candidate
         _ski(conn, 20, lot_no="OTHER")
-        _history(conn, 1, 1, _truncated(list(range(2, 13))))
-        _history(conn, 2, 2, serialize_long_array([]))  # a healthy row is not reported
     engine.dispose()
 
     assert main([database_url]) == 1
@@ -98,7 +110,75 @@ def test_main_reports_a_truncated_row_with_its_missing_children(database_url, ca
     assert "candidates for the 1 missing: 12" in out
     repaired = serialize_long_array(list(range(2, 13))).hex()
     assert f"UPDATE history SET childrenIdentifierId = 0x{repaired} WHERE id = 1;" in out
-    assert "history 2" not in out
+    assert "history 2 " not in out  # the pieces' own (healthy) rows are not reported
+
+
+def test_more_candidates_than_missing_children_are_reported_and_no_update(database_url, capsys):
+    """Another shrink in the same tree later cut pieces 30 and 31 of the same product and
+    lot: three candidates for one missing child. The tool must say so, not pick one."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn)
+        _piece(conn, 30, root=1)
+        _piece(conn, 31, root=1)
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: 12, 30, 31" in out
+    assert "more candidates than missing children" in out
+    assert "UPDATE history" not in out
+
+
+def test_a_roll_without_lot_number_finds_its_pieces(database_url, capsys):
+    """lotNo may be NULL: `lotNo = NULL` matches nothing, `lotNo <=> NULL` does."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn, lot_no=None)
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: 12" in out
+    assert "UPDATE history SET childrenIdentifierId" in out
+
+
+def test_pieces_of_another_tree_are_not_candidates(database_url, capsys):
+    """Roll 1's 11th piece is 13; piece 12, of the same product and lot, was cut from
+    roll 39 (another tree) in between. Only 13 is roll 1's."""
+    ours = [*range(2, 12), 13]
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _identifier(conn, 1)
+        _history(conn, 1, 1, _truncated(ours))
+        for child in ours:
+            _piece(conn, child, root=1)
+        _identifier(conn, 39)
+        _history(conn, 39, 39, serialize_long_array([12]))
+        _piece(conn, 12, root=39)
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: 13" in out
+    repaired = serialize_long_array(ours).hex()
+    assert f"UPDATE history SET childrenIdentifierId = 0x{repaired} WHERE id = 1;" in out
+
+
+def test_pieces_already_listed_by_another_roll_are_not_candidates(database_url, capsys):
+    """Piece 12 was cut from piece 2 (a later shrink in the same tree) and is listed as
+    2's child: it is not one of roll 1's missing children."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _identifier(conn, 1)
+        _history(conn, 1, 1, _truncated(list(range(2, 13))))
+        for child in range(2, 12):
+            _piece(conn, child, root=1)
+        conn.execute(text("UPDATE history SET childrenIdentifierId = :c WHERE id = 2"),
+                     {"c": serialize_long_array([12])})
+        _piece(conn, 12, root=1)
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: (none found)" in out
+    assert "UPDATE history" not in out
 
 
 def test_main_without_problems(database_url, capsys):
@@ -120,4 +200,23 @@ def test_main_does_not_suggest_an_update_without_enough_candidates(database_url,
     assert main([database_url]) == 1
     out = capsys.readouterr().out
     assert "candidates for the 1 missing: (none found)" in out
-    assert "UPDATE" not in out
+    assert "UPDATE history" not in out
+
+
+def test_candidates_shared_by_two_cut_rows_get_no_update(database_url, capsys):
+    """Roll 1 (cut, readable 2..11) and its piece 2, shrunk again into 13..23 (cut,
+    readable 13..22): piece 23 is a candidate of both rows, so neither gets an UPDATE."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn)
+        conn.execute(text("UPDATE history SET childrenIdentifierId = :c WHERE id = 2"),
+                     {"c": _truncated(list(range(13, 24)))})
+        for child in range(13, 24):
+            _piece(conn, child, root=1)
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    row2 = out.split("history 2 (identifier 2)")[1]
+    assert "candidates for the 1 missing: 23" in row2
+    assert "candidates shared with history 1" in row2
+    assert "UPDATE history" not in out
