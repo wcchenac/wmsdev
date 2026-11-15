@@ -48,7 +48,6 @@ def test_out_stock_to_store_does_not_open_mysql(monkeypatch):
     monkeypatch.setattr("app.stock.router.session_scope", opened)
     response = query_order("outStockToStore", "OS1", _request())
     assert response.status_code == 200
-    import json
     assert json.loads(response.body) == [{"productNo": "OS1"}]
 
 
