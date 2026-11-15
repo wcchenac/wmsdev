@@ -37,7 +37,10 @@ def _erp_totals() -> Erp:
 
 def comparison_rows(session: Session) -> list[list[str | None]]:
     erp_totals = _erp_totals()
-    # HashMaps never shrink: the leftover iteration order is the order over every key ever inserted.
+    # HashMaps never shrink: the leftover iteration order is the order over every key ever
+    # inserted, minus the removed ones. Exact for list bins; a treeified bin (9+ colliding
+    # product codes, practically never) can reorder on remove (moveRootToFront), which is
+    # not modelled: those few leftover rows could then come out in another order.
     outer_order = java_hashmap_order(erp_totals)
     inner_order = {p: java_hashmap_order(types) for p, types in erp_totals.items()}
     remaining = {p: dict(types) for p, types in erp_totals.items()}

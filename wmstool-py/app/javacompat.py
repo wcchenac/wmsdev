@@ -9,6 +9,7 @@ import re
 import struct
 from collections.abc import Iterable, Sequence
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Any
 
 # ---------------------------------------------------------------- HashMap order
 
@@ -29,33 +30,332 @@ def _java_long_hash(v: int) -> int:
 def java_hashmap_order(keys: Iterable[str]) -> list[str]:
     """keySet() order of a `new HashMap<String, ?>()` after put()-ing `keys` in order.
 
-    Java 8 HashMap: bucket = (h ^ (h >>> 16)) & (capacity - 1); capacity starts
-    at 16 and doubles when size exceeds 0.75 * capacity. Resizing keeps the
-    relative order inside a bucket, so the final order is: by bucket under the
-    final capacity, then by first insertion.
+    Simulates Java 8's HashMap (see _JavaHashMap), colliding bins included; checked
+    against a real JDK 8 in tests (fixtures/java_hashmap).
     """
-    return _hashmap_order(keys, _java_string_hash)
+    m = _JavaHashMap(_java_string_hash, _java_string_compare)
+    for key in keys:
+        m.put(key)
+    return m.keys()
 
 
 def java_hashmap_order_long(keys: Iterable[int]) -> list[int]:
     """keySet() order of a `new HashMap<Long, ?>()` (see java_hashmap_order)."""
-    return _hashmap_order(keys, _java_long_hash)
+    m = _JavaHashMap(_java_long_hash, lambda a, b: (a > b) - (a < b))
+    for key in keys:
+        m.put(key)
+    return m.keys()
 
 
-def _hashmap_order(keys, hash_fn):  # noqa: ANN001, ANN202
-    unique = list(dict.fromkeys(keys))
-    capacity = 16
-    while len(unique) > capacity * 3 // 4:
-        capacity *= 2
-    buckets: dict[int, list] = {}
-    for key in unique:
-        h = hash_fn(key)
-        buckets.setdefault((h ^ (h >> 16)) & (capacity - 1), []).append(key)
-    # Java converts a bin when it gets its 9th node (treeify, or a resize while the
-    # table is under 64): only then does this model's order stop being exact.
-    if any(len(b) > 8 for b in buckets.values()):
-        raise NotImplementedError("bucket would be treeified; iteration order not modelled")
-    return [key for index in sorted(buckets) for key in buckets[index]]
+def _java_string_compare(a: str, b: str) -> int:
+    """Sign of String.compareTo: UTF-16 code units, then length."""
+    ua, ub = a.encode("utf-16-be"), b.encode("utf-16-be")
+    return (ua > ub) - (ua < ub)
+
+
+class _Node:
+    __slots__ = ("hash", "key", "next", "tree", "prev", "parent", "left", "right", "red")
+    hash: int
+    key: Any
+    next: "_Node | None"
+    tree: bool
+    prev: "_Node | None"
+    parent: "_Node | None"
+    left: "_Node | None"
+    right: "_Node | None"
+    red: bool
+
+    def __init__(self, h: int, key: Any, tree: bool = False) -> None:
+        self.hash, self.key, self.next, self.tree = h, key, None, tree
+        self.prev = self.parent = self.left = self.right = None
+        self.red = False
+
+
+class _JavaHashMap:
+    """java.util.HashMap (JDK 8) put() and keySet() order, for distinct keys.
+
+    A bin is a linked list in insertion order. A list getting its 9th node is
+    treeified (TreeNode red-black tree keyed by hash, then compareTo) if the table
+    has 64 buckets or more, else the table is resized instead. Tree bins keep a
+    `next` list too: a new node goes right after its tree parent, and the root is
+    moved to the front after every change. Resizing splits lists keeping their order;
+    a split tree half of 6 nodes or fewer becomes a list again, a larger one is
+    re-treeified when the other half is not empty. Iteration walks buckets in index
+    order and each bin's `next` list. Removal is not modelled.
+    """
+
+    TREEIFY_THRESHOLD, UNTREEIFY_THRESHOLD, MIN_TREEIFY_CAPACITY = 8, 6, 64
+
+    def __init__(self, hash_fn, compare) -> None:  # noqa: ANN001
+        self.hash_fn, self.compare = hash_fn, compare
+        self.table: list[_Node | None] = []
+        self.size = self.threshold = 0
+        self.present: set = set()
+
+    @staticmethod
+    def _spread(code: int) -> int:
+        h = (code ^ (code >> 16)) & 0xFFFFFFFF
+        return h - (1 << 32) if h >= 1 << 31 else h  # a Java int: TreeNodes compare hashes signed
+
+    def put(self, key) -> None:  # noqa: ANN001
+        if key in self.present:  # an existing key only gets its value replaced: no structural change
+            return
+        self.present.add(key)
+        h = self._spread(self.hash_fn(key))
+        if not self.table:
+            self._resize()
+        i = (len(self.table) - 1) & h
+        p = self.table[i]
+        if p is None:
+            self.table[i] = _Node(h, key)
+        elif p.tree:
+            self._put_tree_val(p, h, key)
+        else:
+            bin_count = 0
+            while True:
+                if p.next is None:
+                    p.next = _Node(h, key)
+                    if bin_count >= self.TREEIFY_THRESHOLD - 1:
+                        self._treeify_bin(h)
+                    break
+                p = p.next
+                bin_count += 1
+        self.size += 1
+        if self.size > self.threshold:
+            self._resize()
+
+    def keys(self) -> list:
+        out = []
+        for head in self.table:
+            p = head
+            while p is not None:
+                out.append(p.key)
+                p = p.next
+        return out
+
+    # -- table ---------------------------------------------------------------
+
+    def _resize(self) -> None:
+        old = self.table
+        old_cap = len(old)
+        if old_cap:
+            new_cap, self.threshold = old_cap * 2, self.threshold * 2
+        else:
+            new_cap, self.threshold = 16, 12
+        new: list[_Node | None] = [None] * new_cap
+        self.table = new
+        for j, e in enumerate(old):
+            if e is None:
+                continue
+            if e.next is None:
+                new[e.hash & (new_cap - 1)] = e
+            elif e.tree:
+                self._split(e, j, old_cap)
+            else:
+                lo, hi = [], []
+                p = e
+                while p is not None:
+                    (hi if p.hash & old_cap else lo).append(p)
+                    p = p.next
+                for nodes, index in ((lo, j), (hi, j + old_cap)):
+                    if nodes:
+                        for a, b in zip(nodes, [*nodes[1:], None], strict=True):
+                            a.next = b
+                        new[index] = nodes[0]
+
+    def _treeify_bin(self, h: int) -> None:
+        n = len(self.table)
+        if n < self.MIN_TREEIFY_CAPACITY:
+            self._resize()
+            return
+        index = (n - 1) & h
+        e = self.table[index]
+        nodes = []
+        while e is not None:
+            nodes.append(_Node(e.hash, e.key, tree=True))
+            e = e.next
+        self._link(nodes)
+        self.table[index] = nodes[0]
+        self._treeify(nodes[0])
+
+    def _split(self, head: _Node, index: int, bit: int) -> None:
+        lo, hi = [], []
+        e = head
+        while e is not None:
+            nxt = e.next
+            e.next = None
+            (hi if e.hash & bit else lo).append(e)
+            e = nxt
+        for nodes, at, other in ((lo, index, hi), (hi, index + bit, lo)):
+            if not nodes:
+                continue
+            if len(nodes) <= self.UNTREEIFY_THRESHOLD:
+                plain = [_Node(n.hash, n.key) for n in nodes]
+                for a, b in zip(plain, [*plain[1:], None], strict=True):
+                    a.next = b
+                self.table[at] = plain[0]
+            else:
+                self._link(nodes)
+                self.table[at] = nodes[0]
+                if other:  # the whole tree moved together: Java keeps it as it is
+                    self._treeify(nodes[0])
+
+    @staticmethod
+    def _link(nodes: list[_Node]) -> None:
+        for i, node in enumerate(nodes):
+            node.prev = nodes[i - 1] if i else None
+            node.next = nodes[i + 1] if i + 1 < len(nodes) else None
+
+    # -- TreeNode ------------------------------------------------------------
+
+    def _dir(self, h: int, key, p: _Node) -> int:  # noqa: ANN001
+        if p.hash > h:
+            return -1
+        if p.hash < h:
+            return 1
+        # distinct keys of one Comparable class never compare equal, so Java's
+        # tieBreakOrder (identityHashCode) is never reached
+        return self.compare(key, p.key)
+
+    def _treeify(self, head: _Node) -> None:
+        root = None
+        x = head
+        while x is not None:
+            nxt = x.next
+            x.left = x.right = None
+            if root is None:
+                x.parent, x.red, root = None, False, x
+            else:
+                p = root
+                while True:
+                    d = self._dir(x.hash, x.key, p)
+                    xp, p = p, (p.left if d <= 0 else p.right)
+                    if p is None:
+                        x.parent = xp
+                        if d <= 0:
+                            xp.left = x
+                        else:
+                            xp.right = x
+                        root = self._balance_insertion(root, x)
+                        break
+            x = nxt
+        assert root is not None  # treeify is only called on a bin with nodes
+        self._move_root_to_front(root)
+
+    def _put_tree_val(self, root: _Node, h: int, key) -> None:  # noqa: ANN001
+        p = root
+        while True:
+            d = self._dir(h, key, p)
+            xp, p = p, (p.left if d <= 0 else p.right)
+            if p is None:
+                xpn = xp.next
+                x = _Node(h, key, tree=True)
+                x.next = xpn
+                if d <= 0:
+                    xp.left = x
+                else:
+                    xp.right = x
+                xp.next = x
+                x.parent = x.prev = xp
+                if xpn is not None:
+                    xpn.prev = x
+                self._move_root_to_front(self._balance_insertion(root, x))
+                return
+
+    def _move_root_to_front(self, root: _Node) -> None:
+        index = (len(self.table) - 1) & root.hash
+        first = self.table[index]
+        if root is not first:
+            rn, rp = root.next, root.prev
+            if rn is not None:
+                rn.prev = rp
+            if rp is not None:
+                rp.next = rn
+            if first is not None:
+                first.prev = root
+            root.next, root.prev = first, None
+            self.table[index] = root
+
+    @staticmethod
+    def _rotate_left(root: _Node, p: _Node) -> _Node:
+        r = p.right
+        if r is not None:
+            rl = p.right = r.left
+            if rl is not None:
+                rl.parent = p
+            pp = r.parent = p.parent
+            if pp is None:
+                root = r
+                r.red = False
+            elif pp.left is p:
+                pp.left = r
+            else:
+                pp.right = r
+            r.left, p.parent = p, r
+        return root
+
+    @staticmethod
+    def _rotate_right(root: _Node, p: _Node) -> _Node:
+        lft = p.left
+        if lft is not None:
+            lr = p.left = lft.right
+            if lr is not None:
+                lr.parent = p
+            pp = lft.parent = p.parent
+            if pp is None:
+                root = lft
+                lft.red = False
+            elif pp.right is p:
+                pp.right = lft
+            else:
+                pp.left = lft
+            lft.right, p.parent = p, lft
+        return root
+
+    def _balance_insertion(self, root: _Node, x: _Node) -> _Node:
+        x.red = True
+        while True:
+            xp = x.parent
+            if xp is None:
+                x.red = False
+                return x
+            xpp = xp.parent
+            if not xp.red or xpp is None:
+                return root
+            xppl = xpp.left
+            if xp is xppl:
+                xppr = xpp.right
+                if xppr is not None and xppr.red:
+                    xppr.red = xp.red = False
+                    xpp.red = True
+                    x = xpp
+                else:
+                    if x is xp.right:
+                        x = xp
+                        root = self._rotate_left(root, x)
+                        xp = x.parent
+                        xpp = xp.parent if xp is not None else None
+                    if xp is not None:
+                        xp.red = False
+                        if xpp is not None:
+                            xpp.red = True
+                            root = self._rotate_right(root, xpp)
+            else:
+                if xppl is not None and xppl.red:
+                    xppl.red = xp.red = False
+                    xpp.red = True
+                    x = xpp
+                else:
+                    if x is xp.left:
+                        x = xp
+                        root = self._rotate_right(root, x)
+                        xp = x.parent
+                        xpp = xp.parent if xp is not None else None
+                    if xp is not None:
+                        xp.red = False
+                        if xpp is not None:
+                            xpp.red = True
+                            root = self._rotate_left(root, xpp)
 
 
 # ------------------------------------------------------------------- strings
