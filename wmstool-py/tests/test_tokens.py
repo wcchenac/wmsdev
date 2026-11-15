@@ -20,6 +20,8 @@ def settings(monkeypatch):
     monkeypatch.setenv("WMS_DATABASE_URL", "mysql+pymysql://unused/unused")
     monkeypatch.setenv("JWT_SECRET", SECRET)
     monkeypatch.setenv("ERP_DATABASE_URL", "mssql+pymssql://unused/unused")
+    monkeypatch.setenv("EXCEL_DIR", "/tmp/excel")
+    monkeypatch.setenv("PICTURE_DIR", "/tmp/pictures")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()

@@ -136,6 +136,8 @@ Python 容器每次啟動都會先執行 `alembic upgrade head`，然後才啟�
 
 容器以 uid 1000（使用者 `wms`）執行，不是 root。`EXCEL_DIR` 和 `PICTURE_DIR` 是掛進來的目錄，映像檔不會改它們的擁有者。這兩個目錄必須讓 uid 1000 可以寫，例如 `sudo chown -R 1000:1000 <目錄>`。對照測試用的 `runtime/files` 也一樣：宿主機上產生範本的使用者和容器的 uid 1000 都要寫得進去（一次性的目錄用 `chmod -R a+rwX runtime/files` 即可）。
 
+`EXCEL_DIR` 和 `PICTURE_DIR` 沒有預設值。沒設定或設成空白時，程序在啟動（`create_app`，以及會讀設定的 `alembic upgrade`）就失敗，錯誤訊息會點名這兩個變數，不會等到第一份報表才發現路徑是空的。
+
 ### 檢查與修復被截斷的資料
 
 正式機若不是 strict mode，切出第 11 塊時，MySQL 不會報錯，而是把整串子項清單截成剛好 255 bytes（已在 MySQL 8.0 實測）。這種值 Java 和 Python 都無法反序列化，之後對那一卷的回滾、history 查詢都會失敗。

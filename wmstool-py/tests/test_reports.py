@@ -10,6 +10,7 @@ def excel_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("JWT_SECRET", "QUJD")
     monkeypatch.setenv("ERP_DATABASE_URL", "mssql+pymssql://unused/unused")
     monkeypatch.setenv("EXCEL_DIR", str(tmp_path))
+    monkeypatch.setenv("PICTURE_DIR", str(tmp_path / "pictures"))
     get_settings.cache_clear()
     (tmp_path / "CategoryDetail").mkdir()
     (tmp_path / "CategoryDetail" / "CategoryDetail-棉布.xlsx").write_bytes(b"x")
