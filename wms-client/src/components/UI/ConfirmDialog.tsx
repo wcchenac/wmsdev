@@ -1,4 +1,4 @@
-import React, { ReactNode, KeyboardEvent } from "react";
+import React, { ReactNode } from "react";
 import { Modal, Button, ButtonProps } from "react-bootstrap";
 import WarningIcon from "@mui/icons-material/Warning";
 import ErrorIcon from "@mui/icons-material/Error";
@@ -93,12 +93,6 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter" && !loading) {
-      handleConfirm();
-    }
-  };
-
   return (
     <Modal
       show={show}
@@ -109,7 +103,6 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       aria-describedby="confirm-dialog-description"
       backdrop="static"
       keyboard={!loading}
-      onKeyDown={handleKeyDown}
     >
       <Modal.Body
         style={{
