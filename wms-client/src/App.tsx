@@ -22,11 +22,8 @@ import StockHistoryBoard from "./components/BO/Stock/StockHistory/StockHistoryBo
 import Login from "./components/BO/User/Login";
 import AdminPlatform from "./components/BO/User/AdminPlatform/AdminPlatform";
 import ProtectedRoute from "./components/Others/securities/ProtectedRoute";
-import localStorageValidate from "./utilities/LocalStorageValidate";
 
 function App() {
-  localStorageValidate();
-
   return (
     <Provider store={store}>
       <Router>

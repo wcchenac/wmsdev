@@ -12,13 +12,20 @@ interface DecodedJWT extends JwtPayload, User {
 }
 
 /**
- * Validates JWT token from localStorage on app initialization
+ * Validates JWT token from localStorage on app initialization. index.tsx calls it once,
+ * before the first render, so a page opened directly finds the user already signed in.
  * - Checks if token exists
  * - Validates token format
- * - Checks token expiration
- * - Logs out user if token is invalid or expired
+ * - Checks token expiration (a token whose exp is now is expired)
+ * - Logs out user if token is invalid or expired, and goes to /login unless already there
  */
 function localStorageValidate(): void {
+  const goToLogin = (): void => {
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+  };
+
   const jwtToken = localStorage.getItem("jwtToken");
 
   if (jwtToken) {
@@ -32,10 +39,10 @@ function localStorageValidate(): void {
 
       const currentTime = Date.now() / 1000;
 
-      if (decodedJWT.exp < currentTime) {
+      if (decodedJWT.exp <= currentTime) {
         // Token expired - logout user
         store.dispatch(logout());
-        window.location.href = "/login";
+        goToLogin();
         return;
       }
 
@@ -49,7 +56,7 @@ function localStorageValidate(): void {
       // Token is malformed or invalid - clear it and redirect
       localStorage.removeItem("jwtToken");
       setJWTToken(false);
-      window.location.href = "/login";
+      goToLogin();
     }
   }
 }

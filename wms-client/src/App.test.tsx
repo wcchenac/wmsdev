@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import App from './App';
 
 // Mock all the components that require complex routing or external dependencies
-vi.mock('./utilities/LocalStorageValidate', () => ({ default: vi.fn() }));
 vi.mock('./components/Layout/Header', () => ({ default: function MockHeader() {
   return <header data-testid="mock-header">Header</header>;
 } }));
