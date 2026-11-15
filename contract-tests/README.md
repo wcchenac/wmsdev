@@ -176,7 +176,7 @@ fixture 轉檔時用的是 LibreOffice 25.2.3.2，環境是 Debian 13（trixie�
 python -m app.template_check D:/OutputFiles
 ```
 
-它會逐一比對每個 `*Template.xls` 和旁邊轉出的 `.xlsx`：`.xls` 那一邊用 xlrd 模擬 HSSF 的最後一列，`.xlsx` 那一邊用服務本身的 `poi_last_row`。全部 `OK` 才回 0；如果出現 `MISMATCH` 或 `MISSING .xlsx`，代表第一筆資料列和序號會跟 Java 錯開，要先修正 `.xlsx` 範本再切換。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。
+它會逐一比對每個 `*Template.xls` 和旁邊轉出的 `.xlsx`：`.xls` 那一邊用 xlrd 模擬 HSSF 的最後一列，`.xlsx` 那一邊用服務本身的 `poi_last_row`。四個服務會複製的範本（`OutStockList`、`STKADST`、`STKALLT`、`StockComparisonResult`）缺任何一個也算失敗。全部 `OK` 才回 0；如果出現 `MISMATCH`、`MISSING .xls` 或 `MISSING .xlsx`，要先補上或修正範本再切換。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。`scripts/convert_templates.sh` 會進到報表子資料夾，把每個 `.xls` 轉到它所在的資料夾。
 
 `.xls` 那一邊是用 xlrd 模擬 HSSF，已經對 POI 4.1.0 驗證過一般列、只有格式的列和合併儲存格這幾種情況，但終究不是 POI 本身。所以檢查通過後，第一次切換時仍請把 Java 和 Python 各產生的一份報表打開比對，確認第一筆資料列和序號相同。
 

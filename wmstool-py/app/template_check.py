@@ -9,7 +9,9 @@ and the 序號 by that much. Run it on the production template folder after conv
     python -m app.template_check D:/OutputFiles
 
 Every *Template.xls under the folder needs a sibling *Template.xlsx with the same last
-row; the exit code is 1 otherwise.
+row. The four templates the service copies (OutStockList, STKADST, STKALLT,
+StockComparisonResult) must be present even when the folder has other templates.
+The exit code is 1 otherwise.
 """
 
 import argparse
@@ -39,27 +41,38 @@ def xls_last_row(path: Path) -> int:
         book.release_resources()
 
 
+# The four workbooks the service copies from. A cutover folder that lacks one of
+# them would start and then fail the first report that needs it.
+REQUIRED = (
+    Path("OutStockList/OutStockListTemplate.xls"),
+    Path("STKADST/StockAdjustRecordTemplate.xls"),
+    Path("STKALLT/StockAllocateRecordTemplate.xls"),
+    Path("StockComparisonResult/StockComparisonResultTemplate.xls"),
+)
+
+
 @dataclass(frozen=True)
 class Result:
     template: Path  # the .xls, relative to the checked folder
-    xls_last: int
+    xls_last: int | None  # None: that .xls is not in the folder
     xlsx_last: int | None  # None: no converted .xlsx next to it
 
     @property
     def ok(self) -> bool:
-        return self.xls_last == self.xlsx_last
+        return self.xls_last is not None and self.xls_last == self.xlsx_last
 
 
 def check(excel_dir: Path) -> list[Result]:
-    results = []
+    found: dict[Path, Result] = {}
     for xls in sorted(excel_dir.rglob("*Template.xls")):
+        rel = xls.relative_to(excel_dir)
         xlsx = xls.with_suffix(".xlsx")
-        results.append(Result(
-            template=xls.relative_to(excel_dir),
-            xls_last=xls_last_row(xls),
-            xlsx_last=poi_last_row(xlsx) if xlsx.exists() else None,
-        ))
-    return results
+        found[rel] = Result(rel, xls_last_row(xls), poi_last_row(xlsx) if xlsx.exists() else None)
+    for required in REQUIRED:
+        if required not in found:
+            xlsx = (excel_dir / required).with_suffix(".xlsx")
+            found[required] = Result(required, None, poi_last_row(xlsx) if xlsx.exists() else None)
+    return [found[key] for key in sorted(found, key=lambda path: path.as_posix())]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -69,17 +82,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("excel_dir", type=Path, help="file.filePathForExcels, e.g. D:/OutputFiles")
     args = parser.parse_args(argv)
     results = check(args.excel_dir)
-    if not results:
-        print(f"no *Template.xls under {args.excel_dir}")
-        return 1
     for r in results:
-        if r.xlsx_last is None:
-            verdict = "MISSING .xlsx"
+        if r.xls_last is None:
+            verdict, xls = "MISSING .xls", "-"
+        elif r.xlsx_last is None:
+            verdict, xls = "MISSING .xlsx", r.xls_last
         else:
             verdict = "OK" if r.ok else f"MISMATCH (first data row {r.xls_last + 1} vs {r.xlsx_last + 1})"
+            xls = r.xls_last
         xlsx = "-" if r.xlsx_last is None else r.xlsx_last
-        print(f"{r.template.as_posix()}: .xls last row {r.xls_last}, .xlsx last row {xlsx} -> {verdict}")
-    return 0 if all(r.ok for r in results) else 1
+        print(f"{r.template.as_posix()}: .xls last row {xls}, .xlsx last row {xlsx} -> {verdict}")
+    return 0 if results and all(r.ok for r in results) else 1
 
 
 if __name__ == "__main__":
