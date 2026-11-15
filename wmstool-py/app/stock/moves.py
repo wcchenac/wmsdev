@@ -31,13 +31,25 @@ class NotFound(Exception):
 
 
 def _one(session: Session, stmt):  # noqa: ANN001, ANN202
-    """Spring Data single-result finder: none -> NotFound, more than one -> error."""
+    """Spring Data single-result finder: none -> NotFound, more than one -> error.
+
+    More than one row is Java's IncorrectResultSizeDataAccessException: the caller
+    rolls the request back instead of using an arbitrary row.
+    """
     rows = session.scalars(stmt).all()
     if not rows:
         raise NotFound(str(stmt))
     if len(rows) > 1:
         raise LookupError(f"query did not return a unique result: {len(rows)}")
     return rows[0]
+
+
+def _at_most_one(session: Session, stmt):  # noqa: ANN001, ANN202
+    """Optional single-result finder: none is None, more than one is an error."""
+    rows = session.scalars(stmt).all()
+    if len(rows) > 1:
+        raise LookupError(f"query did not return a unique result: {len(rows)}")
+    return rows[0] if rows else None
 
 
 def _identifier(session: Session, identifier_id: int) -> StockIdentifier:
@@ -90,16 +102,15 @@ def rollback_in_stock(session: Session, identifier_ids: list[int]) -> None:
     committed the ids already deleted without reducing the product totals."""
     totals: products.Totals = {}
     for identifier_id in identifier_ids:
-        info = session.scalars(select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id)).first()
-        trans = session.scalars(select(TransactionRecord).where(
-            TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.operator == "1")).first()
-        order = session.scalars(select(InStockOrderRecord).where(
-            InStockOrderRecord.stockIdentifierId == identifier_id)).first()
-        si = session.get(StockIdentifier, identifier_id)
-        history = session.scalars(select(History).where(History.currentIdentifierId == identifier_id)).first()
-        if None in (info, trans, order, si, history):
-            raise LookupError(f"in-stock rollback: data for identifier {identifier_id} not found")
-        assert si is not None
+        # Each finder is single-result. A second row raises before any DELETE, so a
+        # duplicated child is not removed along with the one the caller named.
+        info = _one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
+        trans = _one(session, select(TransactionRecord).where(
+            TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.operator == "1"))
+        order = _one(session, select(InStockOrderRecord).where(
+            InStockOrderRecord.stockIdentifierId == identifier_id))
+        si = _one(session, select(StockIdentifier).where(StockIdentifier.id == identifier_id))
+        history = _one(session, select(History).where(History.currentIdentifierId == identifier_id))
         session.execute(delete(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
         session.execute(delete(TransactionRecord).where(
             TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.operator == "1"))
