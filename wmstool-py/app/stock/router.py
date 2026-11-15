@@ -6,16 +6,17 @@ error and roll back; everything else lets exceptions reach the 500 handler,
 which also rolls the request's transaction back (get_session).
 """
 
+import datetime as dt
 import logging
-from typing import Any
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 from sqlalchemy.orm import Session
 
 from app.db import get_session
-from app.javacompat import java_is_blank, spring_parse_long
+from app.javacompat import java_is_blank, java_parse_int, java_parse_long, spring_parse_long
 from app.security.auth import require_roles
 from app.stock import compare, history, moves, orders, queries, shrink
 from app.stock.intake import InStockItem, create_stock_infoes
@@ -368,8 +369,110 @@ def wait_to_shrink_rollback(stockIdentifierId: int, request: Request,
     return Response(status_code=200)
 
 
+def _jackson_whole(value: object, *, bits: int) -> int:
+    """Jackson 2.10 primitive int/long: numbers, numeric strings; null becomes 0."""
+    if value is None:
+        return 0
+    if isinstance(value, bool):
+        raise ValueError("not a number")
+    if isinstance(value, int):
+        number = value
+    elif isinstance(value, float):
+        if value != value or value in (float("inf"), float("-inf")):  # NaN
+            raise ValueError("not a number")
+        number = int(value)  # ACCEPT_FLOAT_AS_INT, toward zero
+    elif isinstance(value, str):
+        number = (java_parse_int if bits == 32 else java_parse_long)(value.strip())
+    else:
+        raise ValueError("not a number")
+    limit = 1 << (bits - 1)
+    if not -limit <= number < limit:
+        raise ValueError("out of range")
+    return number
+
+
+def _jackson_bool(value: object) -> bool:
+    """Jackson 2.10 primitive boolean. The string "false" is false, not Python's bool("false")."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value != 0
+    if isinstance(value, str):
+        text = value.strip()
+        if text in ("true", "True"):
+            return True
+        if text in ("false", "False") or text == "":
+            return False
+    if value is None:
+        return False  # FAIL_ON_NULL_FOR_PRIMITIVES is off
+    raise ValueError('only "true" or "false" recognized')
+
+
+def _jackson_long_or_none(value: object) -> int | None:
+    """Jackson Long (the id). Null means a new row; a non-numeric value is a 400."""
+    if value is None:
+        return None
+    return _jackson_whole(value, bits=64)
+
+
+def _jackson_datetime(value: object) -> dt.datetime | None:
+    """Jackson LocalDateTime: an ISO string or a jsr310 int array. Omitted stays null."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        text = value.strip()
+        if text.endswith("Z"):
+            text = text[:-1]
+        try:
+            parsed = dt.datetime.fromisoformat(text)
+        except ValueError as exc:
+            raise ValueError("not a LocalDateTime") from exc
+        return parsed.replace(tzinfo=None)
+    if isinstance(value, list) and 3 <= len(value) <= 7 and all(
+            isinstance(part, int) and not isinstance(part, bool) for part in value):
+        year, month, day, hour, minute, second, nano = [*value, *([0] * (7 - len(value)))][:7]
+        return dt.datetime(year, month, day, hour, minute, second, nano // 1000)
+    raise ValueError("not a LocalDateTime")
+
+
+JacksonInt = Annotated[int, BeforeValidator(lambda value: _jackson_whole(value, bits=32))]
+JacksonLong = Annotated[int, BeforeValidator(lambda value: _jackson_whole(value, bits=64))]
+JacksonBool = Annotated[bool, BeforeValidator(_jackson_bool)]
+JacksonLongOrNone = Annotated[int | None, BeforeValidator(_jackson_long_or_none)]
+JacksonDateTime = Annotated[dt.datetime | None, BeforeValidator(_jackson_datetime)]
+
+
+class OutStockBody(BaseModel):
+    """Java OutStockRequest as Jackson 2.10 (Spring Boot 2.2) reads it.
+
+    Deserialization runs before @PreAuthorize, so a non-numeric color is 400 even
+    for a caller who would otherwise be 403. Unknown properties are ignored.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    id: JacksonLongOrNone = None
+    productNo: str | None = None
+    lotNo: str | None = None
+    type: str | None = None
+    quantity: str | None = None
+    unit: str | None = None
+    color: JacksonInt = 0
+    defect: str | None = None
+    reason: str | None = None
+    stockIdentifierId: JacksonLong = 0
+    fileName: str | None = None
+    handled: JacksonBool = False
+    deleted: JacksonBool = False
+    requestFrom: str | None = None
+    updatedBy: str | None = None
+    createdAt: JacksonDateTime = None
+    updatedAt: JacksonDateTime = None
+
+
 @router.post("/outStock")
-def out_stock(body: dict[str, Any], request: Request, session: Session = Depends(get_session)) -> Response:
+def out_stock(body: OutStockBody, request: Request, session: Session = Depends(get_session)) -> Response:
+    """Body validation (Jackson) runs before this function, so before the role check."""
     principal = ops(request)
     created = moves.create_out_stock_request(session, body, principal.full_name)
     return JSONResponse(out_stock_request_json(created))

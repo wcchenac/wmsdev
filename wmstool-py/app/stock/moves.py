@@ -196,20 +196,34 @@ def unmark_wait_to_shrink(session: Session, identifier_id: int, editor: str) -> 
     session.flush()
 
 
-OUT_REQUEST_FIELDS = ("productNo", "lotNo", "type", "quantity", "unit", "color", "defect", "reason",
-                      "stockIdentifierId", "fileName", "requestFrom")
+def create_out_stock_request(session: Session, body, editor: str) -> OutStockRequest:  # noqa: ANN001
+    """OutStockRequestFunction.createOutStockRequest: a pull request not tied to a roll (type 2).
 
-
-def create_out_stock_request(session: Session, fields: dict, editor: str) -> OutStockRequest:
-    """OutStockRequestFunction.createOutStockRequest: a pull request not tied to a roll (type 2)."""
-    request = OutStockRequest(
-        **{k: fields[k] for k in OUT_REQUEST_FIELDS if k in fields},
-        isHandled=bool(fields.get("handled", False)), isDeleted=bool(fields.get("deleted", False)),
-        outStockType=2, createdBy=editor, createdAt=java_now_utc(),
-    )
-    request.color = request.color or 0
-    request.stockIdentifierId = request.stockIdentifierId or 0
-    session.add(request)
+    `body` is the Jackson-parsed OutStockRequest (router.OutStockBody). Spring Data
+    save() persists when id is null and merges otherwise: an id that is not in the
+    table is inserted with a new identity (GenerationType.IDENTITY), and an existing
+    id is overwritten with the detached state. createdBy and outStockType are set
+    here; updatedBy is whatever the client sent. @PrePersist stamps createdAt only
+    on insert; @PreUpdate stamps updatedAt only on merge.
+    """
+    now = java_now_utc()
+    existing = session.get(OutStockRequest, body.id) if body.id is not None else None
+    values = {
+        "productNo": body.productNo, "lotNo": body.lotNo, "type": body.type, "quantity": body.quantity,
+        "unit": body.unit, "color": body.color, "defect": body.defect, "reason": body.reason,
+        "stockIdentifierId": body.stockIdentifierId, "fileName": body.fileName,
+        "isHandled": body.handled, "isDeleted": body.deleted, "requestFrom": body.requestFrom,
+        "outStockType": 2, "createdBy": editor, "updatedBy": body.updatedBy,
+    }
+    if existing is None:
+        request = OutStockRequest(**values, createdAt=now, updatedAt=body.updatedAt)
+        session.add(request)
+    else:
+        for name, value in values.items():
+            setattr(existing, name, value)
+        existing.createdAt = body.createdAt
+        existing.updatedAt = now
+        request = existing
     session.flush()
     return request
 
