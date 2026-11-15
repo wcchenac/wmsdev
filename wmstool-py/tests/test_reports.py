@@ -25,6 +25,16 @@ def test_resolves_category_report(excel_dir):
     assert resolve_download("categoryDetail", "CategoryDetail-棉布.xlsx") == expected
 
 
+@pytest.mark.parametrize("name", ["", ".", "..", ".xls", ".xlsx", "..xls", "...xls"])
+def test_rejects_empty_and_dot_names_the_way_java_does(excel_dir, name):
+    """After the extension is stripped, "", "." and ".." are a 400, as Java's
+    pathResolver or Files.readAllBytes fails for them."""
+    (excel_dir / "CategoryDetail" / ".xlsx").write_bytes(b"x")
+    (excel_dir / "CategoryDetail" / "..xlsx").write_bytes(b"x")
+    assert resolve_download("categoryDetail", name) is None
+    assert resolve_download("allocation", name) is None
+
+
 @pytest.mark.parametrize("name", ["../secret", "..\\secret", "C:secret", "C:/secret", "/etc/passwd"])
 def test_rejects_names_that_could_leave_the_folder(excel_dir, name):
     assert resolve_download("categoryDetail", name) is None
