@@ -2,45 +2,27 @@ import React, { useState, useCallback, ChangeEvent } from "react";
 import { setWHByImportFile } from "../../../../actions/FileActions";
 import { toast } from "react-toastify";
 import { isSessionExpired } from "../../../../utilities/notifyRequestFailed";
+import { acceptXlsxSelection } from "./xlsxImport";
 import "react-toastify/dist/ReactToastify.css";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 
 const SetWarehouse: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedFile, setSelectedFile] = useState<FileList | null>(null);
-
-  const checkMimeType = useCallback((event: ChangeEvent<HTMLInputElement>): boolean => {
-    const files = event.target.files;
-    if (!files) return false;
-
-    const err: string[] = [];
-    const type =
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-    for (let i = 0; i < files.length; i += 1) {
-      if (files[i].type !== type) {
-        err[i] = files[i].type + " is not a supported format\n";
-      }
-    }
-
-    for (let j = 0; j < err.length; j += 1) {
-      event.target.value = ""; // discard selected file
-
-      toast.error(err[j]);
-    }
-
-    return true;
-  }, []);
+  const [selectedFile, setSelectedFile] = useState<File[] | null>(null);
 
   const onChangeHandler = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
-    if (checkMimeType(event)) {
-      setSelectedFile(event.target.files);
+    if (acceptXlsxSelection(event)) {
+      setSelectedFile(Array.from(event.target.files ?? []));
+    } else {
+      setSelectedFile(null);
     }
-  }, [checkMimeType]);
+  }, []);
 
   const onClickHandler = useCallback((): void => {
-    if (!selectedFile) return;
+    if (isLoading || !selectedFile || selectedFile.length === 0) {
+      return;
+    }
 
     const data = new FormData();
 
@@ -60,7 +42,9 @@ const SetWarehouse: React.FC = () => {
           toast.error("upload fail");
         }
       });
-  }, [selectedFile]);
+  }, [isLoading, selectedFile]);
+
+  const uploadDisabled = isLoading || !selectedFile || selectedFile.length === 0;
 
   return (
     <div className="container">
@@ -73,14 +57,21 @@ const SetWarehouse: React.FC = () => {
                 <input
                   type="file"
                   name="files"
+                  accept=".xlsx"
                   multiple
                   onChange={onChangeHandler}
                 />
+                {selectedFile && selectedFile.length > 0 ? (
+                  <div className="mt-2 text-break">
+                    {selectedFile.map((file) => file.name).join(", ")}
+                  </div>
+                ) : null}
               </div>
               <button
                 type="button"
                 className="btn btn-success w-100"
                 onClick={onClickHandler}
+                disabled={uploadDisabled}
               >
                 上傳
               </button>
