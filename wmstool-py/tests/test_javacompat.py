@@ -1,6 +1,8 @@
 """Expected values measured on Temurin 1.8.0_492 (2026-11-13)."""
 
 import datetime as dt
+import json
+import pathlib
 
 import pytest
 
@@ -174,3 +176,24 @@ def test_parse_long_range():
     for bad in ("9223372036854775808", "", " 3", "3,"):
         with pytest.raises(ValueError):
             java_parse_long(bad)
+
+
+# ---------------------------------------------------------------- HashMap order
+
+_HASHMAP_CASES = json.loads(
+    (pathlib.Path(__file__).parent / "fixtures" / "java_hashmap" / "orders.json").read_text())
+
+
+@pytest.mark.parametrize("case", sorted(_HASHMAP_CASES))
+def test_hashmap_order_matches_jdk8(case):
+    """keySet() order recorded from a real JDK 8 HashMap (fixtures/java_hashmap), including
+    bins that collide: resized while the table is under 64, treeified at 64 and above,
+    trees growing, and trees split by later resizes."""
+    from app.javacompat import java_hashmap_order, java_hashmap_order_long
+
+    data = _HASHMAP_CASES[case]
+    if data["kind"] == "long":
+        actual = [str(k) for k in java_hashmap_order_long(int(k) for k in data["keys"])]
+    else:
+        actual = java_hashmap_order(data["keys"])
+    assert actual == data["java_order"]
