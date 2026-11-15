@@ -54,18 +54,29 @@ def _near_by(session: Session, product_no: str) -> tuple[str | None, str | None]
     return prev, nxt
 
 
-def product_overview(session: Session, product_no: str, basic: bool) -> dict[str, Any]:
-    """QueryProductNoResponse for queryStock/query/{1|2}/{productNo} (productNo already upper-cased)."""
+def product_information(product_no: str, basic: bool) -> dict[str, Any]:
+    """ERP product card. Called after the MySQL session for the query is closed."""
+    return _product_information(product_no, basic)
+
+
+def product_overview_db(session: Session, product_no: str) -> dict[str, Any]:
+    """The MySQL half of a product query. ERP product information is added afterwards,
+    so the connection is not held while SQL Server answers."""
     identifiers = session.scalars(select(StockIdentifier).where(
         StockIdentifier.productNo == product_no, StockIdentifier.isExist == True)  # noqa: E712
         .order_by(StockIdentifier.id)).all()
     result = [stock_info_json(_info_for(session, si.id)) for si in identifiers]
-    information = _product_information(product_no, basic)
     product_list = [product_json(p) for p in session.scalars(
         select(Product).where(Product.productNo == product_no).order_by(Product.id))]
     prev, nxt = _near_by(session, product_no)
-    return {"nextProduct": nxt, "prevProduct": prev, "result": result, "information": information,
-            "productList": product_list}
+    return {"nextProduct": nxt, "prevProduct": prev, "result": result, "productList": product_list}
+
+
+def product_overview(session: Session, product_no: str, basic: bool) -> dict[str, Any]:
+    """QueryProductNoResponse for queryStock/query/{1|2}/{productNo} (productNo already upper-cased)."""
+    payload = product_overview_db(session, product_no)
+    payload["information"] = _product_information(product_no, basic)
+    return payload
 
 
 def wait_to_shrink_list(session: Session) -> list[dict[str, Any]]:
@@ -87,14 +98,12 @@ def in_stock_rollback_list(session: Session, order_type: str, order_no: str) -> 
     return {k: grouped[k] for k in java_hashmap_order(grouped)}
 
 
-def category_detail_report(session: Session, category: str) -> str:
-    """findCategoryDetails: rolls of the category (MySQL), supplier info (ERP), sales summary."""
+def category_detail_data(session: Session, category: str) -> tuple[list[tuple], dict[str, dict[str, dict[str, str]]]]:
+    """MySQL rows for the category report. ERP supplier info is loaded after this."""
     from app.javacompat import java_format_2f, java_parse_double
-    from app.reports import category as category_report
 
     stock_rows = [tuple(r) for r in session.execute(
         text("SELECT * FROM wms.categorydetail WHERE category= :c"), {"c": category})]
-    info = {erp_text(r[0]): [erp_text(v) for v in r[1:6]] for r in erp.product_info_for_class(category)}
     sales: dict[str, dict[str, dict[str, str]]] = {}
     for r in session.execute(text("SELECT * FROM wms.salerecords WHERE category = :c"), {"c": category}):
         product_no, reason, quantity, unit = str(r[0]), str(r[1]), str(r[2]), str(r[3])
@@ -104,7 +113,22 @@ def category_detail_report(session: Session, category: str) -> str:
         else:
             entry = by_reason[reason]
             entry["quantity"] = java_format_2f(java_parse_double(entry["quantity"]) + java_parse_double(quantity))
+    return stock_rows, sales
+
+
+def write_category_detail(category: str, stock_rows: list[tuple],
+                          sales: dict[str, dict[str, dict[str, str]]]) -> str:
+    """ERP supplier info and the workbook. No MySQL."""
+    from app.reports import category as category_report
+
+    info = {erp_text(r[0]): [erp_text(v) for v in r[1:6]] for r in erp.product_info_for_class(category)}
     return category_report.write(category, stock_rows, info, sales)
+
+
+def category_detail_report(session: Session, category: str) -> str:
+    """findCategoryDetails: rolls of the category (MySQL), supplier info (ERP), sales summary."""
+    stock_rows, sales = category_detail_data(session, category)
+    return write_category_detail(category, stock_rows, sales)
 
 
 def _label_value(value: str | None) -> dict[str, str | None]:

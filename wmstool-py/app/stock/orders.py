@@ -84,8 +84,15 @@ def _erp_records(order_type: str, order_no: str) -> list[tuple[str, str, str, st
              unit_name(erp_text(r[2]))) for r in rows]
 
 
-def query_order(session: Session, order_type: str, order_no: str) -> dict[str, Status]:
-    current = _collect(_erp_records(order_type, order_no))
+def erp_current_status(order_type: str, order_no: str) -> Status:
+    """The ERP half of query_order, so the caller can close MySQL before this runs."""
+    return _collect(_erp_records(order_type, order_no))
+
+
+def query_order(session: Session, order_type: str, order_no: str,
+                current: Status | None = None) -> dict[str, Status]:
+    if current is None:
+        current = erp_current_status(order_type, order_no)
     records = session.scalars(select(InStockOrderRecord).where(
         InStockOrderRecord.inStockType == ORDER_TYPES[order_type],
         InStockOrderRecord.inStockOrderNo == order_no).order_by(InStockOrderRecord.id)).all()
@@ -118,9 +125,15 @@ def out_stock_to_store_order(order_no: str) -> list[dict[str, Any]]:
     return out
 
 
-def sync_product_category(session: Session) -> None:
+def erp_product_classes() -> dict[str, str]:
+    """ERP CLAS by product code. Loaded before the MySQL transaction is opened."""
+    return {erp_text(code): erp_text(clas) for code, clas in erp.product_classes()}
+
+
+def sync_product_category(session: Session, classes: dict[str, str] | None = None) -> None:
     """Every product takes its ERP class (CLAS), or 未分類 when the ERP has none."""
-    classes = {erp_text(code): erp_text(clas) for code, clas in erp.product_classes()}
+    if classes is None:
+        classes = erp_product_classes()
     for product in session.scalars(select(Product).order_by(Product.id)):
         target = classes.get(product.productNo or "", "未分類")
         if product.category != target:

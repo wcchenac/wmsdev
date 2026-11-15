@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, BeforeValidator, ConfigDict
 from sqlalchemy.orm import Session
 
-from app.db import get_session
+from app.db import get_session, session_scope
 from app.javacompat import java_is_blank, java_parse_int, java_parse_long, spring_parse_long
 from app.security.auth import require_roles
 from app.stock import compare, history, moves, orders, queries, shrink
@@ -173,12 +173,16 @@ def out_stock_update(body: OutStockUpdateRequest, request: Request,
 
 
 @router.get("/stockManagement/daily/stockCompare")
-def daily_stock_compare(request: Request, session: Session = Depends(get_session)) -> Response:
+def daily_stock_compare(request: Request) -> Response:
     admin(request)
     try:
-        compare.stock_full_comparison(session)
+        # Products are read and the connection closed before the ERP totals and the workbook.
+        with session_scope() as session:
+            products = compare.wms_products(session)
+        compare.write_stock_comparison(products)
     except Exception:
-        return _bad_request(session, "stockCompare")
+        logger.exception("stockCompare failed")
+        return Response(status_code=400)
     return Response(status_code=200)
 
 
@@ -213,34 +217,48 @@ def update_history(id: int, childs: str, request: Request, session: Session = De
 
 
 @router.get("/queryOrder/{orderType}/{orderNo}")
-def query_order(orderType: str, orderNo: str, request: Request, session: Session = Depends(get_session)) -> Response:
+def query_order(orderType: str, orderNo: str, request: Request) -> Response:
     require_roles("ROLE_Normal", "ROLE_Operator", "ROLE_Admin")(request)
     if orderType == "outStockToStore":
+        # ERP only. Opening a MySQL session here would hold a connection for the whole call.
         return JSONResponse(orders.out_stock_to_store_order(orderNo))
     if orderType not in orders.ORDER_TYPES:
         return Response(status_code=400)
-    return JSONResponse(orders.query_order(session, orderType, orderNo))
+    current = orders.erp_current_status(orderType, orderNo)
+    with session_scope() as session:
+        return JSONResponse(orders.query_order(session, orderType, orderNo, current))
 
 
 @router.get("/queryStock/query/2/{productNo}")
-def query_product_basic(productNo: str, request: Request, session: Session = Depends(get_session)) -> Response:
+def query_product_basic(productNo: str, request: Request) -> Response:
     require_roles("ROLE_Normal", "ROLE_Sales", "ROLE_Operator", "ROLE_Admin")(request)
-    return JSONResponse(queries.product_overview(session, productNo.upper(), basic=True))
+    product_no = productNo.upper()
+    with session_scope() as session:
+        payload = queries.product_overview_db(session, product_no)
+    payload["information"] = queries.product_information(product_no, basic=True)
+    return JSONResponse(payload)
 
 
 @router.get("/queryStock/query/1/{productNo}")
-def query_product_detail(productNo: str, request: Request, session: Session = Depends(get_session)) -> Response:
+def query_product_detail(productNo: str, request: Request) -> Response:
     require_roles("ROLE_Sales", "ROLE_Operator", "ROLE_Admin")(request)
-    return JSONResponse(queries.product_overview(session, productNo.upper(), basic=False))
+    product_no = productNo.upper()
+    with session_scope() as session:
+        payload = queries.product_overview_db(session, product_no)
+    payload["information"] = queries.product_information(product_no, basic=False)
+    return JSONResponse(payload)
 
 
 @router.get("/stockManagement/weekly/syncProductCategory")
-def sync_product_category(request: Request, session: Session = Depends(get_session)) -> Response:
+def sync_product_category(request: Request) -> Response:
     admin(request)
     try:
-        orders.sync_product_category(session)
+        classes = orders.erp_product_classes()
+        with session_scope() as session:
+            orders.sync_product_category(session, classes)
     except Exception:
-        return _bad_request(session, "syncProductCategory")
+        logger.exception("syncProductCategory failed")
+        return Response(status_code=400)
     return Response(status_code=200)
 
 
@@ -267,12 +285,15 @@ def category_list(request: Request, session: Session = Depends(get_session)) -> 
 
 
 @router.get("/queryStock/category/{category}")
-def category_detail(category: str, request: Request, session: Session = Depends(get_session)) -> Response:
+def category_detail(category: str, request: Request) -> Response:
     admin(request)
     try:
-        queries.category_detail_report(session, category)
+        with session_scope() as session:
+            stock_rows, sales = queries.category_detail_data(session, category)
+        queries.write_category_detail(category, stock_rows, sales)
     except Exception:
-        return _bad_request(session, "category detail")
+        logger.exception("category detail failed")
+        return Response(status_code=400)
     return Response(status_code=200)
 
 
