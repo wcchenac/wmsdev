@@ -84,6 +84,7 @@ docker compose up -d --wait
 | 修補 | 修正 | 改變的測試 |
 |---|---|---|
 | `history-routes.patch` | 第 1 項：history 兩個 mapping 以 `params` 區分，不再一律 500 | history 相關測試、`test_auth_matrix` 的 history 路由 |
+| `02-history-children-blob.patch` | 第 2 項：`history.childrenIdentifierId` 對應成 `BLOB`（只影響新建的 schema；既有資料庫要靠 migration，見下方「部署注意：history 子項欄位」） | `test_shrink_stock_child_limit`（測試自己設定欄位型別，見其 docstring） |
 | `03-instock-rollback-atomic.patch` | 第 3 項：入庫回滾任何一個 id 失敗就整筆回滾、回 400 | `test_in_stock_rollback`、`test_in_stock_rollback_partial_failure` |
 | `04-shrink-rollback-atomic.patch` | 第 4 項：減肥回滾任何一步失敗（重複減肥、沒減肥過、範本遺失）就整筆回滾、回 400；重建報表前先確認兩份範本都能解析 | `test_shrink_stock_rollback`、`test_shrink_rollback_after_double_shrink`、`test_shrink_rollback_template_missing_keeps_reports`、`test_shrink_rollback_adjustment_template_missing` |
 | `05-pull-list-append-same-second.patch` | 第 5 項：同一秒已有拉貨單時附加在後面，不再用範本覆寫（檔名格式不變） | `test_out_stock_update_twice_in_one_second` |
@@ -92,6 +93,7 @@ docker compose up -d --wait
 | `08-shrink-report-failure-keeps-shrink.patch` | 第 8 項：減肥寫報表失敗（任何例外，包括 POI 對空檔或壞檔丟的 RuntimeException）時減肥照樣成立、回 200，報表失敗只記 log；兩份報表各自寫入 | `test_shrink_stock_report_template_missing`、`test_shrink_stock_template_missing_with_todays_report`、`test_shrink_stock_allocation_template_missing`、`test_shrink_stock_allocation_template_empty` |
 | `09-import-skip-blank-rows.patch` | 第 9 項：進貨匯入略過沒有任何文字的列，不再整個檔案被略過 | `test_import_cell_existence`、`test_import_trailing_rows_without_cells`、`test_import_blank_rows_between_data` |
 | `10-category-detail-missing-erp-product.patch` | 第 10 項：類別明細裡 ERP 查不到的商品，商品資訊欄留空，不再讓整份報表失敗（原本還會留下 0 byte 的報表檔） | `test_category_detail_report_product_missing_in_erp` |
+| `11-history-tree-stockinfo-all-nodes.patch` | 第 11 項：history 樹的每個節點都帶出 stockInfo，不再只有查詢起日之後建立的卷才有（區間仍只用來挑選要回傳的樹） | `test_history_tree_start_boundary` |
 | `12-missing-field-message.patch` | 第 12 項：`shrinkStock` 缺 `inStockRequests`、`outStock/update` 缺 `outStockUpdate` 時，400 附上 `{欄位: 訊息}`；拉貨單在檢查之後才建立 | `test_shrink_stock_without_pieces_field`、`test_out_stock_update_without_map` |
 
 Python 版跟著修補版 Java 走：上表的測試在 Python 上比對 `.fixed.json`。
@@ -107,7 +109,7 @@ docker compose -f docker-compose.yml -f docker-compose.java-fixed.yml up -d --wa
 docker compose up -d --wait                  # 換回原版 Java
 ```
 
-不要用 `-m java_bug` 全部重錄：沒有修補的缺陷（例如 `test_shrink_stock_child_limit`，第 2 項）會多出一份跟 `.json` 相同的 `.fixed.json`，看起來像已修好。
+不要用 `-m java_bug` 全部重錄：日後新增、但還沒修補的缺陷會多出一份跟 `.json` 相同的 `.fixed.json`，看起來像已修好。
 
 確認修補版 Java 沒有改到其他行為：對修補版跑整套並比對原版的 golden（`--golden-variant java`），失敗的應該只有上表的測試。
 
@@ -115,6 +117,45 @@ docker compose up -d --wait                  # 換回原版 Java
 
 - 切換後 Python 版只寫 `.xlsx`；正式機既有的 `.xls` 報表**不轉換**，Python 版的查詢（today／interval／categoryList）與下載同時認得 `.xls` 與 `.xlsx`，兩者並存時以 `.xlsx` 為準（`test_legacy_xls_reports_remain_usable`）。
 - `shrinkStock` 的調撥／調整報表在資料庫 commit 之後才寫，兩份各自寫入。寫入失敗（例如範本遺失、當天報表被 Excel 開著）時減肥照樣成立、回 200（Java 原本回 400，見第 8 項修補）；log 會記下需要人工補寫的報表（`test_shrink_stock_report_template_missing`）。**切換後請監看這類 log**，因為使用者不會在畫面上看到報表沒寫成。
+
+## 部署注意：history 子項欄位
+
+`history.childrenIdentifierId` 存的是 Java 序列化的 `Long[]`：有 n 個子項（n ≥ 1）時是 106 + 14n bytes，空陣列是 42 bytes。Hibernate 預設建成 `TINYBLOB`（255 bytes），一卷最多只能切 10 塊（246 bytes）；Python 版的 Alembic migration `0002` 把它改成 `BLOB`（約 4,600 個子項）。序列化格式不變，既有資料不用轉換，切回 Java 也能直接讀寫。
+
+### 切換順序
+
+Python 容器每次啟動都會先執行 `alembic upgrade head`（見 `wmstool-py/Dockerfile`），所以**第一次啟動 Python 容器時就會套用 `0002`**。照這個順序做：
+
+1. **停掉 Java 服務。** `0002` 是 `ALTER TABLE history MODIFY childrenIdentifierId BLOB`。MySQL 只能用複製整張表的方式改這個欄位型別（`ALGORITHM=COPY`），執行期間 `history` 可以讀、**不能寫**，表越大花的時間越長。Java 停機後再改，就不會有寫入被卡住。
+2. **檢查有沒有被截斷的資料**（只讀，見下一節），有的話先記下修復語句。
+3. **標記既有資料庫的版本**：在啟動 Python 容器**之前**，對正式資料庫執行 `alembic stamp 0001`，讓 Alembic 知道 baseline 已經存在（baseline 用的是 `CREATE TABLE IF NOT EXISTS`，不 stamp 也不會毀掉資料，但版本紀錄應該從 0001 開始）。
+4. **啟動 Python 容器**：它會自動執行 `alembic upgrade head`，套用 `0002`。
+5. **執行第 2 步記下的修復語句**（必須在 `0002` 之後：修好的值會超過 255 bytes），再跑一次檢查，確認全部讀得回來。
+
+`0002` 的 downgrade 在有超過 255 bytes 的資料時會拒絕執行，避免截斷資料。
+
+### 檢查與修復被截斷的資料
+
+正式機若不是 strict mode，切出第 11 塊時，MySQL 不會報錯，而是把整串子項清單截成剛好 255 bytes（已在 MySQL 8.0 實測）。這種值 Java 和 Python 都無法反序列化，之後對那一卷的回滾、history 查詢都會失敗。
+
+用 wmstool-py 的檢查工具掃整張表（只讀，不會修改資料）：
+
+```bash
+python -m app.history_check "mysql+pymysql://<user>:<password>@<host>/wms?charset=utf8mb4"
+```
+
+全部正常時印出 `every history row reads back`、結束代碼 0。有問題的列會印出：
+
+- 宣告的子項數量，以及還讀得出來的子項 id。截成 255 bytes 的值仍完整保留子項總數和前 10 個子項，只少了第 11 個以後的。
+- 缺少子項的**所有**候選，必須同時符合：
+  - 屬於同一棵樹：它自己的 history 列的 `rootIdentifierId` 跟該卷相同（Java 減肥時，會先替每一塊建好 history 列，才更新母卷的子項清單，所以截斷不影響這一層）。
+  - 有 SKI（減肥入庫）交易紀錄，貨號相同、批號相同（批號是 NULL 也比對得到）。
+  - id 大於最後一個讀得出來的子項。
+  - 沒有被其他讀得出來的 history 列列為子項。
+- 只有在候選數量**剛好等於**缺少的數量，而且沒有其他有問題的列提出同一個候選時，才印出修復用的 `UPDATE history SET childrenIdentifierId = 0x… WHERE id = …;`。
+- 候選比缺少的多，或跟其他有問題的列共用候選時，會印出警告、不印 `UPDATE`；找不到候選或數量不足時也一樣不印。這些情況要依交易紀錄人工判斷。
+
+候選只是推測，執行 `UPDATE` 之前要逐筆確認它們真的是那一次減肥切出來的：例如它們的 SKI 紀錄時間，要跟該卷的 SKO（減肥出庫）紀錄時間幾乎相同。
 
 ## 部署注意：報表範本
 
@@ -143,7 +184,7 @@ python -m app.template_check D:/OutputFiles
 golden file 忠實記錄了 Java 版的缺陷。重寫版可以修正，但要**刻意**重錄該 golden file：
 
 - `GET /api/stock/queryStock/history/{productNo}` 與 `GET /api/stock/queryStock/history/{id}` 是同一條路由，Spring 對所有請求回 500（`Ambiguous handler methods`）。前端「歷史記錄查詢」因此無法使用。
-- `history.childrenIdentifierId` 是存在 `tinyblob` 的 Java 序列化 `Long[]`（106 + 14n bytes）：一卷最多 10 個子項，第 11 個讓整個減肥請求失敗（400，交易回滾）。正式機若非 strict mode，則可能是靜默截斷。
+- `history.childrenIdentifierId` 是存在 `tinyblob` 的 Java 序列化 `Long[]`（106 + 14n bytes）：一卷最多 10 個子項，第 11 個讓整個減肥請求失敗（400，交易回滾）。正式機若非 strict mode，則可能是靜默截斷。Python 版以 migration `0002` 改成 `BLOB`（見「部署注意：history 子項欄位」）。
 
 ## 已知限制
 

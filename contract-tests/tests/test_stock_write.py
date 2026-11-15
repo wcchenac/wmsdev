@@ -269,12 +269,48 @@ def test_shrink_stock_without_adjustment(operator, db, golden):
     "106 + 14n bytes, so an 11th child overflows and the whole shrink is rejected"
 )
 def test_shrink_stock_child_limit(operator, db, golden):
-    seed_baseline(operator)
-    golden.response("10_pieces", operator.post("/api/stock/shrinkStock",
-                                               json=shrink_request(1, ["4"] * 10, allocation=0, adjustment=0)))
-    golden.response("11_pieces", operator.post("/api/stock/shrinkStock",
-                                               json=shrink_request(2, ["4"] * 11, allocation=0, adjustment=0)))
-    golden.add("db", db_state(db, ["stockidentifier", "history"]))
+    """The limit lives in the column type, not in the code, so the test sets the column
+    the compared behavior assumes and puts the previous type back afterwards:
+
+    - .json (original Java): TINYBLOB, as Hibernate generated it;
+    - .fixed.json on Java: BLOB, the cutover migration the patched Java relies on
+      (java-patches/02-history-children-blob.patch only changes the mapping for new schemas);
+    - .fixed.json on Python: left alone — the rewrite's own Alembic migration (0002) must
+      have widened it.
+
+    Patched Java (.fixed.json, followed by Python): 11 children fit (200)."""
+    import conftest
+    from conftest import history_children_column
+
+    wanted = None
+    if golden.path == golden.java_path:
+        wanted = "TINYBLOB"
+    elif conftest.BACKEND_KIND == "java":
+        wanted = "BLOB"
+    with history_children_column(wanted):
+        seed_baseline(operator)
+        golden.response("10_pieces", operator.post("/api/stock/shrinkStock",
+                                                   json=shrink_request(1, ["4"] * 10, allocation=0, adjustment=0)))
+        golden.response("11_pieces", operator.post("/api/stock/shrinkStock",
+                                                   json=shrink_request(2, ["4"] * 11, allocation=0, adjustment=0)))
+        golden.add("db", db_state(db, ["stockidentifier", "history"]))
+
+
+def test_shrink_into_more_than_ten_pieces_reads_back(admin, db, golden):
+    """With the column widened (migration 0002), more than 10 children must also be read
+    back, not just stored: the rollback list shows all 11 pieces under the roll, and the
+    rollback removes all 11. Java runs on the widened column too (it reads and writes it
+    unchanged); the rewrite is held to its own migration, so the column is left alone."""
+    import conftest
+    from conftest import history_children_column
+
+    with history_children_column("BLOB" if conftest.BACKEND_KIND == "java" else None):
+        seed_baseline(admin)
+        golden.response("shrink", admin.post("/api/stock/shrinkStock",
+                                             json=shrink_request(1, ["4"] * 11, allocation=0, adjustment=0)))
+        golden.response("rollback_list", admin.get("/api/stock/queryStock/shrinkRollback/CF1001"))
+        golden.response("rollback", admin.patch("/api/stock/shrinkStock/rollback/1"))
+        golden.add("db", db_state(db, ["stockidentifier", "history"]))
 
 
 @pytest.mark.java_bug("rolling back a roll that was never shrunk fails inside rollbackShrink, which "
