@@ -52,10 +52,8 @@ const EditModal: React.FC<EditModalProps> = ({
     setUserInfo(prevInfo => {
       const infoCopy = copy(prevInfo) as UserInfoState;
 
+      // The name is read-only here: it is shown and sent back unchanged.
       switch (name) {
-        case "fullName":
-          infoCopy["employeeId"] = value;
-          break;
         case "newPassword":
           infoCopy["newPassword"] = value;
           break;
@@ -70,10 +68,19 @@ const EditModal: React.FC<EditModalProps> = ({
     });
   }, []);
 
+  // The backend rejects an empty role (「請選擇...」): RoleName.valueOf("") fails.
+  const canSave = Boolean(userInfo.role);
+
   const handleUpdateSubmitClick = useCallback((): void => {
+    if (!userInfo.role) {
+      return;
+    }
+    // The backend re-hashes the password whenever newPassword is not null, so a field that
+    // was typed in and then cleared (or only spaces) is left out instead of setting "".
+    const newPassword = userInfo.newPassword?.trim() ? userInfo.newPassword : undefined;
     const updateInfoRequest: UpdateUserRequest = {
       employeeId: userInfo.employeeId || "",
-      newPassword: userInfo.newPassword,
+      newPassword,
       fullName: userInfo.fullName,
       role: userInfo.role
     };
@@ -164,11 +171,15 @@ const EditModal: React.FC<EditModalProps> = ({
               <p className="h5 mb-0 mt-2">更新員工資料</p>
             </div>
             <div className="col-md-auto">
-              <i
-                className="fa fa-pencil"
-                aria-hidden="true"
+              <button
+                type="button"
+                className="border-0 bg-transparent p-0 text-reset"
+                aria-label="編輯"
+                aria-pressed={editMode}
                 onClick={handleEditMode}
-              ></i>
+              >
+                <i className="fa fa-pencil" aria-hidden="true"></i>
+              </button>
             </div>
           </div>
         </Modal.Title>
@@ -181,7 +192,7 @@ const EditModal: React.FC<EditModalProps> = ({
           <Button variant="secondary" onClick={handleModalClose}>
             取消
           </Button>
-          <Button variant="primary" onClick={handleUpdateSubmitClick}>
+          <Button variant="primary" onClick={handleUpdateSubmitClick} disabled={!canSave}>
             儲存
           </Button>
         </Modal.Footer>
