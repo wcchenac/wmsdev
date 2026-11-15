@@ -37,6 +37,63 @@ const hasResultProperty = (
   );
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return value !== null && typeof value === "object";
+};
+
+const isStockRow = (value: unknown): value is StockInfo => {
+  return isRecord(value) && "stockIdentifier" in value;
+};
+
+const quantityAfterShip = (
+  current: unknown,
+  shippedQty: number
+): number | string => {
+  const next = Math.round((Number(current) - shippedQty) * 100) / 100;
+  if (typeof current === "string") {
+    return Number.isInteger(next) ? String(next) : next.toFixed(2);
+  }
+  return next;
+};
+
+/**
+ * result loses the shipped row. productList is either those same rows or the
+ * per-type quantity totals built from them, and either way it has to follow
+ * result or the totals still include the stock that just left.
+ */
+const productListAfterShip = (
+  productList: unknown[],
+  shipped: StockInfo | undefined
+): unknown[] => {
+  const shippedId = shipped?.stockIdentifier?.id;
+  if (productList.some(isStockRow)) {
+    return productList.filter((item) => {
+      if (!isStockRow(item)) {
+        return true;
+      }
+      return item.stockIdentifier?.id !== shippedId;
+    });
+  }
+
+  const type = shipped?.stockIdentifier?.type;
+  const shippedQty = Number(shipped?.stockIdentifier?.quantity);
+  if (!type || !Number.isFinite(shippedQty)) {
+    return productList;
+  }
+
+  let applied = false;
+  return productList.map((item) => {
+    if (applied || !isRecord(item) || item.type !== type) {
+      return item;
+    }
+    if (!Number.isFinite(Number(item.quantity))) {
+      return item;
+    }
+    applied = true;
+    return { ...item, quantity: quantityAfterShip(item.quantity, shippedQty) };
+  });
+};
+
 export default function StockReducer(
   state: StockState = initialState,
   action: StockAction
@@ -58,15 +115,25 @@ export default function StockReducer(
       };
     case SHIP_Stock: {
       if (hasResultProperty(state.stockInfoes)) {
+        const shippedId = action.payload as number;
+        const shipped = state.stockInfoes.result.find(
+          (stockInfo) => stockInfo.stockIdentifier?.id === shippedId
+        );
+        const stockInfoes: StockInfoesWithResult = {
+          ...state.stockInfoes,
+          result: state.stockInfoes.result.filter(
+            (stockInfo) => stockInfo.stockIdentifier?.id !== shippedId
+          )
+        };
+        if (Array.isArray(state.stockInfoes.productList)) {
+          stockInfoes.productList = productListAfterShip(
+            state.stockInfoes.productList,
+            shipped
+          );
+        }
         return {
           ...state,
-          stockInfoes: {
-            ...state.stockInfoes,
-            result: state.stockInfoes.result.filter(
-              (stockInfo) =>
-                stockInfo.stockIdentifier?.id !== (action.payload as number)
-            )
-          }
+          stockInfoes
         };
       }
       return state;

@@ -213,12 +213,14 @@ export const stockIdentifierIsShiped =
   (shipRequest: ShipRequest) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
+      const res = await API.patch("/api/stock/shipStock", shipRequest);
+
       dispatch({
         type: SHIP_Stock,
         payload: shipRequest.stockIdentifierId,
       });
 
-      return await API.patch("/api/stock/shipStock", shipRequest);
+      return res;
     } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({

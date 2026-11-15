@@ -1,8 +1,10 @@
 import type { Mocked } from 'vitest';
 import configureMockStore from 'redux-mock-store';
+import { applyMiddleware, createStore } from 'redux';
 import { thunk, ThunkDispatch } from 'redux-thunk';
 import * as actions from '../../actions/StockActions';
 import * as types from '../../types';
+import rootReducer from '../../reducers';
 import API from '../../utilities/API';
 import { AnyAction } from 'redux';
 
@@ -256,16 +258,33 @@ describe('StockActions', () => {
       destination: '中壢'
     };
 
-    test('dispatches SHIP_Stock immediately', async () => {
-      mockedAPI.patch.mockResolvedValue({ data: {} });
+    test('dispatches SHIP_Stock only after the patch succeeds', async () => {
+      const stockInfoes = {
+        result: [
+          { stockIdentifier: { id: 123, type: '板卷', quantity: 4, unit: '碼' } },
+          { stockIdentifier: { id: 124, type: '板卷', quantity: 6, unit: '碼' } }
+        ],
+        productList: [
+          { type: '板卷', quantity: 10, unit: '碼' }
+        ]
+      };
+      const realStore = createStore(rootReducer, {
+        stockInfo: { stockInfoes, stockInfo: {} }
+      }, applyMiddleware(thunk));
 
-      await store.dispatch(actions.stockIdentifierIsShiped(shipRequest));
-
-      const dispatchedActions = store.getActions();
-      expect(dispatchedActions[0]).toEqual({
-        type: types.SHIP_Stock,
-        payload: shipRequest.stockIdentifierId
+      mockedAPI.patch.mockImplementation(async () => {
+        expect(realStore.getState().stockInfo.stockInfoes).toEqual(stockInfoes);
+        return { status: 200, data: {} };
       });
+
+      await realStore.dispatch(actions.stockIdentifierIsShiped(shipRequest));
+
+      const shipped = realStore.getState().stockInfo.stockInfoes;
+      if (Array.isArray(shipped) || !('result' in shipped)) {
+        throw new Error('expected stockInfoes.result');
+      }
+      expect(shipped.result.map((row) => row.stockIdentifier?.id)).toEqual([124]);
+      expect(shipped.productList).toEqual([{ type: '板卷', quantity: 6, unit: '碼' }]);
     });
 
     test('calls API.patch with correct endpoint and data', async () => {
@@ -276,21 +295,25 @@ describe('StockActions', () => {
       expect(mockedAPI.patch).toHaveBeenCalledWith('/api/stock/shipStock', shipRequest);
     });
 
-    test('dispatches GET_Errors on failure', async () => {
+    test('a failed shipStock does not remove the item', async () => {
       const errorData = { message: 'Ship failed' };
+      const stockInfoes = {
+        result: [
+          { stockIdentifier: { id: 123, type: '板卷', quantity: 4, unit: '碼' } }
+        ],
+        productList: [{ type: '板卷', quantity: 4, unit: '碼' }]
+      };
+      const realStore = createStore(rootReducer, {
+        stockInfo: { stockInfoes, stockInfo: {} }
+      }, applyMiddleware(thunk));
       mockedAPI.patch.mockRejectedValue({ response: { data: errorData } });
 
-      try {
-        await store.dispatch(actions.stockIdentifierIsShiped(shipRequest));
-      } catch (err) {
-        // expected error
-      }
-
-      const dispatchedActions = store.getActions();
-      expect(dispatchedActions[1]).toEqual({
-        type: types.GET_Errors,
-        payload: errorData
+      await expect(realStore.dispatch(actions.stockIdentifierIsShiped(shipRequest))).rejects.toEqual({
+        response: { data: errorData }
       });
+
+      expect(realStore.getState().stockInfo.stockInfoes).toEqual(stockInfoes);
+      expect(realStore.getState().errors.errors).toEqual(errorData);
     });
   });
 
@@ -325,21 +348,43 @@ describe('StockActions', () => {
       });
     });
 
-    test('dispatches GET_Errors on failure', async () => {
+    test('a failed shipStocks does not replace the list', async () => {
       const errorData = { message: 'Batch ship failed' };
+      const stockInfoes = {
+        result: [{ stockIdentifier: { id: 1 } }],
+        productList: [{ type: '板卷', quantity: 3, unit: '碼' }]
+      };
+      const realStore = createStore(rootReducer, {
+        stockInfo: { stockInfoes, stockInfo: {} }
+      }, applyMiddleware(thunk));
       mockedAPI.patch.mockRejectedValue({ response: { data: errorData } });
 
-      try {
-        await store.dispatch(actions.stockIdentifiersAreShiped(productNo, shipRequests));
-      } catch (err) {
-        // expected error
-      }
+      await expect(
+        realStore.dispatch(actions.stockIdentifiersAreShiped(productNo, shipRequests))
+      ).rejects.toEqual({ response: { data: errorData } });
 
-      const dispatchedActions = store.getActions();
-      expect(dispatchedActions[0]).toEqual({
-        type: types.GET_Errors,
-        payload: errorData
-      });
+      expect(realStore.getState().stockInfo.stockInfoes).toEqual(stockInfoes);
+      expect(realStore.getState().errors.errors).toEqual(errorData);
+    });
+
+    test('does not dispatch SHIP_Stocks when the refresh query fails', async () => {
+      const errorData = { message: 'query failed' };
+      const stockInfoes = {
+        result: [{ stockIdentifier: { id: 1 } }],
+        productList: [{ type: '板卷', quantity: 3, unit: '碼' }]
+      };
+      const realStore = createStore(rootReducer, {
+        stockInfo: { stockInfoes, stockInfo: {} }
+      }, applyMiddleware(thunk));
+      mockedAPI.patch.mockResolvedValue({ data: {} });
+      mockedAPI.get.mockRejectedValue({ response: { data: errorData } });
+
+      await expect(
+        realStore.dispatch(actions.stockIdentifiersAreShiped(productNo, shipRequests))
+      ).rejects.toEqual({ response: { data: errorData } });
+
+      expect(realStore.getState().stockInfo.stockInfoes).toEqual(stockInfoes);
+      expect(mockedAPI.patch).toHaveBeenCalledWith('/api/stock/shipStocks', shipRequests);
     });
   });
 

@@ -203,6 +203,76 @@ describe('StockReducer', () => {
 
       expect(stockInfoes.result).toEqual([]);
     });
+
+    test('reduces the matching productList quantity and leaves other types', () => {
+      const productList = [
+        { type: '板卷', quantity: 10, unit: '碼' },
+        { type: '整支', quantity: 2, unit: '支' }
+      ];
+      const existingState: StockState = {
+        stockInfoes: {
+          result: [
+            { stockIdentifier: { id: 1, type: '板卷', quantity: 4, unit: '碼' } },
+            { stockIdentifier: { id: 2, type: '板卷', quantity: 6, unit: '碼' } }
+          ],
+          productList
+        } as StockInfoesWithResult,
+        stockInfo: {}
+      };
+
+      const result = StockReducer(existingState, { type: SHIP_Stock, payload: 1 });
+      const stockInfoes = result.stockInfoes as StockInfoesWithResult;
+
+      expect(stockInfoes.result).toHaveLength(1);
+      expect(stockInfoes.productList).toEqual([
+        { type: '板卷', quantity: 6, unit: '碼' },
+        { type: '整支', quantity: 2, unit: '支' }
+      ]);
+      expect(productList[0].quantity).toBe(10);
+      expect(stockInfoes.productList).not.toBe(productList);
+    });
+
+    test('keeps a string productList quantity as a string', () => {
+      const existingState: StockState = {
+        stockInfoes: {
+          result: [
+            { stockIdentifier: { id: 7, type: '板卷', quantity: 1.5, unit: '碼' } }
+          ],
+          productList: [{ type: '板卷', quantity: '10.00', unit: '碼' }]
+        } as StockInfoesWithResult,
+        stockInfo: {}
+      };
+
+      const result = StockReducer(existingState, { type: SHIP_Stock, payload: 7 });
+      const stockInfoes = result.stockInfoes as StockInfoesWithResult;
+
+      expect(stockInfoes.productList).toEqual([
+        { type: '板卷', quantity: '8.50', unit: '碼' }
+      ]);
+    });
+
+    test('filters stock-shaped productList rows by the shipped id', () => {
+      const existingState: StockState = {
+        stockInfoes: {
+          result: [
+            { stockIdentifier: { id: 1 } },
+            { stockIdentifier: { id: 2 } }
+          ],
+          productList: [
+            { stockIdentifier: { id: 1 }, productNo: 'A' },
+            { stockIdentifier: { id: 2 }, productNo: 'B' }
+          ]
+        } as StockInfoesWithResult,
+        stockInfo: {}
+      };
+
+      const result = StockReducer(existingState, { type: SHIP_Stock, payload: 1 });
+      const stockInfoes = result.stockInfoes as StockInfoesWithResult;
+
+      expect(stockInfoes.productList).toEqual([
+        { stockIdentifier: { id: 2 }, productNo: 'B' }
+      ]);
+    });
   });
 
   describe('SHIP_Stocks', () => {
