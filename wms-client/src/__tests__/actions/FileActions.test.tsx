@@ -4,10 +4,14 @@ import { thunk, ThunkDispatch } from 'redux-thunk';
 import * as actions from '../../actions/FileActions';
 import * as types from '../../types';
 import API from '../../utilities/API';
+import { notifyRequestFailed } from '../../utilities/notifyRequestFailed';
 import { AnyAction } from 'redux';
 
 // Mock dependencies
 vi.mock('../../utilities/API');
+vi.mock('../../utilities/notifyRequestFailed', () => ({
+  notifyRequestFailed: vi.fn(),
+}));
 
 const mockedAPI = API as Mocked<typeof API>;
 
@@ -112,6 +116,44 @@ describe('FileActions', () => {
 
       expect(mockLink.click).toHaveBeenCalled();
       expect(mockLink.remove).toHaveBeenCalled();
+    });
+
+    test('revokes the object URL after the download', async () => {
+      const mockResponse = {
+        data: new Blob(['test content']),
+        headers: {
+          'content-type': 'application/pdf',
+          'content-disposition': 'attachment; filename=file.pdf'
+        }
+      };
+      mockedAPI.get.mockResolvedValue(mockResponse);
+
+      actions.downloadFile(fileCategory, filename);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockLink.click).toHaveBeenCalled();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
+    });
+
+    test('reports a failed download through notifyRequestFailed', async () => {
+      const error = { response: { status: 500, data: { message: 'nope' } } };
+      mockedAPI.get.mockRejectedValue(error);
+
+      actions.downloadFile(fileCategory, filename);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(notifyRequestFailed).toHaveBeenCalledWith(error);
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+    });
+
+    test('forwards a 401 to notifyRequestFailed so API.ts still owns the session toast', async () => {
+      const error = { response: { status: 401, data: { message: 'Unauthorized' } } };
+      mockedAPI.get.mockRejectedValue(error);
+
+      actions.downloadFile(fileCategory, filename);
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(notifyRequestFailed).toHaveBeenCalledWith(error);
     });
   });
 

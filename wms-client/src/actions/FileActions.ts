@@ -1,5 +1,6 @@
 import { AxiosResponse } from "axios";
 import API from "../utilities/API";
+import { notifyRequestFailed } from "../utilities/notifyRequestFailed";
 import { GET_StockInfoes, AppDispatch } from "../types";
 
 export const downloadFile = (
@@ -15,20 +16,24 @@ export const downloadFile = (
           type: String(response.headers["content-type"] ?? ""),
         })
       );
-      const link = document.createElement("a");
-      link.href = url;
-      const contentDisposition = response.headers["content-disposition"];
-      link.setAttribute(
-        "download",
-        contentDisposition ? contentDisposition.split("filename=")[1] : filename
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      try {
+        const link = document.createElement("a");
+        link.href = url;
+        const contentDisposition = response.headers["content-disposition"];
+        link.setAttribute(
+          "download",
+          contentDisposition ? contentDisposition.split("filename=")[1] : filename
+        );
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } finally {
+        window.URL.revokeObjectURL(url);
+      }
     })
-    .catch(() => {
-      // Error handled by global interceptor in API.js
-      // Additional UI feedback can be added here if needed
+    .catch((error: unknown) => {
+      // 401 is toasted and redirected by the interceptor in API.ts.
+      notifyRequestFailed(error);
     });
 };
 
