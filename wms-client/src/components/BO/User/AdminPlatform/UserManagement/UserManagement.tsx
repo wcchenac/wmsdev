@@ -9,12 +9,14 @@ import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Spinner } from "../../../../Others/Spinner";
 import EditModal from "./EditModal";
+import ConfirmDialog from "../../../../UI/ConfirmDialog";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import { RootState } from "../../../../../store";
 import { AppDispatch, UpdateUserRequest, User } from "../../../../../types";
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { toast } from "react-toastify";
 
 interface UserRow extends User {
   id: string | number;
@@ -25,21 +27,22 @@ const UserManagement: React.FC = () => {
   const [isQuery, setIsQuery] = useState<boolean>(false);
   const [modalShow, setModalShow] = useState<boolean>(false);
   const [selectedData, setSelectedData] = useState<User>({});
+  // The user waiting for the delete confirmation, if any.
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const queryResult = useSelector((state: RootState) => state.user.users);
 
   const handleQueryUser = useCallback((): void => {
     setIsLoading(true);
-    dispatch(getUserList()).then((response) => {
-      if (response?.status === 200) {
-        setIsLoading(false);
+    dispatch(getUserList())
+      .then(() => {
         setIsQuery(true);
-      }
-    }).catch((error) => {
-      setIsLoading(false);
-      notifyRequestFailed(error);
-    });
+      })
+      .catch(notifyRequestFailed)
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [dispatch]);
 
   const handleEditClick = useCallback((data: User): void => {
@@ -55,28 +58,37 @@ const UserManagement: React.FC = () => {
   const handleUpdateSubmit = useCallback((updateUserRequest: UpdateUserRequest): void => {
     setIsLoading(true);
     setModalShow(false);
-    dispatch(updateUser(updateUserRequest)).then((response) => {
-      if (response?.status === 200) {
+    dispatch(updateUser(updateUserRequest))
+      .then(() => {
         setSelectedData({});
+        toast.success("已更新員工資料");
+      })
+      .catch(notifyRequestFailed)
+      .finally(() => {
         setIsLoading(false);
-      }
-    }).catch((error) => {
-      setIsLoading(false);
-      notifyRequestFailed(error);
-    });
+      });
   }, [dispatch]);
 
   const handleDeleteSubmit = useCallback((employeeId: string): void => {
     setIsLoading(true);
-    dispatch(deleteUser(employeeId)).then((response) => {
-      if (response?.status === 200) {
+    dispatch(deleteUser(employeeId))
+      .then(() => {
+        toast.success(`已刪除員工 ${employeeId}`);
+      })
+      .catch(notifyRequestFailed)
+      .finally(() => {
         setIsLoading(false);
-      }
-    }).catch((error) => {
-      setIsLoading(false);
-      notifyRequestFailed(error);
-    });
+      });
   }, [dispatch]);
+
+  // Deleting cannot be undone, so the delete icon only asks; the dialog's confirm deletes.
+  const handleDeleteConfirm = useCallback((): void => {
+    const employeeId = deleteTarget?.employeeId;
+    setDeleteTarget(null);
+    if (employeeId) {
+      handleDeleteSubmit(employeeId);
+    }
+  }, [deleteTarget, handleDeleteSubmit]);
 
   const columns: GridColDef[] = [
     { field: "employeeId", headerName: "員工編號", flex: 1 },
@@ -98,7 +110,7 @@ const UserManagement: React.FC = () => {
           </IconButton>
           <IconButton
             size="small"
-            onClick={() => handleDeleteSubmit(params.row.employeeId || "")}
+            onClick={() => setDeleteTarget(params.row)}
             aria-label="刪除"
             color="error"
           >
@@ -148,6 +160,16 @@ const UserManagement: React.FC = () => {
           ) : null}
         </div>
       </LoadingOverlay>
+      <ConfirmDialog
+        show={deleteTarget !== null}
+        onHide={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        variant="danger"
+        title="刪除員工"
+        message={`確定要刪除員工 ${deleteTarget?.employeeId ?? ""}（${deleteTarget?.fullName ?? ""}）嗎？刪除後無法復原。`}
+        confirmText="刪除"
+        cancelText="取消"
+      />
     </div>
   );
 };
