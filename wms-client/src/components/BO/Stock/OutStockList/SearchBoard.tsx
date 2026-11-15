@@ -60,7 +60,36 @@ class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
           this.props.selectedUserList
         )
       });
+    } else if (
+      this.props.queryResult !== undefined &&
+      !equal(prevProps.selectedUserList, this.props.selectedUserList)
+    ) {
+      // Drop rows the user filter just hid, and keep warehouse choices for rows still shown.
+      this.setState({
+        toBeSubmit: this.retainVisibleToBeSubmit(
+          this.state.toBeSubmit,
+          this.props.queryResult,
+          this.props.selectedUserList
+        )
+      });
     }
+  }
+
+  retainVisibleToBeSubmit(
+    current: ToBeSubmitMap,
+    queryResult: QueryResult,
+    selectedUserList: SelectedUser[]
+  ): ToBeSubmitMap {
+    const visible = this.initialToBeSubmit(queryResult, selectedUserList);
+    for (const date of Object.keys(visible)) {
+      for (const id of Object.keys(visible[date])) {
+        const existing = current[date]?.[id];
+        if (existing) {
+          visible[date][id] = { selected: existing.selected, whName: existing.whName };
+        }
+      }
+    }
+    return visible;
   }
 
   initialToBeSubmit(queryResult: QueryResult, selectedUserList: SelectedUser[]): ToBeSubmitMap {
@@ -147,41 +176,62 @@ class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
     this.setState({ toBeSubmit: listCopy });
   }
 
-  onSubmitClick(_e: MouseEvent<HTMLButtonElement>): void {
-    const stateCopy = copy(this.state.toBeSubmit) as ToBeSubmitMap;
-    const requests: { [id: string]: string } = {};
+  /**
+   * Selected rows that are on screen for the current user filter.
+   * Hidden rows stay out of both validation and the submit payload.
+   */
+  visibleSelection(): { id: string; whName: string }[] {
+    const { queryResult, selectedUserList } = this.props;
+    const { toBeSubmit } = this.state;
+    if (queryResult === undefined) {
+      return [];
+    }
 
-    for (const day in stateCopy) {
-      for (const id in stateCopy[day]) {
-        if (stateCopy[day][id].selected) {
-          requests[id] = stateCopy[day][id].whName;
+    const userArray = this.extractUser(selectedUserList);
+    const selected: { id: string; whName: string }[] = [];
+
+    for (const day of Object.keys(toBeSubmit)) {
+      if (queryResult[day] === undefined) {
+        continue;
+      }
+      const visibleIds = new Set(
+        this.filterAlgorithm(day, queryResult, userArray)
+          .filter((row) => row.handled === false)
+          .map((row) => String(row.id))
+      );
+      for (const id of Object.keys(toBeSubmit[day])) {
+        const item = toBeSubmit[day][id];
+        if (item.selected && visibleIds.has(id)) {
+          selected.push({ id, whName: item.whName });
         }
       }
     }
+    return selected;
+  }
+
+  onSubmitClick(_e: MouseEvent<HTMLButtonElement>): void {
+    const requests: { [id: string]: string } = {};
+
+    this.visibleSelection().forEach((item) => {
+      requests[item.id] = item.whName;
+    });
 
     const outStockUpdateRequest: OutStockUpdateRequest = { outStockUpdate: requests };
 
     this.props.handleSubmitClick(outStockUpdateRequest);
   }
 
+  /**
+   * The save button is disabled when any visible selected row has no warehouse,
+   * and when nothing visible is selected. An empty warehouse on an earlier date
+   * must stay disabled even if a later date is filled in.
+   */
   submitValidation(): boolean {
-    const { toBeSubmit } = this.state;
-    let isValid = false;
-
-    for (const day in toBeSubmit) {
-      for (const id in toBeSubmit[day]) {
-        if (toBeSubmit[day][id].selected) {
-          if (!equal(toBeSubmit[day][id].whName, "")) {
-            isValid = true;
-          } else {
-            isValid = false;
-            break;
-          }
-        }
-      }
+    const selected = this.visibleSelection();
+    if (selected.some((item) => equal(item.whName, ""))) {
+      return true;
     }
-
-    return !isValid;
+    return selected.length === 0;
   }
 
   render(): React.ReactNode {

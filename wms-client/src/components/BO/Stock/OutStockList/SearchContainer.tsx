@@ -56,14 +56,24 @@ function initialState(outStockListFiltered: OutStockInfo[] | undefined): SearchC
   }
 }
 
-function initialSelectList(waitSelectList: OutStockInfo[]): ToBeSubmitMap {
+function selectionForVisibleRows(
+  waitSelectList: OutStockInfo[],
+  source: ToBeSubmitMap | undefined
+): ToBeSubmitMap {
   const selectList: ToBeSubmitMap = {};
 
-  waitSelectList.forEach(
-    object => (selectList[object.id] = { selected: true, whName: "" })
-  );
+  waitSelectList.forEach((object) => {
+    const existing = source?.[object.id];
+    selectList[object.id] = existing
+      ? { selected: existing.selected, whName: existing.whName }
+      : { selected: true, whName: "" };
+  });
 
   return selectList;
+}
+
+function initialSelectList(waitSelectList: OutStockInfo[]): ToBeSubmitMap {
+  return selectionForVisibleRows(waitSelectList, undefined);
 }
 
 function defaultCheckedAlgorithm(selectList: ToBeSubmitMap | undefined): boolean {
@@ -109,11 +119,18 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
     const waitSelectList = nextProps.outStockListFiltered.filter(
       outStockRequest => outStockRequest.handled === false
     );
-    const toBeSubmit = initialSelectList(waitSelectList);
+    const listChanged = !equal(
+      prevState.outStockListFiltered,
+      nextProps.outStockListFiltered
+    );
 
-    if (
-      !equal(prevState.outStockListFiltered, nextProps.outStockListFiltered)
-    ) {
+    // Project the parent's selection onto the rows still on screen, so a user
+    // filter cannot leave a hidden row selected or reuse another row's warehouse.
+    if (nextProps.toBeSubmit === undefined) {
+      if (!listChanged) {
+        return null;
+      }
+      const toBeSubmit = selectionForVisibleRows(waitSelectList, undefined);
       return {
         outStockListFiltered: nextProps.outStockListFiltered,
         toBeSubmit: toBeSubmit,
@@ -121,16 +138,16 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
       };
     }
 
-    if (nextProps.toBeSubmit === undefined) {
+    const toBeSubmit = selectionForVisibleRows(waitSelectList, nextProps.toBeSubmit);
+    if (!listChanged && equal(prevState.toBeSubmit, toBeSubmit)) {
       return null;
-    } else if (!equal(prevState.toBeSubmit, nextProps.toBeSubmit)) {
-      return {
-        toBeSubmit: nextProps.toBeSubmit,
-        headerCheckBoxChecked: defaultCheckedAlgorithm(nextProps.toBeSubmit)
-      };
     }
 
-    return null;
+    return {
+      outStockListFiltered: nextProps.outStockListFiltered,
+      toBeSubmit: toBeSubmit,
+      headerCheckBoxChecked: defaultCheckedAlgorithm(toBeSubmit)
+    };
   }
 
   onHeaderCheckBoxChange(checked: boolean): void {
@@ -194,10 +211,11 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
                 </tr>
               </thead>
               <tbody>
-                {outStockListFiltered.map((object, index) => (
+                {outStockListFiltered.map((object) => (
                   <SearchInfo
-                    key={index}
+                    key={object.id}
                     searchInfo={object}
+                    whName={object.handled ? "" : toBeSubmit[object.id]?.whName ?? ""}
                     checked={
                       object.handled ? false : toBeSubmit[object.id]?.selected ?? false
                     }
