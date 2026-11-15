@@ -138,6 +138,7 @@ export const DirectShipChecked: Story = {
   args: {
     stockInfo: {
       ...clothInfo,
+      directShip: true,
       outStockReason: "中壢",
     },
   },

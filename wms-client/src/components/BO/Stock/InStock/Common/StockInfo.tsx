@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, ChangeEvent, MouseEvent } from "react";
+import React, { useState, useCallback, useMemo, useRef, ChangeEvent, MouseEvent } from "react";
 import classnames from "classnames";
 import Select, { MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";
@@ -60,6 +60,8 @@ const StockInfo: React.FC<StockInfoProps> = ({
   disabled = false,
 }) => {
   const [modalShow, setModalShow] = useState(false);
+  const reasonAtOpen = useRef(stockInfo.outStockReason);
+  const skipRestore = useRef(false);
 
   const animatedComponents = useMemo(() => makeAnimated(), []);
 
@@ -78,12 +80,14 @@ const StockInfo: React.FC<StockInfoProps> = ({
   );
 
   const onShipCheck = useCallback(() => {
+    skipRestore.current = true;
     setModalShow(false);
     handleShipCheck(stockInfo.outStockReason !== "", index);
   }, [handleShipCheck, stockInfo.outStockReason, index]);
 
   const onCancleShipClick = useCallback(() => {
     if (disabled) return;
+    skipRestore.current = true;
     setModalShow(false);
     handleShipCheck(false, index);
   }, [handleShipCheck, index, disabled]);
@@ -97,12 +101,22 @@ const StockInfo: React.FC<StockInfoProps> = ({
 
   const handleModalOpen = useCallback(() => {
     if (disabled) return;
+    skipRestore.current = false;
+    reasonAtOpen.current = stockInfo.outStockReason;
     setModalShow(true);
-  }, [disabled]);
+  }, [disabled, stockInfo.outStockReason]);
 
   const handleModalClose = useCallback(() => {
+    const restore = !skipRestore.current;
+    const previous = reasonAtOpen.current;
+    skipRestore.current = false;
     setModalShow(false);
-  }, []);
+    // Backdrop and the close X dismiss without confirming: put the reason back and
+    // leave directShip unchanged. Confirm and 取消 set skipRestore.
+    if (restore && stockInfo.outStockReason !== previous) {
+      handleReasonButton(previous, index);
+    }
+  }, [handleReasonButton, index, stockInfo.outStockReason]);
 
   return (
     <tr>
@@ -255,7 +269,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
       </td>
       <td>
         <div className="mb-3 mt-1 ms-1" style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}>
-          {stockInfo.outStockReason !== "" ? (
+          {stockInfo.directShip ? (
             <OverlayTrigger
               key={index}
               overlay={
