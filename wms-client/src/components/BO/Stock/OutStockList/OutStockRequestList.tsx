@@ -41,20 +41,29 @@ const OutStockRequestList: React.FC = () => {
   const [startDate, setStartDate] = useState<Date>(dayOfStart(new Date()));
   const [endDate, setEndDate] = useState<Date>(dayOfEnd(new Date()));
   const [handlingInfo, setHandlingInfo] = useState<OutStockInfo>({} as OutStockInfo);
+  // Increments only after a wait-handle request returns 200, so a cleared list is not
+  // refilled from the store value that was already there.
+  const [listResponseId, setListResponseId] = useState(0);
+  const appliedListResponseId = useRef(0);
 
   const apiCallRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const acceptListResponse = useCallback((response: { status: number }) => {
+    if (response.status === 200) {
+      setIsLoading(false);
+      setListResponseId((current) => current + 1);
+    }
+  }, []);
 
   const loadingWaitHandleList = useCallback(() => {
     setIsLoading(true);
     dispatch(getWaitHandleList()).then(response => {
-      if (response.status === 200) {
-        setIsLoading(false);
-      }
+      acceptListResponse(response);
     }).catch((error) => {
       setIsLoading(false);
       notifyRequestFailed(error);
     });
-  }, [dispatch]);
+  }, [dispatch, acceptListResponse]);
 
   const getInitialState = useCallback(() => {
     setIsLoading(false);
@@ -84,13 +93,18 @@ const OutStockRequestList: React.FC = () => {
     };
   }, [loadingWaitHandleList]);
 
-  // getDerivedStateFromProps replacement: compare the store with the list on screen (not
-  // with the last store value), so when getInitialState clears the list after an action it is
-  // refilled even if the next query returns the same list.
+  // Copy the store into the list on screen only after a request started here returns.
+  // getInitialState clears queryResult before that request finishes; syncing on the clear
+  // would paint the previous store value. A response whose body equals the previous list
+  // still applies, because the id changes even when the contents do not.
   useEffect(() => {
     if (queryResultFromStore === undefined) {
       return;
     }
+    if (listResponseId === 0 || listResponseId === appliedListResponseId.current) {
+      return;
+    }
+    appliedListResponseId.current = listResponseId;
 
     const newQueryResult = (queryResultFromStore.outStockRequests?.queryResult as QueryResult | undefined) || {};
 
@@ -113,7 +127,7 @@ const OutStockRequestList: React.FC = () => {
       setUserList(queryResultFromStore.outStockRequests?.userList || []);
       setSelectedUserList(selectedList);
     }
-  }, [queryResultFromStore, queryResult]);
+  }, [queryResultFromStore, queryResult, listResponseId]);
 
   // The date picker passes null when its text is cleared; keep the previous date then.
   const handleStartDateSelection = useCallback((date: Date | null) => {
@@ -134,14 +148,12 @@ const OutStockRequestList: React.FC = () => {
 
     setIsLoading(true);
     dispatch(getWaitHandleListWithInterval(startDateStr, endDateStr)).then(response => {
-      if (response.status === 200) {
-        setIsLoading(false);
-      }
+      acceptListResponse(response);
     }).catch((error) => {
       setIsLoading(false);
       notifyRequestFailed(error);
     });
-  }, [dispatch, startDate, endDate]);
+  }, [dispatch, startDate, endDate, acceptListResponse]);
 
   const handleSubmitClick = useCallback((outStockUpdateRequest: OutStockUpdateRequest) => {
     setIsLoading(true);
