@@ -16,6 +16,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from app.config import get_settings
 from app.files.reports import EXTENSION, excel_root
+from app.reports.workbook import CENTER, THIN_BORDER
 
 LEFT_LABELS = ("品名", "價格異動")
 RIGHT_LABELS = ("廠商代碼", "廠商名稱", "成本")
@@ -33,12 +34,22 @@ class _Sheet:
         self.last = 0  # HSSF getLastRowNum() of an empty sheet
 
     def put(self, row: int, col: int, value: str | None) -> None:
-        if value is not None:
-            self.ws.cell(row=row + 1, column=col + 1, value=value)
+        """Create the cell even when `value` is None. Java sets the border and
+        alignment on blank cells inside a merge (columns 8..10 and 12..13)."""
+        cell = self.ws.cell(row=row + 1, column=col + 1, value=value)
+        cell.alignment = CENTER
+        cell.border = THIN_BORDER
         self.last = max(self.last, row)
 
     def merge(self, row: int, first_col: int, last_col: int) -> None:
         self.ws.merge_cells(start_row=row + 1, start_column=first_col + 1, end_row=row + 1, end_column=last_col + 1)
+        # openpyxl's merge replaces every cell but the first with a fresh MergedCell
+        # and copies only the outer edge of the border. Java's setCellStyle runs on
+        # the blanks too (cols 8..10 and 12..13), so put the full style back.
+        for col in range(first_col, last_col + 1):
+            cell = self.ws.cell(row=row + 1, column=col + 1)
+            cell.alignment = CENTER
+            cell.border = THIN_BORDER
 
 
 class _RawJpeg(Image):
@@ -76,9 +87,12 @@ def _first_part(s: _Sheet, product_no: str, info: ProductInfo) -> None:
         if i < len(LEFT_LABELS):
             s.put(row, 7, LEFT_LABELS[i])
             s.put(row, 8, values[i + 3])
+            s.put(row, 9, None)  # blank cells of the 8..10 merge, still bordered
+            s.put(row, 10, None)
             s.merge(row, 8, 10)
         s.put(row, 11, right)
         s.put(row, 12, values[i])
+        s.put(row, 13, None)  # blank cell of the 12..13 merge
         s.merge(row, 12, 13)
     photo = _picture(product_no)
     if photo.exists():
