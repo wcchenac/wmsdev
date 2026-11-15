@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, Outlet } from "react-router";
 import { useSelector } from "react-redux";
 import { RoleOption } from "../../../enums/Enums";
-import { RootState } from "../../../types";
+import { RootState, User } from "../../../types";
 
 type RoleLevel = "H" | "M1" | "M2" | "L1" | "L2" | "L3";
 
@@ -20,6 +20,16 @@ const ROLE_LEVELS: Record<RoleLevel, string[]> = {
   L3: [RoleOption["一般人員/門市"], RoleOption["管理員"]]
 };
 
+/**
+ * The signed-in user's role, e.g. "ROLE_Admin". The JWT may carry it as
+ * { authority: "ROLE_Admin" } or as the plain string.
+ */
+export function userRole(user: User | undefined): string | null {
+  const role = user?.role;
+  if (!role) return null;
+  return typeof role === "string" ? role : role.authority ?? null;
+}
+
 function ProtectedRoute({ level, children }: ProtectedRouteProps): React.ReactElement {
   const user = useSelector((state: RootState) => state.user);
 
@@ -28,16 +38,10 @@ function ProtectedRoute({ level, children }: ProtectedRouteProps): React.ReactEl
   }
 
   const allowedRoles = ROLE_LEVELS[level] || [];
-  const role = user.user?.role;
-  // Handle both string and object formats for role
-  // Backend JWT may return { authority: "ROLE_Admin" } or "ROLE_Admin"
-  const userRole: string | null = role
-    ? typeof role === 'string'
-      ? role
-      : role.authority ?? null
-    : null;
+  const role = userRole(user.user);
 
-  if (!userRole || !allowedRoles.includes(userRole)) {
+  // "/" sends the user on to their role's first page.
+  if (!role || !allowedRoles.includes(role)) {
     return <Navigate to="/" replace />;
   }
 

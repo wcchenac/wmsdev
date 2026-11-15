@@ -1,42 +1,29 @@
 import React from 'react';
 import { render } from '@testing-library/react';
+import localStorageValidate from '../utilities/LocalStorageValidate';
+import App from '../App';
 
-// The stored token is checked once, when the app starts and before the first render, so a
-// page opened directly already finds the user signed in. It is not checked again on every
-// render of App (React re-renders, StrictMode renders twice).
+// The stored token is checked once, when the app starts and before the first render
+// (index.tsx: IndexStartup.test.tsx). It is not checked again on every render of App (React
+// re-renders, StrictMode renders twice).
 
-afterEach(() => {
-  vi.doUnmock('../utilities/LocalStorageValidate');
-  vi.doUnmock('../components/Layout/Header');
-  vi.doUnmock('../App');
-  vi.doUnmock('react-dom/client');
-  vi.resetModules();
+vi.mock('../utilities/LocalStorageValidate', () => ({ default: vi.fn() }));
+vi.mock('../components/Layout/Header', () => ({ default: () => <header /> }));
+// setupTests stubs window.location without an origin, which BrowserRouter needs once a route
+// redirects; a MemoryRouter does not.
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual<typeof import('react-router')>('react-router');
+  return {
+    ...actual,
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => (
+      <actual.MemoryRouter initialEntries={['/']}>{children}</actual.MemoryRouter>
+    ),
+  };
 });
 
-test('rendering App does not check the token', async () => {
-  vi.resetModules();
-  const validate = vi.fn();
-  vi.doMock('../utilities/LocalStorageValidate', () => ({ default: validate }));
-  vi.doMock('../components/Layout/Header', () => ({ default: () => <header /> }));
-  const { default: App } = await import('../App');
-
+test('rendering App does not check the token', () => {
   const { rerender } = render(<App />);
   rerender(<App />);
 
-  expect(validate).not.toHaveBeenCalled();
-});
-
-test('index.tsx checks the token once, before the first render', async () => {
-  vi.resetModules();
-  const calls: string[] = [];
-  vi.doMock('../utilities/LocalStorageValidate', () => ({ default: () => calls.push('validate') }));
-  vi.doMock('../App', () => ({ default: () => null }));
-  vi.doMock('react-dom/client', () => ({
-    createRoot: () => ({ render: () => calls.push('render') }),
-  }));
-  document.body.innerHTML = '<div id="root"></div>';
-
-  await import('../index');
-
-  expect(calls).toEqual(['validate', 'render']);
+  expect(localStorageValidate).not.toHaveBeenCalled();
 });

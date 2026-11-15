@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Header from "./components/Layout/Header";
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 import { Provider } from "react-redux";
 import store from "./store";
 import NormalStockBoard from "./components/BO/Stock/InStock/NormalStockBoard";
@@ -22,6 +22,7 @@ import StockHistoryBoard from "./components/BO/Stock/StockHistory/StockHistoryBo
 import Login from "./components/BO/User/Login";
 import AdminPlatform from "./components/BO/User/AdminPlatform/AdminPlatform";
 import ProtectedRoute from "./components/Others/securities/ProtectedRoute";
+import HomeRedirect from "./components/Others/securities/HomeRedirect";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Header />
           <main id="main-content" role="main" aria-label="主要內容區域">
             <Routes>
+              <Route path="/" element={<HomeRedirect />} />
               <Route path="/login" element={<Login />} />
               <Route
                 path="/stock/1/1"
@@ -136,6 +138,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
           <ToastContainer
