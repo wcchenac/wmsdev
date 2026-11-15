@@ -124,7 +124,7 @@ docker compose up -d --wait                  # 換回原版 Java
 
 ### 切換順序
 
-Python 容器每次啟動都會先執行 `alembic upgrade head`（見 `wmstool-py/Dockerfile`），所以**第一次啟動 Python 容器時就會套用 `0002`**。照這個順序做：
+Python 容器每次啟動都會先執行 `alembic upgrade head`，然後才啟動 uvicorn（見 `wmstool-py/Dockerfile`）。這個順序不要對調：服務不該在 `0002` 套用之前接流量。所以**第一次啟動 Python 容器時就會套用 `0002`**。照這個順序做：
 
 1. **停掉 Java 服務。** `0002` 是 `ALTER TABLE history MODIFY childrenIdentifierId BLOB`。MySQL 只能用複製整張表的方式改這個欄位型別（`ALGORITHM=COPY`），執行期間 `history` 可以讀、**不能寫**，表越大花的時間越長。Java 停機後再改，就不會有寫入被卡住。
 2. **檢查有沒有被截斷的資料**（只讀，見下一節），有的話先記下修復語句。
@@ -133,6 +133,8 @@ Python 容器每次啟動都會先執行 `alembic upgrade head`（見 `wmstool-p
 5. **執行第 2 步記下的修復語句**（必須在 `0002` 之後：修好的值會超過 255 bytes），再跑一次檢查，確認全部讀得回來。
 
 `0002` 的 downgrade 在有超過 255 bytes 的資料時會拒絕執行，避免截斷資料。
+
+容器以 uid 1000（使用者 `wms`）執行，不是 root。`EXCEL_DIR` 和 `PICTURE_DIR` 是掛進來的目錄，映像檔不會改它們的擁有者。這兩個目錄必須讓 uid 1000 可以寫，例如 `sudo chown -R 1000:1000 <目錄>`。對照測試用的 `runtime/files` 也一樣：宿主機上產生範本的使用者和容器的 uid 1000 都要寫得進去（一次性的目錄用 `chmod -R a+rwX runtime/files` 即可）。
 
 ### 檢查與修復被截斷的資料
 
@@ -170,7 +172,7 @@ soffice --headless --convert-to xlsx --outdir <同一個資料夾> <範本>.xls
 
 fixture 轉檔時用的是 LibreOffice 25.2.3.2，環境是 Debian 13（trixie）的 `libreoffice-calc-nogui 4:25.2.3-2+deb13u9`（arm64），base image 是 `python:3.12-slim@sha256:cb7e7f6d…`。腳本固定使用這個 image；Debian 的安全更新會換掉套件，所以套件版本無法鎖死，但腳本會檢查裝到的 LibreOffice 必須是 25.2.3，不是就停下。正式範本最好也用同一版轉檔；版本不同時，轉完務必跑下面的 `app.template_check`。
 
-轉換正式範本之後，在部署機上執行檢查（需要 `pip install "wmstool-py[tools]"`）：
+轉換正式範本之後，在部署機上執行檢查。正式機映像檔已安裝 `[tools]`（含 xlrd），容器裡可以直接跑；在映像檔外面則要 `pip install "wmstool-py[tools]"`：
 
 ```bash
 python -m app.template_check D:/OutputFiles
