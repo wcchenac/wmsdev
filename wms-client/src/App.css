@@ -36,6 +36,16 @@ img {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
+/* Navbar actions that are buttons (登出) look like the links next to them: no button
+   background (the :hover rule above still applies) and the same hover underline. */
+.navbar-nav button.nav-link {
+  background-color: transparent;
+}
+
+.navbar-nav button.nav-link:hover {
+  text-decoration: underline;
+}
+
 /* ========================================
    LANDING PAGE
    ======================================== */

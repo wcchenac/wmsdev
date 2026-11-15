@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import HeaderUserFunctions from '../../../components/Layout/HeaderUserFunctions';
 
@@ -17,10 +17,14 @@ describe('HeaderUserFunctions', () => {
     expect(screen.queryByText('登出')).not.toBeInTheDocument();
   });
 
-  test('shows the user name and logout link when signed in', () => {
-    renderUserFunctions({ isAuthencated: true, fullName: '陳管理' });
+  test('shows the user name and a logout button when signed in', () => {
+    const logout = vi.fn();
+    renderUserFunctions({ isAuthencated: true, fullName: '陳管理', logout });
     expect(screen.getByText('陳管理')).toBeInTheDocument();
-    expect(screen.getByText('登出').closest('a')).toHaveAttribute('href', '/logout');
+    const button = screen.getByRole('button', { name: '登出' });
+    expect(button.closest('a')).toBeNull();
+    fireEvent.click(button);
+    expect(logout).toHaveBeenCalledTimes(1);
   });
 
   test('spaces the avatar icon from the user name with a Bootstrap 5 margin utility', () => {

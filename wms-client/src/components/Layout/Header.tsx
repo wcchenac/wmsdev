@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { NavLink } from "react-router";
+import React, { useState, useCallback, MouseEvent } from "react";
+import { NavLink, useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../actions/UserActions";
 import HeaderStockFunctions from "./HeaderStockFunctions";
@@ -10,12 +10,22 @@ const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user);
 
   const handleLogout = useCallback(() => {
     dispatch(logout());
-    window.location.href = "/";
-  }, [dispatch]);
+    setIsMobileMenuOpen(false);
+    navigate("/login");
+  }, [dispatch, navigate]);
+
+  // On a phone, close the opened menu once a page is picked (also the page already open).
+  // Clicks on dropdown toggles (buttons) keep it open.
+  const closeMenuOnLinkClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    if ((e.target as Element).closest("a")) {
+      setIsMobileMenuOpen(false);
+    }
+  }, []);
 
   const toggleMobileMenu = useCallback(() => {
     setIsMobileMenuOpen((prevState) => !prevState);
@@ -36,6 +46,7 @@ const Header: React.FC = () => {
       <div
         className={`collapse navbar-collapse ${isMobileMenuOpen ? 'show' : ''}`}
         id="mobile-nav"
+        onClick={closeMenuOnLinkClick}
       >
         <HeaderStockFunctions
           isAuthencated={validToken}

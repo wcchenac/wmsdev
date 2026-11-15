@@ -35,13 +35,14 @@ const HeaderUserFunctions: React.FC<HeaderUserFunctionsProps> = ({
           </NavLink>
         </li>
         <li className="nav-item">
-          <NavLink
-            className="nav-link"
-            to="/logout"
+          {/* An action, not a page: Header's logout signs out and opens /login. */}
+          <button
+            type="button"
+            className="nav-link border-0"
             onClick={logout}
           >
             登出
-          </NavLink>
+          </button>
         </li>
       </ul>
     </React.Fragment>

@@ -209,8 +209,9 @@ describe('Header', () => {
   });
 
   describe('logout functionality', () => {
-    test('logout redirects to home page', () => {
-      // Mock window.location.href assignment
+    // Logging out opens /login inside the app (HeaderLogout.test checks the page change);
+    // it no longer reloads the browser to "/".
+    test('logout signs out without reloading the page', () => {
       const locationHrefSpy = vi.fn();
       Object.defineProperty(window, 'location', {
         value: { get href() { return ''; }, set href(value: string) { locationHrefSpy(value); } },
@@ -233,7 +234,8 @@ describe('Header', () => {
       const logoutButton = screen.getByTestId('logout-button');
       fireEvent.click(logoutButton);
 
-      expect(locationHrefSpy).toHaveBeenCalledWith('/');
+      expect(mockLogout).toHaveBeenCalled(); // the logout thunk ran
+      expect(locationHrefSpy).not.toHaveBeenCalled();
     });
   });
 
