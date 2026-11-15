@@ -4,6 +4,7 @@ read back (e.g. cut to 255 bytes by TINYBLOB outside strict mode) and what is le
 The database part needs the contract-test MySQL (port 13306), like test_migrations.
 """
 
+import datetime as dt
 import os
 import pathlib
 
@@ -18,6 +19,8 @@ from app.javacompat import serialize_long_array
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ADMIN_URL = os.environ.get("TEST_ADMIN_DATABASE_URL", "mysql+pymysql://root:root@127.0.0.1:13306")
 TEST_DB = "wms_history_check_test"
+# One shrink: the SKO and every piece's SKI share this second. A later shrink does not.
+SHRINK_AT = dt.datetime(2026, 11, 1, 8, 0, 0)
 
 
 def _truncated(ids: list[int]) -> bytes:
@@ -66,10 +69,16 @@ def _identifier(conn, identifier_id: int, lot_no: str | None = "L01") -> None:  
         "waitToShrink) VALUES (:id, 1, 0, :lot, 'CF1001', '4', :id, '整支', '碼', 0)"), {"id": identifier_id, "lot": lot_no})
 
 
-def _ski(conn, identifier_id: int, lot_no: str | None = "L01") -> None:  # noqa: ANN001
+def _ski(conn, identifier_id: int, lot_no: str | None = "L01", at: dt.datetime = SHRINK_AT) -> None:  # noqa: ANN001
     conn.execute(text(
-        "INSERT INTO transactionrecord (lotNo, productNo, stockIdentifierId, transactionType) "
-        "VALUES (:lot, 'CF1001', :id, 'SKI')"), {"id": identifier_id, "lot": lot_no})
+        "INSERT INTO transactionrecord (lotNo, productNo, stockIdentifierId, transactionType, createdAt) "
+        "VALUES (:lot, 'CF1001', :id, 'SKI', :at)"), {"id": identifier_id, "lot": lot_no, "at": at})
+
+
+def _sko(conn, identifier_id: int, lot_no: str | None = "L01", at: dt.datetime = SHRINK_AT) -> None:  # noqa: ANN001
+    conn.execute(text(
+        "INSERT INTO transactionrecord (lotNo, productNo, stockIdentifierId, transactionType, createdAt) "
+        "VALUES (:lot, 'CF1001', :id, 'SKO', :at)"), {"id": identifier_id, "lot": lot_no, "at": at})
 
 
 def _history(conn, history_id: int, current: int, children: bytes | None, root: int | None = None) -> None:  # noqa: ANN001
@@ -79,20 +88,23 @@ def _history(conn, history_id: int, current: int, children: bytes | None, root: 
         {"id": history_id, "c": children, "cur": current, "root": current if root is None else root})
 
 
-def _piece(conn, identifier_id: int, root: int, lot_no: str | None = "L01") -> None:  # noqa: ANN001
+def _piece(conn, identifier_id: int, root: int, lot_no: str | None = "L01",
+          at: dt.datetime = SHRINK_AT) -> None:  # noqa: ANN001
     """A piece cut in a shrink, as Java stores it: the identifier, its SKI record, and its
     own history row under the tree's root (written before the parent's list is updated)."""
     _identifier(conn, identifier_id, lot_no=lot_no)
-    _ski(conn, identifier_id, lot_no=lot_no)
+    _ski(conn, identifier_id, lot_no=lot_no, at=at)
     _history(conn, identifier_id, identifier_id, serialize_long_array([]), root=root)
 
 
-def _shrunk_roll(conn, lot_no: str | None = "L01") -> None:  # noqa: ANN001
-    """Roll 1 shrunk into 2..12 (11 pieces); its children list was cut at 255 bytes."""
+def _shrunk_roll(conn, lot_no: str | None = "L01", at: dt.datetime = SHRINK_AT) -> None:  # noqa: ANN001
+    """Roll 1 shrunk into 2..12 (11 pieces); its children list was cut at 255 bytes.
+    The SKO and every piece's SKI share `at` (Java writes them in one request)."""
     _identifier(conn, 1, lot_no=lot_no)
     _history(conn, 1, 1, _truncated(list(range(2, 13))))
+    _sko(conn, 1, lot_no=lot_no, at=at)
     for child in range(2, 13):
-        _piece(conn, child, root=1, lot_no=lot_no)
+        _piece(conn, child, root=1, lot_no=lot_no, at=at)
 
 
 def test_main_reports_a_truncated_row_with_its_missing_children(database_url, capsys):
@@ -149,6 +161,7 @@ def test_pieces_of_another_tree_are_not_candidates(database_url, capsys):
     with engine.begin() as conn:
         _identifier(conn, 1)
         _history(conn, 1, 1, _truncated(ours))
+        _sko(conn, 1)
         for child in ours:
             _piece(conn, child, root=1)
         _identifier(conn, 39)
@@ -169,6 +182,7 @@ def test_pieces_already_listed_by_another_roll_are_not_candidates(database_url, 
     with engine.begin() as conn:
         _identifier(conn, 1)
         _history(conn, 1, 1, _truncated(list(range(2, 13))))
+        _sko(conn, 1)
         for child in range(2, 12):
             _piece(conn, child, root=1)
         conn.execute(text("UPDATE history SET childrenIdentifierId = :c WHERE id = 2"),
@@ -203,6 +217,53 @@ def test_main_does_not_suggest_an_update_without_enough_candidates(database_url,
     assert "UPDATE history" not in out
 
 
+def test_a_later_shrink_in_the_same_tree_is_not_a_candidate(database_url, capsys):
+    """Pieces 30 and 31 share the tree, product and lot, but their SKI is minutes after
+    roll 1's SKO: they are another shrink, not the missing child."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn)
+        later = SHRINK_AT + dt.timedelta(minutes=5)
+        _piece(conn, 30, root=1, at=later)
+        _piece(conn, 31, root=1, at=later)
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: 12" in out
+    repaired = serialize_long_array(list(range(2, 13))).hex()
+    assert f"UPDATE history SET childrenIdentifierId = 0x{repaired} WHERE id = 1;" in out
+
+
+def test_ski_within_two_seconds_of_the_sko_is_kept(database_url, capsys):
+    """The readable pieces anchor the SKO. A missing piece two seconds later still
+    belongs to that shrink; one three seconds later does not."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn)
+        conn.execute(text("UPDATE transactionrecord SET createdAt = :at WHERE stockIdentifierId = 12"),
+                     {"at": SHRINK_AT + dt.timedelta(seconds=2)})
+        _piece(conn, 30, root=1, at=SHRINK_AT + dt.timedelta(seconds=3))
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: 12" in out
+    assert "UPDATE history SET childrenIdentifierId" in out
+
+
+def test_no_update_when_the_sko_time_cannot_be_confirmed(database_url, capsys):
+    """Two SKO rows both line up with the readable pieces: the tool will not pick one."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn)
+        _sko(conn, 1, at=SHRINK_AT - dt.timedelta(seconds=1))
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: (none found)" in out
+    assert "SKO/SKI createdAt does not confirm one shrink" in out
+    assert "UPDATE history" not in out
+
+
 def test_candidates_shared_by_two_cut_rows_get_no_update(database_url, capsys):
     """Roll 1 (cut, readable 2..11) and its piece 2, shrunk again into 13..23 (cut,
     readable 13..22): piece 23 is a candidate of both rows, so neither gets an UPDATE."""
@@ -211,6 +272,9 @@ def test_candidates_shared_by_two_cut_rows_get_no_update(database_url, capsys):
         _shrunk_roll(conn)
         conn.execute(text("UPDATE history SET childrenIdentifierId = :c WHERE id = 2"),
                      {"c": _truncated(list(range(13, 24)))})
+        # The second shrink is recorded in the same second, so the times do not
+        # separate piece 23 from roll 1's missing child.
+        _sko(conn, 2)
         for child in range(13, 24):
             _piece(conn, child, root=1)
     engine.dispose()

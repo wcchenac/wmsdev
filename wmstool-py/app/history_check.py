@@ -12,25 +12,35 @@ For each bad row it prints what is still readable — the declared number of chi
 and the complete leading ids (the first 10 of a cut value) — and every candidate for
 the missing ones: pieces of the same tree (their own history row has the roll's
 rootIdentifierId), cut in a shrink (SKI) of the same product and lot (NULL lots
-included), after the last readable child, that no readable history row already lists.
+included) within two seconds after that shrink's SKO, after the last readable
+child, that no readable history row already lists.
 
 It prints the UPDATE that would restore the list only when the candidates are exactly
 as many as the missing children and no other reported row proposes any of them; with
 more candidates, or shared ones, it says so and leaves the decision to a person.
-Verify the candidates before running an UPDATE (e.g. their SKI createdAt against the
-roll's SKO); the UPDATE needs migration 0002 (BLOB) applied. Nothing is written.
-Exit code 1 when any row is reported.
+A piece is a candidate only when its SKI createdAt falls within two seconds after
+the one SKO whose time lines up with the readable children's SKI times (Java writes
+the SKO, then the pieces, in the same request). If that SKO cannot be picked, the
+tool warns and prints no UPDATE. The UPDATE needs migration 0002 (BLOB) applied.
+Nothing is written. Exit code 1 when any row is reported.
 """
 
 import argparse
+import datetime as dt
 import os
 import sys
 from dataclasses import dataclass
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import bindparam, create_engine, text
 from sqlalchemy.engine import Connection
 
 from app.javacompat import deserialize_long_array, read_long_array_prefix, serialize_long_array
+
+# Java saves the SKO, then each piece's SKI, with LocalDateTime.now(). MySQL DATETIME
+# here has second precision, so a shrink that crosses one second boundary still matches.
+SKI_AFTER_SKO = dt.timedelta(seconds=2)
+TIME_NOTE = ("SKO/SKI createdAt does not confirm one shrink of this roll: "
+             "decide by hand; no UPDATE suggested")
 
 
 @dataclass(frozen=True)
@@ -64,31 +74,63 @@ class Problem:
     children: Children
     candidates: list[int]
     shared_with: list[int]  # other reported history ids proposing one of these candidates
+    note: str | None = None  # set when the SKO/SKI time check cannot confirm a shrink
+
+
+def _shrink_sko(conn: Connection, roll_id: int, readable: list[int]) -> dt.datetime | None:
+    """The SKO of this shrink: the only one whose createdAt is at most two seconds
+    before a readable child's SKI. None when there is not exactly one such time."""
+    skos = [row.createdAt for row in conn.execute(text(
+        "SELECT createdAt FROM transactionrecord "
+        "WHERE stockIdentifierId = :id AND transactionType = 'SKO' AND createdAt IS NOT NULL"),
+        {"id": roll_id})]
+    if not skos:
+        return None
+    kids = conn.execute(text(
+        "SELECT createdAt FROM transactionrecord WHERE transactionType = 'SKI' "
+        "AND createdAt IS NOT NULL AND stockIdentifierId IN :ids"
+    ).bindparams(bindparam("ids", expanding=True)), {"ids": readable}).all()
+    child_times = [row.createdAt for row in kids]
+    if not child_times:
+        return None
+    matched = {sko for sko in skos if any(sko <= ski <= sko + SKI_AFTER_SKO for ski in child_times)}
+    if len(matched) != 1:
+        return None
+    return next(iter(matched))
 
 
 def _candidates(conn: Connection, current_identifier_id: int | None, root_identifier_id: int | None,
-                children: Children, claimed: set[int]) -> list[int]:
-    """Every piece that can be one of the roll's missing children, without a limit: a
-    piece of the same tree (its own history row has the roll's rootIdentifierId; Java
+                children: Children, claimed: set[int]) -> tuple[list[int], str | None]:
+    """Every piece that can be one of the roll's missing children, without a limit.
+
+    A piece of the same tree (its own history row has the roll's rootIdentifierId; Java
     writes it before updating the parent's list), cut in a shrink (SKI) of the same
-    product and lot (NULL-safe), after the last readable child, and not already listed
-    as a child by a readable history row."""
+    product and lot (NULL-safe), after the last readable child, not already listed as a
+    child by a readable history row, and whose SKI createdAt is within two seconds after
+    the roll's SKO for this shrink. The second item is a warning when that SKO cannot
+    be chosen; the candidate list is then empty and no UPDATE should be printed.
+    """
     if current_identifier_id is None or root_identifier_id is None or children.declared is None or not children.ids:
-        return []
+        return [], None
     if children.declared - len(children.ids) <= 0:
-        return []
+        return [], None
     roll = conn.execute(text("SELECT productNo, lotNo FROM stockidentifier WHERE id = :id"),
                         {"id": current_identifier_id}).first()
     if roll is None:
-        return []
+        return [], None
+    sko = _shrink_sko(conn, current_identifier_id, children.ids)
+    if sko is None:
+        return [], TIME_NOTE
     rows = conn.execute(text(
         "SELECT DISTINCT h.currentIdentifierId AS id FROM history h "
         "JOIN transactionrecord t ON t.stockIdentifierId = h.currentIdentifierId "
         "WHERE t.transactionType = 'SKI' AND t.productNo = :product AND t.lotNo <=> :lot "
         "AND h.rootIdentifierId = :root AND h.currentIdentifierId > :after "
+        "AND t.createdAt >= :sko AND t.createdAt <= :until "
         "ORDER BY h.currentIdentifierId"),
-        {"product": roll.productNo, "lot": roll.lotNo, "root": root_identifier_id, "after": max(children.ids)})
-    return [row.id for row in rows if row.id not in claimed and row.id != current_identifier_id]
+        {"product": roll.productNo, "lot": roll.lotNo, "root": root_identifier_id,
+         "after": max(children.ids), "sko": sko, "until": sko + SKI_AFTER_SKO})
+    return [row.id for row in rows if row.id not in claimed and row.id != current_identifier_id], None
 
 
 def scan(conn: Connection) -> list[Problem]:
@@ -97,18 +139,20 @@ def scan(conn: Connection) -> list[Problem]:
     decoded = [(row, decode_children(row.childrenIdentifierId)) for row in rows]
     # ids some row already lists as its child (complete lists, and the readable part of cut ones)
     claimed = {child for _, children in decoded for child in children.ids}
-    found = [
-        (row, children, _candidates(conn, row.currentIdentifierId, row.rootIdentifierId, children, claimed))
-        for row, children in decoded if not children.complete
-    ]
+    found = []
+    for row, children in decoded:
+        if children.complete:
+            continue
+        candidates, note = _candidates(conn, row.currentIdentifierId, row.rootIdentifierId, children, claimed)
+        found.append((row, children, candidates, note))
     proposers: dict[int, set[int]] = {}
-    for row, _, candidates in found:
+    for row, _, candidates, _ in found:
         for candidate in candidates:
             proposers.setdefault(candidate, set()).add(row.id)
     return [
         Problem(row.id, row.currentIdentifierId, len(row.childrenIdentifierId), children, candidates,
-                sorted({other for c in candidates for other in proposers[c]} - {row.id}))
-        for row, children, candidates in found
+                sorted({other for c in candidates for other in proposers[c]} - {row.id}), note)
+        for row, children, candidates, note in found
     ]
 
 
@@ -123,6 +167,9 @@ def _report(p: Problem) -> list[str]:
     missing = c.declared - len(c.ids)
     found = ", ".join(map(str, p.candidates)) or "(none found)"
     lines.append(f"  candidates for the {missing} missing: {found}")
+    if p.note:
+        lines.append(f"  {p.note}")
+        return lines
     if len(p.candidates) > missing:
         lines.append("  more candidates than missing children: decide by hand from the shrink's "
                      "transaction records; no UPDATE suggested")
