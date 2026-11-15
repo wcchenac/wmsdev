@@ -98,7 +98,7 @@ const OutStockRequestList: React.FC = () => {
       const selectedList: SelectedUser[] = [];
 
       if (queryResultFromStore.outStockRequests?.userList !== undefined) {
-        queryResultFromStore.outStockRequests.userList
+        [...queryResultFromStore.outStockRequests.userList]
           .sort()
           .forEach((element, index) => {
             selectedList.push({
