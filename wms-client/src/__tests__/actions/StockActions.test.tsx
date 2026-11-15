@@ -1084,5 +1084,41 @@ describe('StockActions', () => {
 
       expect(result).toEqual(response);
     });
+
+    test('resets file loading after the request succeeds', async () => {
+      mockedAPI.get.mockResolvedValue({ data: [] });
+
+      await store.dispatch(actions.findCategoryDetails(category));
+
+      const dispatchedActions = store.getActions();
+      expect(dispatchedActions[dispatchedActions.length - 1]).toEqual({
+        type: types.CREATE_FILE,
+        payload: false
+      });
+    });
+
+    test('resets file loading after the request fails', async () => {
+      const errorData = { message: '無法取得類別詳細資訊' };
+      mockedAPI.get.mockRejectedValue({ response: { data: errorData } });
+
+      await expect(store.dispatch(actions.findCategoryDetails(category))).rejects.toEqual({
+        response: { data: errorData }
+      });
+
+      const dispatchedActions = store.getActions();
+      expect(dispatchedActions.map((action) => action.type)).toEqual([
+        types.CREATE_FILE,
+        types.GET_Errors,
+        types.CREATE_FILE
+      ]);
+      expect(dispatchedActions[dispatchedActions.length - 1]).toEqual({
+        type: types.CREATE_FILE,
+        payload: false
+      });
+      expect(dispatchedActions[1]).toEqual({
+        type: types.GET_Errors,
+        payload: errorData
+      });
+    });
   });
 });

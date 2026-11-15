@@ -10,7 +10,7 @@ const initialState: FileState = {
   lastOperation: null
 };
 
-type FileAction = Action<void>;
+type FileAction = Action<boolean>;
 
 export default function FileReducer(
   state: FileState = initialState,
@@ -20,7 +20,9 @@ export default function FileReducer(
     case CREATE_FILE:
       return {
         ...state,
-        isLoading: true,
+        // No payload starts the request. payload false is the reset dispatched
+        // once the request has settled, so isLoading cannot stay true.
+        isLoading: action.payload !== false,
         lastOperation: "create"
       };
     default:

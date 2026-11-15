@@ -646,11 +646,11 @@ export const getAllCategory =
 export const findCategoryDetails =
   (category: string) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      dispatch({
-        type: CREATE_FILE,
-      });
+    dispatch({
+      type: CREATE_FILE,
+    });
 
+    try {
       return await API.get(`/api/stock/queryStock/category/${category}`);
     } catch (err) {
       const error = err as { response?: { data?: unknown } };
@@ -659,5 +659,10 @@ export const findCategoryDetails =
         payload: error.response?.data || { message: "無法取得類別詳細資訊" },
       });
       throw err;
+    } finally {
+      dispatch({
+        type: CREATE_FILE,
+        payload: false,
+      });
     }
   };
