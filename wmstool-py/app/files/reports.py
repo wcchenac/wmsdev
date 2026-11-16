@@ -88,6 +88,10 @@ def resolve_download(category: str, file_name: str) -> Path | None:
         if file_name.endswith(suffix):
             file_name = file_name[: -len(suffix)]
             break
+    # Java's pathResolver throws StringIndexOutOfBoundsException on "", and "." / ".."
+    # resolve outside the folder (Files.readAllBytes then fails). Both are a 400.
+    if file_name in ("", ".", ".."):
+        return None
     # ':' too: on Windows "C:x" is drive-relative and would escape the folder.
     if kind is None or any(sep in file_name for sep in ("/", "\\", ":")):
         return None

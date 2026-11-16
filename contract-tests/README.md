@@ -124,7 +124,7 @@ docker compose up -d --wait                  # 換回原版 Java
 
 ### 切換順序
 
-Python 容器每次啟動都會先執行 `alembic upgrade head`（見 `wmstool-py/Dockerfile`），所以**第一次啟動 Python 容器時就會套用 `0002`**。照這個順序做：
+Python 容器每次啟動都會先執行 `alembic upgrade head`，然後才啟動 uvicorn（見 `wmstool-py/Dockerfile`）。這個順序不要對調：服務不該在 `0002` 套用之前接流量。所以**第一次啟動 Python 容器時就會套用 `0002`**。照這個順序做：
 
 1. **停掉 Java 服務。** `0002` 是 `ALTER TABLE history MODIFY childrenIdentifierId BLOB`。MySQL 只能用複製整張表的方式改這個欄位型別（`ALGORITHM=COPY`），執行期間 `history` 可以讀、**不能寫**，表越大花的時間越長。Java 停機後再改，就不會有寫入被卡住。
 2. **檢查有沒有被截斷的資料**（只讀，見下一節），有的話先記下修復語句。
@@ -133,6 +133,10 @@ Python 容器每次啟動都會先執行 `alembic upgrade head`（見 `wmstool-p
 5. **執行第 2 步記下的修復語句**（必須在 `0002` 之後：修好的值會超過 255 bytes），再跑一次檢查，確認全部讀得回來。
 
 `0002` 的 downgrade 在有超過 255 bytes 的資料時會拒絕執行，避免截斷資料。
+
+容器以 uid 1000（使用者 `wms`）執行，不是 root。`EXCEL_DIR` 和 `PICTURE_DIR` 是掛進來的目錄，映像檔不會改它們的擁有者。這兩個目錄必須讓 uid 1000 可以寫，例如 `sudo chown -R 1000:1000 <目錄>`。對照測試用的 `runtime/files` 也一樣：宿主機上產生範本的使用者和容器的 uid 1000 都要寫得進去（一次性的目錄用 `chmod -R a+rwX runtime/files` 即可）。
+
+`EXCEL_DIR` 和 `PICTURE_DIR` 沒有預設值。沒設定或設成空白時，程序在啟動（`create_app`，以及會讀設定的 `alembic upgrade`）就失敗，錯誤訊息會點名這兩個變數，不會等到第一份報表才發現路徑是空的。
 
 ### 檢查與修復被截斷的資料
 
@@ -147,15 +151,16 @@ python -m app.history_check "mysql+pymysql://<user>:<password>@<host>/wms?charse
 全部正常時印出 `every history row reads back`、結束代碼 0。有問題的列會印出：
 
 - 宣告的子項數量，以及還讀得出來的子項 id。截成 255 bytes 的值仍完整保留子項總數和前 10 個子項，只少了第 11 個以後的。
-- 缺少子項的**所有**候選，必須同時符合：
+- 缺少子項的**所有**候選（沒有 `LIMIT`，不會悄悄截斷），必須同時符合：
   - 屬於同一棵樹：它自己的 history 列的 `rootIdentifierId` 跟該卷相同（Java 減肥時，會先替每一塊建好 history 列，才更新母卷的子項清單，所以截斷不影響這一層）。
-  - 有 SKI（減肥入庫）交易紀錄，貨號相同、批號相同（批號是 NULL 也比對得到）。
+  - 有 SKI（減肥入庫）交易紀錄，貨號相同、批號相同（批號是 NULL 也比對得到，用 `<=>`）。
+  - SKI 的 `createdAt` 落在這一刀 SKO 的 `createdAt` 之後 2 秒內（含）。Java 先寫 SKO、再寫每一塊的 SKI，同一筆請求裡兩者只差一秒上下。這一刀的 SKO 是「剛好一個」時間能對上已讀出子項 SKI 的那一筆；對不上、或有多筆對得上時，候選是空的，並印出警告。
   - id 大於最後一個讀得出來的子項。
   - 沒有被其他讀得出來的 history 列列為子項。
 - 只有在候選數量**剛好等於**缺少的數量，而且沒有其他有問題的列提出同一個候選時，才印出修復用的 `UPDATE history SET childrenIdentifierId = 0x… WHERE id = …;`。
-- 候選比缺少的多，或跟其他有問題的列共用候選時，會印出警告、不印 `UPDATE`；找不到候選或數量不足時也一樣不印。這些情況要依交易紀錄人工判斷。
+- 候選比缺少的多、跟其他有問題的列共用候選、或 SKO／SKI 時間對不上時，會印出警告、不印 `UPDATE`；找不到候選或數量不足時也一樣不印。這些情況要依交易紀錄人工判斷。
 
-候選只是推測，執行 `UPDATE` 之前要逐筆確認它們真的是那一次減肥切出來的：例如它們的 SKI 紀錄時間，要跟該卷的 SKO（減肥出庫）紀錄時間幾乎相同。
+印出來的 `UPDATE` 仍是推測。時間已經交叉確認過，執行前仍請再看一眼那些 id 是不是那一刀切出來的。
 
 ## 部署注意：報表範本
 
@@ -169,13 +174,13 @@ soffice --headless --convert-to xlsx --outdir <同一個資料夾> <範本>.xls
 
 fixture 轉檔時用的是 LibreOffice 25.2.3.2，環境是 Debian 13（trixie）的 `libreoffice-calc-nogui 4:25.2.3-2+deb13u9`（arm64），base image 是 `python:3.12-slim@sha256:cb7e7f6d…`。腳本固定使用這個 image；Debian 的安全更新會換掉套件，所以套件版本無法鎖死，但腳本會檢查裝到的 LibreOffice 必須是 25.2.3，不是就停下。正式範本最好也用同一版轉檔；版本不同時，轉完務必跑下面的 `app.template_check`。
 
-轉換正式範本之後，在部署機上執行檢查（需要 `pip install "wmstool-py[tools]"`）：
+轉換正式範本之後，在部署機上執行檢查。正式機映像檔已安裝 `[tools]`（含 xlrd），容器裡可以直接跑；在映像檔外面則要 `pip install "wmstool-py[tools]"`：
 
 ```bash
 python -m app.template_check D:/OutputFiles
 ```
 
-它會逐一比對每個 `*Template.xls` 和旁邊轉出的 `.xlsx`：`.xls` 那一邊用 xlrd 模擬 HSSF 的最後一列，`.xlsx` 那一邊用服務本身的 `poi_last_row`。全部 `OK` 才回 0；如果出現 `MISMATCH` 或 `MISSING .xlsx`，代表第一筆資料列和序號會跟 Java 錯開，要先修正 `.xlsx` 範本再切換。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。
+它會逐一比對每個 `*Template.xls` 和旁邊轉出的 `.xlsx`：`.xls` 那一邊用 xlrd 模擬 HSSF 的最後一列，`.xlsx` 那一邊用服務本身的 `poi_last_row`。四個服務會複製的範本（`OutStockList`、`STKADST`、`STKALLT`、`StockComparisonResult`）缺任何一個也算失敗。全部 `OK` 才回 0；如果出現 `MISMATCH`、`MISSING .xls` 或 `MISSING .xlsx`，要先補上或修正範本再切換。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。`scripts/convert_templates.sh` 會進到報表子資料夾，把每個 `.xls` 轉到它所在的資料夾。
 
 `.xls` 那一邊是用 xlrd 模擬 HSSF，已經對 POI 4.1.0 驗證過一般列、只有格式的列和合併儲存格這幾種情況，但終究不是 POI 本身。所以檢查通過後，第一次切換時仍請把 Java 和 Python 各產生的一份報表打開比對，確認第一筆資料列和序號相同。
 

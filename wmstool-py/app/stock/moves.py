@@ -31,13 +31,25 @@ class NotFound(Exception):
 
 
 def _one(session: Session, stmt):  # noqa: ANN001, ANN202
-    """Spring Data single-result finder: none -> NotFound, more than one -> error."""
+    """Spring Data single-result finder: none -> NotFound, more than one -> error.
+
+    More than one row is Java's IncorrectResultSizeDataAccessException: the caller
+    rolls the request back instead of using an arbitrary row.
+    """
     rows = session.scalars(stmt).all()
     if not rows:
         raise NotFound(str(stmt))
     if len(rows) > 1:
         raise LookupError(f"query did not return a unique result: {len(rows)}")
     return rows[0]
+
+
+def _at_most_one(session: Session, stmt):  # noqa: ANN001, ANN202
+    """Optional single-result finder: none is None, more than one is an error."""
+    rows = session.scalars(stmt).all()
+    if len(rows) > 1:
+        raise LookupError(f"query did not return a unique result: {len(rows)}")
+    return rows[0] if rows else None
 
 
 def _identifier(session: Session, identifier_id: int) -> StockIdentifier:
@@ -90,16 +102,15 @@ def rollback_in_stock(session: Session, identifier_ids: list[int]) -> None:
     committed the ids already deleted without reducing the product totals."""
     totals: products.Totals = {}
     for identifier_id in identifier_ids:
-        info = session.scalars(select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id)).first()
-        trans = session.scalars(select(TransactionRecord).where(
-            TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.operator == "1")).first()
-        order = session.scalars(select(InStockOrderRecord).where(
-            InStockOrderRecord.stockIdentifierId == identifier_id)).first()
-        si = session.get(StockIdentifier, identifier_id)
-        history = session.scalars(select(History).where(History.currentIdentifierId == identifier_id)).first()
-        if None in (info, trans, order, si, history):
-            raise LookupError(f"in-stock rollback: data for identifier {identifier_id} not found")
-        assert si is not None
+        # Each finder is single-result. A second row raises before any DELETE, so a
+        # duplicated child is not removed along with the one the caller named.
+        info = _one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
+        trans = _one(session, select(TransactionRecord).where(
+            TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.operator == "1"))
+        order = _one(session, select(InStockOrderRecord).where(
+            InStockOrderRecord.stockIdentifierId == identifier_id))
+        si = _one(session, select(StockIdentifier).where(StockIdentifier.id == identifier_id))
+        history = _one(session, select(History).where(History.currentIdentifierId == identifier_id))
         session.execute(delete(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
         session.execute(delete(TransactionRecord).where(
             TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.operator == "1"))
@@ -196,20 +207,34 @@ def unmark_wait_to_shrink(session: Session, identifier_id: int, editor: str) -> 
     session.flush()
 
 
-OUT_REQUEST_FIELDS = ("productNo", "lotNo", "type", "quantity", "unit", "color", "defect", "reason",
-                      "stockIdentifierId", "fileName", "requestFrom")
+def create_out_stock_request(session: Session, body, editor: str) -> OutStockRequest:  # noqa: ANN001
+    """OutStockRequestFunction.createOutStockRequest: a pull request not tied to a roll (type 2).
 
-
-def create_out_stock_request(session: Session, fields: dict, editor: str) -> OutStockRequest:
-    """OutStockRequestFunction.createOutStockRequest: a pull request not tied to a roll (type 2)."""
-    request = OutStockRequest(
-        **{k: fields[k] for k in OUT_REQUEST_FIELDS if k in fields},
-        isHandled=bool(fields.get("handled", False)), isDeleted=bool(fields.get("deleted", False)),
-        outStockType=2, createdBy=editor, createdAt=java_now_utc(),
-    )
-    request.color = request.color or 0
-    request.stockIdentifierId = request.stockIdentifierId or 0
-    session.add(request)
+    `body` is the Jackson-parsed OutStockRequest (router.OutStockBody). Spring Data
+    save() persists when id is null and merges otherwise: an id that is not in the
+    table is inserted with a new identity (GenerationType.IDENTITY), and an existing
+    id is overwritten with the detached state. createdBy and outStockType are set
+    here; updatedBy is whatever the client sent. @PrePersist stamps createdAt only
+    on insert; @PreUpdate stamps updatedAt only on merge.
+    """
+    now = java_now_utc()
+    existing = session.get(OutStockRequest, body.id) if body.id is not None else None
+    values = {
+        "productNo": body.productNo, "lotNo": body.lotNo, "type": body.type, "quantity": body.quantity,
+        "unit": body.unit, "color": body.color, "defect": body.defect, "reason": body.reason,
+        "stockIdentifierId": body.stockIdentifierId, "fileName": body.fileName,
+        "isHandled": body.handled, "isDeleted": body.deleted, "requestFrom": body.requestFrom,
+        "outStockType": 2, "createdBy": editor, "updatedBy": body.updatedBy,
+    }
+    if existing is None:
+        request = OutStockRequest(**values, createdAt=now, updatedAt=body.updatedAt)
+        session.add(request)
+    else:
+        for name, value in values.items():
+            setattr(existing, name, value)
+        existing.createdAt = body.createdAt
+        existing.updatedAt = now
+        request = existing
     session.flush()
     return request
 

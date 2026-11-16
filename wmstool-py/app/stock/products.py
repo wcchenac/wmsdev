@@ -31,7 +31,11 @@ def update_product_quantity(session: Session, product_no: str, type_: str, quant
     A stored total that is not a number fails the whole request, as in Java: NULL is
     a NullPointerException, "" a NumberFormatException (java_parse_double raises).
     Reading it as 0 would silently overwrite the total with this change alone."""
-    existing = session.scalar(select(Product).where(Product.productNo == product_no, Product.type == type_))
+    # findByProductNoAndType is an Optional single-result finder: two rows is an error,
+    # not "update the first". Imported here so products and moves do not import each other.
+    from app.stock.moves import _at_most_one
+
+    existing = _at_most_one(session, select(Product).where(Product.productNo == product_no, Product.type == type_))
     now = java_now_utc()
     if existing is not None:
         if existing.quantity is None:

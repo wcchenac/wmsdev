@@ -7,7 +7,7 @@ import openpyxl
 import pytest
 import xlwt
 
-from app.template_check import check, main, xls_last_row
+from app.template_check import REQUIRED, check, main, xls_last_row
 
 HEADER = ["貨號", "數量"]
 
@@ -67,23 +67,37 @@ def test_xls_last_row_ignores_merged_ranges(tmp_path, merge, blank_row, expected
     assert xls_last_row(tmp_path / "t.xls") == expected
 
 
+def _by_name(tmp_path: Path) -> dict[Path, object]:
+    return {r.template: r for r in check(tmp_path)}
+
+
+def _all_required(tmp_path: Path, *, mismatch: Path | None = None) -> None:
+    for rel in REQUIRED:
+        if rel == mismatch:
+            _xls(tmp_path / rel, sized_row=2)
+            _xlsx(tmp_path / rel.with_suffix(".xlsx"))
+        else:
+            _xls(tmp_path / rel)
+            _xlsx(tmp_path / rel.with_suffix(".xlsx"))
+
+
 def test_matching_conversion_is_ok(tmp_path):
     _xls(tmp_path / "STKALLT" / "StockAllocateRecordTemplate.xls", styled_blank_rows=2, sized_row=3)
     _xlsx(tmp_path / "STKALLT" / "StockAllocateRecordTemplate.xlsx", last_formatted_row=3)
-    (result,) = check(tmp_path)
+    result = _by_name(tmp_path)[Path("STKALLT/StockAllocateRecordTemplate.xls")]
     assert (result.xls_last, result.xlsx_last, result.ok) == (3, 3, True)
 
 
 def test_conversion_that_drops_a_formatted_row_is_reported(tmp_path):
     _xls(tmp_path / "STKADST" / "StockAdjustRecordTemplate.xls", sized_row=3)
     _xlsx(tmp_path / "STKADST" / "StockAdjustRecordTemplate.xlsx")  # the height-only row is gone
-    (result,) = check(tmp_path)
+    result = _by_name(tmp_path)[Path("STKADST/StockAdjustRecordTemplate.xls")]
     assert (result.xls_last, result.xlsx_last, result.ok) == (3, 0, False)
 
 
 def test_missing_xlsx_is_reported(tmp_path):
     _xls(tmp_path / "OutStockList" / "OutStockListTemplate.xls")
-    (result,) = check(tmp_path)
+    result = _by_name(tmp_path)[Path("OutStockList/OutStockListTemplate.xls")]
     assert (result.xlsx_last, result.ok) == (None, False)
 
 
@@ -91,20 +105,33 @@ def test_only_templates_are_checked(tmp_path):
     _xls(tmp_path / "STKALLT" / "StockAllocateRecordTemplate.xls")
     _xlsx(tmp_path / "STKALLT" / "StockAllocateRecordTemplate.xlsx")
     _xls(tmp_path / "STKALLT" / "2026" / "11" / "StockAllocateRecord-20261113.xls")  # a report
-    assert [r.template for r in check(tmp_path)] == [Path("STKALLT/StockAllocateRecordTemplate.xls")]
+    names = [r.template for r in check(tmp_path)]
+    assert Path("STKALLT/StockAllocateRecordTemplate.xls") in names
+    assert Path("STKALLT/2026/11/StockAllocateRecord-20261113.xls") not in names
+
+
+def test_a_missing_required_template_fails(tmp_path, capsys):
+    present = [rel for rel in REQUIRED if rel.name != "StockAdjustRecordTemplate.xls"]
+    for rel in present:
+        _xls(tmp_path / rel)
+        _xlsx(tmp_path / rel.with_suffix(".xlsx"))
+    assert main([str(tmp_path)]) == 1
+    out = capsys.readouterr().out
+    assert "STKADST/StockAdjustRecordTemplate.xls" in out and "MISSING .xls" in out
 
 
 def test_main_exit_code_and_report(tmp_path, capsys):
-    _xls(tmp_path / "A" / "ATemplate.xls")
-    _xlsx(tmp_path / "A" / "ATemplate.xlsx")
+    _all_required(tmp_path)
     assert main([str(tmp_path)]) == 0
-    _xls(tmp_path / "B" / "BTemplate.xls", sized_row=2)
-    _xlsx(tmp_path / "B" / "BTemplate.xlsx")
+    _all_required(tmp_path, mismatch=Path("STKADST/StockAdjustRecordTemplate.xls"))
     assert main([str(tmp_path)]) == 1
     out = capsys.readouterr().out
-    assert "A/ATemplate.xls" in out and "B/BTemplate.xls" in out and "MISMATCH" in out
+    assert "MISMATCH" in out and "STKADST/StockAdjustRecordTemplate.xls" in out
 
 
 def test_main_without_templates_fails(tmp_path, capsys):
     assert main([str(tmp_path)]) == 1
-    assert "no *Template.xls" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "MISSING .xls" in out
+    for rel in REQUIRED:
+        assert rel.as_posix() in out
