@@ -1,6 +1,6 @@
 import type { Mock } from 'vitest';
 import React, { createRef } from 'react';
-import { act, render, screen, RenderResult } from '@testing-library/react';
+import { act, fireEvent, render, screen, RenderResult } from '@testing-library/react';
 import SearchBoard from '../../../../../components/BO/Stock/OutStockList/SearchBoard';
 
 interface MockSearchContainerProps {
@@ -246,6 +246,147 @@ describe('SearchBoard', () => {
       expect(board.state.toBeSubmit['2024-01-01']).not.toBe(before['2024-01-01']);
       expect(board.state.toBeSubmit['2024-01-01'][1].whName).toBe('內倉');
       expect(board.state.toBeSubmit['2024-01-01'][1].selected).toBe(true);
+    });
+  });
+
+  describe('multi-date warehouse validation', () => {
+    test('an empty warehouse on an earlier date keeps save disabled', () => {
+      const ref = createRef<SearchBoard>();
+      render(<SearchBoard ref={ref} {...defaultProps} />);
+      const board = ref.current;
+      if (board === null) {
+        throw new Error('SearchBoard did not mount');
+      }
+
+      act(() => {
+        board.setState({
+          toBeSubmit: {
+            '2024-01-01': { 1: { selected: true, whName: '' } },
+            '2024-01-02': { 3: { selected: true, whName: '內倉' } },
+          },
+        });
+      });
+
+      expect(screen.getByRole('button', { name: '儲存' })).toBeDisabled();
+    });
+
+    test('save is enabled when every selected row has a warehouse', () => {
+      const ref = createRef<SearchBoard>();
+      render(<SearchBoard ref={ref} {...defaultProps} />);
+      const board = ref.current;
+      if (board === null) {
+        throw new Error('SearchBoard did not mount');
+      }
+
+      act(() => {
+        board.setState({
+          toBeSubmit: {
+            '2024-01-01': { 1: { selected: true, whName: '外倉' } },
+            '2024-01-02': { 3: { selected: true, whName: '內倉' } },
+          },
+        });
+      });
+
+      expect(screen.getByRole('button', { name: '儲存' })).toBeEnabled();
+    });
+
+    test('save stays disabled when nothing is selected', () => {
+      const ref = createRef<SearchBoard>();
+      render(<SearchBoard ref={ref} {...defaultProps} />);
+      const board = ref.current;
+      if (board === null) {
+        throw new Error('SearchBoard did not mount');
+      }
+
+      act(() => {
+        board.setState({
+          toBeSubmit: {
+            '2024-01-01': { 1: { selected: false, whName: '內倉' } },
+            '2024-01-02': { 3: { selected: false, whName: '外倉' } },
+          },
+        });
+      });
+
+      expect(screen.getByRole('button', { name: '儲存' })).toBeDisabled();
+    });
+  });
+
+  describe('hidden rows', () => {
+    test('a hidden row with an empty warehouse is not submitted', () => {
+      const ref = createRef<SearchBoard>();
+      render(
+        <SearchBoard
+          ref={ref}
+          {...defaultProps}
+          selectedUserList={[
+            { user: 'user1', selected: true },
+            { user: 'user2', selected: false },
+          ]}
+        />
+      );
+      const board = ref.current;
+      if (board === null) {
+        throw new Error('SearchBoard did not mount');
+      }
+
+      act(() => {
+        board.setState({
+          toBeSubmit: {
+            '2024-01-01': { 1: { selected: true, whName: '內倉' } },
+            '2024-01-02': { 3: { selected: true, whName: '' } },
+          },
+        });
+      });
+
+      const submit = screen.getByRole('button', { name: '儲存' });
+      expect(submit).toBeEnabled();
+      fireEvent.click(submit);
+
+      expect(defaultProps.handleSubmitClick).toHaveBeenCalledWith({
+        outStockUpdate: { '1': '內倉' },
+      });
+    });
+
+    test('changing the user filter drops hidden rows before save', () => {
+      const queryResult = defaultProps.queryResult;
+      if (queryResult === undefined) {
+        throw new Error('queryResult is required');
+      }
+
+      const ref = createRef<SearchBoard>();
+      const { rerender } = render(<SearchBoard ref={ref} {...defaultProps} />);
+      const board = ref.current;
+      if (board === null) {
+        throw new Error('SearchBoard did not mount');
+      }
+
+      act(() => {
+        board.setState({
+          toBeSubmit: board.initialToBeSubmit(queryResult, defaultProps.selectedUserList),
+        });
+      });
+      act(() => {
+        board.handleToBeSubmitWHChange('2024-01-01', '內倉', 1);
+      });
+
+      rerender(
+        <SearchBoard
+          ref={ref}
+          {...defaultProps}
+          selectedUserList={[
+            { user: 'user1', selected: true },
+            { user: 'user2', selected: false },
+          ]}
+        />
+      );
+
+      expect(board.state.toBeSubmit['2024-01-02']?.[3]).toBeUndefined();
+      const submit = screen.getByRole('button', { name: '儲存' });
+      expect(submit).toBeEnabled();
+      fireEvent.click(submit);
+      expect(defaultProps.handleSubmitClick).toHaveBeenCalledWith({
+        outStockUpdate: { '1': '內倉' },
+      });
     });
   });
 });

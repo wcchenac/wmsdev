@@ -21,6 +21,7 @@ export interface OutStockInfo {
 interface SearchInfoProps {
   searchInfo: OutStockInfo;
   checked: boolean;
+  whName: string;
   onInfoCheckBoxChange: (checked: boolean, id: number) => void;
   onInfoWHChange: (value: string, id: number) => void;
   handleDeleteClick: (info: OutStockInfo) => void;
@@ -185,7 +186,7 @@ class SearchInfo extends Component<SearchInfoProps> {
             <select
               className="form-select form-select-sm"
               name="whName"
-              defaultValue=""
+              value={this.props.whName}
               onChange={this.onChange}
               disabled={handled}
               aria-label="選擇倉別"

@@ -90,7 +90,7 @@ const QueryBoard_Detail: React.FC = () => {
   const handleFutureProductQuery = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
-      const select = (e.target as HTMLButtonElement).value;
+      const select = e.currentTarget.value;
 
       setIsLoading(true);
       setQueriedProductNo(select);

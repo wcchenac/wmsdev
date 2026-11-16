@@ -107,3 +107,43 @@ test('sorting the user filter does not mutate the store userList', async () => {
   const zeta = screen.getByRole('button', { name: 'zeta' });
   expect(alpha.compareDocumentPosition(zeta) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
+
+test('clearing the list does not restore it until the next response arrives', async () => {
+  const pending: Array<(value: { status: number; data: ReturnType<typeof waitHandleList> }) => void> = [];
+  vi.mocked(API.get).mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        pending.push(resolve);
+      })
+  );
+
+  const store = createStore(rootReducer, applyMiddleware(thunk));
+  render(
+    <Provider store={store}>
+      <OutStockRequestList />
+    </Provider>
+  );
+
+  expect(screen.queryByText('CF1001')).not.toBeInTheDocument();
+
+  await act(async () => {
+    pending[0]({ status: 200, data: waitHandleList() });
+  });
+  await settle();
+  expect(screen.getByText('CF1001')).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: /頁面初始化/ }));
+  await settle();
+
+  expect(pending.length).toBeGreaterThanOrEqual(2);
+  expect(screen.queryByText('CF1001')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /林倉管/ })).not.toBeInTheDocument();
+
+  await act(async () => {
+    pending[pending.length - 1]({ status: 200, data: waitHandleList() });
+  });
+  await settle();
+
+  expect(screen.getByText('CF1001')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /林倉管/ })).toBeInTheDocument();
+});
