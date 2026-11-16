@@ -35,6 +35,8 @@ class Principal:
 
 
 def _principal_from_header(header: str | None) -> Principal | None:
+    """The lookup session is closed before the request continues, so authentication
+    does not hold a MySQL connection across the handler's ERP or Excel work."""
     if not header or not header.startswith(TOKEN_PREFIX):
         return None
     user_id = read_user_id(header[len(TOKEN_PREFIX) :])

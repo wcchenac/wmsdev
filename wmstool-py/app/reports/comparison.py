@@ -21,6 +21,7 @@ def create(day: dt.date) -> Path:
 
 
 def append(path: Path, rows: list[list[str | None]]) -> None:
-    # None cells (a NULL WMS quantity) stay blank, like Java's setCellValue(null)
+    # None cells (a NULL WMS quantity) stay blank, like Java's setCellValue(null).
+    # Fail rows use the red font plus the helper's thin border and center alignment.
     failed = [dict(enumerate(r)) for r in rows if r[5] != "Pass"]
     append_rows(path, failed, font=FAIL_FONT)  # type: ignore[arg-type]

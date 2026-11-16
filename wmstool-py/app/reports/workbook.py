@@ -11,12 +11,22 @@ import io
 from pathlib import Path
 
 import openpyxl
+from openpyxl.styles import Alignment, Border, Side
 from openpyxl.worksheet.worksheet import Worksheet
 
 from app.files.reports import EXTENSION, excel_root
 from app.xlsx import poi_last_row
 
 Row = dict[int, str | int | float | None]
+
+# POI BorderStyle.THIN on all four sides, and CENTER / CENTER alignment.
+# OutStockRequestExcelHelper also sets wrapText; the comparison and category
+# helpers do not. Font.COLOR_NORMAL is left as the workbook default; the
+# comparison's red font is passed in (FAIL_FONT).
+_THIN = Side(style="thin")
+THIN_BORDER = Border(left=_THIN, right=_THIN, top=_THIN, bottom=_THIN)
+CENTER = Alignment(horizontal="center", vertical="center", wrap_text=False)
+CENTER_WRAP = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
 
 def dated_report_path(folder: str, prefix: str, stamp: str, day: dt.date) -> tuple[Path, str]:
@@ -65,16 +75,22 @@ def recreate_all_from_templates(reports: list[tuple[str, str, Path]]) -> list[Pa
     return [_write(target, content) for (_, _, target), content in zip(reports, contents, strict=True)]
 
 
-def write_row(sheet: Worksheet, index: int, cells: Row, font=None) -> None:  # noqa: ANN001
+def write_row(sheet: Worksheet, index: int, cells: Row, font=None, *, wrap: bool = False) -> None:  # noqa: ANN001
+    """Write one report row. A None value is setCellValue(null): the cell stays
+    blank but still receives the border and alignment. Keys the caller omits
+    (pull-list columns 5 and 7) are not created. `wrap` is the pull list's wrapText."""
+    align = CENTER_WRAP if wrap else CENTER
     for col, value in cells.items():
-        if value is None:
-            continue
-        cell = sheet.cell(row=index + 1, column=col + 1, value=value)
+        cell = sheet.cell(row=index + 1, column=col + 1)
+        if value is not None:
+            cell.value = value
+        cell.border = THIN_BORDER
+        cell.alignment = align
         if font is not None:
             cell.font = font
 
 
-def append_rows(path: Path, rows: list[Row], font=None) -> None:  # noqa: ANN001
+def append_rows(path: Path, rows: list[Row], font=None, *, wrap: bool = False) -> None:  # noqa: ANN001
     """Append rows after the last one (getLastRowNum() + 1) on the first sheet."""
     if not rows:  # nothing to write: an openpyxl load/save would drop bare <row>s
         return
@@ -82,7 +98,7 @@ def append_rows(path: Path, rows: list[Row], font=None) -> None:  # noqa: ANN001
     book = openpyxl.load_workbook(path)
     sheet = book.worksheets[0]
     for offset, cells in enumerate(rows):
-        write_row(sheet, start + offset, cells, font)
+        write_row(sheet, start + offset, cells, font, wrap=wrap)
     book.save(path)
 
 

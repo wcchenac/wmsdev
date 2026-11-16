@@ -25,8 +25,12 @@ def create(now_taipei: dt.datetime) -> tuple[Path, str]:
 
 
 def append(path: Path, requests: Sequence[OutStockRequest]) -> None:
-    """modifyExisting: one row per handled request; colour is written as a number."""
+    """modifyExisting: one row per handled request; colour is written as a number.
+
+    Each written cell is centered, wraps, and has a thin border on all four sides
+    (OutStockRequestExcelHelper). Columns Java never creates (5 and 7) stay empty.
+    """
     append_rows(path, [
         {0: r.productNo, 1: r.lotNo, 2: r.color, 3: r.defect, 4: r.quantity, 6: r.reason, 8: r.requestFrom}
         for r in requests
-    ])
+    ], wrap=True)

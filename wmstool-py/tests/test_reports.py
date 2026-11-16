@@ -10,6 +10,7 @@ def excel_dir(tmp_path, monkeypatch):
     monkeypatch.setenv("JWT_SECRET", "QUJD")
     monkeypatch.setenv("ERP_DATABASE_URL", "mssql+pymssql://unused/unused")
     monkeypatch.setenv("EXCEL_DIR", str(tmp_path))
+    monkeypatch.setenv("PICTURE_DIR", str(tmp_path / "pictures"))
     get_settings.cache_clear()
     (tmp_path / "CategoryDetail").mkdir()
     (tmp_path / "CategoryDetail" / "CategoryDetail-棉布.xlsx").write_bytes(b"x")
@@ -23,6 +24,16 @@ def test_resolves_category_report(excel_dir):
     # FileCenter.tsx builds category-detail names with ".xls"
     assert resolve_download("categoryDetail", "CategoryDetail-棉布.xls") == expected
     assert resolve_download("categoryDetail", "CategoryDetail-棉布.xlsx") == expected
+
+
+@pytest.mark.parametrize("name", ["", ".", "..", ".xls", ".xlsx", "..xls", "...xls"])
+def test_rejects_empty_and_dot_names_the_way_java_does(excel_dir, name):
+    """After the extension is stripped, "", "." and ".." are a 400, as Java's
+    pathResolver or Files.readAllBytes fails for them."""
+    (excel_dir / "CategoryDetail" / ".xlsx").write_bytes(b"x")
+    (excel_dir / "CategoryDetail" / "..xlsx").write_bytes(b"x")
+    assert resolve_download("categoryDetail", name) is None
+    assert resolve_download("allocation", name) is None
 
 
 @pytest.mark.parametrize("name", ["../secret", "..\\secret", "C:secret", "C:/secret", "/etc/passwd"])
@@ -135,6 +146,107 @@ def test_broken_template_fails_before_the_report_is_touched(excel_dir, content, 
     with pytest.raises(Exception):  # noqa: B017 - any parse error, as Java's IOException/POI errors
         getattr(workbook, helper)("STKALLT", "StockAllocateRecordTemplate", report)
     assert report.read_bytes() == b"today's report"
+
+
+def _styled_refs(path):  # noqa: ANN001
+    """Cell refs whose saved style is a thin four-sided border and center alignment."""
+    import zipfile
+    from xml.etree import ElementTree
+
+    ns = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+    with zipfile.ZipFile(path) as book:
+        styles = ElementTree.fromstring(book.read("xl/styles.xml"))
+        sheet = ElementTree.fromstring(book.read("xl/worksheets/sheet1.xml"))
+    borders = styles.findall("m:borders/m:border", ns)
+    xfs = styles.findall("m:cellXfs/m:xf", ns)
+    good = set()
+    for index, xf in enumerate(xfs):
+        border = borders[int(xf.get("borderId", "0"))]
+        if not all(border.find(f"m:{side}", ns).get("style") == "thin" for side in ("left", "right", "top", "bottom")):
+            continue
+        align = xf.find("m:alignment", ns)
+        if align is None or align.get("horizontal") != "center" or align.get("vertical") != "center":
+            continue
+        if align.get("wrapText") not in (None, "0"):
+            continue
+        good.add(str(index))
+    return {cell.get("r") for cell in sheet.findall("m:sheetData/m:row/m:c", ns) if cell.get("s") in good}
+
+
+def _thin_and_centered(cell, *, wrap: bool) -> None:  # noqa: ANN001
+    assert cell.alignment.horizontal == "center"
+    assert cell.alignment.vertical == "center"
+    assert bool(cell.alignment.wrap_text) is wrap
+    for side in (cell.border.left, cell.border.right, cell.border.top, cell.border.bottom):
+        assert side.style == "thin"
+
+
+def test_report_cells_match_the_java_styles(excel_dir, monkeypatch):
+    """Contract tests compare cell values only. The Java helpers also set a thin
+    border and center alignment on every written cell, wrapText on the pull list,
+    and the same border on the blank cells of a category-detail merge."""
+    import datetime as dt
+
+    import openpyxl
+
+    from app.reports import category, comparison, pull_list
+    from app.reports.comparison import FAIL_FONT
+    from app.stock.models import OutStockRequest
+
+    pictures = excel_dir / "pictures"
+    pictures.mkdir()
+    monkeypatch.setenv("PICTURE_DIR", str(pictures))
+    get_settings.cache_clear()
+
+    book = openpyxl.Workbook()
+    book.worksheets[0]["A1"] = "header"
+    (excel_dir / "OutStockList").mkdir()
+    book.save(excel_dir / "OutStockList" / "OutStockListTemplate.xlsx")
+    (excel_dir / "StockComparisonResult").mkdir()
+    book.save(excel_dir / "StockComparisonResult" / "StockComparisonResultTemplate.xlsx")
+
+    day = dt.datetime(2026, 11, 15, 8, 0, 0)
+    path, _ = pull_list.create(day)
+    pull_list.append(path, [OutStockRequest(
+        productNo="CF1001", lotNo="L01", color=3, defect="", quantity="10", reason="門市", requestFrom="A")])
+    sheet = openpyxl.load_workbook(path).worksheets[0]
+    written = sheet.cell(row=2, column=1)
+    assert written.value == "CF1001"
+    _thin_and_centered(written, wrap=True)
+    assert sheet.cell(row=2, column=6).value is None  # column Java does not create
+    assert sheet.cell(row=2, column=6).border.left.style is None
+
+    compare_path = comparison.create(day.date())
+    comparison.append(compare_path, [
+        ["CF1001", "整支", "1", "1", "碼", "Pass", "0"],
+        ["CF1002", "整支", "2", None, "碼", "Fail", None],
+    ])
+    sheet = openpyxl.load_workbook(compare_path).worksheets[0]
+    fail = sheet.cell(row=2, column=1)
+    assert fail.value == "CF1002"
+    _thin_and_centered(fail, wrap=False)
+    assert fail.font.color is not None and fail.font.color.rgb == FAIL_FONT.color.rgb
+    assert sheet.cell(row=2, column=4).value is None  # NULL quantity stays blank
+    _thin_and_centered(sheet.cell(row=2, column=4), wrap=False)
+    assert sheet.cell(row=3, column=1).value is None  # Pass rows are not written
+
+    row = ("CF1001", "L01", "整支", "50", "碼", 3, None, "", "", "進貨單", "2026-11-01", "棉布")
+    info = {"CF1001": ["S1", "廠商", "10", "品名", "說明"]}
+    name = category.write("棉布", [row], info, {})
+    book_path = excel_dir / "CategoryDetail" / name
+    # openpyxl's reader strips styles off merged cells that are not the anchor, so
+    # the blank cells of a merge are checked in the file itself.
+    styled = _styled_refs(book_path)
+    # Product-info block: 0-based row 4 is Excel row 5. I5 is the anchor (品名's
+    # value sits in the next column); J5/K5 and N5 are the blank merged cells.
+    assert {"I5", "J5", "K5", "M5", "N5"} <= styled
+    sheet = openpyxl.load_workbook(book_path).worksheets[0]
+    data = next(c for row_ in sheet.iter_rows() for c in row_ if c.value == "CF1001")
+    _thin_and_centered(data, wrap=False)
+    # A null stock cell (瑕疵) is still created and styled.
+    blank_stock = sheet.cell(row=data.row, column=7)
+    assert blank_stock.value is None
+    _thin_and_centered(blank_stock, wrap=False)
 
 
 def test_recreate_all_leaves_every_report_when_one_template_is_missing(excel_dir):

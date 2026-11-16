@@ -73,7 +73,10 @@ def _convert_units(item: InStockItem) -> tuple[str, str]:
 def _backlog(session: Session, item: InStockItem, quantity: str, unit: str) -> StockIdentifierBacklog:
     found = None
     if item.lotNo is not None:  # Spring Data's `lotNo = ?` never matches NULL
-        found = session.scalar(select(StockIdentifierBacklog).where(
+        # findByProductNoAndLotNoAndTypeAndQuantityAndUnit: two rows is an error.
+        from app.stock.moves import _at_most_one
+
+        found = _at_most_one(session, select(StockIdentifierBacklog).where(
             StockIdentifierBacklog.productNo == item.productNo,
             StockIdentifierBacklog.lotNo == item.lotNo,
             StockIdentifierBacklog.type == item.type,

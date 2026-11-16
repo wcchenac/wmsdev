@@ -35,7 +35,13 @@ def _erp_totals() -> Erp:
     return totals
 
 
-def comparison_rows(session: Session) -> list[list[str | None]]:
+def wms_products(session: Session) -> list[tuple[str, str, str | None, str]]:
+    """Product rows for the comparison, copied out so the session can close first."""
+    return [(p.productNo or "", p.type or "", p.quantity, p.unit or "")
+            for p in session.scalars(select(Product).order_by(Product.id))]
+
+
+def comparison_rows_from(products: list[tuple[str, str, str | None, str]]) -> list[list[str | None]]:
     erp_totals = _erp_totals()
     # HashMaps never shrink: the leftover iteration order is the order over every key ever
     # inserted, minus the removed ones. Exact for list bins; a treeified bin (9+ colliding
@@ -45,8 +51,7 @@ def comparison_rows(session: Session) -> list[list[str | None]]:
     inner_order = {p: java_hashmap_order(types) for p, types in erp_totals.items()}
     remaining = {p: dict(types) for p, types in erp_totals.items()}
     rows: list[list[str | None]] = []
-    for p in session.scalars(select(Product).order_by(Product.id)):
-        product_no, type_, wms_qty, unit = p.productNo or "", p.type or "", p.quantity, p.unit or ""
+    for product_no, type_, wms_qty, unit in products:
         erp_entry = remaining.get(product_no, {}).get(type_)
         if erp_entry is not None:
             erp_qty = erp_entry["quantity"]
@@ -75,6 +80,17 @@ def comparison_rows(session: Session) -> list[list[str | None]]:
                 rows.append([product_no, type_, entry["quantity"], "", entry["unit"], "Fail",
                              java_format_2f(quantity * -1)])
     return rows
+
+
+def comparison_rows(session: Session) -> list[list[str | None]]:
+    return comparison_rows_from(wms_products(session))
+
+
+def write_stock_comparison(products: list[tuple[str, str, str | None, str]]) -> None:
+    """ERP totals and the workbook. The caller has already closed the MySQL session."""
+    rows = comparison_rows_from(products)
+    path = comparison.create(taipei_today())
+    comparison.append(path, rows)
 
 
 def stock_full_comparison(session: Session) -> None:

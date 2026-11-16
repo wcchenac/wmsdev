@@ -15,6 +15,7 @@ dir=$(cd "$1" && pwd)
 image="python:3.12-slim@sha256:cb7e7f6dc0a4b341e9098051c4e6b6d450a6835f226bf0b910a99edf766fd3e7"
 expected="${LIBREOFFICE_VERSION:-25.2.3}"
 docker run --rm -e EXPECTED="$expected" -v "$dir:/w" "$image" sh -c '
+  set -eu
   apt-get update -qq >/dev/null &&
   apt-get install -y -qq --no-install-recommends libreoffice-calc-nogui >/dev/null &&
   version=$(soffice --version) &&
@@ -23,4 +24,7 @@ docker run --rm -e EXPECTED="$expected" -v "$dir:/w" "$image" sh -c '
     "LibreOffice $EXPECTED"*) ;;
     *) echo "expected LibreOffice $EXPECTED; set LIBREOFFICE_VERSION to accept this one" >&2; exit 1 ;;
   esac &&
-  cd /w && soffice --headless --convert-to xlsx --outdir /w /w/*.xls'
+  cd /w &&
+  find /w -type f -name "*.xls" | sort | while IFS= read -r f; do
+    soffice --headless --convert-to xlsx --outdir "$(dirname "$f")" "$f"
+  done'

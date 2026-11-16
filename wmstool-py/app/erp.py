@@ -11,12 +11,15 @@ from functools import lru_cache
 from sqlalchemy import Engine, create_engine, text
 
 from app.config import get_settings
+from app.db import engine_kwargs
 
 
 @lru_cache
 def get_erp_engine() -> Engine:
     # pymssql is imported here, by the dialect, not at app import time.
-    return create_engine(get_settings().erp_database_url, pool_pre_ping=True)
+    # Same pool settings as MySQL: pre-ping and recycle, so a connection the
+    # server already closed is not handed out for the next ERP call.
+    return create_engine(get_settings().erp_database_url, **engine_kwargs())
 
 
 def _rows(sql: str, **params: object) -> list[tuple]:

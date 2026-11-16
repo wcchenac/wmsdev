@@ -10,6 +10,8 @@ services:
       context: ../wmstool-py
     command: !reset null
     working_dir: /app
+    # The image runs as uid 1000. This mount must be writable by that uid and by
+    # the host user that seeds templates (chmod -R a+rwX runtime/files).
     volumes: !override
       - ./runtime/files:/data/files
     environment:
