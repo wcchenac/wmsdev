@@ -251,7 +251,7 @@ describe('StockActions', () => {
   describe('stockIdentifierIsShiped', () => {
     const shipRequest = {
       stockIdentifierId: 123,
-      destination: '中壢'
+      reason: '中壢'
     };
 
     test('dispatches SHIP_Stock only after the patch succeeds', async () => {
@@ -316,8 +316,8 @@ describe('StockActions', () => {
   describe('stockIdentifiersAreShiped', () => {
     const productNo = 'PROD001';
     const shipRequests = [
-      { stockIdentifierId: 1, destination: '中壢' },
-      { stockIdentifierId: 2, destination: '新竹' }
+      { stockIdentifierId: 1, reason: '中壢' },
+      { stockIdentifierId: 2, reason: '新竹' }
     ];
     const mockStockData = [{ id: 1, isShipped: true }];
 
@@ -509,10 +509,22 @@ describe('StockActions', () => {
   // ============================================
 
   describe('batchCreateStockInfoes', () => {
-    const inStockRequests = [
-      { productNo: 'P001', quantity: '10' },
-      { productNo: 'P002', quantity: '20' }
-    ];
+    const inStockRequest = (productNo: string, quantity: string): types.InStockRequest => ({
+      productNo,
+      lotNo: 'L1',
+      type: '板卷',
+      quantity,
+      unit: '碼',
+      color: '0',
+      defect: '',
+      record: '',
+      remark: '',
+      inStockType: 'normal',
+      orderNo: 'IN001',
+      directShip: false,
+      outStockReason: '',
+    });
+    const inStockRequests = [inStockRequest('P001', '10'), inStockRequest('P002', '20')];
 
     test('calls API.post with correct endpoint and data', async () => {
       mockedAPI.post.mockResolvedValue({ data: { success: true } });
@@ -550,9 +562,12 @@ describe('StockActions', () => {
   });
 
   describe('batchCreateStockInfoesForShrink', () => {
-    const shrinkRequest = {
-      sourceId: 123,
-      newItems: [{ quantity: '5', type: 'RR' }]
+    const shrinkRequest: types.ShrinkStockRequest = {
+      oldStockIdentifierId: 123,
+      inStockRequests: [],
+      allocation: 0,
+      adjustment: 0,
+      shrinkType: 'RR'
     };
 
     test('calls API.post with correct endpoint and data', async () => {
@@ -775,9 +790,11 @@ describe('StockActions', () => {
 
   describe('updateStockInfo', () => {
     const updateRequest = {
-      stockIdentifierId: 123,
-      quantity: '50',
-      unit: 'yards'
+      id: 123,
+      color: 2,
+      defect: 'GA',
+      record: '',
+      remark: ''
     };
     const productNo = 'PROD001';
     const mockStockData = [{ id: 123, quantity: '50' }];
@@ -830,7 +847,9 @@ describe('StockActions', () => {
   describe('createOutStockRequest', () => {
     const outStockRequest = {
       productNo: 'PROD001',
+      type: '板卷',
       quantity: '10',
+      unit: '碼',
       reason: '中壢'
     };
 
@@ -967,8 +986,7 @@ describe('StockActions', () => {
 
   describe('updateOutStockRequests', () => {
     const updateRequest = {
-      id: 123,
-      handler: 'user1'
+      outStockUpdate: { '123': 'user1' }
     };
 
     test('calls API.patch with correct endpoint and data', async () => {

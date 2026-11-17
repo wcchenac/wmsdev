@@ -1,30 +1,29 @@
-import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import ConfirmModal from '../../../../../components/BO/Stock/OutStockList/ConfirmModal';
+import type { OutStockInfo } from '../../../../../components/BO/Stock/OutStockList/SearchInfo';
 
-interface SearchInfo {
-  id: number;
-  stockIdentifierId: number;
-  outStockType: number;
-}
+type ConfirmModalProps = React.ComponentProps<typeof ConfirmModal>;
 
-interface ConfirmModalProps {
-  show: boolean;
-  searchInfo: SearchInfo;
-  handleModalClose: Mock;
-  cancelShip: Mock;
-  deleteOutStock: Mock;
-}
+// The modal reads id, stockIdentifierId and outStockType; the rest is filler.
+const searchInfo: OutStockInfo = {
+  id: 1,
+  stockIdentifierId: 100,
+  outStockType: 0,
+  productNo: 'CF1001',
+  type: '板卷',
+  quantity: 10,
+  unit: '碼',
+  reason: '中壢',
+  createdBy: 'user1',
+  handled: false,
+  fileName: '',
+};
 
 describe('ConfirmModal', () => {
   const defaultProps: ConfirmModalProps = {
     show: true,
-    searchInfo: {
-      id: 1,
-      stockIdentifierId: 100,
-      outStockType: 0
-    },
+    searchInfo,
     handleModalClose: vi.fn(),
     cancelShip: vi.fn(),
     deleteOutStock: vi.fn()

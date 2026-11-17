@@ -12,6 +12,9 @@ vi.mock('../../utilities/API', () => ({
   }
 }));
 
+// Callers pass a token or false; these tests check other falsy values too.
+const setJWTTokenWith = (token: unknown): void => setJWTToken(token as string | false);
+
 describe('SetJWTToken - setJWTToken function', () => {
   beforeEach(() => {
     // Clear Authorization header before each test
@@ -54,19 +57,19 @@ describe('SetJWTToken - setJWTToken function', () => {
 
     test('removes Authorization header when token is null', () => {
       API.defaults.headers.common['Authorization'] = 'existing-token';
-      setJWTToken(null);
+      setJWTTokenWith(null);
       expect(API.defaults.headers.common['Authorization']).toBeUndefined();
     });
 
     test('removes Authorization header when token is undefined', () => {
       API.defaults.headers.common['Authorization'] = 'existing-token';
-      setJWTToken(undefined);
+      setJWTTokenWith(undefined);
       expect(API.defaults.headers.common['Authorization']).toBeUndefined();
     });
 
     test('removes Authorization header when token is 0', () => {
       API.defaults.headers.common['Authorization'] = 'existing-token';
-      setJWTToken(0);
+      setJWTTokenWith(0);
       expect(API.defaults.headers.common['Authorization']).toBeUndefined();
     });
   });

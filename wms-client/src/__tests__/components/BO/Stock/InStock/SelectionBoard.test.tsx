@@ -1,4 +1,3 @@
-import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import SelectionBoard from '../../../../../components/BO/Stock/InStock/Common/SelectionBoard';
@@ -10,26 +9,7 @@ interface MockCheckBoxProps {
   handleCheckBoxSelected: (index: number) => void;
 }
 
-interface WaitHandleStatus {
-  [key: string]: string;
-}
-
-interface SelectedProductNoItem {
-  index: number;
-  productNo: string;
-  selected: boolean;
-}
-
-interface SelectionBoardProps {
-  type: string;
-  orderNo: string;
-  waitHandleStatus: WaitHandleStatus;
-  selectedProductNoList: SelectedProductNoItem[];
-  handlePrevStep: Mock;
-  handleNextStep: Mock;
-  handleSelectionClick: Mock;
-  handleCheckBoxSelected: Mock;
-}
+type SelectionBoardProps = React.ComponentProps<typeof SelectionBoard>;
 
 // Mock CheckBoxForSelectionBoard
 vi.mock('../../../../../components/BO/Stock/InStock/Common/CheckBoxForSelectionBoard', () => ({ default: (() => {
@@ -56,12 +36,12 @@ describe('SelectionBoard', () => {
     type: '進貨',
     orderNo: 'ORDER001',
     waitHandleStatus: {
-      'PROD001': 'pending',
-      'PROD002': 'pending'
+      'PROD001': { 板卷: { quantity: '10', unit: '碼' } },
+      'PROD002': { 板卷: { quantity: '5', unit: '碼' } }
     },
     selectedProductNoList: [
-      { index: 0, productNo: 'PROD001', selected: false },
-      { index: 1, productNo: 'PROD002', selected: false }
+      { index: 0, productNo: 'PROD001', selected: false, isSubmitted: false },
+      { index: 1, productNo: 'PROD002', selected: false, isSubmitted: false }
     ],
     handlePrevStep: vi.fn(),
     handleNextStep: vi.fn(),
@@ -126,8 +106,8 @@ describe('SelectionBoard', () => {
       const propsWithSelection: Partial<SelectionBoardProps> = {
         ...defaultProps,
         selectedProductNoList: [
-          { index: 0, productNo: 'PROD001', selected: true },
-          { index: 1, productNo: 'PROD002', selected: false }
+          { index: 0, productNo: 'PROD001', selected: true, isSubmitted: false },
+          { index: 1, productNo: 'PROD002', selected: false, isSubmitted: false }
         ]
       };
       renderSelectionBoard(propsWithSelection);
@@ -139,8 +119,8 @@ describe('SelectionBoard', () => {
       const propsAllSelected: Partial<SelectionBoardProps> = {
         ...defaultProps,
         selectedProductNoList: [
-          { index: 0, productNo: 'PROD001', selected: true },
-          { index: 1, productNo: 'PROD002', selected: true }
+          { index: 0, productNo: 'PROD001', selected: true, isSubmitted: false },
+          { index: 1, productNo: 'PROD002', selected: true, isSubmitted: false }
         ]
       };
       renderSelectionBoard(propsAllSelected);
@@ -160,7 +140,7 @@ describe('SelectionBoard', () => {
       const propsWithSelection: Partial<SelectionBoardProps> = {
         ...defaultProps,
         selectedProductNoList: [
-          { index: 0, productNo: 'PROD001', selected: true }
+          { index: 0, productNo: 'PROD001', selected: true, isSubmitted: false }
         ]
       };
       renderSelectionBoard(propsWithSelection);
@@ -192,8 +172,8 @@ describe('SelectionBoard', () => {
       const propsWithSelection: Partial<SelectionBoardProps> = {
         ...defaultProps,
         selectedProductNoList: [
-          { index: 0, productNo: 'PROD001', selected: true },
-          { index: 1, productNo: 'PROD002', selected: false }
+          { index: 0, productNo: 'PROD001', selected: true, isSubmitted: false },
+          { index: 1, productNo: 'PROD002', selected: false, isSubmitted: false }
         ]
       };
       renderSelectionBoard(propsWithSelection);

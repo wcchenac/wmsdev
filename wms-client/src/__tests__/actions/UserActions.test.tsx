@@ -68,8 +68,10 @@ describe('UserActions', () => {
   describe('registerUser', () => {
     const newUser = {
       employeeId: 'NEW001',
+      username: 'NEW001',
       fullName: 'New User',
       password: 'password123',
+      confirmPassword: 'password123',
       role: 'ROLE_Normal'
     };
 

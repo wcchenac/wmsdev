@@ -49,13 +49,7 @@ interface StockInfoCopyItem {
   errors: StockInfoErrors;
 }
 
-interface DefectItem {
-  value: string;
-}
-
-interface StockInfoWithDefect {
-  defect: Array<DefectItem | undefined>;
-}
+type StockInfoWithDefect = Parameters<typeof joinInfoDefectArray>[0];
 
 describe('StockInfoHelperMethods', () => {
   // 新增複數列數 on 入庫 Step 3 and 減肥 both parse their text input with this.
@@ -333,13 +327,13 @@ describe('StockInfoHelperMethods', () => {
   describe('joinInfoDefectArray', () => {
     test('joins defect values with slash separator', () => {
       const stockInfo: StockInfoWithDefect = {
-        defect: [{ value: 'GA' }, { value: 'GB' }, { value: 'GC' }]
+        defect: [{ label: 'GA', value: 'GA' }, { label: 'GB', value: 'GB' }, { label: 'GC', value: 'GC' }]
       };
       expect(joinInfoDefectArray(stockInfo)).toBe('GA/GB/GC');
     });
 
     test('handles single defect', () => {
-      const stockInfo: StockInfoWithDefect = { defect: [{ value: 'GA' }] };
+      const stockInfo: StockInfoWithDefect = { defect: [{ label: 'GA', value: 'GA' }] };
       expect(joinInfoDefectArray(stockInfo)).toBe('GA');
     });
 
@@ -349,17 +343,17 @@ describe('StockInfoHelperMethods', () => {
     });
 
     test('handles undefined values in array', () => {
-      const stockInfo: StockInfoWithDefect = { defect: [{ value: 'GA' }, undefined, { value: 'GB' }] };
+      const stockInfo: StockInfoWithDefect = { defect: [{ label: 'GA', value: 'GA' }, undefined, { label: 'GB', value: 'GB' }] };
       expect(joinInfoDefectArray(stockInfo)).toBe('GA/GB');
     });
 
     test('handles defect with empty string value', () => {
-      const stockInfo: StockInfoWithDefect = { defect: [{ value: '' }] };
+      const stockInfo: StockInfoWithDefect = { defect: [{ label: '', value: '' }] };
       expect(joinInfoDefectArray(stockInfo)).toBe('');
     });
 
     test('handles two defects', () => {
-      const stockInfo: StockInfoWithDefect = { defect: [{ value: 'GA' }, { value: 'GB' }] };
+      const stockInfo: StockInfoWithDefect = { defect: [{ label: 'GA', value: 'GA' }, { label: 'GB', value: 'GB' }] };
       expect(joinInfoDefectArray(stockInfo)).toBe('GA/GB');
     });
   });

@@ -8,6 +8,10 @@ interface ChildObject extends ParentObject {
   own?: string;
 }
 
+// isEmpty is typed for plain objects; these tests also check arrays and objects built on a
+// prototype.
+const isEmptyValue = (value: unknown): boolean => isEmpty(value as Record<string, unknown>);
+
 describe('IsEmpty - isEmpty function', () => {
   describe('empty objects', () => {
     test('returns true for empty object literal', () => {
@@ -61,14 +65,14 @@ describe('IsEmpty - isEmpty function', () => {
     test('returns true for object with only inherited properties', () => {
       const parent: ParentObject = { inherited: true };
       const child: ChildObject = Object.create(parent);
-      expect(isEmpty(child)).toBe(true);
+      expect(isEmptyValue(child)).toBe(true);
     });
 
     test('returns false for object with own properties overriding inherited', () => {
       const parent: ParentObject = { inherited: true };
       const child: ChildObject = Object.create(parent);
       child.own = 'value';
-      expect(isEmpty(child)).toBe(false);
+      expect(isEmptyValue(child)).toBe(false);
     });
   });
 
@@ -95,15 +99,15 @@ describe('IsEmpty - isEmpty function', () => {
 
   describe('arrays (treated as objects)', () => {
     test('returns true for empty array', () => {
-      expect(isEmpty([])).toBe(true);
+      expect(isEmptyValue([])).toBe(true);
     });
 
     test('returns false for non-empty array', () => {
-      expect(isEmpty([1, 2, 3])).toBe(false);
+      expect(isEmptyValue([1, 2, 3])).toBe(false);
     });
 
     test('returns false for array with single element', () => {
-      expect(isEmpty([1])).toBe(false);
+      expect(isEmptyValue([1])).toBe(false);
     });
   });
 });

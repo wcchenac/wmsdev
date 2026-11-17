@@ -1,19 +1,13 @@
-import type { Mock } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import QueryOrder from '../../../../../components/BO/Stock/InStock/Common/QueryOrder';
 
-interface QueryOrderProps {
-  type: string;
-  isOrderValid: boolean | null;
-  handleQueryOrderSubmit: Mock;
-  handleOrderNo: Mock;
-}
+type QueryOrderProps = React.ComponentProps<typeof QueryOrder>;
 
 describe('QueryOrder', () => {
   const defaultProps: QueryOrderProps = {
     type: '進貨',
-    isOrderValid: null,
+    isOrderValid: undefined, // not queried yet, as the boards start
     handleQueryOrderSubmit: vi.fn(),
     handleOrderNo: vi.fn()
   };
@@ -50,8 +44,8 @@ describe('QueryOrder', () => {
   });
 
   describe('validation display', () => {
-    test('does not show error when isOrderValid is null', () => {
-      renderQueryOrder({ isOrderValid: null });
+    test('does not show error before the order is queried (isOrderValid undefined)', () => {
+      renderQueryOrder({ isOrderValid: undefined });
       expect(screen.queryByText(/查無進貨/)).not.toBeInTheDocument();
     });
 
