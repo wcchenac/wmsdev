@@ -12,26 +12,33 @@ from app.config import Settings
 from app.files.reports import REPORTS, WRITE_PROBE_PREFIX
 
 
+def _uid() -> str:
+    """The process uid for error messages; os.getuid does not exist on Windows."""
+    getuid = getattr(os, "getuid", None)
+    return str(getuid()) if getuid else "?"
+
+
 def _probe(directory: Path) -> None:
     """Create a file there, close it, delete it.
 
     os.access only reads the permission bits, which a CIFS/SMB mount makes up on the
     client side. TemporaryFile is avoided too: without O_TMPFILE it deletes the file
     while it is still open, which a share may refuse even though the folder is fine.
-    Deleting is part of the check because only it removes the probe again; of the
-    reports, only CategoryDetail deletes files (a category's report is replaced).
+    Of the reports, only CategoryDetail deletes files (a category's report is
+    replaced); the others overwrite in place. A folder where the probe cannot be
+    closed or deleted still stops the start, because the probe would be left there
+    on every start; the message names that file.
     """
-    uid = os.getuid()
     try:
         fd, name = tempfile.mkstemp(dir=directory, prefix=WRITE_PROBE_PREFIX)
     except OSError as exc:
-        raise RuntimeError(f"EXCEL_DIR {directory} is not writable by uid {uid} ({exc.strerror})") from exc
-    os.close(fd)
+        raise RuntimeError(f"EXCEL_DIR {directory} is not writable by uid {_uid()} ({exc.strerror})") from exc
     try:
+        os.close(fd)
         os.unlink(name)
     except OSError as exc:
         raise RuntimeError(
-            f"EXCEL_DIR {directory}: uid {uid} could create files but could not delete {name} "
+            f"EXCEL_DIR {directory}: uid {_uid()} could create {name} but could not close or delete it "
             f"({exc.strerror}). Allow deleting there, then delete it by hand.") from exc
 
 
@@ -43,6 +50,9 @@ def _report_folders(excel: Path) -> list[Path]:
     Every name a folder lists is probed, not only the folders the walk enters: the
     walk skips a folder it cannot list (copied with its old owner, mode 0700) and
     does not follow a linked folder, but reports are still written into both.
+    Limit: a linked subfolder is probed itself, but the folders inside it are not
+    (STKALLT/2026 linked elsewhere with a read-only 11 inside still passes). A
+    linked report folder at the top (STKALLT itself) is walked in full.
 
     A missing CategoryDetail folder is created when its first report is written. The
     other four folders hold the templates (python -m app.template_check checks them),
@@ -76,4 +86,4 @@ def check_directories(settings: Settings) -> None:
         _probe(folder)
     pictures = Path(settings.picture_dir)
     if pictures.is_dir() and not os.access(pictures, os.R_OK | os.X_OK):
-        raise RuntimeError(f"PICTURE_DIR {pictures} is not readable by uid {os.getuid()}")
+        raise RuntimeError(f"PICTURE_DIR {pictures} is not readable by uid {_uid()}")

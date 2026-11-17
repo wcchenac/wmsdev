@@ -189,7 +189,8 @@ def test_folders_the_service_never_writes_are_not_checked(monkeypatch, tmp_path)
 def test_the_write_probe_does_not_rely_on_temporary_file(monkeypatch, tmp_path):
     """Without O_TMPFILE, TemporaryFile deletes the file while it is still open; a
     share that refuses that would make a writable folder look read-only and leave
-    the file behind. The probe creates, closes and deletes, as a report write does.
+    the file behind. The probe creates, closes and deletes the file. (Only CategoryDetail
+    deletes files when writing reports; the delete is there to remove the probe.)
 
     Limit: this only bans TemporaryFile. It does not simulate a share that refuses to
     delete an open file, so another API that deletes while the file is open (for
@@ -262,5 +263,48 @@ def test_a_probe_file_that_cannot_be_deleted_is_named(monkeypatch, tmp_path):
 
     monkeypatch.setattr(os, "unlink", refuse_probe)
     _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
-    with pytest.raises(RuntimeError, match=r"could not delete .*\.wms-write-check-\w+.*delete it by hand"):
+    with pytest.raises(RuntimeError, match=r"\.wms-write-check-\w+ but could not close or delete it.*delete it by hand"):
+        create_app()
+
+
+def test_startup_does_not_need_getuid_when_the_folders_are_fine(monkeypatch, tmp_path):
+    """os.getuid does not exist on Windows. A developer running the service there
+    outside Docker must not crash at startup; the uid only goes into error messages."""
+    import os
+
+    from app.main import create_app
+
+    (tmp_path / "STKALLT" / "2026" / "11").mkdir(parents=True)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    monkeypatch.delattr(os, "getuid")
+    create_app()
+
+
+def test_a_probe_file_that_cannot_be_closed_is_named(monkeypatch, tmp_path):
+    """A share can report an I/O error on close. The startup error names the file
+    that may be left behind, as when deleting fails."""
+    import errno
+    import os
+    import tempfile
+
+    from app.main import create_app
+
+    probe_fds: set[int] = set()
+    real_mkstemp, real_close = tempfile.mkstemp, os.close
+
+    def recording_mkstemp(*args, **kwargs):  # noqa: ANN002, ANN003, ANN202
+        fd, name = real_mkstemp(*args, **kwargs)
+        probe_fds.add(fd)
+        return fd, name
+
+    def failing_close(fd: int) -> None:
+        if fd in probe_fds:
+            real_close(fd)
+            raise OSError(errno.EIO, "Input/output error")
+        real_close(fd)
+
+    monkeypatch.setattr(tempfile, "mkstemp", recording_mkstemp)
+    monkeypatch.setattr(os, "close", failing_close)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    with pytest.raises(RuntimeError, match=r"\.wms-write-check-\w+ but could not close or delete it \(Input/output error\).*delete it by hand"):
         create_app()
