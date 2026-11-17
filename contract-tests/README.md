@@ -134,9 +134,9 @@ Python 容器每次啟動都會先執行 `alembic upgrade head`，然後才啟�
 
 `0002` 的 downgrade 在有超過 255 bytes 的資料時會拒絕執行，避免截斷資料。
 
-容器以 uid 1000（使用者 `wms`）執行，不是 root。`EXCEL_DIR` 和 `PICTURE_DIR` 是掛進來的目錄，映像檔不會改它們的擁有者。這兩個目錄必須讓 uid 1000 可以寫，例如 `sudo chown -R 1000:1000 <目錄>`。對照測試用的 `runtime/files` 也一樣：宿主機上產生範本的使用者和容器的 uid 1000 都要寫得進去（一次性的目錄用 `chmod -R a+rwX runtime/files` 即可）。
+容器以 uid 1000（使用者 `wms`）執行，不是 root。`EXCEL_DIR` 和 `PICTURE_DIR` 是掛進來的目錄，映像檔不會改它們的擁有者。`EXCEL_DIR` 必須讓 uid 1000 可以寫，`PICTURE_DIR` 只需要能讀；Linux 主機上可以用 `sudo chown -R 1000:1000 <目錄>`。Windows 的 Docker Desktop 掛載磁碟目錄時通常不套用 Linux 的擁有者，uid 1000 也能寫（未在正式機實測）；能不能寫，啟動時的目錄檢查會直接告訴你。對照測試用的 `runtime/files` 也一樣：宿主機上產生範本的使用者和容器的 uid 1000 都要寫得進去（一次性的目錄用 `chmod -R a+rwX runtime/files` 即可）。
 
-`EXCEL_DIR` 和 `PICTURE_DIR` 沒有預設值。沒設定或設成空白時，程序在啟動（`create_app`，以及會讀設定的 `alembic upgrade`）就失敗，錯誤訊息會點名這兩個變數，不會等到第一份報表才發現路徑是空的。
+`EXCEL_DIR` 和 `PICTURE_DIR` 沒有預設值。沒設定或設成空白時，程序在啟動（`create_app`，以及會讀設定的 `alembic upgrade`）就失敗，錯誤訊息會點名這兩個變數，不會等到第一份報表才發現路徑是空的。啟動時也會檢查目錄本身：`EXCEL_DIR` 不存在，或它和底下任何一個已存在的子資料夾（例如從 Java 主機複製來的 `STKALLT/2026/11`）寫不進去，或 `PICTURE_DIR` 存在但讀不到，都會讓啟動失敗並印出目錄與 uid。能不能寫是實際建立一個暫存檔再刪掉來判斷，不只看權限位元，因為 SMB 掛載的權限位元是假造的。`PICTURE_DIR` 如果放在 `EXCEL_DIR` 底下，不要求可寫。`PICTURE_DIR` 不存在可以啟動，跟 Java 一樣，類別明細報表就沒有照片。
 
 ### 檢查與修復被截斷的資料
 
@@ -154,7 +154,7 @@ python -m app.history_check "mysql+pymysql://<user>:<password>@<host>/wms?charse
 - 缺少子項的**所有**候選（沒有 `LIMIT`，不會悄悄截斷），必須同時符合：
   - 屬於同一棵樹：它自己的 history 列的 `rootIdentifierId` 跟該卷相同（Java 減肥時，會先替每一塊建好 history 列，才更新母卷的子項清單，所以截斷不影響這一層）。
   - 有 SKI（減肥入庫）交易紀錄，貨號相同、批號相同（批號是 NULL 也比對得到，用 `<=>`）。
-  - SKI 的 `createdAt` 落在這一刀 SKO 的 `createdAt` 之後 2 秒內（含）。Java 先寫 SKO、再寫每一塊的 SKI，同一筆請求裡兩者只差一秒上下。這一刀的 SKO 是「剛好一個」時間能對上已讀出子項 SKI 的那一筆；對不上、或有多筆對得上時，候選是空的，並印出警告。
+  - SKI 的 `createdAt` 落在這一刀 SKO 的 `createdAt` 之後 2 秒內（含）。Java 先寫 SKO、再寫每一塊的 SKI，同一筆請求裡兩者只差一秒上下。這一刀的 SKO 是「剛好一個」時間能對上已讀出子項 SKI 的那一筆；對不上、或有多筆對得上時，候選是空的，並印出警告。其他條件都符合、只是 SKI 落在 2 秒之外的子卷不算候選，但會另外列出，並附上與 SKO 的時間差（例如 `12 (SKI +5s)`）；資料庫很慢時，真正缺的那塊可能就在這裡，要人工確認，工具不會把它們放進 `UPDATE`。如果某塊子卷同時是另一筆有問題資料在時間窗內的候選，會加註 `candidate of history N`，避免把同一塊指給兩筆。
   - id 大於最後一個讀得出來的子項。
   - 沒有被其他讀得出來的 history 列列為子項。
 - 只有在候選數量**剛好等於**缺少的數量，而且沒有其他有問題的列提出同一個候選時，才印出修復用的 `UPDATE history SET childrenIdentifierId = 0x… WHERE id = …;`。
@@ -180,7 +180,7 @@ fixture 轉檔時用的是 LibreOffice 25.2.3.2，環境是 Debian 13（trixie�
 python -m app.template_check D:/OutputFiles
 ```
 
-它會逐一比對每個 `*Template.xls` 和旁邊轉出的 `.xlsx`：`.xls` 那一邊用 xlrd 模擬 HSSF 的最後一列，`.xlsx` 那一邊用服務本身的 `poi_last_row`。四個服務會複製的範本（`OutStockList`、`STKADST`、`STKALLT`、`StockComparisonResult`）缺任何一個也算失敗。全部 `OK` 才回 0；如果出現 `MISMATCH`、`MISSING .xls` 或 `MISSING .xlsx`，要先補上或修正範本再切換。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。`scripts/convert_templates.sh` 會進到報表子資料夾，把每個 `.xls` 轉到它所在的資料夾。
+它會逐一比對每個 `*Template.xls` 和旁邊轉出的 `.xlsx`：`.xls` 那一邊用 xlrd 模擬 HSSF 的最後一列，`.xlsx` 那一邊用服務本身的 `poi_last_row`。四個服務會複製的範本（`OutStockList`、`STKADST`、`STKALLT`、`StockComparisonResult`）缺任何一個也算失敗。全部 `OK` 才回 0；如果出現 `MISMATCH`、`MISSING .xls` 或 `MISSING .xlsx`，要先補上或修正範本再切換。如果範本下方有預先格式化的空列，資料會寫在那些列之後；Java 也是這樣。`scripts/convert_templates.sh` 會進到報表子資料夾，只把 `*Template.xls` 轉到它所在的資料夾；同一個資料夾裡歷年產生的報表不會被轉，否則轉出的 `.xlsx` 會在下載時取代原本的 `.xls`。加上 `--list` 只列出會轉哪些檔、不執行轉檔，可以先對正式目錄確認。
 
 `.xls` 那一邊是用 xlrd 模擬 HSSF，已經對 POI 4.1.0 驗證過一般列、只有格式的列和合併儲存格這幾種情況，但終究不是 POI 本身。所以檢查通過後，第一次切換時仍請把 Java 和 Python 各產生的一份報表打開比對，確認第一筆資料列和序號相同。
 

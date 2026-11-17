@@ -11,10 +11,11 @@ from sqlalchemy.orm import Session
 
 from app.db import get_session
 from app.security.auth import require_roles
+from app.strict_json import StrictJsonRoute
 from app.users import service
 from app.users.schemas import LoginRequest, RegisterRequest, UpdateUserRequest
 
-router = APIRouter(prefix="/api/user")
+router = APIRouter(prefix="/api/user", route_class=StrictJsonRoute)
 admin_only = require_roles("ROLE_Admin")
 
 

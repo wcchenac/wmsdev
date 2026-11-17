@@ -19,12 +19,12 @@ from app.stock.router import OutStockBody
 
 
 @pytest.fixture(autouse=True)
-def settings(monkeypatch):
+def settings(monkeypatch, tmp_path):
     monkeypatch.setenv("WMS_DATABASE_URL", "mysql+pymysql://unused/unused")
     monkeypatch.setenv("JWT_SECRET", "QUJD")
     monkeypatch.setenv("ERP_DATABASE_URL", "mssql+pymssql://unused/unused")
-    monkeypatch.setenv("EXCEL_DIR", "/tmp/excel")
-    monkeypatch.setenv("PICTURE_DIR", "/tmp/pictures")
+    monkeypatch.setenv("EXCEL_DIR", str(tmp_path))  # create_app checks it is writable
+    monkeypatch.setenv("PICTURE_DIR", str(tmp_path / "pictures"))
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()

@@ -8,6 +8,7 @@ which also rolls the request's transaction back (get_session).
 
 import datetime as dt
 import logging
+import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
@@ -21,10 +22,11 @@ from app.security.auth import require_roles
 from app.stock import compare, history, moves, orders, queries, shrink
 from app.stock.intake import InStockItem, create_stock_infoes
 from app.stock.serializers import history_json, out_stock_request_json
+from app.strict_json import StrictJsonRoute
 from app.users.schemas import NotBlank
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/stock")
+router = APIRouter(prefix="/api/stock", route_class=StrictJsonRoute)
 ops = require_roles("ROLE_Operator", "ROLE_Admin")
 admin = require_roles("ROLE_Admin")
 
@@ -390,9 +392,17 @@ def wait_to_shrink_rollback(stockIdentifierId: int, request: Request,
     return Response(status_code=200)
 
 
+def _jackson_null_text(text: str) -> bool:
+    """Jackson's textual null: the empty string and "null" (after trimming)."""
+    return text in ("", "null")
+
+
 def _jackson_whole(value: object, *, bits: int) -> int:
-    """Jackson 2.10 primitive int/long: numbers, numeric strings; null becomes 0."""
+    """Jackson 2.10 primitive int/long: numbers, numeric strings; null, "" and the text
+    "null" become 0 (FAIL_ON_NULL_FOR_PRIMITIVES is off)."""
     if value is None:
+        return 0
+    if isinstance(value, str) and _jackson_null_text(value.strip()):
         return 0
     if isinstance(value, bool):
         raise ValueError("not a number")
@@ -422,7 +432,7 @@ def _jackson_bool(value: object) -> bool:
         text = value.strip()
         if text in ("true", "True"):
             return True
-        if text in ("false", "False") or text == "":
+        if text in ("false", "False") or _jackson_null_text(text):
             return False
     if value is None:
         return False  # FAIL_ON_NULL_FOR_PRIMITIVES is off
@@ -430,32 +440,82 @@ def _jackson_bool(value: object) -> bool:
 
 
 def _jackson_long_or_none(value: object) -> int | None:
-    """Jackson Long (the id). Null means a new row; a non-numeric value is a 400."""
-    if value is None:
+    """Jackson Long (the id). Null, "" and "null" mean a new row; other non-numeric
+    values are a 400."""
+    if value is None or (isinstance(value, str) and _jackson_null_text(value.strip())):
         return None
     return _jackson_whole(value, bits=64)
 
 
+# DateTimeFormatter.ISO_LOCAL_DATE_TIME: 'T' (parseCaseInsensitive, so 't' too) between
+# date and time, seconds optional, then a fraction of 0 to 9 digits (a lone '.' is
+# accepted), no offset.
+_ISO_LOCAL_DATE_TIME = re.compile(
+    r"(\d{4})-(\d{2})-(\d{2})[Tt](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{0,9}))?)?", re.ASCII)
+# Instant.parse (ISO_INSTANT) on JDK 8: seconds are required, then a literal Z. Jackson
+# only takes this path when index 10 is an upper-case 'T'.
+_ISO_INSTANT = re.compile(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{0,9}))?Z", re.ASCII)
+
+
+def _local_date_time(parts: tuple[str | None, ...]) -> dt.datetime:
+    year, month, day, hour, minute, second, fraction = parts
+    nano = int((fraction or "").ljust(9, "0")) if fraction else 0
+    return dt.datetime(int(year), int(month), int(day), int(hour), int(minute), int(second or 0),
+                       nano // 1000)  # ResolverStyle.STRICT: out-of-range fields raise
+
+
 def _jackson_datetime(value: object) -> dt.datetime | None:
-    """Jackson LocalDateTime: an ISO string or a jsr310 int array. Omitted stays null."""
+    """jsr310 LocalDateTimeDeserializer (2.10) with the default formatter.
+
+    A string is trimmed; empty is null. With 'T' at index 10, a trailing Z is read as
+    an Instant in UTC (the same wall time); anything else must be ISO_LOCAL_DATE_TIME,
+    so a date alone, a space separator or an offset is a 400 (as is the text "null").
+    An array is [y, M, d, h, m(, s(, nanos))]: fewer than 5 or more than 7 is a 400;
+    an empty array is null.
+
+    Known difference, accepted (2026-11-17): Python's datetime holds microseconds, so
+    nanoseconds are cut to microseconds. The value stored is the same (MySQL DATETIME
+    rounds to the second), but the response echoes the cut value: [..., 15, 1500]
+    comes back as [..., 15, 1000] and .123456789 as .123456000, where Java echoes the
+    nanoseconds it was sent.
+    """
     if value is None:
         return None
     if isinstance(value, str):
         text = value.strip()
-        if text.endswith("Z"):
-            text = text[:-1]
-        try:
-            parsed = dt.datetime.fromisoformat(text)
-        except ValueError as exc:
-            raise ValueError("not a LocalDateTime") from exc
-        return parsed.replace(tzinfo=None)
-    if isinstance(value, list) and 3 <= len(value) <= 7 and all(
+        if text == "":
+            return None
+        match = _ISO_INSTANT.fullmatch(text) or _ISO_LOCAL_DATE_TIME.fullmatch(text)
+        if match is None:
+            raise ValueError("not a LocalDateTime")
+        return _local_date_time(match.groups())
+    if value == []:
+        return None
+    if isinstance(value, list) and 5 <= len(value) <= 7 and all(
             isinstance(part, int) and not isinstance(part, bool) for part in value):
-        year, month, day, hour, minute, second, nano = [*value, *([0] * (7 - len(value)))][:7]
+        year, month, day, hour, minute, second, nano = [*value, *([0] * (7 - len(value)))]
         return dt.datetime(year, month, day, hour, minute, second, nano // 1000)
     raise ValueError("not a LocalDateTime")
 
 
+def _jackson_str(value: object) -> object:
+    """Jackson 2.10 String: a JSON number or boolean is coerced to its text ("50",
+    "1.5", "true"). Arrays and objects stay a 400.
+
+    Known difference, accepted (2026-11-17): Jackson keeps the number as written in the
+    request; pydantic only sees the parsed value, so a decimal is stored in Python's
+    spelling of it: 1e3 -> "1000.0" (Jackson "1e3"), 1.50 -> "1.5" ("1.50"),
+    0.00001 -> "1e-05" ("0.00001"), 1e21 -> "1e+21", -0 -> "0", and long decimals
+    are shortened. Integers and booleans match. The frontend sends these fields as
+    strings, so only a hand-written API call meets this."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    return value
+
+
+JacksonStr = Annotated[str | None, BeforeValidator(_jackson_str)]
 JacksonInt = Annotated[int, BeforeValidator(lambda value: _jackson_whole(value, bits=32))]
 JacksonLong = Annotated[int, BeforeValidator(lambda value: _jackson_whole(value, bits=64))]
 JacksonBool = Annotated[bool, BeforeValidator(_jackson_bool)]
@@ -473,20 +533,20 @@ class OutStockBody(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     id: JacksonLongOrNone = None
-    productNo: str | None = None
-    lotNo: str | None = None
-    type: str | None = None
-    quantity: str | None = None
-    unit: str | None = None
+    productNo: JacksonStr = None
+    lotNo: JacksonStr = None
+    type: JacksonStr = None
+    quantity: JacksonStr = None
+    unit: JacksonStr = None
     color: JacksonInt = 0
-    defect: str | None = None
-    reason: str | None = None
+    defect: JacksonStr = None
+    reason: JacksonStr = None
     stockIdentifierId: JacksonLong = 0
-    fileName: str | None = None
+    fileName: JacksonStr = None
     handled: JacksonBool = False
     deleted: JacksonBool = False
-    requestFrom: str | None = None
-    updatedBy: str | None = None
+    requestFrom: JacksonStr = None
+    updatedBy: JacksonStr = None
     createdAt: JacksonDateTime = None
     updatedAt: JacksonDateTime = None
 

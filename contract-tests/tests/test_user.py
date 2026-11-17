@@ -25,6 +25,15 @@ def test_login_rejections(http, golden):
     golden.response("empty_body", http.post("/api/user/login", json={}))
 
 
+def test_login_with_nan_in_an_unknown_field(http, golden):
+    """Valid credentials, plus a property the request class does not have whose value
+    is NaN. Jackson fails while parsing, before the unknown property is ignored."""
+    password = USERS["admin"][1]
+    body = '{"employeeId": "admin", "password": "' + password + '", "extra": NaN}'
+    golden.response("response", http.post("/api/user/login", content=body.encode(),
+                                          headers={"Content-Type": "application/json"}))
+
+
 def test_token_is_required(http, golden):
     golden.response("no_token", http.get("/api/user/adminManagement/user/userList"))
     golden.response(

@@ -440,6 +440,105 @@ OUT_STOCK = {"productNo": "CF1002", "lotNo": "L07", "type": "整支", "quantity"
              "color": 0, "defect": "", "reason": "門市拉貨"}
 
 
+_JACKSON_EDGE_BODIES = {
+    # Empty string and the text "null" in non-String fields.
+    "color_empty": {"color": ""},
+    "color_null_text": {"color": "null"},
+    "stock_identifier_empty": {"stockIdentifierId": ""},
+    "stock_identifier_null_text": {"stockIdentifierId": "null"},
+    "id_empty": {"id": ""},
+    "id_null_text": {"id": "null"},
+    "handled_null_text": {"handled": "null"},
+    "deleted_null_text": {"deleted": "null"},
+    "updated_at_empty": {"updatedAt": ""},
+    "updated_at_null_text": {"updatedAt": "null"},
+    # LocalDateTime spellings.
+    "updated_at_date_only": {"updatedAt": "2020-01-02"},
+    "updated_at_space_separated": {"updatedAt": "2020-01-02 10:30:00"},
+    "updated_at_no_seconds": {"updatedAt": "2020-01-02T10:30"},
+    "updated_at_fraction": {"updatedAt": "2020-01-02T10:30:00.123"},
+    "updated_at_offset": {"updatedAt": "2020-01-02T10:30:00+08:00"},
+    "updated_at_zulu": {"updatedAt": "2020-01-02T10:30:00Z"},
+    "updated_at_array_3": {"updatedAt": [2020, 1, 2]},
+    "updated_at_array_4": {"updatedAt": [2020, 1, 2, 10]},
+    "updated_at_array_5": {"updatedAt": [2020, 1, 2, 10, 30]},
+    "updated_at_array_7": {"updatedAt": [2020, 1, 2, 10, 30, 15, 500000000]},
+    "updated_at_array_8": {"updatedAt": [2020, 1, 2, 10, 30, 15, 500000000, 1]},
+    "updated_at_lowercase_t": {"updatedAt": "2020-01-02t10:30"},
+    "updated_at_lowercase_t_zulu": {"updatedAt": "2020-01-02t10:30:00Z"},
+    "updated_at_trailing_dot": {"updatedAt": "2020-01-02T10:30:00."},
+    "updated_at_trailing_dot_zulu": {"updatedAt": "2020-01-02T10:30:00.Z"},
+    "updated_at_empty_array": {"updatedAt": []},
+}
+
+
+@pytest.mark.parametrize("case", list(_JACKSON_EDGE_BODIES))
+def test_out_stock_request_jackson_edge_values(operator, db, golden, case):
+    """How Jackson 2.10 binds the empty string and the text "null" in number, boolean
+    and LocalDateTime fields, and which LocalDateTime strings and arrays it accepts.
+    The stored row is read back with the time formatted, since time values are masked."""
+    from conftest import rows
+
+    resp = operator.post("/api/stock/outStock", json={**OUT_STOCK, **_JACKSON_EDGE_BODIES[case]})
+    golden.add("status", resp.status_code)
+    golden.add("stored", rows(db, "SELECT id, color, stockIdentifierId, isHandled, isDeleted, "
+                                  "DATE_FORMAT(updatedAt, '%%Y-%%m-%%d %%H:%%i:%%s.%%f') AS updated_utc "
+                                  "FROM outstockrequest ORDER BY id"))
+    if resp.status_code == 200:
+        body = resp.json()
+        golden.add("echoed_updated_at", body.get("updatedAt"))
+
+
+_NON_STANDARD_JSON = {
+    "nan_in_string_field": '"reason": NaN',
+    "infinity_in_string_field": '"quantity": Infinity',
+    "negative_infinity_in_string_field": '"reason": -Infinity',
+    "nan_in_unknown_field": '"extra": NaN',
+}
+
+
+@pytest.mark.parametrize("case", list(_NON_STANDARD_JSON))
+def test_out_stock_request_non_standard_json_numbers(operator, db, golden, case):
+    """NaN and Infinity are not JSON. Jackson's parser rejects them (400) before any
+    field is bound, even in a property the class does not have."""
+    from conftest import rows
+
+    body = '{"productNo": "CF1002", "unit": "碼", ' + _NON_STANDARD_JSON[case] + "}"
+    resp = operator.post("/api/stock/outStock", content=body.encode(),
+                         headers={"Content-Type": "application/json"})
+    golden.response("response", resp)
+    golden.add("stored", rows(db, "SELECT id, quantity, reason FROM outstockrequest ORDER BY id"))
+
+
+def test_out_stock_request_jackson_coercion_and_merge(operator, db, golden):
+    """POST /outStock binds Jackson's OutStockRequest: numbers and booleans in String
+    fields become text; client times are LocalDateTimes in the JVM zone (Asia/Taipei),
+    stored in UTC by the JDBC driver and echoed back as sent. An existing id is merged:
+    the client's createdAt replaces the stored one.
+
+    Times are a fixed 2020 date, read back with DATE_FORMAT and under their own labels,
+    because createdAt/updatedAt values are masked in goldens."""
+    from conftest import rows
+
+    def stored() -> list:
+        return rows(db, "SELECT id, quantity, defect, reason, "
+                        "DATE_FORMAT(createdAt, '%%Y-%%m-%%d %%H:%%i:%%s') AS created_utc, "
+                        "DATE_FORMAT(updatedAt, '%%Y-%%m-%%d %%H:%%i:%%s') AS updated_utc "
+                        "FROM outstockrequest ORDER BY id")
+
+    scalars = {**OUT_STOCK, "quantity": 50, "defect": True, "reason": 1.5}
+    golden.response("string_fields_from_scalars", operator.post("/api/stock/outStock", json=scalars))
+    inserted = operator.post("/api/stock/outStock", json={**OUT_STOCK, "updatedAt": "2020-01-02T10:30:00"})
+    golden.response("insert_with_updated_at", inserted)
+    merged = operator.post("/api/stock/outStock", json={**OUT_STOCK, "id": inserted.json()["id"],
+                                                        "createdAt": "2020-01-02T10:30:00"})
+    golden.response("merge_with_created_at", merged)
+    golden.add("echoed_times", {"insert_updatedAt": inserted.json().get("updatedAt"),
+                                "merge_createdAt": merged.json().get("createdAt")})
+    golden.add("stored", [{k: v for k, v in row.items() if not (k.endswith("_utc") and v and v[:4] != "2020")}
+                          for row in stored()])
+
+
 def test_out_stock_request(operator, db, golden):
     golden.response("create", operator.post("/api/stock/outStock", json=OUT_STOCK))
     golden.response("rollback", operator.patch("/api/stock/outStock/rollback/1"))

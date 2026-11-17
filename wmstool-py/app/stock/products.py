@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.javacompat import java_format_2f, java_hashmap_order, java_parse_double
+from app.stock.lookup import at_most_one
 from app.stock.models import Product
 from app.timeconv import java_now_utc
 
@@ -33,9 +34,8 @@ def update_product_quantity(session: Session, product_no: str, type_: str, quant
     Reading it as 0 would silently overwrite the total with this change alone."""
     # findByProductNoAndType is an Optional single-result finder: two rows is an error,
     # not "update the first". Imported here so products and moves do not import each other.
-    from app.stock.moves import _at_most_one
 
-    existing = _at_most_one(session, select(Product).where(Product.productNo == product_no, Product.type == type_))
+    existing = at_most_one(session, select(Product).where(Product.productNo == product_no, Product.type == type_))
     now = java_now_utc()
     if existing is not None:
         if existing.quantity is None:
