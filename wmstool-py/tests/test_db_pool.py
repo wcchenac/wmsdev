@@ -4,6 +4,8 @@ import json
 from contextlib import contextmanager
 from types import SimpleNamespace
 
+import pytest
+
 from app.config import get_settings
 from app.db import get_engine, get_sessionmaker
 from app.erp import get_erp_engine
@@ -25,6 +27,19 @@ def _env(monkeypatch, **extra: str) -> None:  # noqa: ANN001
     get_erp_engine.cache_clear()
 
 
+def _engine_kwargs(monkeypatch, wms_create, erp_create) -> None:  # noqa: ANN001
+    """Build both engines with create_engine replaced. The placeholder engines must not
+    stay in the lru_caches, also when building one of them fails."""
+    monkeypatch.setattr("app.db.create_engine", wms_create)
+    monkeypatch.setattr("app.erp.create_engine", erp_create)
+    try:
+        get_engine()
+        get_erp_engine()
+    finally:
+        get_engine.cache_clear()
+        get_erp_engine.cache_clear()
+
+
 def test_pool_pre_ping_recycle_and_size_are_configurable(monkeypatch):
     """Both engines get the pool settings from the environment. create_engine is
     captured rather than inspected afterwards: the pool's own attributes are private,
@@ -38,15 +53,22 @@ def test_pool_pre_ping_recycle_and_size_are_configurable(monkeypatch):
             return object()
         return create_engine
 
-    monkeypatch.setattr("app.db.create_engine", capture("wms"))
-    monkeypatch.setattr("app.erp.create_engine", capture("erp"))
-    get_engine()
-    get_erp_engine()
+    _engine_kwargs(monkeypatch, capture("wms"), capture("erp"))
     expected = {"pool_pre_ping": True, "pool_size": 3, "max_overflow": 4, "pool_recycle": 120}
     assert calls["wms"] == {"url": "mysql+pymysql://u:p@127.0.0.1/none", **expected}
     assert calls["erp"] == {"url": "mssql+pymssql://u:p@127.0.0.1/none", **expected}
-    get_engine.cache_clear()  # do not leave the placeholder engines cached
-    get_erp_engine.cache_clear()
+
+
+def test_placeholder_engines_do_not_stay_cached_when_building_fails(monkeypatch):
+    _env(monkeypatch)
+
+    def fails(url: str, **kwargs: object) -> object:
+        raise RuntimeError("ERP engine failed")
+
+    with pytest.raises(RuntimeError, match="ERP engine failed"):
+        _engine_kwargs(monkeypatch, lambda url, **kwargs: object(), fails)
+    assert get_engine.cache_info().currsize == 0
+    assert get_erp_engine.cache_info().currsize == 0
 
 
 def _request(role: str = "ROLE_Normal"):

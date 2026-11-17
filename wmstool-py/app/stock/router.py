@@ -22,10 +22,11 @@ from app.security.auth import require_roles
 from app.stock import compare, history, moves, orders, queries, shrink
 from app.stock.intake import InStockItem, create_stock_infoes
 from app.stock.serializers import history_json, out_stock_request_json
+from app.strict_json import StrictJsonRoute
 from app.users.schemas import NotBlank
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/stock")
+router = APIRouter(prefix="/api/stock", route_class=StrictJsonRoute)
 ops = require_roles("ROLE_Operator", "ROLE_Admin")
 admin = require_roles("ROLE_Admin")
 

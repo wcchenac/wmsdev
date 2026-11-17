@@ -14,10 +14,11 @@ from app.files import reports
 from app.files.importer import ImportParseError, read_import_workbook
 from app.security.auth import require_roles
 from app.stock.intake import create_stock_infoes
+from app.strict_json import StrictJsonRoute
 from app.timeconv import taipei_today
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/file")
+router = APIRouter(prefix="/api/file", route_class=StrictJsonRoute)
 ops_only = require_roles("ROLE_Operator", "ROLE_Admin")
 
 

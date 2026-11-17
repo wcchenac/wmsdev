@@ -484,6 +484,27 @@ def test_out_stock_request_jackson_edge_values(operator, db, golden, case):
         golden.add("echoed_updated_at", body.get("updatedAt"))
 
 
+_NON_STANDARD_JSON = {
+    "nan_in_string_field": '"reason": NaN',
+    "infinity_in_string_field": '"quantity": Infinity',
+    "negative_infinity_in_string_field": '"reason": -Infinity',
+    "nan_in_unknown_field": '"extra": NaN',
+}
+
+
+@pytest.mark.parametrize("case", list(_NON_STANDARD_JSON))
+def test_out_stock_request_non_standard_json_numbers(operator, db, golden, case):
+    """NaN and Infinity are not JSON. Jackson's parser rejects them (400) before any
+    field is bound, even in a property the class does not have."""
+    from conftest import rows
+
+    body = '{"productNo": "CF1002", "unit": "碼", ' + _NON_STANDARD_JSON[case] + "}"
+    resp = operator.post("/api/stock/outStock", content=body.encode(),
+                         headers={"Content-Type": "application/json"})
+    golden.response("response", resp)
+    golden.add("stored", rows(db, "SELECT id, quantity, reason FROM outstockrequest ORDER BY id"))
+
+
 def test_out_stock_request_jackson_coercion_and_merge(operator, db, golden):
     """POST /outStock binds Jackson's OutStockRequest: numbers and booleans in String
     fields become text; client times are LocalDateTimes in the JVM zone (Asia/Taipei),

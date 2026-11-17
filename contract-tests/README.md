@@ -136,7 +136,7 @@ Python 容器每次啟動都會先執行 `alembic upgrade head`，然後才啟�
 
 容器以 uid 1000（使用者 `wms`）執行，不是 root。`EXCEL_DIR` 和 `PICTURE_DIR` 是掛進來的目錄，映像檔不會改它們的擁有者。`EXCEL_DIR` 必須讓 uid 1000 可以寫，`PICTURE_DIR` 只需要能讀；Linux 主機上可以用 `sudo chown -R 1000:1000 <目錄>`。Windows 的 Docker Desktop 掛載磁碟目錄時通常不套用 Linux 的擁有者，uid 1000 也能寫（未在正式機實測）；能不能寫，啟動時的目錄檢查會直接告訴你。對照測試用的 `runtime/files` 也一樣：宿主機上產生範本的使用者和容器的 uid 1000 都要寫得進去（一次性的目錄用 `chmod -R a+rwX runtime/files` 即可）。
 
-`EXCEL_DIR` 和 `PICTURE_DIR` 沒有預設值。沒設定或設成空白時，程序在啟動（`create_app`，以及會讀設定的 `alembic upgrade`）就失敗，錯誤訊息會點名這兩個變數，不會等到第一份報表才發現路徑是空的。啟動時也會檢查目錄本身：`EXCEL_DIR` 不存在或 uid 1000 寫不進去、`PICTURE_DIR` 存在但讀不到，都會讓啟動失敗並印出目錄與 uid。`PICTURE_DIR` 不存在可以啟動，跟 Java 一樣，類別明細報表就沒有照片。
+`EXCEL_DIR` 和 `PICTURE_DIR` 沒有預設值。沒設定或設成空白時，程序在啟動（`create_app`，以及會讀設定的 `alembic upgrade`）就失敗，錯誤訊息會點名這兩個變數，不會等到第一份報表才發現路徑是空的。啟動時也會檢查目錄本身：`EXCEL_DIR` 不存在，或它和底下任何一個已存在的子資料夾（例如從 Java 主機複製來的 `STKALLT/2026/11`）寫不進去，或 `PICTURE_DIR` 存在但讀不到，都會讓啟動失敗並印出目錄與 uid。能不能寫是實際建立一個暫存檔再刪掉來判斷，不只看權限位元，因為 SMB 掛載的權限位元是假造的。`PICTURE_DIR` 如果放在 `EXCEL_DIR` 底下，不要求可寫。`PICTURE_DIR` 不存在可以啟動，跟 Java 一樣，類別明細報表就沒有照片。
 
 ### 檢查與修復被截斷的資料
 

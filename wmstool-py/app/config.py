@@ -12,6 +12,7 @@ They mirror wmstool's application.properties:
 """
 
 import os
+import tempfile
 from functools import lru_cache
 from pathlib import Path
 
@@ -42,20 +43,44 @@ class Settings(BaseSettings):
         return value
 
 
+def _writable(directory: Path) -> bool:
+    """Create and remove a file there. os.access only reads the permission bits, which
+    a CIFS/SMB mount makes up on the client side."""
+    try:
+        with tempfile.TemporaryFile(dir=directory):
+            return True
+    except OSError:
+        return False
+
+
+def _report_folders(excel: Path, skip: Path) -> list[Path]:
+    """EXCEL_DIR and every folder under it, except PICTURE_DIR when it lives there:
+    photos are only read, so a read-only photo folder is fine."""
+    skipped = skip.resolve()
+    folders = [excel]
+    for root, dirs, _ in os.walk(excel):
+        dirs[:] = sorted(name for name in dirs if (Path(root) / name).resolve() != skipped)
+        folders.extend(Path(root) / name for name in dirs)
+    return folders
+
+
 def check_directories(settings: Settings) -> None:
     """Fail at startup when the service user cannot use the report or photo folder.
 
-    EXCEL_DIR holds the templates and every generated report: it must exist and be
-    writable (the image runs as uid 1000, so a root-owned bind mount would otherwise
-    fail at the first report). PICTURE_DIR is only read; it may be missing, as in
-    Java, which checks each photo file and leaves the cell empty without one.
+    EXCEL_DIR holds the templates and every generated report, in subfolders
+    (<folder>/<year>/<month>) that may have been copied from the Java host with
+    their old owner: EXCEL_DIR and every folder already under it must take a new
+    file (the image runs as uid 1000). PICTURE_DIR is only read; it may be missing,
+    as in Java, which checks each photo file and leaves the cell empty without one.
+    When PICTURE_DIR is inside EXCEL_DIR, it is not required to be writable.
     """
     excel = Path(settings.excel_dir)
     if not excel.is_dir():
         raise RuntimeError(f"EXCEL_DIR {excel} does not exist or is not a directory")
-    if not os.access(excel, os.W_OK | os.X_OK):
-        raise RuntimeError(f"EXCEL_DIR {excel} is not writable by uid {os.getuid()}")
     pictures = Path(settings.picture_dir)
+    for folder in _report_folders(excel, skip=pictures):
+        if not _writable(folder):
+            raise RuntimeError(f"EXCEL_DIR {folder} is not writable by uid {os.getuid()}")
     if pictures.is_dir() and not os.access(pictures, os.R_OK | os.X_OK):
         raise RuntimeError(f"PICTURE_DIR {pictures} is not readable by uid {os.getuid()}")
 
