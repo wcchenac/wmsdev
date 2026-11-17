@@ -166,7 +166,7 @@ python -m app.history_check "mysql+pymysql://<user>:<password>@<host>/wms?charse
 
 wmstool-py 用 pymssql 連 ERP（SQL Server）。映像檔裡的 pymssql 2.3.2 內建 **FreeTDS 1.4.23** 和自己的 **OpenSSL 1.0.2k**，不用 Debian 系統的 OpenSSL；amd64 與 arm64 的輪子相同。它跟 Java 的 JDBC 驅動有兩個差異：
 
-- **FreeTDS 1.4 預設停用 TLS 1.0。** 只支援 TLS 1.0 的舊版 SQL Server（2008／2012 未更新時常見），Java 連得上，Python 預設連不上，錯誤是 `Adaptive Server connection failed` 或 `Unexpected EOF from the server`。
+- **FreeTDS 1.4 預設停用 TLS 1.0。** 只支援 TLS 1.0 的舊版 SQL Server（2008／2012 未更新時常見），Python 預設連不上，錯誤是 `Adaptive Server connection failed` 或 `Unexpected EOF from the server`。正式 ERP 是不是這種伺服器**尚未確認**：正式機的 Java 現在連得上，可能是因為它的 JDK 早於 8u291（之後預設也停用 TLS 1.0），或 `java.security` 放行了 TLS 1.0；也可能 ERP 其實支援 TLS 1.2，那 Python 就不會遇到這個問題。可以先在 ERP 上查 `SELECT @@VERSION` 和更新層級，判斷是哪一種。
 - **URL 加 `?encryption=off` 沒有用。** FreeTDS 的 `off` 仍會用 TLS 加密登入封包，跟 Java 的 `encrypt=false` 一樣，所以還是要能完成 TLS 交握。
 
 解法是在容器的 `/usr/local/etc/freetds.conf` 開啟 TLS 1.0。這是 FreeTDS 的預設路徑，不用設環境變數，也不用改映像檔。設定檔內容如下，縮排用 Tab：
@@ -178,13 +178,24 @@ wmstool-py 用 pymssql 連 ERP（SQL Server）。映像檔裡的 pymssql 2.3.2 �
 
 用 `docker run -v <主機上的 freetds.conf>:/usr/local/etc/freetds.conf:ro …` 掛進去。只在正式 ERP 需要時才開，不要預設放進映像檔。
 
-診斷時加上 `-e TDSDUMP=stdout`，FreeTDS 會印出讀了哪個設定檔、用的加密套件，以及交握結果（`handshake failed`）。
+診斷時加上 `-e TDSDUMP=stdout`，FreeTDS 會印出讀了哪個設定檔、用的加密套件，以及交握結果（`handshake failed`）。這份 log 可能包含查詢內容與資料，在正式機診斷完要拿掉 `TDSDUMP`，並刪掉存下來的 log。
 
-`scripts/erp_tls_lab.sh` 會重現上述行為：
+`scripts/erp_tls_lab.sh` 會重現上述行為。請在 macOS、Linux 或 WSL 執行；Windows 的 Git Bash 會改寫 `-v` 和指令裡的容器路徑，掛載會失效。
 
-- 它啟動一個只允許 TLS 1.0 的 SQL Server 2022 容器，用 wmstool-py 映像檔依序連線。
-- 預期結果是：預設失敗、`?encryption=off` 失敗、`enable tls v1 = yes` 成功。三者都符合才回 0。
-- 結束時會刪掉它建立的容器、網路和暫存檔。
+- 它啟動一個只允許 TLS 1.0 的 SQL Server 2022 容器，先從伺服器 log 確認只允許 TLS 1.0。
+- 接著用 wmstool-py 映像檔依序連線：
+  - `enable tls v1 = yes` 必須連得上。這一項會重試到伺服器開始接受登入，同時證明帳密、網路都正確。
+  - 預設連線，以及 `?encryption=off`，都必須以 DB-Lib 錯誤 20002（`Adaptive Server connection failed`，也就是 TLS 交握失敗）結束。
+- 結束時會刪掉它建立的容器、網路和暫存檔，中斷時也一樣。
+
+結束代碼：
+
+| 代碼 | 意思 |
+|---|---|
+| 0 | 三項都符合預期 |
+| 1 | 有結果跟切換計畫的假設不符，也就是 FreeTDS 的行為跟這裡記錄的不同 |
+| 2 | 實驗環境無效：伺服器沒有限制在 TLS 1.0、連不上，或因為交握以外的原因失敗。這時結果不能當作證據 |
+| 130／143 | 被 Ctrl-C 或 TERM 中斷 |
 
 ```bash
 scripts/erp_tls_lab.sh                      # 預設用 wmstool-py:contract（docker-compose.python.yml 建置的映像檔）
