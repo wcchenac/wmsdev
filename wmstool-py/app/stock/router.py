@@ -456,6 +456,19 @@ def _jackson_datetime(value: object) -> dt.datetime | None:
     raise ValueError("not a LocalDateTime")
 
 
+def _jackson_str(value: object) -> object:
+    """Jackson 2.10 String: a JSON number or boolean is coerced to its text ("50",
+    "1.5", "true"). Pydantic only sees the parsed value, so a number keeps Python's
+    spelling of it (1e3 arrives as 1000.0, where Jackson keeps "1e3"). Arrays and
+    objects stay a 400."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    return value
+
+
+JacksonStr = Annotated[str | None, BeforeValidator(_jackson_str)]
 JacksonInt = Annotated[int, BeforeValidator(lambda value: _jackson_whole(value, bits=32))]
 JacksonLong = Annotated[int, BeforeValidator(lambda value: _jackson_whole(value, bits=64))]
 JacksonBool = Annotated[bool, BeforeValidator(_jackson_bool)]
@@ -473,20 +486,20 @@ class OutStockBody(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     id: JacksonLongOrNone = None
-    productNo: str | None = None
-    lotNo: str | None = None
-    type: str | None = None
-    quantity: str | None = None
-    unit: str | None = None
+    productNo: JacksonStr = None
+    lotNo: JacksonStr = None
+    type: JacksonStr = None
+    quantity: JacksonStr = None
+    unit: JacksonStr = None
     color: JacksonInt = 0
-    defect: str | None = None
-    reason: str | None = None
+    defect: JacksonStr = None
+    reason: JacksonStr = None
     stockIdentifierId: JacksonLong = 0
-    fileName: str | None = None
+    fileName: JacksonStr = None
     handled: JacksonBool = False
     deleted: JacksonBool = False
-    requestFrom: str | None = None
-    updatedBy: str | None = None
+    requestFrom: JacksonStr = None
+    updatedBy: JacksonStr = None
     createdAt: JacksonDateTime = None
     updatedAt: JacksonDateTime = None
 

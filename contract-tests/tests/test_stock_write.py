@@ -440,6 +440,35 @@ OUT_STOCK = {"productNo": "CF1002", "lotNo": "L07", "type": "整支", "quantity"
              "color": 0, "defect": "", "reason": "門市拉貨"}
 
 
+def test_out_stock_request_jackson_coercion_and_merge(operator, db, golden):
+    """POST /outStock binds Jackson's OutStockRequest: numbers and booleans in String
+    fields become text; client times are LocalDateTimes in the JVM zone (Asia/Taipei),
+    stored in UTC by the JDBC driver and echoed back as sent. An existing id is merged:
+    the client's createdAt replaces the stored one.
+
+    Times are a fixed 2020 date, read back with DATE_FORMAT and under their own labels,
+    because createdAt/updatedAt values are masked in goldens."""
+    from conftest import rows
+
+    def stored() -> list:
+        return rows(db, "SELECT id, quantity, defect, reason, "
+                        "DATE_FORMAT(createdAt, '%%Y-%%m-%%d %%H:%%i:%%s') AS created_utc, "
+                        "DATE_FORMAT(updatedAt, '%%Y-%%m-%%d %%H:%%i:%%s') AS updated_utc "
+                        "FROM outstockrequest ORDER BY id")
+
+    scalars = {**OUT_STOCK, "quantity": 50, "defect": True, "reason": 1.5}
+    golden.response("string_fields_from_scalars", operator.post("/api/stock/outStock", json=scalars))
+    inserted = operator.post("/api/stock/outStock", json={**OUT_STOCK, "updatedAt": "2020-01-02T10:30:00"})
+    golden.response("insert_with_updated_at", inserted)
+    merged = operator.post("/api/stock/outStock", json={**OUT_STOCK, "id": inserted.json()["id"],
+                                                        "createdAt": "2020-01-02T10:30:00"})
+    golden.response("merge_with_created_at", merged)
+    golden.add("echoed_times", {"insert_updatedAt": inserted.json().get("updatedAt"),
+                                "merge_createdAt": merged.json().get("createdAt")})
+    golden.add("stored", [{k: v for k, v in row.items() if not (k.endswith("_utc") and v and v[:4] != "2020")}
+                          for row in stored()])
+
+
 def test_out_stock_request(operator, db, golden):
     golden.response("create", operator.post("/api/stock/outStock", json=OUT_STOCK))
     golden.response("rollback", operator.patch("/api/stock/outStock/rollback/1"))

@@ -21,7 +21,7 @@ from app.stock.models import (
     StockInfo,
     TransactionRecord,
 )
-from app.timeconv import db_to_taipei, java_now_utc, taipei_today_iso
+from app.timeconv import db_to_taipei, java_now_utc, taipei_to_db, taipei_today_iso
 
 logger = logging.getLogger(__name__)
 
@@ -216,8 +216,14 @@ def create_out_stock_request(session: Session, body, editor: str) -> OutStockReq
     id is overwritten with the detached state. createdBy and outStockType are set
     here; updatedBy is whatever the client sent. @PrePersist stamps createdAt only
     on insert; @PreUpdate stamps updatedAt only on merge.
+
+    The client's createdAt/updatedAt are LocalDateTimes in the JVM zone (Asia/Taipei);
+    the JDBC driver stores them in UTC, so they are converted before being written
+    (and come back unchanged through db_to_taipei).
     """
     now = java_now_utc()
+    client_created = taipei_to_db(body.createdAt) if body.createdAt is not None else None
+    client_updated = taipei_to_db(body.updatedAt) if body.updatedAt is not None else None
     existing = session.get(OutStockRequest, body.id) if body.id is not None else None
     values = {
         "productNo": body.productNo, "lotNo": body.lotNo, "type": body.type, "quantity": body.quantity,
@@ -227,12 +233,12 @@ def create_out_stock_request(session: Session, body, editor: str) -> OutStockReq
         "outStockType": 2, "createdBy": editor, "updatedBy": body.updatedBy,
     }
     if existing is None:
-        request = OutStockRequest(**values, createdAt=now, updatedAt=body.updatedAt)
+        request = OutStockRequest(**values, createdAt=now, updatedAt=client_updated)
         session.add(request)
     else:
         for name, value in values.items():
             setattr(existing, name, value)
-        existing.createdAt = body.createdAt
+        existing.createdAt = client_created
         existing.updatedAt = now
         request = existing
     session.flush()
