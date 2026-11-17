@@ -14,10 +14,13 @@
 # refuses TLS 1.0 itself), checks from its log that only TLS 1.0 is allowed, then:
 #   1. freetds.conf enable tls v1 = yes -> must connect. Retried until the server
 #      accepts logins, which also proves the password, network and DNS are right.
-#   2. default URL                      -> must fail with DB-Lib error 20002
-#   3. URL with ?encryption=off         -> must fail with DB-Lib error 20002
-# Error 20002 ("Adaptive Server connection failed") is what a failed TLS
-# handshake looks like here; any other failure means the lab itself is broken.
+#   2. default URL                      -> must fail, outermost DB-Lib error 20002
+#   3. URL with ?encryption=off         -> must fail, outermost DB-Lib error 20002
+# The outermost DB-Lib error code is what counts: 20002 ("Adaptive Server
+# connection failed") is what a failed TLS handshake looks like here. A failed login
+# (18456) also mentions 20002 further down its message chain, so the code is taken
+# from the exception, not searched for in the text. Any other outermost code means
+# the lab itself is broken.
 #
 # Exit codes:
 #   0    all results as expected
@@ -44,6 +47,7 @@ server="erp-tls-lab-$suffix"
 work=$(mktemp -d)
 
 cleanup() {
+  trap '' INT TERM  # a second Ctrl-C must not cut the cleanup short
   docker rm -f "$server" >/dev/null 2>&1 || true
   docker network rm "$network" >/dev/null 2>&1 || true
   rm -rf "$work"
@@ -79,7 +83,14 @@ try:
             "FROM sys.dm_exec_connections WHERE session_id = @@SPID")).one()
         print(f"connected (encrypt_option={row[0]}, SQL Server {row[1]})")
 except Exception as exc:  # noqa: BLE001 - any failure is the result being reported
-    print("failed:", str(exc).splitlines()[0][:160])
+    # SQLAlchemy wraps the DBAPI error. pymssql's args[0] is (code, message) for the
+    # outermost error, e.g. (20002, b"DB-Lib error message 20002, ...").
+    orig = getattr(exc, "orig", exc)
+    first = orig.args[0] if orig.args else None
+    if isinstance(first, tuple) and first:
+        first = first[0]
+    code = first if isinstance(first, int) else "-"
+    print(f"failed: {code} {str(exc).splitlines()[0][:160]}")
     sys.exit(1)
 EOF
 # mktemp -d is 0700 and a umask can make the files 0600: the containers do not run
@@ -146,7 +157,7 @@ if [ "$result" = ok ]; then
   report "freetds.conf: enable tls v1 = yes" ok expected
 else
   case $summary in
-    *20002*) report "freetds.conf: enable tls v1 = yes" ok MISMATCH; failures=$((failures + 1)) ;;
+    "failed: 20002 "*) report "freetds.conf: enable tls v1 = yes" ok MISMATCH; failures=$((failures + 1)) ;;
     *) report "freetds.conf: enable tls v1 = yes" ok "LAB ERROR"; lab_errors=$((lab_errors + 1)) ;;
   esac
 fi
@@ -160,7 +171,7 @@ for case_ in default encryption_off; do
     failures=$((failures + 1))
   else
     case $summary in
-      *20002*) report "$label" fail expected ;;
+      "failed: 20002 "*) report "$label" fail expected ;;
       *) report "$label" fail "LAB ERROR"; lab_errors=$((lab_errors + 1)) ;;
     esac
   fi

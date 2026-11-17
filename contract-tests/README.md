@@ -185,7 +185,7 @@ wmstool-py 用 pymssql 連 ERP（SQL Server）。映像檔裡的 pymssql 2.3.2 �
 - 它啟動一個只允許 TLS 1.0 的 SQL Server 2022 容器，先從伺服器 log 確認只允許 TLS 1.0。
 - 接著用 wmstool-py 映像檔依序連線：
   - `enable tls v1 = yes` 必須連得上。這一項會重試到伺服器開始接受登入，同時證明帳密、網路都正確。
-  - 預設連線，以及 `?encryption=off`，都必須以 DB-Lib 錯誤 20002（`Adaptive Server connection failed`，也就是 TLS 交握失敗）結束。
+  - 預設連線，以及 `?encryption=off`，都必須失敗，而且**最外層**錯誤碼是 DB-Lib 20002（`Adaptive Server connection failed`），在這個實驗裡就是 TLS 交握失敗。只看最外層，是因為登入失敗（18456）的錯誤訊息裡面也會出現 20002。
 - 結束時會刪掉它建立的容器、網路和暫存檔，中斷時也一樣。
 
 結束代碼：
