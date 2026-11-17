@@ -21,6 +21,7 @@ from app.javacompat import (
     serialize_long_array,
 )
 from app.stock import products
+from app.stock.lookup import at_most_one
 from app.stock.models import (
     History,
     InStockOrderRecord,
@@ -74,9 +75,8 @@ def _backlog(session: Session, item: InStockItem, quantity: str, unit: str) -> S
     found = None
     if item.lotNo is not None:  # Spring Data's `lotNo = ?` never matches NULL
         # findByProductNoAndLotNoAndTypeAndQuantityAndUnit: two rows is an error.
-        from app.stock.moves import _at_most_one
 
-        found = _at_most_one(session, select(StockIdentifierBacklog).where(
+        found = at_most_one(session, select(StockIdentifierBacklog).where(
             StockIdentifierBacklog.productNo == item.productNo,
             StockIdentifierBacklog.lotNo == item.lotNo,
             StockIdentifierBacklog.type == item.type,

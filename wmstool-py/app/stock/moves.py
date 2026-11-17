@@ -2,8 +2,9 @@
 rollback), OutStockRequestFunction (create/delete) and HistoryService.updateById.
 
 Lookups that Java does with `repo.findById(..).get()` or a Spring Data
-Optional finder raise here when the row is missing (or, for single-result
-finders, duplicated); the router lets that become a 500 with a rollback.
+Optional finder go through app.stock.lookup and raise when the row is missing
+(or duplicated); the router lets that become a 500 with a rollback. NotFound is
+re-exported here for the router.
 """
 
 import logging
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.javacompat import java_parse_long, serialize_long_array
 from app.stock import products
+from app.stock.lookup import NotFound, one  # noqa: F401 - NotFound is re-exported
 from app.stock.models import (
     History,
     InStockOrderRecord,
@@ -26,34 +28,8 @@ from app.timeconv import db_to_taipei, java_now_utc, taipei_to_db, taipei_today_
 logger = logging.getLogger(__name__)
 
 
-class NotFound(Exception):
-    """Java: NoSuchElementException from Optional.get()."""
-
-
-def _one(session: Session, stmt):  # noqa: ANN001, ANN202
-    """Spring Data single-result finder: none -> NotFound, more than one -> error.
-
-    More than one row is Java's IncorrectResultSizeDataAccessException: the caller
-    rolls the request back instead of using an arbitrary row.
-    """
-    rows = session.scalars(stmt).all()
-    if not rows:
-        raise NotFound(str(stmt))
-    if len(rows) > 1:
-        raise LookupError(f"query did not return a unique result: {len(rows)}")
-    return rows[0]
-
-
-def _at_most_one(session: Session, stmt):  # noqa: ANN001, ANN202
-    """Optional single-result finder: none is None, more than one is an error."""
-    rows = session.scalars(stmt).all()
-    if len(rows) > 1:
-        raise LookupError(f"query did not return a unique result: {len(rows)}")
-    return rows[0] if rows else None
-
-
 def _identifier(session: Session, identifier_id: int) -> StockIdentifier:
-    return _one(session, select(StockIdentifier).where(StockIdentifier.id == identifier_id))
+    return one(session, select(StockIdentifier).where(StockIdentifier.id == identifier_id))
 
 
 def identifier(session: Session, identifier_id: int) -> StockIdentifier:
@@ -62,7 +38,7 @@ def identifier(session: Session, identifier_id: int) -> StockIdentifier:
 
 
 def _info_of(session: Session, identifier_id: int) -> StockInfo:
-    return _one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
+    return one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
 
 
 def _touch(row, editor: str) -> None:  # noqa: ANN001
@@ -104,13 +80,13 @@ def rollback_in_stock(session: Session, identifier_ids: list[int]) -> None:
     for identifier_id in identifier_ids:
         # Each finder is single-result. A second row raises before any DELETE, so a
         # duplicated child is not removed along with the one the caller named.
-        info = _one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
-        trans = _one(session, select(TransactionRecord).where(
+        info = one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
+        trans = one(session, select(TransactionRecord).where(
             TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.operator == "1"))
-        order = _one(session, select(InStockOrderRecord).where(
+        order = one(session, select(InStockOrderRecord).where(
             InStockOrderRecord.stockIdentifierId == identifier_id))
-        si = _one(session, select(StockIdentifier).where(StockIdentifier.id == identifier_id))
-        history = _one(session, select(History).where(History.currentIdentifierId == identifier_id))
+        si = one(session, select(StockIdentifier).where(StockIdentifier.id == identifier_id))
+        history = one(session, select(History).where(History.currentIdentifierId == identifier_id))
         session.execute(delete(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
         session.execute(delete(TransactionRecord).where(
             TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.operator == "1"))
@@ -124,7 +100,7 @@ def rollback_in_stock(session: Session, identifier_ids: list[int]) -> None:
 def update_stock_info(session: Session, info_id: int, color: int, defect: str | None, record: str | None,
                       remark: str | None, editor: str) -> str:
     """updateStockInfo; returns the productNo. A NULL defect/remark in the DB is an NPE in Java."""
-    info = _one(session, select(StockInfo).where(StockInfo.id == info_id))
+    info = one(session, select(StockInfo).where(StockInfo.id == info_id))
     if info.defect is None or info.remark is None:
         raise TypeError("null defect/remark (Java: NullPointerException)")
     changed = False
@@ -140,7 +116,7 @@ def update_stock_info(session: Session, info_id: int, color: int, defect: str | 
 
 def update_history(session: Session, history_id: int, childs: str) -> History:
     """HistoryService.updateById: `childs` is a comma list of ids (Java String.split drops trailing empties)."""
-    history = _one(session, select(History).where(History.id == history_id))
+    history = one(session, select(History).where(History.id == history_id))
     parts = childs.split(",")
     if len(parts) > 1:  # Java: no separator -> [input]; else trailing empty strings are dropped
         while parts and parts[-1] == "":
@@ -152,7 +128,7 @@ def update_history(session: Session, history_id: int, childs: str) -> History:
 
 def _live_out_request(session: Session, identifier_id: int) -> OutStockRequest:
     """findByStockIdentifierIdAndIsDeleted(id, false).get(): exactly one live request."""
-    return _one(session, select(OutStockRequest).where(
+    return one(session, select(OutStockRequest).where(
         # `== False`, not .is_(False): MySQL rejects `bit IS 0`; this binds through BitBool.
         OutStockRequest.stockIdentifierId == identifier_id, OutStockRequest.isDeleted == False))  # noqa: E712
 
@@ -168,7 +144,7 @@ def unship_identifier(session: Session, identifier_id: int, editor: str) -> None
     request = _live_out_request(session, identifier_id)
     request.isDeleted = True
     _touch(request, editor)
-    shipped = _one(session, select(TransactionRecord).where(
+    shipped = one(session, select(TransactionRecord).where(
         TransactionRecord.stockIdentifierId == identifier_id, TransactionRecord.transactionType == "SPO"))
     session.delete(shipped)
     session.flush()
@@ -261,7 +237,7 @@ def handle_out_stock_requests(session: Session, request_from: dict[int, str | No
     path, name = pull_list.create(now_taipei)
     handled = []
     for request_id in request_from:
-        request = _one(session, select(OutStockRequest).where(OutStockRequest.id == request_id))
+        request = one(session, select(OutStockRequest).where(OutStockRequest.id == request_id))
         request.requestFrom = request_from[request_id]
         request.isHandled = True
         request.fileName = name
@@ -275,7 +251,7 @@ def handle_out_stock_requests(session: Session, request_from: dict[int, str | No
 
 
 def delete_out_stock_request(session: Session, request_id: int, editor: str) -> None:
-    request = _one(session, select(OutStockRequest).where(OutStockRequest.id == request_id))
+    request = one(session, select(OutStockRequest).where(OutStockRequest.id == request_id))
     request.isDeleted = True
     _touch(request, editor)
     session.flush()

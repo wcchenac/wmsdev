@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from app import erp
 from app.erp import erp_text
 from app.javacompat import java_hashmap_order, java_parse_int, java_period_days
+from app.stock.lookup import one
 from app.stock.models import InStockOrderRecord, OutStockRequest, Product, StockIdentifier, StockInfo
-from app.stock.moves import _one
 from app.stock.orders import empty_product_information, null_value
 from app.stock.serializers import out_stock_request_json, product_json, stock_info_json
 from app.timeconv import client_param_to_db, db_to_taipei, taipei_to_db, taipei_today
@@ -20,7 +20,7 @@ ADD_TYPES = {0: "無", 1: "可追加", 2: "不可追加", 3: "暫缺貨", 4: "�
 
 def _info_for(session: Session, identifier_id: int) -> StockInfo:
     """findByStockIdentifierId: missing is an error, and so is a second row."""
-    return _one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
+    return one(session, select(StockInfo).where(StockInfo.stockIdentifier_id == identifier_id))
 
 
 def _product_information(product_no: str, basic: bool) -> dict[str, Any]:

@@ -26,13 +26,27 @@ def _env(monkeypatch, **extra: str) -> None:  # noqa: ANN001
 
 
 def test_pool_pre_ping_recycle_and_size_are_configurable(monkeypatch):
+    """Both engines get the pool settings from the environment. create_engine is
+    captured rather than inspected afterwards: the pool's own attributes are private,
+    and the ERP dialect (pymssql) need not load for this."""
     _env(monkeypatch, DB_POOL_SIZE="3", DB_POOL_MAX_OVERFLOW="4", DB_POOL_RECYCLE="120")
-    for engine in (get_engine(), get_erp_engine()):
-        pool = engine.pool
-        assert pool._pre_ping is True  # noqa: SLF001
-        assert pool._max_overflow == 4  # noqa: SLF001
-        assert pool._recycle == 120  # noqa: SLF001
-        assert pool._pool.maxsize == 3  # noqa: SLF001
+    calls: dict[str, dict[str, object]] = {}
+
+    def capture(module: str):
+        def create_engine(url: str, **kwargs: object) -> object:
+            calls[module] = {"url": url, **kwargs}
+            return object()
+        return create_engine
+
+    monkeypatch.setattr("app.db.create_engine", capture("wms"))
+    monkeypatch.setattr("app.erp.create_engine", capture("erp"))
+    get_engine()
+    get_erp_engine()
+    expected = {"pool_pre_ping": True, "pool_size": 3, "max_overflow": 4, "pool_recycle": 120}
+    assert calls["wms"] == {"url": "mysql+pymysql://u:p@127.0.0.1/none", **expected}
+    assert calls["erp"] == {"url": "mssql+pymssql://u:p@127.0.0.1/none", **expected}
+    get_engine.cache_clear()  # do not leave the placeholder engines cached
+    get_erp_engine.cache_clear()
 
 
 def _request(role: str = "ROLE_Normal"):
