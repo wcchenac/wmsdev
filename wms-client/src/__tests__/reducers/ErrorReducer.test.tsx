@@ -5,18 +5,12 @@ import {
   SHRINK_Errors,
   UPDATE_Errors
 } from '../../types';
+import type { ErrorState } from '../../types';
 
-interface ErrorState {
-  errors?: Record<string, string> | null;
-  createErrors?: Record<string, string> | null;
-  shrinkErrors?: Record<string, string> | null;
-  updateErrors?: Record<string, string> | null;
-}
+type ErrorAction = Parameters<typeof ErrorReducer>[1];
 
-interface ErrorAction {
-  type: string;
-  payload?: Record<string, string> | null;
-}
+// The tests set only the slices they look at.
+const partialState = (state: Partial<ErrorState>): ErrorState => state as ErrorState;
 
 describe('ErrorReducer', () => {
   const initialState: ErrorState = {
@@ -55,9 +49,9 @@ describe('ErrorReducer', () => {
     });
 
     test('replaces existing errors', () => {
-      const existingState: ErrorState = {
+      const existingState = partialState({
         errors: { old: 'error' }
-      };
+      });
       const payload = { new: 'error' };
       const result = ErrorReducer(existingState, { type: GET_Errors, payload });
 
@@ -65,10 +59,10 @@ describe('ErrorReducer', () => {
     });
 
     test('preserves other error types when setting GET_Errors', () => {
-      const existingState: ErrorState = {
+      const existingState = partialState({
         createErrors: { field: 'create error' },
         shrinkErrors: { field: 'shrink error' }
-      };
+      });
       const payload = { message: 'get error' };
       const result = ErrorReducer(existingState, { type: GET_Errors, payload });
 
@@ -107,9 +101,9 @@ describe('ErrorReducer', () => {
     });
 
     test('replaces existing createErrors', () => {
-      const existingState: ErrorState = {
+      const existingState = partialState({
         createErrors: { old: 'error' }
-      };
+      });
       const payload = { new: 'error' };
       const result = ErrorReducer(existingState, { type: CREATE_Errors, payload });
 
@@ -117,10 +111,10 @@ describe('ErrorReducer', () => {
     });
 
     test('preserves other error types when setting CREATE_Errors', () => {
-      const existingState: ErrorState = {
+      const existingState = partialState({
         errors: { field: 'get error' },
         shrinkErrors: { field: 'shrink error' }
-      };
+      });
       const payload = { message: 'create error' };
       const result = ErrorReducer(existingState, { type: CREATE_Errors, payload });
 
@@ -149,9 +143,9 @@ describe('ErrorReducer', () => {
     });
 
     test('replaces existing shrinkErrors', () => {
-      const existingState: ErrorState = {
+      const existingState = partialState({
         shrinkErrors: { old: 'error' }
-      };
+      });
       const payload = { new: 'error' };
       const result = ErrorReducer(existingState, { type: SHRINK_Errors, payload });
 
@@ -159,10 +153,10 @@ describe('ErrorReducer', () => {
     });
 
     test('preserves other error types when setting SHRINK_Errors', () => {
-      const existingState: ErrorState = {
+      const existingState = partialState({
         errors: { field: 'get error' },
         createErrors: { field: 'create error' }
-      };
+      });
       const payload = { message: 'shrink error' };
       const result = ErrorReducer(existingState, { type: SHRINK_Errors, payload });
 
@@ -190,10 +184,10 @@ describe('ErrorReducer', () => {
     });
 
     test('replaces an existing updateErrors payload', () => {
-      const existingState: ErrorState = {
+      const existingState = partialState({
         ...initialState,
         updateErrors: { old: 'error' }
-      };
+      });
       const payload = { message: '更新失敗' };
       const result = ErrorReducer(existingState, { type: UPDATE_Errors, payload });
 
@@ -201,10 +195,10 @@ describe('ErrorReducer', () => {
     });
 
     test('stores null when the payload is null', () => {
-      const existingState: ErrorState = {
+      const existingState = partialState({
         ...initialState,
         updateErrors: { old: 'error' }
-      };
+      });
       const result = ErrorReducer(existingState, { type: UPDATE_Errors, payload: null });
 
       expect(result.updateErrors).toBeNull();
@@ -228,9 +222,9 @@ describe('ErrorReducer', () => {
 
   describe('state immutability', () => {
     test('does not mutate original state', () => {
-      const originalState: ErrorState = {
+      const originalState = partialState({
         errors: { existing: 'error' }
-      };
+      });
       const stateCopy = JSON.parse(JSON.stringify(originalState));
 
       ErrorReducer(originalState, { type: GET_Errors, payload: { new: 'error' } });

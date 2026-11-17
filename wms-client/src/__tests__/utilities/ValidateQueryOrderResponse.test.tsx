@@ -3,20 +3,9 @@ import {
   checkWaitHandleProductStatus
 } from '../../components/BO/Stock/Utilities/ValidateQueryOrderResponse';
 
-interface StockTypeQuantity {
-  quantity: string;
-}
-
-interface ProductStatus {
-  roll?: StockTypeQuantity;
-  board?: StockTypeQuantity;
-  hardware?: StockTypeQuantity;
-  [key: string]: StockTypeQuantity | undefined;
-}
-
-interface WaitHandleStatus {
-  [productNo: string]: ProductStatus;
-}
+// The module keeps its input types to itself; take them from the functions.
+type WaitHandleStatus = Parameters<typeof checkWaitHandleStatusCompletion>[0];
+type ProductStatus = Parameters<typeof checkWaitHandleProductStatus>[0];
 
 describe('ValidateQueryOrderResponse', () => {
   describe('checkWaitHandleStatusCompletion', () => {

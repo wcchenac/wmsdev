@@ -1,15 +1,8 @@
 import FileReducer from '../../reducers/FileReducer';
 import { CREATE_FILE } from '../../types';
+import type { FileState } from '../../types';
 
-interface FileState {
-  isLoading: boolean;
-  lastOperation: string | null;
-}
-
-interface FileAction {
-  type: string;
-  payload?: unknown;
-}
+type FileAction = Parameters<typeof FileReducer>[1];
 
 describe('FileReducer', () => {
   const initialState: FileState = {

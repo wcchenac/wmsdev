@@ -1,14 +1,12 @@
 import OutStockRequestReducer from '../../reducers/OutStockRequestReducer';
 import { GET_OutStockRequests } from '../../types';
+import type { OutStockRequestState } from '../../types';
 
-interface OutStockRequestState {
-  outStockRequests: unknown;
-}
+type OutStockRequestAction = Parameters<typeof OutStockRequestReducer>[1];
 
-interface OutStockRequestAction {
-  type: string;
-  payload?: unknown;
-}
+// For the tests that check how the reducer copes with a payload of the wrong type.
+const getOutStockRequestsWith = (payload: unknown): OutStockRequestAction =>
+  ({ type: GET_OutStockRequests, payload }) as OutStockRequestAction;
 
 describe('OutStockRequestReducer', () => {
   const initialState: OutStockRequestState = {
@@ -28,10 +26,12 @@ describe('OutStockRequestReducer', () => {
   describe('GET_OutStockRequests', () => {
     test('sets outStockRequests to payload', () => {
       const payload = {
-        requests: [
-          { id: 1, reason: '中壢' },
-          { id: 2, reason: '新竹' }
-        ]
+        queryResult: {
+          '2024-01-01': [
+            { id: 1, reason: '中壢' },
+            { id: 2, reason: '新竹' }
+          ]
+        }
       };
       const result = OutStockRequestReducer(initialState, { type: GET_OutStockRequests, payload });
 
@@ -56,9 +56,9 @@ describe('OutStockRequestReducer', () => {
 
     test('replaces existing outStockRequests', () => {
       const existingState: OutStockRequestState = {
-        outStockRequests: { old: 'data' }
+        outStockRequests: { userList: ['old'] }
       };
-      const payload = { new: 'data' };
+      const payload = { userList: ['new'] };
       const result = OutStockRequestReducer(existingState, { type: GET_OutStockRequests, payload });
 
       expect(result.outStockRequests).toEqual(payload);
@@ -70,12 +70,12 @@ describe('OutStockRequestReducer', () => {
     });
 
     test('handles empty array payload', () => {
-      const result = OutStockRequestReducer(initialState, { type: GET_OutStockRequests, payload: [] });
+      const result = OutStockRequestReducer(initialState, getOutStockRequestsWith([]));
       expect(result.outStockRequests).toEqual([]);
     });
 
     test('handles null payload (defaults to empty object)', () => {
-      const result = OutStockRequestReducer(initialState, { type: GET_OutStockRequests, payload: null });
+      const result = OutStockRequestReducer(initialState, getOutStockRequestsWith(null));
       expect(result.outStockRequests).toEqual({});
     });
   });
@@ -83,11 +83,11 @@ describe('OutStockRequestReducer', () => {
   describe('state immutability', () => {
     test('does not mutate original state', () => {
       const originalState: OutStockRequestState = {
-        outStockRequests: { existing: 'data' }
+        outStockRequests: { userList: ['existing'] }
       };
       const stateCopy = JSON.parse(JSON.stringify(originalState));
 
-      OutStockRequestReducer(originalState, { type: GET_OutStockRequests, payload: { new: 'data' } });
+      OutStockRequestReducer(originalState, { type: GET_OutStockRequests, payload: { userList: ['new'] } });
 
       expect(originalState).toEqual(stateCopy);
     });

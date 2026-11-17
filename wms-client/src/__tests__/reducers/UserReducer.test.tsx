@@ -5,23 +5,13 @@ import {
   UPDATE_User,
   DELETE_User
 } from '../../types';
+import type { UserState } from '../../types';
 
-interface User {
-  employeeId: string;
-  fullname?: string;
-  role?: { authority: string } | string;
-}
+type UserAction = Parameters<typeof UserReducer>[1];
 
-interface UserState {
-  validToken: boolean;
-  user: User | Record<string, unknown> | null | undefined | boolean | number;
-  users: User[];
-}
-
-interface UserAction {
-  type: string;
-  payload?: unknown;
-}
+// For the tests that check how the reducer copes with a payload of the wrong type.
+const setCurrentUserWith = (payload: unknown): UserAction =>
+  ({ type: SET_Current_User, payload }) as UserAction;
 
 describe('UserReducer', () => {
   const initialState: UserState = {
@@ -44,7 +34,7 @@ describe('UserReducer', () => {
     test('sets user and validToken to true when payload has data', () => {
       const payload = {
         employeeId: 'EMP001',
-        fullname: 'Test User',
+        fullName: 'Test User',
         role: { authority: 'ROLE_Admin' }
       };
       const result = UserReducer(initialState, { type: SET_Current_User, payload });
@@ -67,7 +57,7 @@ describe('UserReducer', () => {
     });
 
     test('sets validToken to false when payload is null', () => {
-      const result = UserReducer(initialState, { type: SET_Current_User, payload: null });
+      const result = UserReducer(initialState, setCurrentUserWith(null));
 
       expect(result.validToken).toBe(false);
       // null || {} = {}
@@ -83,7 +73,7 @@ describe('UserReducer', () => {
     });
 
     test('sets validToken to false when payload is false', () => {
-      const result = UserReducer(initialState, { type: SET_Current_User, payload: false });
+      const result = UserReducer(initialState, setCurrentUserWith(false));
 
       expect(result.validToken).toBe(false);
       // false || {} = {}
@@ -91,7 +81,7 @@ describe('UserReducer', () => {
     });
 
     test('sets validToken to false when payload is 0', () => {
-      const result = UserReducer(initialState, { type: SET_Current_User, payload: 0 });
+      const result = UserReducer(initialState, setCurrentUserWith(0));
 
       expect(result.validToken).toBe(false);
       // 0 || {} = {}
@@ -114,8 +104,8 @@ describe('UserReducer', () => {
   describe('GET_UserList', () => {
     test('sets users to payload', () => {
       const payload = [
-        { employeeId: '001', fullname: 'User 1' },
-        { employeeId: '002', fullname: 'User 2' }
+        { employeeId: '001', fullName: 'User 1' },
+        { employeeId: '002', fullName: 'User 2' }
       ];
       const result = UserReducer(initialState, { type: GET_UserList, payload });
 
@@ -155,7 +145,7 @@ describe('UserReducer', () => {
   describe('UPDATE_User', () => {
     test('sets users to payload', () => {
       const payload = [
-        { employeeId: '001', fullname: 'Updated User', role: 'ROLE_Admin' }
+        { employeeId: '001', fullName: 'Updated User', role: 'ROLE_Admin' }
       ];
       const result = UserReducer(initialState, { type: UPDATE_User, payload });
 
@@ -166,12 +156,12 @@ describe('UserReducer', () => {
       const existingState: UserState = {
         ...initialState,
         users: [
-          { employeeId: '001', fullname: 'Original' }
+          { employeeId: '001', fullName: 'Original' }
         ]
       };
       const payload = [
-        { employeeId: '001', fullname: 'Updated' },
-        { employeeId: '002', fullname: 'New User' }
+        { employeeId: '001', fullName: 'Updated' },
+        { employeeId: '002', fullName: 'New User' }
       ];
       const result = UserReducer(existingState, { type: UPDATE_User, payload });
 
@@ -185,8 +175,8 @@ describe('UserReducer', () => {
       const existingState: UserState = {
         ...initialState,
         users: [
-          { employeeId: '001', fullname: 'User 1' },
-          { employeeId: '002', fullname: 'User 2' }
+          { employeeId: '001', fullName: 'User 1' },
+          { employeeId: '002', fullName: 'User 2' }
         ]
       };
       const result = UserReducer(existingState, { type: DELETE_User, payload: '001' });
