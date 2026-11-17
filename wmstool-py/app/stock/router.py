@@ -447,12 +447,14 @@ def _jackson_long_or_none(value: object) -> int | None:
     return _jackson_whole(value, bits=64)
 
 
-# DateTimeFormatter.ISO_LOCAL_DATE_TIME: 'T' between date and time, seconds and a
-# fraction of up to 9 digits optional, no offset.
+# DateTimeFormatter.ISO_LOCAL_DATE_TIME: 'T' (parseCaseInsensitive, so 't' too) between
+# date and time, seconds optional, then a fraction of 0 to 9 digits (a lone '.' is
+# accepted), no offset.
 _ISO_LOCAL_DATE_TIME = re.compile(
-    r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,9}))?)?", re.ASCII)
-# Instant.parse (ISO_INSTANT) on JDK 8: seconds are required, then a literal Z.
-_ISO_INSTANT = re.compile(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?Z", re.ASCII)
+    r"(\d{4})-(\d{2})-(\d{2})[Tt](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{0,9}))?)?", re.ASCII)
+# Instant.parse (ISO_INSTANT) on JDK 8: seconds are required, then a literal Z. Jackson
+# only takes this path when index 10 is an upper-case 'T'.
+_ISO_INSTANT = re.compile(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{0,9}))?Z", re.ASCII)
 
 
 def _local_date_time(parts: tuple[str | None, ...]) -> dt.datetime:
@@ -468,7 +470,8 @@ def _jackson_datetime(value: object) -> dt.datetime | None:
     A string is trimmed; empty is null. With 'T' at index 10, a trailing Z is read as
     an Instant in UTC (the same wall time); anything else must be ISO_LOCAL_DATE_TIME,
     so a date alone, a space separator or an offset is a 400 (as is the text "null").
-    An array is [y, M, d, h, m(, s(, nanos))]: fewer than 5 or more than 7 is a 400.
+    An array is [y, M, d, h, m(, s(, nanos))]: fewer than 5 or more than 7 is a 400;
+    an empty array is null.
     """
     if value is None:
         return None
@@ -480,6 +483,8 @@ def _jackson_datetime(value: object) -> dt.datetime | None:
         if match is None:
             raise ValueError("not a LocalDateTime")
         return _local_date_time(match.groups())
+    if value == []:
+        return None
     if isinstance(value, list) and 5 <= len(value) <= 7 and all(
             isinstance(part, int) and not isinstance(part, bool) for part in value):
         year, month, day, hour, minute, second, nano = [*value, *([0] * (7 - len(value)))]

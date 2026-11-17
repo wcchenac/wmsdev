@@ -464,6 +464,11 @@ _JACKSON_EDGE_BODIES = {
     "updated_at_array_5": {"updatedAt": [2020, 1, 2, 10, 30]},
     "updated_at_array_7": {"updatedAt": [2020, 1, 2, 10, 30, 15, 500000000]},
     "updated_at_array_8": {"updatedAt": [2020, 1, 2, 10, 30, 15, 500000000, 1]},
+    "updated_at_lowercase_t": {"updatedAt": "2020-01-02t10:30"},
+    "updated_at_lowercase_t_zulu": {"updatedAt": "2020-01-02t10:30:00Z"},
+    "updated_at_trailing_dot": {"updatedAt": "2020-01-02T10:30:00."},
+    "updated_at_trailing_dot_zulu": {"updatedAt": "2020-01-02T10:30:00.Z"},
+    "updated_at_empty_array": {"updatedAt": []},
 }
 
 
