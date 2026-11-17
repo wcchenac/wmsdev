@@ -8,6 +8,7 @@ which also rolls the request's transaction back (get_session).
 
 import datetime as dt
 import logging
+import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
@@ -390,9 +391,17 @@ def wait_to_shrink_rollback(stockIdentifierId: int, request: Request,
     return Response(status_code=200)
 
 
+def _jackson_null_text(text: str) -> bool:
+    """Jackson's textual null: the empty string and "null" (after trimming)."""
+    return text in ("", "null")
+
+
 def _jackson_whole(value: object, *, bits: int) -> int:
-    """Jackson 2.10 primitive int/long: numbers, numeric strings; null becomes 0."""
+    """Jackson 2.10 primitive int/long: numbers, numeric strings; null, "" and the text
+    "null" become 0 (FAIL_ON_NULL_FOR_PRIMITIVES is off)."""
     if value is None:
+        return 0
+    if isinstance(value, str) and _jackson_null_text(value.strip()):
         return 0
     if isinstance(value, bool):
         raise ValueError("not a number")
@@ -422,7 +431,7 @@ def _jackson_bool(value: object) -> bool:
         text = value.strip()
         if text in ("true", "True"):
             return True
-        if text in ("false", "False") or text == "":
+        if text in ("false", "False") or _jackson_null_text(text):
             return False
     if value is None:
         return False  # FAIL_ON_NULL_FOR_PRIMITIVES is off
@@ -430,28 +439,49 @@ def _jackson_bool(value: object) -> bool:
 
 
 def _jackson_long_or_none(value: object) -> int | None:
-    """Jackson Long (the id). Null means a new row; a non-numeric value is a 400."""
-    if value is None:
+    """Jackson Long (the id). Null, "" and "null" mean a new row; other non-numeric
+    values are a 400."""
+    if value is None or (isinstance(value, str) and _jackson_null_text(value.strip())):
         return None
     return _jackson_whole(value, bits=64)
 
 
+# DateTimeFormatter.ISO_LOCAL_DATE_TIME: 'T' between date and time, seconds and a
+# fraction of up to 9 digits optional, no offset.
+_ISO_LOCAL_DATE_TIME = re.compile(
+    r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,9}))?)?", re.ASCII)
+# Instant.parse (ISO_INSTANT) on JDK 8: seconds are required, then a literal Z.
+_ISO_INSTANT = re.compile(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?Z", re.ASCII)
+
+
+def _local_date_time(parts: tuple[str | None, ...]) -> dt.datetime:
+    year, month, day, hour, minute, second, fraction = parts
+    nano = int((fraction or "").ljust(9, "0")) if fraction else 0
+    return dt.datetime(int(year), int(month), int(day), int(hour), int(minute), int(second or 0),
+                       nano // 1000)  # ResolverStyle.STRICT: out-of-range fields raise
+
+
 def _jackson_datetime(value: object) -> dt.datetime | None:
-    """Jackson LocalDateTime: an ISO string or a jsr310 int array. Omitted stays null."""
+    """jsr310 LocalDateTimeDeserializer (2.10) with the default formatter.
+
+    A string is trimmed; empty is null. With 'T' at index 10, a trailing Z is read as
+    an Instant in UTC (the same wall time); anything else must be ISO_LOCAL_DATE_TIME,
+    so a date alone, a space separator or an offset is a 400 (as is the text "null").
+    An array is [y, M, d, h, m(, s(, nanos))]: fewer than 5 or more than 7 is a 400.
+    """
     if value is None:
         return None
     if isinstance(value, str):
         text = value.strip()
-        if text.endswith("Z"):
-            text = text[:-1]
-        try:
-            parsed = dt.datetime.fromisoformat(text)
-        except ValueError as exc:
-            raise ValueError("not a LocalDateTime") from exc
-        return parsed.replace(tzinfo=None)
-    if isinstance(value, list) and 3 <= len(value) <= 7 and all(
+        if text == "":
+            return None
+        match = _ISO_INSTANT.fullmatch(text) or _ISO_LOCAL_DATE_TIME.fullmatch(text)
+        if match is None:
+            raise ValueError("not a LocalDateTime")
+        return _local_date_time(match.groups())
+    if isinstance(value, list) and 5 <= len(value) <= 7 and all(
             isinstance(part, int) and not isinstance(part, bool) for part in value):
-        year, month, day, hour, minute, second, nano = [*value, *([0] * (7 - len(value)))][:7]
+        year, month, day, hour, minute, second, nano = [*value, *([0] * (7 - len(value)))]
         return dt.datetime(year, month, day, hour, minute, second, nano // 1000)
     raise ValueError("not a LocalDateTime")
 

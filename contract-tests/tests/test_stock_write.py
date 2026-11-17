@@ -440,6 +440,50 @@ OUT_STOCK = {"productNo": "CF1002", "lotNo": "L07", "type": "整支", "quantity"
              "color": 0, "defect": "", "reason": "門市拉貨"}
 
 
+_JACKSON_EDGE_BODIES = {
+    # Empty string and the text "null" in non-String fields.
+    "color_empty": {"color": ""},
+    "color_null_text": {"color": "null"},
+    "stock_identifier_empty": {"stockIdentifierId": ""},
+    "stock_identifier_null_text": {"stockIdentifierId": "null"},
+    "id_empty": {"id": ""},
+    "id_null_text": {"id": "null"},
+    "handled_null_text": {"handled": "null"},
+    "deleted_null_text": {"deleted": "null"},
+    "updated_at_empty": {"updatedAt": ""},
+    "updated_at_null_text": {"updatedAt": "null"},
+    # LocalDateTime spellings.
+    "updated_at_date_only": {"updatedAt": "2020-01-02"},
+    "updated_at_space_separated": {"updatedAt": "2020-01-02 10:30:00"},
+    "updated_at_no_seconds": {"updatedAt": "2020-01-02T10:30"},
+    "updated_at_fraction": {"updatedAt": "2020-01-02T10:30:00.123"},
+    "updated_at_offset": {"updatedAt": "2020-01-02T10:30:00+08:00"},
+    "updated_at_zulu": {"updatedAt": "2020-01-02T10:30:00Z"},
+    "updated_at_array_3": {"updatedAt": [2020, 1, 2]},
+    "updated_at_array_4": {"updatedAt": [2020, 1, 2, 10]},
+    "updated_at_array_5": {"updatedAt": [2020, 1, 2, 10, 30]},
+    "updated_at_array_7": {"updatedAt": [2020, 1, 2, 10, 30, 15, 500000000]},
+    "updated_at_array_8": {"updatedAt": [2020, 1, 2, 10, 30, 15, 500000000, 1]},
+}
+
+
+@pytest.mark.parametrize("case", list(_JACKSON_EDGE_BODIES))
+def test_out_stock_request_jackson_edge_values(operator, db, golden, case):
+    """How Jackson 2.10 binds the empty string and the text "null" in number, boolean
+    and LocalDateTime fields, and which LocalDateTime strings and arrays it accepts.
+    The stored row is read back with the time formatted, since time values are masked."""
+    from conftest import rows
+
+    resp = operator.post("/api/stock/outStock", json={**OUT_STOCK, **_JACKSON_EDGE_BODIES[case]})
+    golden.add("status", resp.status_code)
+    golden.add("stored", rows(db, "SELECT id, color, stockIdentifierId, isHandled, isDeleted, "
+                                  "DATE_FORMAT(updatedAt, '%%Y-%%m-%%d %%H:%%i:%%s.%%f') AS updated_utc "
+                                  "FROM outstockrequest ORDER BY id"))
+    if resp.status_code == 200:
+        body = resp.json()
+        golden.add("echoed_updated_at", body.get("updatedAt"))
+
+
 def test_out_stock_request_jackson_coercion_and_merge(operator, db, golden):
     """POST /outStock binds Jackson's OutStockRequest: numbers and booleans in String
     fields become text; client times are LocalDateTimes in the JVM zone (Asia/Taipei),
