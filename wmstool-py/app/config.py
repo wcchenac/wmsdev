@@ -11,7 +11,9 @@ They mirror wmstool's application.properties:
       wait_timeout so a pooled connection is not used after the server closed it.
 """
 
+import os
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import ValidationError, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings
@@ -38,6 +40,24 @@ class Settings(BaseSettings):
         if not value.strip():
             raise ValueError(f"{_DIR_ENV[info.field_name]} must be set to a directory")
         return value
+
+
+def check_directories(settings: Settings) -> None:
+    """Fail at startup when the service user cannot use the report or photo folder.
+
+    EXCEL_DIR holds the templates and every generated report: it must exist and be
+    writable (the image runs as uid 1000, so a root-owned bind mount would otherwise
+    fail at the first report). PICTURE_DIR is only read; it may be missing, as in
+    Java, which checks each photo file and leaves the cell empty without one.
+    """
+    excel = Path(settings.excel_dir)
+    if not excel.is_dir():
+        raise RuntimeError(f"EXCEL_DIR {excel} does not exist or is not a directory")
+    if not os.access(excel, os.W_OK | os.X_OK):
+        raise RuntimeError(f"EXCEL_DIR {excel} is not writable by uid {os.getuid()}")
+    pictures = Path(settings.picture_dir)
+    if pictures.is_dir() and not os.access(pictures, os.R_OK | os.X_OK):
+        raise RuntimeError(f"PICTURE_DIR {pictures} is not readable by uid {os.getuid()}")
 
 
 @lru_cache
