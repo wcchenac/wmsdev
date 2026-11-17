@@ -472,6 +472,12 @@ def _jackson_datetime(value: object) -> dt.datetime | None:
     so a date alone, a space separator or an offset is a 400 (as is the text "null").
     An array is [y, M, d, h, m(, s(, nanos))]: fewer than 5 or more than 7 is a 400;
     an empty array is null.
+
+    Known difference, accepted (2026-11-17): Python's datetime holds microseconds, so
+    nanoseconds are cut to microseconds. The value stored is the same (MySQL DATETIME
+    rounds to the second), but the response echoes the cut value: [..., 15, 1500]
+    comes back as [..., 15, 1000] and .123456789 as .123456000, where Java echoes the
+    nanoseconds it was sent.
     """
     if value is None:
         return None
@@ -494,9 +500,14 @@ def _jackson_datetime(value: object) -> dt.datetime | None:
 
 def _jackson_str(value: object) -> object:
     """Jackson 2.10 String: a JSON number or boolean is coerced to its text ("50",
-    "1.5", "true"). Pydantic only sees the parsed value, so a number keeps Python's
-    spelling of it (1e3 arrives as 1000.0, where Jackson keeps "1e3"). Arrays and
-    objects stay a 400."""
+    "1.5", "true"). Arrays and objects stay a 400.
+
+    Known difference, accepted (2026-11-17): Jackson keeps the number as written in the
+    request; pydantic only sees the parsed value, so a decimal is stored in Python's
+    spelling of it: 1e3 -> "1000.0" (Jackson "1e3"), 1.50 -> "1.5" ("1.50"),
+    0.00001 -> "1e-05" ("0.00001"), 1e21 -> "1e+21", -0 -> "0", and long decimals
+    are shortened. Integers and booleans match. The frontend sends these fields as
+    strings, so only a hand-written API call meets this."""
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, (int, float)):
