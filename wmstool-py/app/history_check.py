@@ -23,7 +23,8 @@ the one SKO whose time lines up with the readable children's SKI times (Java wri
 the SKO, then the pieces, in the same request). If that SKO cannot be picked, the
 tool warns and prints no UPDATE. Pieces that pass every other test but whose SKI
 falls outside that window are listed separately with their time from the SKO (a slow
-shrink can take longer); they are never put into the UPDATE. The UPDATE needs
+shrink can take longer); they are never put into the UPDATE. When such a piece is another reported row's
+candidate, the listing says "candidate of history N". The UPDATE needs
 migration 0002 (BLOB) applied.
 Nothing is written. Exit code 1 when any row is reported.
 """
@@ -78,8 +79,9 @@ class Problem:
     candidates: list[int]
     shared_with: list[int]  # other reported history ids proposing one of these candidates
     note: str | None = None  # set when the SKO/SKI time check cannot confirm a shrink
-    # Pieces that match except for the time: (id, SKI time minus the SKO; None if unknown)
-    outside: list[tuple[int, dt.timedelta | None]] = field(default_factory=list)
+    # Pieces that match except for the time: (id, SKI time minus the SKO or None if
+    # unknown, the other reported history ids that have it as an in-window candidate)
+    outside: list[tuple[int, dt.timedelta | None, list[int]]] = field(default_factory=list)
 
 
 def _shrink_sko(conn: Connection, roll_id: int, readable: list[int]) -> dt.datetime | None:
@@ -173,7 +175,8 @@ def scan(conn: Connection) -> list[Problem]:
             proposers.setdefault(candidate, set()).add(row.id)
     return [
         Problem(row.id, row.currentIdentifierId, len(row.childrenIdentifierId), children, candidates,
-                sorted({other for c in candidates for other in proposers[c]} - {row.id}), note, outside)
+                sorted({other for c in candidates for other in proposers[c]} - {row.id}), note,
+                [(piece, delta, sorted(proposers.get(piece, set()) - {row.id})) for piece, delta in outside])
         for row, children, candidates, outside, note in found
     ]
 
@@ -183,6 +186,10 @@ def _offset(delta: dt.timedelta | None) -> str:
         return "SKI time unknown"
     seconds = int(delta.total_seconds())
     return f"SKI {seconds:+d}s"
+
+
+def _candidate_of(history_ids: list[int]) -> str:
+    return f", candidate of history {', '.join(map(str, history_ids))}" if history_ids else ""
 
 
 def _report(p: Problem) -> list[str]:
@@ -197,7 +204,7 @@ def _report(p: Problem) -> list[str]:
     found = ", ".join(map(str, p.candidates)) or "(none found)"
     lines.append(f"  candidates for the {missing} missing: {found}")
     if p.outside:
-        listed = ", ".join(f"{piece} ({_offset(delta)})" for piece, delta in p.outside)
+        listed = ", ".join(f"{piece} ({_offset(delta)}{_candidate_of(others)})" for piece, delta, others in p.outside)
         lines.append(f"  outside the {SKI_AFTER_SKO.seconds}-second window after the SKO (not candidates): {listed}")
     if p.note:
         lines.append(f"  {p.note}")

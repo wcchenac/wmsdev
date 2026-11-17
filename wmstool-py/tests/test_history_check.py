@@ -318,3 +318,24 @@ def test_pieces_outside_the_window_do_not_block_the_update(database_url, capsys)
     assert "outside the 2-second window after the SKO (not candidates): 30 (SKI +300s), 31 (SKI -1s)" in out
     repaired = serialize_long_array(list(range(2, 13))).hex()
     assert f"UPDATE history SET childrenIdentifierId = 0x{repaired} WHERE id = 1;" in out
+
+
+def test_a_piece_outside_the_window_says_which_row_it_is_a_candidate_of(database_url, capsys):
+    """Roll 50 of the same tree was shrunk ten minutes later into 51..61 and its list
+    was cut too. Piece 61 is roll 50's candidate, and outside roll 1's window: roll 1's
+    report must say so, so nobody gives the same piece to both rows."""
+    later = SHRINK_AT + dt.timedelta(minutes=10)
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn)
+        _identifier(conn, 50)
+        _history(conn, 50, 50, _truncated(list(range(51, 62))), root=1)
+        _sko(conn, 50, at=later)
+        for child in range(51, 62):
+            _piece(conn, child, root=1, at=later)
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert ("outside the 2-second window after the SKO (not candidates): "
+            "61 (SKI +600s, candidate of history 50)") in out
+    assert "candidates for the 1 missing: 61" in out  # roll 50's own report
