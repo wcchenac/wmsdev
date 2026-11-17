@@ -26,8 +26,9 @@ def _probe(directory: Path) -> None:
     while it is still open, which a share may refuse even though the folder is fine.
     Of the reports, only CategoryDetail deletes files (a category's report is
     replaced); the others overwrite in place. A folder where the probe cannot be
-    closed or deleted still stops the start, because the probe would be left there
-    on every start; the message names that file.
+    closed or deleted still stops the start. A failed close is not a permission
+    problem; the probe is still deleted then. The message asks for a hand delete only
+    when the file is really left behind, and names it.
     """
     try:
         fd, name = tempfile.mkstemp(dir=directory, prefix=WRITE_PROBE_PREFIX)
@@ -35,10 +36,25 @@ def _probe(directory: Path) -> None:
         raise RuntimeError(f"EXCEL_DIR {directory} is not writable by uid {_uid()} ({exc.strerror})") from exc
     try:
         os.close(fd)
+    except OSError as close_error:
+        # Not a permission problem (an I/O error on a share, for example). The fd is
+        # released anyway, so try to remove the probe and only ask for a hand delete
+        # when it is really left behind.
+        try:
+            os.unlink(name)
+        except OSError as unlink_error:
+            raise RuntimeError(
+                f"EXCEL_DIR {directory}: closing {name} failed ({close_error.strerror}) and it could not "
+                f"be deleted ({unlink_error.strerror}). Check the share, then delete it by hand.",
+            ) from close_error
+        raise RuntimeError(
+            f"EXCEL_DIR {directory}: closing a test file failed ({close_error.strerror}); the file was "
+            "removed. Check the share (connection, free space).") from close_error
+    try:
         os.unlink(name)
     except OSError as exc:
         raise RuntimeError(
-            f"EXCEL_DIR {directory}: uid {_uid()} could create {name} but could not close or delete it "
+            f"EXCEL_DIR {directory}: uid {_uid()} could create files but could not delete {name} "
             f"({exc.strerror}). Allow deleting there, then delete it by hand.") from exc
 
 

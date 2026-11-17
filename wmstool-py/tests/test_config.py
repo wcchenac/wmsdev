@@ -263,7 +263,7 @@ def test_a_probe_file_that_cannot_be_deleted_is_named(monkeypatch, tmp_path):
 
     monkeypatch.setattr(os, "unlink", refuse_probe)
     _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
-    with pytest.raises(RuntimeError, match=r"\.wms-write-check-\w+ but could not close or delete it.*delete it by hand"):
+    with pytest.raises(RuntimeError, match=r"could not delete \S*\.wms-write-check-\w+ \(Permission denied\)\. Allow deleting there, then delete it by hand"):
         create_app()
 
 
@@ -280,17 +280,15 @@ def test_startup_does_not_need_getuid_when_the_folders_are_fine(monkeypatch, tmp
     create_app()
 
 
-def test_a_probe_file_that_cannot_be_closed_is_named(monkeypatch, tmp_path):
-    """A share can report an I/O error on close. The startup error names the file
-    that may be left behind, as when deleting fails."""
+def _failing_close(monkeypatch, unlink_too: bool = False) -> None:  # noqa: ANN001
+    """Make closing a probe file fail with EIO (the fd is still released, as on Linux),
+    and optionally deleting it too. Other files are left alone."""
     import errno
     import os
     import tempfile
 
-    from app.main import create_app
-
     probe_fds: set[int] = set()
-    real_mkstemp, real_close = tempfile.mkstemp, os.close
+    real_mkstemp, real_close, real_unlink = tempfile.mkstemp, os.close, os.unlink
 
     def recording_mkstemp(*args, **kwargs):  # noqa: ANN002, ANN003, ANN202
         fd, name = real_mkstemp(*args, **kwargs)
@@ -298,13 +296,43 @@ def test_a_probe_file_that_cannot_be_closed_is_named(monkeypatch, tmp_path):
         return fd, name
 
     def failing_close(fd: int) -> None:
-        if fd in probe_fds:
-            real_close(fd)
-            raise OSError(errno.EIO, "Input/output error")
         real_close(fd)
+        if fd in probe_fds:
+            probe_fds.discard(fd)  # the number can be reused once it is closed
+            raise OSError(errno.EIO, "Input/output error")
+
+    def refusing_unlink(path, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+        if os.path.basename(path).startswith(".wms-write-check-"):
+            raise PermissionError(errno.EACCES, "Permission denied", path)
+        return real_unlink(path, *args, **kwargs)
 
     monkeypatch.setattr(tempfile, "mkstemp", recording_mkstemp)
     monkeypatch.setattr(os, "close", failing_close)
+    if unlink_too:
+        monkeypatch.setattr(os, "unlink", refusing_unlink)
+
+
+def test_a_probe_file_that_cannot_be_closed_is_still_deleted(monkeypatch, tmp_path):
+    """A share can report an I/O error on close. That is not a permission problem: the
+    message says the close failed, the probe is still deleted, and nobody is asked to
+    delete a file that is not there."""
+    from app.main import create_app
+
+    _failing_close(monkeypatch)
     _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
-    with pytest.raises(RuntimeError, match=r"\.wms-write-check-\w+ but could not close or delete it \(Input/output error\).*delete it by hand"):
+    with pytest.raises(RuntimeError, match=r"closing a test file failed \(Input/output error\)") as exc:
+        create_app()
+    assert "by hand" not in str(exc.value)
+    assert "Allow deleting" not in str(exc.value)
+    assert [p.name for p in tmp_path.iterdir() if p.name.startswith(".wms-write-check-")] == []
+
+
+def test_a_probe_file_that_can_be_neither_closed_nor_deleted_is_named(monkeypatch, tmp_path):
+    from app.main import create_app
+
+    _failing_close(monkeypatch, unlink_too=True)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    with pytest.raises(RuntimeError, match=(
+            r"closing \S*\.wms-write-check-\w+ failed \(Input/output error\) and it could not be "
+            r"deleted \(Permission denied\)\. Check the share, then delete it by hand")):
         create_app()
