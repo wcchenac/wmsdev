@@ -1,0 +1,173 @@
+{
+  "bad_date": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/stock/outStock/waitHandleList/interval",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  },
+  "last_3_days": {
+    "body": {
+      "queryResult": {
+        "<TODAY-2:yyyy-MM-dd>": [],
+        "<TODAY:yyyy-MM-dd>": [
+          {
+            "color": 3,
+            "createdAt": "<datetime:array>",
+            "createdBy": "倉管乙",
+            "defect": "污",
+            "deleted": false,
+            "fileName": null,
+            "handled": false,
+            "id": 1,
+            "lotNo": "L01",
+            "outStockType": 0,
+            "productNo": "CF1001",
+            "quantity": "48.5",
+            "reason": "出貨",
+            "requestFrom": null,
+            "stockIdentifierId": 2,
+            "type": "整支",
+            "unit": "碼",
+            "updatedAt": null,
+            "updatedBy": null
+          },
+          {
+            "color": 0,
+            "createdAt": "<datetime:array>",
+            "createdBy": "倉管乙",
+            "defect": "",
+            "deleted": false,
+            "fileName": null,
+            "handled": false,
+            "id": 2,
+            "lotNo": "L02",
+            "outStockType": 1,
+            "productNo": "CF1001",
+            "quantity": "12",
+            "reason": "減肥",
+            "requestFrom": null,
+            "stockIdentifierId": 3,
+            "type": "板卷",
+            "unit": "碼",
+            "updatedAt": null,
+            "updatedBy": null
+          },
+          {
+            "color": 0,
+            "createdAt": "<datetime:array>",
+            "createdBy": "倉管乙",
+            "defect": "",
+            "deleted": false,
+            "fileName": null,
+            "handled": false,
+            "id": 3,
+            "lotNo": "L07",
+            "outStockType": 2,
+            "productNo": "CF1002",
+            "quantity": "10",
+            "reason": "門市拉貨",
+            "requestFrom": null,
+            "stockIdentifierId": 0,
+            "type": "整支",
+            "unit": "碼",
+            "updatedAt": null,
+            "updatedBy": null
+          }
+        ],
+        "<YESTERDAY:yyyy-MM-dd>": []
+      },
+      "userList": [
+        "倉管乙"
+      ]
+    },
+    "status": 200
+  },
+  "today": {
+    "body": {
+      "queryResult": {
+        "<TODAY:yyyy-MM-dd>": [
+          {
+            "color": 3,
+            "createdAt": "<datetime:array>",
+            "createdBy": "倉管乙",
+            "defect": "污",
+            "deleted": false,
+            "fileName": null,
+            "handled": false,
+            "id": 1,
+            "lotNo": "L01",
+            "outStockType": 0,
+            "productNo": "CF1001",
+            "quantity": "48.5",
+            "reason": "出貨",
+            "requestFrom": null,
+            "stockIdentifierId": 2,
+            "type": "整支",
+            "unit": "碼",
+            "updatedAt": null,
+            "updatedBy": null
+          },
+          {
+            "color": 0,
+            "createdAt": "<datetime:array>",
+            "createdBy": "倉管乙",
+            "defect": "",
+            "deleted": false,
+            "fileName": null,
+            "handled": false,
+            "id": 2,
+            "lotNo": "L02",
+            "outStockType": 1,
+            "productNo": "CF1001",
+            "quantity": "12",
+            "reason": "減肥",
+            "requestFrom": null,
+            "stockIdentifierId": 3,
+            "type": "板卷",
+            "unit": "碼",
+            "updatedAt": null,
+            "updatedBy": null
+          },
+          {
+            "color": 0,
+            "createdAt": "<datetime:array>",
+            "createdBy": "倉管乙",
+            "defect": "",
+            "deleted": false,
+            "fileName": null,
+            "handled": false,
+            "id": 3,
+            "lotNo": "L07",
+            "outStockType": 2,
+            "productNo": "CF1002",
+            "quantity": "10",
+            "reason": "門市拉貨",
+            "requestFrom": null,
+            "stockIdentifierId": 0,
+            "type": "整支",
+            "unit": "碼",
+            "updatedAt": null,
+            "updatedBy": null
+          }
+        ]
+      },
+      "userList": [
+        "倉管乙"
+      ]
+    },
+    "status": 200
+  },
+  "yesterday_only": {
+    "body": {
+      "queryResult": {
+        "<YESTERDAY:yyyy-MM-dd>": []
+      },
+      "userList": []
+    },
+    "status": 200
+  }
+}

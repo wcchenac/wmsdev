@@ -1,0 +1,90 @@
+{
+  "db": {
+    "stockinfo": [
+      {
+        "color": 3,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 1,
+        "record": "",
+        "remark": "A區",
+        "shrinkAt": null,
+        "stockIdentifier_id": 1,
+        "storedAt": null,
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      {
+        "color": 5,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "破",
+        "id": 2,
+        "record": "修補過",
+        "remark": "B區",
+        "shrinkAt": null,
+        "stockIdentifier_id": 2,
+        "storedAt": null,
+        "updatedAt": "<datetime:datetime>",
+        "updatedBy": "倉管乙"
+      },
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 3,
+        "record": "邊破",
+        "remark": "",
+        "shrinkAt": null,
+        "stockIdentifier_id": 3,
+        "storedAt": null,
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 4,
+        "record": "",
+        "remark": "",
+        "shrinkAt": null,
+        "stockIdentifier_id": 4,
+        "storedAt": null,
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 5,
+        "record": "",
+        "remark": "",
+        "shrinkAt": null,
+        "stockIdentifier_id": 5,
+        "storedAt": null,
+        "updatedAt": null,
+        "updatedBy": null
+      }
+    ]
+  },
+  "unknown_id": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/stock/updateStock",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  },
+  "update": {
+    "body": "CF1001",
+    "status": 200
+  }
+}

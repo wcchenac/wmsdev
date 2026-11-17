@@ -1,0 +1,106 @@
+{
+  "db": {
+    "stockadjustmentrecord": [
+      {
+        "GWN": "AB",
+        "createdAt": "<datetime:datetime>",
+        "id": 1,
+        "issuedByStockIdentifier": 1,
+        "issuedByTransactionRecord": 2,
+        "productNo": "CF1003",
+        "quantity": "0.50",
+        "realQuantity": "1.50",
+        "unit": "碼",
+        "updatedAt": null
+      }
+    ],
+    "stockallocationrecord": [
+      {
+        "INGWN": "AB",
+        "OUTGWN": "AD",
+        "createdAt": "<datetime:datetime>",
+        "id": 1,
+        "issuedByStockIdentifier": 1,
+        "issuedByTransactionRecord": 2,
+        "productNo": "CF1003",
+        "quantity": "0.50",
+        "realQuantity": "1.50",
+        "unit": "碼",
+        "updatedAt": null
+      }
+    ]
+  },
+  "reports": {
+    "STKADST/<YEAR>/<MONTH>/StockAdjustRecord-<TODAY:yyyyMMdd>.<excel>": [
+      [
+        "",
+        "貨號",
+        "",
+        "",
+        "數量",
+        "",
+        "單位",
+        "實際數量",
+        "",
+        "",
+        "倉別",
+        "",
+        "",
+        "來源"
+      ],
+      [
+        "",
+        "CF1003",
+        "",
+        "",
+        0.0,
+        "",
+        "0.50",
+        "02",
+        "",
+        "",
+        "1.50",
+        "",
+        "",
+        "AB"
+      ]
+    ],
+    "STKALLT/<YEAR>/<MONTH>/StockAllocateRecord-<TODAY:yyyyMMdd>.<excel>": [
+      [
+        "",
+        "貨號",
+        "數量",
+        "",
+        "",
+        "",
+        "單位",
+        "",
+        "實際數量",
+        "轉出倉",
+        "轉入倉"
+      ],
+      [
+        "",
+        "AB",
+        "CF1003",
+        "",
+        "",
+        "",
+        0.0,
+        "",
+        "0.50",
+        "02",
+        "1.50",
+        "",
+        "",
+        "",
+        "",
+        "AD"
+      ]
+    ]
+  },
+  "shrink": {
+    "body": null,
+    "status": 200
+  }
+}

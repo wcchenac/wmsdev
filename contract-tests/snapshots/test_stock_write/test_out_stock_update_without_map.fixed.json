@@ -1,0 +1,34 @@
+{
+  "db": {
+    "outstockrequest": [
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "fileName": null,
+        "id": 1,
+        "isDeleted": false,
+        "isHandled": false,
+        "lotNo": "L07",
+        "outStockType": 2,
+        "productNo": "CF1002",
+        "quantity": "10",
+        "reason": "門市拉貨",
+        "requestFrom": null,
+        "stockIdentifierId": 0,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null
+      }
+    ]
+  },
+  "reports": {},
+  "update": {
+    "body": {
+      "outStockUpdate": "必須提供要處理的拉貨單"
+    },
+    "status": 400
+  }
+}

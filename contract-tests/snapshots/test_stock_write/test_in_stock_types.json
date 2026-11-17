@@ -1,0 +1,322 @@
+{
+  "db": {
+    "history": [
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 1,
+        "id": 1,
+        "rootIdentifierId": 1
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 2,
+        "id": 2,
+        "rootIdentifierId": 2
+      },
+      {
+        "childrenIdentifierId": {
+          "java.lang.Long[]": []
+        },
+        "currentIdentifierId": 3,
+        "id": 3,
+        "rootIdentifierId": 3
+      }
+    ],
+    "instockorderrecord": [
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 1,
+        "inStockOrderNo": "AS2026110001",
+        "inStockType": "assemble",
+        "lotNo": "L01",
+        "productNo": "CF1002",
+        "quantity": "38",
+        "stockIdentifierId": 1,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 2,
+        "inStockOrderNo": "CR2026110001",
+        "inStockType": "customerReturn",
+        "lotNo": "L01",
+        "productNo": "CF1001",
+        "quantity": "8",
+        "stockIdentifierId": 2,
+        "type": "板卷",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 3,
+        "inStockOrderNo": "SR2026110001",
+        "inStockType": "storeReturn",
+        "lotNo": "L01",
+        "productNo": "CF1003",
+        "quantity": "3.25",
+        "stockIdentifierId": 3,
+        "type": "板卷",
+        "unit": "公斤",
+        "updatedAt": null,
+        "updatedBy": null
+      }
+    ],
+    "outstockrequest": [],
+    "product": [
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 1,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1002",
+        "quantity": "38",
+        "safeQuantity": null,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 2,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1003",
+        "quantity": "3.25",
+        "safeQuantity": null,
+        "type": "板卷",
+        "unit": "公斤",
+        "updatedAt": null,
+        "whType": null
+      },
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 3,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1001",
+        "quantity": "8",
+        "safeQuantity": null,
+        "type": "板卷",
+        "unit": "碼",
+        "updatedAt": null,
+        "whType": null
+      }
+    ],
+    "stockadjustmentrecord": [],
+    "stockallocationrecord": [],
+    "stockidentifier": [
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 1,
+        "inStockType": "組裝單",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1002",
+        "quantity": "38",
+        "serialNo": 1,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 2,
+        "inStockType": "退貨單",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "8",
+        "serialNo": 1,
+        "type": "板卷",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 3,
+        "inStockType": "調撥單",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1003",
+        "quantity": "3.25",
+        "serialNo": 1,
+        "type": "板卷",
+        "unit": "公斤",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      }
+    ],
+    "stockidentifierbacklog": [
+      {
+        "id": 1,
+        "lotNo": "L01",
+        "productNo": "CF1002",
+        "quantity": "38",
+        "serialNo": 2,
+        "type": "整支",
+        "unit": "碼"
+      },
+      {
+        "id": 2,
+        "lotNo": "L01",
+        "productNo": "CF1001",
+        "quantity": "8",
+        "serialNo": 2,
+        "type": "板卷",
+        "unit": "碼"
+      },
+      {
+        "id": 3,
+        "lotNo": "L01",
+        "productNo": "CF1003",
+        "quantity": "3.25",
+        "serialNo": 2,
+        "type": "板卷",
+        "unit": "公斤"
+      }
+    ],
+    "stockinfo": [
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 1,
+        "record": "",
+        "remark": "",
+        "shrinkAt": null,
+        "stockIdentifier_id": 1,
+        "storedAt": null,
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 2,
+        "record": "",
+        "remark": "",
+        "shrinkAt": null,
+        "stockIdentifier_id": 2,
+        "storedAt": null,
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      {
+        "color": 0,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "defect": "",
+        "id": 3,
+        "record": "",
+        "remark": "",
+        "shrinkAt": null,
+        "stockIdentifier_id": 3,
+        "storedAt": null,
+        "updatedAt": null,
+        "updatedBy": null
+      }
+    ],
+    "transactionrecord": [
+      {
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "id": 1,
+        "lotNo": "L01",
+        "operator": "1",
+        "productNo": "CF1002",
+        "quantity": "38",
+        "stockIdentifierId": 1,
+        "transactionType": "AI",
+        "type": "整支",
+        "unit": "碼"
+      },
+      {
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "id": 2,
+        "lotNo": "L01",
+        "operator": "1",
+        "productNo": "CF1001",
+        "quantity": "8",
+        "stockIdentifierId": 2,
+        "transactionType": "CRI",
+        "type": "板卷",
+        "unit": "碼"
+      },
+      {
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "id": 3,
+        "lotNo": "L01",
+        "operator": "1",
+        "productNo": "CF1003",
+        "quantity": "3.25",
+        "stockIdentifierId": 3,
+        "transactionType": "SRI",
+        "type": "板卷",
+        "unit": "公斤"
+      }
+    ]
+  },
+  "in_stock": {
+    "body": null,
+    "status": 200
+  }
+}

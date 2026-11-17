@@ -1,0 +1,44 @@
+{
+  "createdAt_values": [
+    [
+      2026,
+      3,
+      2,
+      0,
+      0
+    ]
+  ],
+  "taipei_2026_03_02": {
+    "body": {
+      "queryResult": {
+        "2026-03-02": [
+          {
+            "color": 0,
+            "createdAt": "<datetime:array>",
+            "createdBy": "倉管乙",
+            "defect": "",
+            "deleted": false,
+            "fileName": null,
+            "handled": false,
+            "id": 2,
+            "lotNo": "L01",
+            "outStockType": 2,
+            "productNo": "CF1001",
+            "quantity": "50",
+            "reason": "utc 2026-03-01 16:00:00",
+            "requestFrom": null,
+            "stockIdentifierId": 0,
+            "type": "整支",
+            "unit": "碼",
+            "updatedAt": null,
+            "updatedBy": null
+          }
+        ]
+      },
+      "userList": [
+        "倉管乙"
+      ]
+    },
+    "status": 200
+  }
+}

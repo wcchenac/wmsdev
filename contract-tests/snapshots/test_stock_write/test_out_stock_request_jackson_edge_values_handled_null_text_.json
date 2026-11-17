@@ -1,0 +1,14 @@
+{
+  "echoed_updated_at": null,
+  "status": 200,
+  "stored": [
+    {
+      "color": 0,
+      "id": 1,
+      "isDeleted": false,
+      "isHandled": false,
+      "stockIdentifierId": 0,
+      "updated_utc": null
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/QueryStockFunction.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/QueryStockFunction.java
+@@ -188,19 +188,15 @@
+ 		};
+ 		List<InStockOrderRecord> resultOfInStockOrderRecord = inStockOrderRepo.findAll(specification);
+ 
+-		// get StockInfos newer than startTime
++		// get the StockInfos of the product: the period picks the trees (by in-stock
++		// record) above, but every node of a picked tree shows its StockInfo, also a
++		// roll created before the start (it used to come out null)
+ 		Specification<StockInfo> specification1 = (Specification<StockInfo>) (root, query, criteriaBuilder) -> {
+ 			Join<StockInfo, StockIdentifier> join = root.join("stockIdentifier");
+ 			List<Predicate> predicatesList = new ArrayList<>();
+ 
+ 			Predicate productNoPredicate = criteriaBuilder.equal(join.get("productNo"), productNo);
+ 			predicatesList.add(productNoPredicate);
+-
+-			if (startDateTime != null && endDateTime != null) {
+-				Predicate startFromPredicate = criteriaBuilder.greaterThanOrEqualTo(join.get("createdAt"),
+-						startDateTime);
+-				predicatesList.add(startFromPredicate);
+-			}
+ 
+ 			query.orderBy(criteriaBuilder.asc(join.get("createdAt")));
+ 

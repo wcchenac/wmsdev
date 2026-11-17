@@ -1,0 +1,60 @@
+{
+  "bare_row": {
+    "body": null,
+    "status": 200
+  },
+  "db": {
+    "stockidentifier": [
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 1,
+        "inStockType": "檔案匯入",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L07",
+        "outStockAt": null,
+        "productNo": "CF1002",
+        "quantity": "40",
+        "serialNo": 1,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 2,
+        "inStockType": "檔案匯入",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L07",
+        "outStockAt": null,
+        "productNo": "CF1002",
+        "quantity": "40",
+        "serialNo": 2,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      }
+    ]
+  },
+  "styled_row": {
+    "body": null,
+    "status": 200
+  }
+}

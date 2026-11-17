@@ -1,0 +1,197 @@
+{
+  "CF1001": {
+    "body": [
+      {
+        "nodes": [
+          {
+            "nodes": [],
+            "stockInfo": {
+              "color": 0,
+              "defect": "",
+              "id": 6,
+              "record": "",
+              "remark": "",
+              "shrinkAt": "<TODAY:yyyy-MM-dd>",
+              "stockIdentifier": {
+                "adjustment": null,
+                "eliminateDate": "<TODAY:yyyy-MM-dd>",
+                "eliminateReason": "出貨",
+                "eliminateType": "0",
+                "exist": false,
+                "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+                "id": 6,
+                "inStockType": "減肥",
+                "lotNo": "L01",
+                "outStock": true,
+                "productNo": "CF1001",
+                "quantity": "30",
+                "serialNo": 1,
+                "type": "整支",
+                "unit": "碼",
+                "waitToShrink": false
+              },
+              "storedAt": null
+            }
+          },
+          {
+            "nodes": [],
+            "stockInfo": {
+              "color": 0,
+              "defect": "",
+              "id": 7,
+              "record": "",
+              "remark": "",
+              "shrinkAt": "<TODAY:yyyy-MM-dd>",
+              "stockIdentifier": {
+                "adjustment": null,
+                "eliminateDate": null,
+                "eliminateReason": null,
+                "eliminateType": null,
+                "exist": true,
+                "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+                "id": 7,
+                "inStockType": "減肥",
+                "lotNo": "L01",
+                "outStock": false,
+                "productNo": "CF1001",
+                "quantity": "19",
+                "serialNo": 1,
+                "type": "整支",
+                "unit": "碼",
+                "waitToShrink": false
+              },
+              "storedAt": null
+            }
+          }
+        ],
+        "stockInfo": {
+          "color": 3,
+          "defect": "",
+          "id": 1,
+          "record": "",
+          "remark": "A區",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": "0.50",
+            "eliminateDate": "<TODAY:yyyy-MM-dd>",
+            "eliminateReason": "減肥",
+            "eliminateType": "1",
+            "exist": false,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 1,
+            "inStockType": "進貨單",
+            "lotNo": "L01",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "50",
+            "serialNo": 1,
+            "type": "整支",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      },
+      {
+        "nodes": [],
+        "stockInfo": {
+          "color": 3,
+          "defect": "污",
+          "id": 2,
+          "record": "",
+          "remark": "A區",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 2,
+            "inStockType": "進貨單",
+            "lotNo": "L01",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "48.5",
+            "serialNo": 1,
+            "type": "整支",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      },
+      {
+        "nodes": [],
+        "stockInfo": {
+          "color": 0,
+          "defect": "",
+          "id": 3,
+          "record": "邊破",
+          "remark": "",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 3,
+            "inStockType": "進貨單",
+            "lotNo": "L02",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "12",
+            "serialNo": 1,
+            "type": "板卷",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      }
+    ],
+    "status": 200
+  },
+  "CF1003": {
+    "body": [
+      {
+        "nodes": [],
+        "stockInfo": {
+          "color": 0,
+          "defect": "",
+          "id": 5,
+          "record": "",
+          "remark": "",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 5,
+            "inStockType": "進貨單",
+            "lotNo": "L11",
+            "outStock": false,
+            "productNo": "CF1003",
+            "quantity": "25",
+            "serialNo": 1,
+            "type": "板卷",
+            "unit": "公斤",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      }
+    ],
+    "status": 200
+  },
+  "yesterday": {
+    "body": [],
+    "status": 200
+  }
+}

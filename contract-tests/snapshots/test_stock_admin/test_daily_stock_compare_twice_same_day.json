@@ -1,0 +1,59 @@
+{
+  "first": {
+    "body": null,
+    "status": 200
+  },
+  "reports": {
+    "StockComparisonResult/<YEAR>/<MONTH>/StockComparisonResult-<TODAY:yyyyMMdd>.<excel>": [
+      [
+        "貨號",
+        "型態",
+        "ERP數量",
+        "WMS數量",
+        "單位",
+        "結果",
+        "差異"
+      ],
+      [
+        "CF1003",
+        "板卷",
+        "25.50",
+        "25",
+        "公斤",
+        "Fail",
+        "-0.50"
+      ],
+      [
+        "CF1001",
+        "板卷",
+        "30.00",
+        "12",
+        "碼",
+        "Fail",
+        "-18.00"
+      ],
+      [
+        "CF1001",
+        "整支",
+        "100.00",
+        "98.50",
+        "碼",
+        "Fail",
+        "-1.50"
+      ],
+      [
+        "CF9999",
+        "板卷",
+        "7.00",
+        "",
+        "碼",
+        "Fail",
+        "-7.00"
+      ]
+    ]
+  },
+  "second": {
+    "body": null,
+    "status": 200
+  }
+}

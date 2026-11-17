@@ -1,0 +1,74 @@
+{
+  "admin": {
+    "body": {
+      "accessToken": {
+        "claims": {
+          "employeeId": "admin",
+          "fullName": "管理員甲",
+          "id": "1",
+          "role": {
+            "authority": "ROLE_Admin"
+          }
+        },
+        "lifetime_seconds": 43200,
+        "scheme": "Bearer"
+      },
+      "tokenType": "Bearer "
+    },
+    "status": 200
+  },
+  "operator": {
+    "body": {
+      "accessToken": {
+        "claims": {
+          "employeeId": "operator",
+          "fullName": "倉管乙",
+          "id": "2",
+          "role": {
+            "authority": "ROLE_Operator"
+          }
+        },
+        "lifetime_seconds": 43200,
+        "scheme": "Bearer"
+      },
+      "tokenType": "Bearer "
+    },
+    "status": 200
+  },
+  "sales": {
+    "body": {
+      "accessToken": {
+        "claims": {
+          "employeeId": "sales",
+          "fullName": "業務丙",
+          "id": "3",
+          "role": {
+            "authority": "ROLE_Sales"
+          }
+        },
+        "lifetime_seconds": 43200,
+        "scheme": "Bearer"
+      },
+      "tokenType": "Bearer "
+    },
+    "status": 200
+  },
+  "store": {
+    "body": {
+      "accessToken": {
+        "claims": {
+          "employeeId": "store",
+          "fullName": "門市丁",
+          "id": "4",
+          "role": {
+            "authority": "ROLE_Normal"
+          }
+        },
+        "lifetime_seconds": 43200,
+        "scheme": "Bearer"
+      },
+      "tokenType": "Bearer "
+    },
+    "status": 200
+  }
+}

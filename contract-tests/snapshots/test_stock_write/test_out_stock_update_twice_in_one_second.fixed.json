@@ -1,0 +1,47 @@
+{
+  "first": {
+    "body": null,
+    "status": 200
+  },
+  "reports": {
+    "OutStockList/<YEAR>/<MONTH>/OutStockList-<TODAY:yyyyMMdd><HHmmss>.<excel>": [
+      [
+        "貨號",
+        "批號",
+        "型態",
+        "數量",
+        "單位",
+        "",
+        "色號",
+        "",
+        "原因"
+      ],
+      [
+        "CF1002",
+        "L07",
+        0.0,
+        "",
+        "10",
+        "",
+        "門市拉貨",
+        "",
+        "門市A"
+      ],
+      [
+        "CF1002",
+        "L07",
+        0.0,
+        "",
+        "10",
+        "",
+        "門市拉貨",
+        "",
+        "門市B"
+      ]
+    ]
+  },
+  "second": {
+    "body": null,
+    "status": 200
+  }
+}

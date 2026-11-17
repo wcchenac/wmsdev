@@ -1,0 +1,54 @@
+{
+  "in_erp_not_in_wms": {
+    "body": {
+      "information": {
+        "addType": null,
+        "cCCCODE": null,
+        "cCost": null,
+        "cName": null,
+        "descrip": null,
+        "eNAME": null,
+        "eSPEC": null,
+        "packDesc": null,
+        "picture": null,
+        "prodDesc": null,
+        "productNo": null,
+        "spec": null,
+        "supp": null,
+        "suppName": null,
+        "userField1": null
+      },
+      "nextProduct": "CF1001",
+      "prevProduct": null,
+      "productList": [],
+      "result": []
+    },
+    "status": 200
+  },
+  "nowhere": {
+    "body": {
+      "information": {
+        "addType": null,
+        "cCCCODE": null,
+        "cCost": null,
+        "cName": null,
+        "descrip": null,
+        "eNAME": null,
+        "eSPEC": null,
+        "packDesc": null,
+        "picture": null,
+        "prodDesc": null,
+        "productNo": null,
+        "spec": null,
+        "supp": null,
+        "suppName": null,
+        "userField1": null
+      },
+      "nextProduct": "CF1001",
+      "prevProduct": null,
+      "productList": [],
+      "result": []
+    },
+    "status": 200
+  }
+}

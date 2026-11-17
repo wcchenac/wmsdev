@@ -1,0 +1,108 @@
+# Contract-test stack: a disposable MySQL (WMS database), a fake ERP on
+# SQL Server, and the backend under test. Nothing here talks to the real ERP.
+#
+#   docker compose -f contract-tests/docker-compose.yml up -d --wait
+#
+# BACKEND selects which implementation runs as `backend`:
+#   java   (default) Spring Boot jar from wmstool/target
+#   python (later)   the FastAPI rewrite
+name: wms-contract
+
+services:
+  mysql:
+    image: mysql:8.0
+    command:
+      - --lower-case-table-names=1 # production MySQL runs on Windows (case-insensitive names)
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wms
+      MYSQL_USER: wms
+      MYSQL_PASSWORD: wms
+      TZ: UTC
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+  erp:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Contract-Test-1"
+    ports:
+      - "11433:1433"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Contract-Test-1' -Q 'SELECT 1' -b -o /dev/null",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 20s
+
+  erp-seed:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64
+    depends_on:
+      erp:
+        condition: service_healthy
+    volumes:
+      - ./mssql:/seed:ro
+    entrypoint:
+      [
+        "/opt/mssql-tools18/bin/sqlcmd",
+        "-C",
+        "-S",
+        "erp",
+        "-U",
+        "sa",
+        "-P",
+        "Contract-Test-1",
+        "-b",
+        "-i",
+        "/seed/erp-seed.sql",
+      ]
+    restart: "no"
+
+  backend:
+    image: eclipse-temurin:8-jre
+    working_dir: /app
+    command:
+      [
+        "java",
+        "-Duser.timezone=Asia/Taipei",
+        "-Dfile.encoding=UTF-8",
+        "-jar",
+        "/app/wmstool.jar",
+        "--spring.config.location=file:/app/config/application.properties",
+      ]
+    environment:
+      TZ: Asia/Taipei
+    volumes:
+      - ../wmstool/target/wmstool-0.1.9.jar:/app/wmstool.jar:ro
+      - ./config:/app/config:ro
+      - ./runtime/files:/data/files
+    ports:
+      - "18080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      erp-seed:
+        condition: service_completed_successfully
+    healthcheck:
+      # /api/user/login is permitAll; a 4xx/5xx JSON answer means the app is up.
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:8080/api/user/login | grep -qv 000"]
+      interval: 3s
+      timeout: 3s
+      retries: 60
+      start_period: 15s

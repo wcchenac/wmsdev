@@ -1,0 +1,65 @@
+{
+  "change_password": {
+    "body": null,
+    "status": 200
+  },
+  "new_password": {
+    "body": {
+      "accessToken": {
+        "claims": {
+          "employeeId": "sales",
+          "fullName": "業務丙",
+          "id": "3",
+          "role": {
+            "authority": "ROLE_Sales"
+          }
+        },
+        "lifetime_seconds": 43200,
+        "scheme": "Bearer"
+      },
+      "tokenType": "Bearer "
+    },
+    "status": 200
+  },
+  "old_password": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  },
+  "rename_and_promote": {
+    "body": null,
+    "status": 200
+  },
+  "unknown_user": {
+    "body": null,
+    "status": 400
+  },
+  "users": [
+    {
+      "employeeId": "admin",
+      "fullName": "管理員甲",
+      "id": 1,
+      "role": "ROLE_Admin"
+    },
+    {
+      "employeeId": "operator",
+      "fullName": "倉管乙",
+      "id": 2,
+      "role": "ROLE_Operator"
+    },
+    {
+      "employeeId": "sales",
+      "fullName": "業務丙",
+      "id": 3,
+      "role": "ROLE_Sales"
+    },
+    {
+      "employeeId": "store",
+      "fullName": "門市丁丁",
+      "id": 4,
+      "role": "ROLE_Sales"
+    }
+  ]
+}
