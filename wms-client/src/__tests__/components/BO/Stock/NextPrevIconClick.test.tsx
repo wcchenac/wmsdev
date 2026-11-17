@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { applyMiddleware, createStore, Store } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
 import rootReducer from '../../../../reducers';
 import { GET_StockInfoes } from '../../../../types';
@@ -35,7 +35,7 @@ const stockPayload = {
   productList: [],
 };
 
-function renderBoard(Board: React.FC): Store {
+function renderBoard(Board: React.FC) {
   const store = createStore(rootReducer, applyMiddleware(thunk));
   render(
     <Provider store={store}>

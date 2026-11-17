@@ -1,4 +1,5 @@
-import StockReducer from '../../reducers/StockReducer';
+import realStockReducer from '../../reducers/StockReducer';
+import type { StockState as RealStockState } from '../../types';
 import {
   GET_Order,
   GET_StockInfo,
@@ -12,6 +13,7 @@ import {
 
 interface StockIdentifier {
   id: number;
+  [key: string]: unknown;
 }
 
 interface StockInfoItem {
@@ -35,6 +37,13 @@ interface StockAction {
   type: string;
   payload?: unknown;
 }
+
+// The fixtures are partial stock records; the reducer's own types require complete ones.
+const StockReducer = (state: StockState | undefined, action: StockAction): StockState =>
+  realStockReducer(
+    state as unknown as RealStockState | undefined,
+    action as unknown as Parameters<typeof realStockReducer>[1]
+  ) as unknown as StockState;
 
 describe('StockReducer', () => {
   const initialState: StockState = {

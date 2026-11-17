@@ -1,3 +1,4 @@
+import React from 'react';
 import type { ChangeEvent } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { toast } from 'react-toastify';
@@ -25,10 +26,11 @@ function xlsx(name: string, type: string): File {
 }
 
 function selectFiles(input: HTMLInputElement, files: File[]): void {
+  // A FileList stand-in: indexed files plus length and item().
   const list = {
+    ...files,
     length: files.length,
     item: (index: number) => files[index] ?? null,
-    ...files,
   };
   Object.defineProperty(input, 'files', { configurable: true, value: list });
   fireEvent.change(input);
@@ -112,7 +114,7 @@ describe.each([
   ['set warehouse', SetWarehouse, setWHByImportFile, inStockByImportFile],
 ] as const)('%s', (_label, Page, upload, otherUpload) => {
   beforeEach(() => {
-    vi.mocked(upload).mockClear().mockResolvedValue({ status: 200 });
+    vi.mocked(upload).mockClear().mockResolvedValue({ status: 200 } as Awaited<ReturnType<typeof upload>>);
     vi.mocked(otherUpload).mockClear();
     vi.mocked(toast.error).mockClear();
     vi.mocked(toast.success).mockClear();

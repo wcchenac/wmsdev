@@ -1,7 +1,7 @@
-import type { Mock } from 'vitest';
 import React, { createRef } from 'react';
 import { act, fireEvent, render, screen, RenderResult } from '@testing-library/react';
 import SearchBoard from '../../../../../components/BO/Stock/OutStockList/SearchBoard';
+import { OutStockInfo } from '../../../../../components/BO/Stock/OutStockList/SearchInfo';
 
 interface MockSearchContainerProps {
   index: number;
@@ -9,35 +9,18 @@ interface MockSearchContainerProps {
   outStockListFiltered?: unknown[];
 }
 
-interface QueryResultItem {
-  id: number;
-  productNo: string;
-  createdBy: string;
-  handled: boolean;
-}
+type BoardProps = React.ComponentProps<typeof SearchBoard>;
+type QueryResult = BoardProps['queryResult'];
+// SearchBoard renders nothing for an undefined queryResult, which one test checks.
+type SearchBoardProps = Omit<BoardProps, 'queryResult'> & { queryResult: QueryResult | undefined };
 
-interface QueryResult {
-  [date: string]: QueryResultItem[];
-}
-
-interface SelectedUserItem {
-  user: string;
-  selected: boolean;
-}
-
-interface SearchBoardProps {
-  queryResult: QueryResult | undefined;
-  selectedUserList: SelectedUserItem[];
-  handleSubmitClick: Mock;
-  handleDeleteClick: Mock;
-  downloadFile: Mock;
-  handleModalShow: Mock;
-  initialize: Mock;
-}
+// The fixtures carry only the fields these tests read; SearchBoard's OutStockInfo has more.
+const queryResultFixture = (value: Record<string, Partial<OutStockInfo>[]>): QueryResult =>
+  value as QueryResult;
 
 // Mock SearchContainer
 vi.mock('../../../../../components/BO/Stock/OutStockList/SearchContainer', () => ({ default: (() => {
-  return function MockSearchContainer(props: MockSearchContainerProps): JSX.Element {
+  return function MockSearchContainer(props: MockSearchContainerProps): React.JSX.Element {
     return (
       <div
         data-testid={`search-container-${props.index}`}
@@ -59,8 +42,8 @@ vi.mock('../../../../../utilities/DeepCopy', () => ({
 }));
 
 describe('SearchBoard', () => {
-  const defaultProps: SearchBoardProps = {
-    queryResult: {
+  const defaultProps: BoardProps = {
+    queryResult: queryResultFixture({
       '2024-01-01': [
         { id: 1, productNo: 'PROD001', createdBy: 'user1', handled: false },
         { id: 2, productNo: 'PROD002', createdBy: 'user1', handled: true }
@@ -68,10 +51,10 @@ describe('SearchBoard', () => {
       '2024-01-02': [
         { id: 3, productNo: 'PROD003', createdBy: 'user2', handled: false }
       ]
-    },
+    }),
     selectedUserList: [
-      { user: 'user1', selected: true },
-      { user: 'user2', selected: true }
+      { user: 'user1', selected: true, index: 0 },
+      { user: 'user2', selected: true, index: 1 }
     ],
     handleSubmitClick: vi.fn(),
     handleDeleteClick: vi.fn(),
@@ -81,7 +64,7 @@ describe('SearchBoard', () => {
   };
 
   const renderSearchBoard = (props: Partial<SearchBoardProps> = {}): RenderResult => {
-    return render(<SearchBoard {...defaultProps} {...props} />);
+    return render(<SearchBoard {...({ ...defaultProps, ...props } as BoardProps)} />);
   };
 
   beforeEach(() => {
@@ -146,8 +129,8 @@ describe('SearchBoard', () => {
       const propsWithFilteredUser: Partial<SearchBoardProps> = {
         ...defaultProps,
         selectedUserList: [
-          { user: 'user1', selected: true },
-          { user: 'user2', selected: false }
+          { user: 'user1', selected: true, index: 0 },
+          { user: 'user2', selected: false, index: 1 }
         ]
       };
       renderSearchBoard(propsWithFilteredUser);
@@ -159,8 +142,8 @@ describe('SearchBoard', () => {
       const propsNoUsers: Partial<SearchBoardProps> = {
         ...defaultProps,
         selectedUserList: [
-          { user: 'user1', selected: false },
-          { user: 'user2', selected: false }
+          { user: 'user1', selected: false, index: 0 },
+          { user: 'user2', selected: false, index: 1 }
         ]
       };
       renderSearchBoard(propsNoUsers);
@@ -173,13 +156,13 @@ describe('SearchBoard', () => {
     test('updates toBeSubmit when queryResult changes', () => {
       const { rerender } = renderSearchBoard();
 
-      const newProps: SearchBoardProps = {
+      const newProps: BoardProps = {
         ...defaultProps,
-        queryResult: {
+        queryResult: queryResultFixture({
           '2024-01-03': [
             { id: 4, productNo: 'PROD004', createdBy: 'user1', handled: false }
           ]
-        }
+        })
       };
 
       rerender(<SearchBoard {...newProps} />);
@@ -319,8 +302,8 @@ describe('SearchBoard', () => {
           ref={ref}
           {...defaultProps}
           selectedUserList={[
-            { user: 'user1', selected: true },
-            { user: 'user2', selected: false },
+            { user: 'user1', selected: true, index: 0 },
+            { user: 'user2', selected: false, index: 1 },
           ]}
         />
       );
@@ -374,8 +357,8 @@ describe('SearchBoard', () => {
           ref={ref}
           {...defaultProps}
           selectedUserList={[
-            { user: 'user1', selected: true },
-            { user: 'user2', selected: false },
+            { user: 'user1', selected: true, index: 0 },
+            { user: 'user2', selected: false, index: 1 },
           ]}
         />
       );
