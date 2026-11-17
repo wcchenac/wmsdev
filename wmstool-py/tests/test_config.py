@@ -12,6 +12,18 @@ def _base(monkeypatch) -> None:  # noqa: ANN001
     get_settings.cache_clear()
 
 
+@pytest.fixture(autouse=True)
+def usable_settings(monkeypatch, tmp_path):
+    """Importing app.main runs create_app() at module level. Give every test usable
+    settings first, so each one also passes when run on its own; tests then set the
+    directories (or unset them) they are about."""
+    _base(monkeypatch)
+    monkeypatch.setenv("EXCEL_DIR", str(tmp_path))
+    monkeypatch.setenv("PICTURE_DIR", str(tmp_path / "pictures"))
+    yield
+    get_settings.cache_clear()
+
+
 def test_unset_directories_fail_with_the_env_names(monkeypatch):
     _base(monkeypatch)
     monkeypatch.delenv("EXCEL_DIR", raising=False)
@@ -162,3 +174,177 @@ def test_the_directory_check_leaves_no_file_behind(monkeypatch, tmp_path):
     _dirs(monkeypatch, tmp_path, tmp_path)
     create_app()
     assert [p for p in tmp_path.rglob("*") if p.is_file()] == []
+
+
+@pytest.mark.skipif(hasattr(__import__("os"), "geteuid") and __import__("os").geteuid() == 0,
+                    reason="root can write anywhere")
+def test_folders_the_service_never_writes_are_not_checked(monkeypatch, tmp_path):
+    """A mount point's lost+found (root, 0700) or an archive someone keeps read-only
+    next to the report folders must not stop the start: only EXCEL_DIR itself and the
+    five report folders are written."""
+    from app.main import create_app
+
+    lost = tmp_path / "lost+found"
+    archive = tmp_path / "archive" / "2019"
+    lost.mkdir()
+    archive.mkdir(parents=True)
+    lost.chmod(0o000)
+    archive.chmod(0o555)
+    try:
+        _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+        create_app()
+    finally:
+        lost.chmod(0o755)
+        archive.chmod(0o755)
+
+
+def test_the_write_probe_does_not_rely_on_temporary_file(monkeypatch, tmp_path):
+    """Without O_TMPFILE, TemporaryFile deletes the file while it is still open; a
+    share that refuses that would make a writable folder look read-only and leave
+    the file behind. The probe creates, closes and deletes the file. (Only CategoryDetail
+    deletes files when writing reports; the delete is there to remove the probe.)
+
+    Limit: this only bans TemporaryFile. It does not simulate a share that refuses to
+    delete an open file, so another API that deletes while the file is open (for
+    example NamedTemporaryFile(delete=True)) would pass it too."""
+    import errno
+    import tempfile
+
+    from app.main import create_app
+
+    def no_temporary_file(*args, **kwargs):  # noqa: ANN002, ANN003, ANN202
+        raise OSError(errno.EOPNOTSUPP, "unlink of an open file refused")
+
+    (tmp_path / "STKALLT" / "2026" / "11").mkdir(parents=True)
+    monkeypatch.setattr(tempfile, "TemporaryFile", no_temporary_file)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    create_app()
+    assert [p for p in tmp_path.rglob("*") if p.is_file()] == []
+
+
+@pytest.mark.skipif(hasattr(__import__("os"), "geteuid") and __import__("os").geteuid() == 0,
+                    reason="root can write anywhere")
+def test_create_app_fails_when_a_report_subfolder_cannot_be_listed(monkeypatch, tmp_path):
+    """A folder copied with its old owner and mode 0700 can be neither listed nor
+    written by the service. Walking cannot enter it; it must still be probed."""
+    from app.main import create_app
+
+    year = tmp_path / "STKALLT" / "2026"
+    (year / "11").mkdir(parents=True)
+    year.chmod(0o000)
+    try:
+        _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+        with pytest.raises(RuntimeError, match=r"EXCEL_DIR .*STKALLT/2026 is not writable"):
+            create_app()
+    finally:
+        year.chmod(0o755)
+
+
+@pytest.mark.skipif(hasattr(__import__("os"), "geteuid") and __import__("os").geteuid() == 0,
+                    reason="root can write anywhere")
+def test_create_app_fails_when_a_report_subfolder_links_to_a_read_only_folder(monkeypatch, tmp_path):
+    """The walk does not follow links, but a linked month folder is still written to."""
+    from app.main import create_app
+
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    target.chmod(0o555)
+    (tmp_path / "STKALLT").mkdir()
+    (tmp_path / "STKALLT" / "2026").symlink_to(target, target_is_directory=True)
+    try:
+        _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+        with pytest.raises(RuntimeError, match=r"EXCEL_DIR .*STKALLT/2026 is not writable"):
+            create_app()
+    finally:
+        target.chmod(0o755)
+
+
+def test_a_probe_file_that_cannot_be_deleted_is_named(monkeypatch, tmp_path):
+    """Create works, delete is refused: say so, and name the file left behind, instead
+    of calling the folder "not writable"."""
+    import os
+
+    from app.main import create_app
+
+    real_unlink = os.unlink
+
+    def refuse_probe(path, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+        if os.path.basename(path).startswith(".wms-write-check-"):
+            raise PermissionError(13, "Permission denied", path)
+        return real_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, "unlink", refuse_probe)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    with pytest.raises(RuntimeError, match=r"could not delete \S*\.wms-write-check-\w+ \(Permission denied\)\. Allow deleting there, then delete it by hand"):
+        create_app()
+
+
+def test_startup_does_not_need_getuid_when_the_folders_are_fine(monkeypatch, tmp_path):
+    """os.getuid does not exist on Windows. A developer running the service there
+    outside Docker must not crash at startup; the uid only goes into error messages."""
+    import os
+
+    from app.main import create_app
+
+    (tmp_path / "STKALLT" / "2026" / "11").mkdir(parents=True)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    monkeypatch.delattr(os, "getuid")
+    create_app()
+
+
+def _failing_close(monkeypatch, unlink_too: bool = False) -> None:  # noqa: ANN001
+    """Make closing a probe file fail with EIO (the fd is still released, as on Linux),
+    and optionally deleting it too. Other files are left alone."""
+    import errno
+    import os
+    import tempfile
+
+    probe_fds: set[int] = set()
+    real_mkstemp, real_close, real_unlink = tempfile.mkstemp, os.close, os.unlink
+
+    def recording_mkstemp(*args, **kwargs):  # noqa: ANN002, ANN003, ANN202
+        fd, name = real_mkstemp(*args, **kwargs)
+        probe_fds.add(fd)
+        return fd, name
+
+    def failing_close(fd: int) -> None:
+        real_close(fd)
+        if fd in probe_fds:
+            probe_fds.discard(fd)  # the number can be reused once it is closed
+            raise OSError(errno.EIO, "Input/output error")
+
+    def refusing_unlink(path, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+        if os.path.basename(path).startswith(".wms-write-check-"):
+            raise PermissionError(errno.EACCES, "Permission denied", path)
+        return real_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(tempfile, "mkstemp", recording_mkstemp)
+    monkeypatch.setattr(os, "close", failing_close)
+    if unlink_too:
+        monkeypatch.setattr(os, "unlink", refusing_unlink)
+
+
+def test_a_probe_file_that_cannot_be_closed_is_still_deleted(monkeypatch, tmp_path):
+    """A share can report an I/O error on close. That is not a permission problem: the
+    message says the close failed, the probe is still deleted, and nobody is asked to
+    delete a file that is not there."""
+    from app.main import create_app
+
+    _failing_close(monkeypatch)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    with pytest.raises(RuntimeError, match=r"closing a test file failed \(Input/output error\)") as exc:
+        create_app()
+    assert "by hand" not in str(exc.value)
+    assert "Allow deleting" not in str(exc.value)
+    assert [p.name for p in tmp_path.iterdir() if p.name.startswith(".wms-write-check-")] == []
+
+
+def test_a_probe_file_that_can_be_neither_closed_nor_deleted_is_named(monkeypatch, tmp_path):
+    from app.main import create_app
+
+    _failing_close(monkeypatch, unlink_too=True)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    with pytest.raises(RuntimeError, match=(
+            r"closing \S*\.wms-write-check-\w+ failed \(Input/output error\) and uid \S+ could not "
+            r"delete it \(Permission denied\)\. Check the share, then delete it by hand")):
+        create_app()

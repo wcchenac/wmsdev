@@ -2,11 +2,12 @@
 
 from fastapi import FastAPI
 
-from app.config import check_directories, get_settings
+from app.config import get_settings
 from app.errors import CatchAllMiddleware, install_error_handlers
 from app.files.router import router as file_router
 from app.security.auth import AuthMiddleware
 from app.security.cors import JavaCorsMiddleware
+from app.startup import check_directories
 from app.stock.router import router as stock_router
 from app.users.router import router as user_router
 

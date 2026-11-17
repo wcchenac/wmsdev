@@ -267,3 +267,11 @@ def test_recreate_all_leaves_every_report_when_one_template_is_missing(excel_dir
         workbook.recreate_all_from_templates(reports)
     assert reports[0][2].read_bytes() == b"today's allocation report"
     assert not reports[1][2].exists()
+
+
+def test_category_list_skips_a_leftover_write_probe(excel_dir):
+    """A startup probe that could not be deleted must not turn the list into a 500."""
+    from app.files.reports import list_categories
+
+    (excel_dir / "CategoryDetail" / ".wms-write-check-abc123").write_bytes(b"")
+    assert [c["label"] for c in list_categories()] == ["棉布"]

@@ -21,6 +21,9 @@ READABLE_EXTENSIONS = (EXTENSION, LEGACY_EXTENSION)
 MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 MIMES = {EXTENSION: MIME, LEGACY_EXTENSION: "application/vnd.ms-excel;charset=UTF-8"}
 NOT_FOUND = "File Not Found"
+# Name prefix of the file the startup check creates and deletes in each report folder.
+# If deleting it failed, it can be left behind; listings skip it.
+WRITE_PROBE_PREFIX = ".wms-write-check-"
 
 
 @dataclass(frozen=True)
@@ -114,6 +117,8 @@ def list_categories() -> list[dict[str, str]]:
     folder = excel_root() / REPORTS["categoryDetail"].folder
     result, seen = [], set()
     for name in os.listdir(folder):  # directory order, unsorted, like File.list()
+        if name.startswith(WRITE_PROBE_PREFIX):
+            continue  # left by a startup check that could not delete it, not a report
         category = name[name.find("-") + 1 : name.index(LEGACY_EXTENSION)]
         if category not in seen:
             seen.add(category)

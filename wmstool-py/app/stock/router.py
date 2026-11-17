@@ -8,6 +8,7 @@ which also rolls the request's transaction back (get_session).
 
 import datetime as dt
 import logging
+import math
 import re
 from typing import Annotated
 
@@ -503,13 +504,19 @@ def _jackson_str(value: object) -> object:
     "1.5", "true"). Arrays and objects stay a 400.
 
     Known difference, accepted (2026-11-17): Jackson keeps the number as written in the
-    request; pydantic only sees the parsed value, so a decimal is stored in Python's
+    request; pydantic only sees the parsed value, so a number is stored in Python's
     spelling of it: 1e3 -> "1000.0" (Jackson "1e3"), 1.50 -> "1.5" ("1.50"),
-    0.00001 -> "1e-05" ("0.00001"), 1e21 -> "1e+21", -0 -> "0", and long decimals
-    are shortened. Integers and booleans match. The frontend sends these fields as
-    strings, so only a hand-written API call meets this."""
+    0.00001 -> "1e-05" ("0.00001"), 1e21 -> "1e+21" ("1e21"), -0 -> "0" ("-0"), and
+    long decimals are shortened. Other integers and booleans match.
+
+    Deliberate difference (2026-11-17): a number too large for a double (1e400) is a
+    400. Python reads it as infinity, so storing it would keep "inf", not the number
+    sent; Jackson stores the text "1e400". The frontend sends these fields as strings,
+    so only a hand-written API call meets any of this."""
     if isinstance(value, bool):
         return "true" if value else "false"
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError("number out of range for a double")
     if isinstance(value, (int, float)):
         return str(value)
     return value
