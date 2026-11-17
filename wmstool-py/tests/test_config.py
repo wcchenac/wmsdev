@@ -12,6 +12,18 @@ def _base(monkeypatch) -> None:  # noqa: ANN001
     get_settings.cache_clear()
 
 
+@pytest.fixture(autouse=True)
+def usable_settings(monkeypatch, tmp_path):
+    """Importing app.main runs create_app() at module level. Give every test usable
+    settings first, so each one also passes when run on its own; tests then set the
+    directories (or unset them) they are about."""
+    _base(monkeypatch)
+    monkeypatch.setenv("EXCEL_DIR", str(tmp_path))
+    monkeypatch.setenv("PICTURE_DIR", str(tmp_path / "pictures"))
+    yield
+    get_settings.cache_clear()
+
+
 def test_unset_directories_fail_with_the_env_names(monkeypatch):
     _base(monkeypatch)
     monkeypatch.delenv("EXCEL_DIR", raising=False)
@@ -333,6 +345,6 @@ def test_a_probe_file_that_can_be_neither_closed_nor_deleted_is_named(monkeypatc
     _failing_close(monkeypatch, unlink_too=True)
     _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
     with pytest.raises(RuntimeError, match=(
-            r"closing \S*\.wms-write-check-\w+ failed \(Input/output error\) and it could not be "
-            r"deleted \(Permission denied\)\. Check the share, then delete it by hand")):
+            r"closing \S*\.wms-write-check-\w+ failed \(Input/output error\) and uid \S+ could not "
+            r"delete it \(Permission denied\)\. Check the share, then delete it by hand")):
         create_app()

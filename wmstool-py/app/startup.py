@@ -44,8 +44,8 @@ def _probe(directory: Path) -> None:
             os.unlink(name)
         except OSError as unlink_error:
             raise RuntimeError(
-                f"EXCEL_DIR {directory}: closing {name} failed ({close_error.strerror}) and it could not "
-                f"be deleted ({unlink_error.strerror}). Check the share, then delete it by hand.",
+                f"EXCEL_DIR {directory}: closing {name} failed ({close_error.strerror}) and uid {_uid()} "
+                f"could not delete it ({unlink_error.strerror}). Check the share, then delete it by hand.",
             ) from close_error
         raise RuntimeError(
             f"EXCEL_DIR {directory}: closing a test file failed ({close_error.strerror}); the file was "
