@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
-import { thunk } from 'redux-thunk';
+import { createMockStore, TestMockStore } from '../../../../helpers/mockStore';
 import StockHistoryBoard from '../../../../../components/BO/Stock/StockHistory/StockHistoryBoard';
 
 interface StockInfoState {
@@ -12,7 +11,7 @@ interface StockInfoState {
 }
 
 interface RenderWithReduxResult extends RenderResult {
-  store: MockStoreEnhanced<unknown>;
+  store: TestMockStore;
 }
 
 interface StockHistoryRequest {
@@ -20,7 +19,7 @@ interface StockHistoryRequest {
 }
 
 
-const mockStore = configureMockStore([thunk]);
+const mockStore = createMockStore;
 
 // Mock actions
 const mockGetProductHistory = vi.fn();

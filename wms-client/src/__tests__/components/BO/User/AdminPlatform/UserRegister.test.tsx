@@ -2,8 +2,7 @@ import React from 'react';
 import { act, render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
-import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
-import { thunk } from 'redux-thunk';
+import { createMockStore, TestMockStore } from '../../../../helpers/mockStore';
 import UserRegister from '../../../../../components/BO/User/AdminPlatform/UserRegister';
 import { toast } from 'react-toastify';
 import { REQUEST_FAILED_MESSAGE } from '../../../../../utilities/notifyRequestFailed';
@@ -25,7 +24,7 @@ interface StoreState {
 }
 
 interface RenderUserRegisterResult extends RenderResult {
-  store: MockStoreEnhanced<unknown>;
+  store: TestMockStore;
 }
 
 // Mock @achmadk/react-loading-overlay
@@ -60,7 +59,7 @@ vi.mock('../../../../../actions/UserActions', () => ({
   registerUser: (registration: unknown) => () => mockRegisterUser(registration)
 }));
 
-const mockStore = configureMockStore([thunk]);
+const mockStore = createMockStore;
 
 const renderUserRegister = (storeState: Partial<StoreState> = {}): RenderUserRegisterResult => {
   const defaultState: StoreState = {

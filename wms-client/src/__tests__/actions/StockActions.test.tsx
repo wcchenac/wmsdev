@@ -1,22 +1,18 @@
 import type { Mocked } from 'vitest';
-import configureMockStore from 'redux-mock-store';
+import { createMockStore } from '../helpers/mockStore';
 import { applyMiddleware, createStore } from 'redux';
-import { thunk, ThunkDispatch } from 'redux-thunk';
+import { thunk } from 'redux-thunk';
 import * as actions from '../../actions/StockActions';
 import * as types from '../../types';
 import rootReducer from '../../reducers';
 import API from '../../utilities/API';
-import { AnyAction } from 'redux';
 
 // Mock dependencies
 vi.mock('../../utilities/API');
 
 const mockedAPI = API as Mocked<typeof API>;
 
-type RootState = Record<string, unknown>;
-type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
-
-const mockStore = configureMockStore<RootState, AppDispatch>([thunk]);
+const mockStore = createMockStore;
 
 describe('StockActions', () => {
   let store: ReturnType<typeof mockStore>;

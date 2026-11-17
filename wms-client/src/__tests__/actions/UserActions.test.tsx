@@ -1,11 +1,9 @@
 import type { Mock, Mocked, MockedFunction } from 'vitest';
-import configureMockStore from 'redux-mock-store';
-import { thunk, ThunkDispatch } from 'redux-thunk';
+import { createMockStore } from '../helpers/mockStore';
 import * as actions from '../../actions/UserActions';
 import * as types from '../../types';
 import API from '../../utilities/API';
 import { jwtDecode } from 'jwt-decode';
-import { AnyAction } from 'redux';
 
 // Mock dependencies
 vi.mock('../../utilities/API');
@@ -17,10 +15,7 @@ vi.mock('../../utilities/SetJWTToken', () => ({ default: vi.fn() }));
 const mockedAPI = API as Mocked<typeof API>;
 const mockedJwtDecode = jwtDecode as MockedFunction<typeof jwtDecode>;
 
-type RootState = Record<string, unknown>;
-type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
-
-const mockStore = configureMockStore<RootState, AppDispatch>([thunk]);
+const mockStore = createMockStore;
 
 interface LocalStorageMock {
   getItem: Mock;

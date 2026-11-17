@@ -1,11 +1,9 @@
 import type { Mock, Mocked } from 'vitest';
-import configureMockStore from 'redux-mock-store';
-import { thunk, ThunkDispatch } from 'redux-thunk';
+import { createMockStore } from '../helpers/mockStore';
 import * as actions from '../../actions/FileActions';
 import * as types from '../../types';
 import API from '../../utilities/API';
 import { notifyRequestFailed } from '../../utilities/notifyRequestFailed';
-import { AnyAction } from 'redux';
 
 // Mock dependencies
 vi.mock('../../utilities/API');
@@ -15,10 +13,7 @@ vi.mock('../../utilities/notifyRequestFailed', () => ({
 
 const mockedAPI = API as Mocked<typeof API>;
 
-type RootState = Record<string, unknown>;
-type AppDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
-
-const mockStore = configureMockStore<RootState, AppDispatch>([thunk]);
+const mockStore = createMockStore;
 
 interface MockLink {
   href: string;

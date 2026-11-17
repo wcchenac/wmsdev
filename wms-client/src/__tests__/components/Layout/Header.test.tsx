@@ -2,8 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
-import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
-import { thunk } from 'redux-thunk';
+import { createMockStore, TestMockStore } from '../../helpers/mockStore';
 import Header from '../../../components/Layout/Header';
 
 interface MockHeaderStockFunctionsProps {
@@ -50,10 +49,10 @@ vi.mock('../../../actions/UserActions', () => ({
   logout: () => mockLogout
 }));
 
-const mockStore = configureMockStore([thunk]);
+const mockStore = createMockStore;
 
 // Helper to render with providers
-const renderWithProviders = (store: MockStoreEnhanced<unknown>): RenderResult => {
+const renderWithProviders = (store: TestMockStore): RenderResult => {
   return render(
     <Provider store={store}>
       <MemoryRouter>

@@ -1,8 +1,7 @@
 import React from 'react';
 import { act, render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
-import { thunk } from 'redux-thunk';
+import { createMockStore, TestMockStore } from '../../../../helpers/mockStore';
 import QueryBoard from '../../../../../components/BO/Stock/QueryStock/QueryBoard';
 
 interface MockLoadingOverlayProps {
@@ -55,7 +54,7 @@ interface StoreState {
 }
 
 interface RenderQueryBoardResult extends RenderResult {
-  store: MockStoreEnhanced<unknown>;
+  store: TestMockStore;
 }
 
 // Mock child components
@@ -158,7 +157,7 @@ vi.mock('../../../../../actions/StockActions', () => ({
   getStockInfoesBasic: (productNo: string) => () => mockGetStockInfoesBasic(productNo)
 }));
 
-const mockStore = configureMockStore([thunk]);
+const mockStore = createMockStore;
 
 const renderQueryBoard = (storeState: Partial<StoreState> = {}): RenderQueryBoardResult => {
   const defaultState: StoreState = {

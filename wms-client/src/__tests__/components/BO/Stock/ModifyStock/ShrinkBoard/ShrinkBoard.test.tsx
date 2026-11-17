@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
-import { thunk } from 'redux-thunk';
+import { createMockStore, TestMockStore } from '../../../../../helpers/mockStore';
 import ShrinkBoard from '../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkBoard';
 
 interface StoreState {
@@ -12,7 +11,7 @@ interface StoreState {
 }
 
 interface RenderWithReduxResult extends RenderResult {
-  store: MockStoreEnhanced<unknown>;
+  store: TestMockStore;
 }
 
 interface MockShrinkListProps {
@@ -26,7 +25,7 @@ interface MockModifyRequestBoardProps {
   handleModifyRequestSubmit: (data: Record<string, unknown>) => void;
 }
 
-const mockStore = configureMockStore([thunk]);
+const mockStore = createMockStore;
 
 // Mock actions
 const mockGetShrinkList = vi.fn();

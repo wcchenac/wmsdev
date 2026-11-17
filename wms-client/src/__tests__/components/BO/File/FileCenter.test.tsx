@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import configureMockStore, { MockStoreEnhanced } from 'redux-mock-store';
-import { thunk } from 'redux-thunk';
+import { createMockStore, TestMockStore } from '../../../helpers/mockStore';
 import FileCenter from '../../../../components/BO/File/FileCenter';
 
 interface MockLoadingOverlayProps {
@@ -78,10 +77,10 @@ vi.mock('../../../../actions/FileActions', () => ({
   downloadFile: vi.fn()
 }));
 
-const mockStore = configureMockStore([thunk]);
+const mockStore = createMockStore;
 
 interface RenderFileCenterResult extends RenderResult {
-  store: MockStoreEnhanced<unknown>;
+  store: TestMockStore;
 }
 
 const renderFileCenter = (storeState: Partial<StoreState> = {}): RenderFileCenterResult => {

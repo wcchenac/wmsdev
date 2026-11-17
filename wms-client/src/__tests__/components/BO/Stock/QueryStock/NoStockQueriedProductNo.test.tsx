@@ -1,8 +1,7 @@
 import React, { ChangeEvent, FormEvent } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
-import { thunk } from 'redux-thunk';
+import { createMockStore } from '../../../../helpers/mockStore';
 import QueryBoard from '../../../../../components/BO/Stock/QueryStock/QueryBoard';
 import QueryBoardDetail from '../../../../../components/BO/Stock/QueryStock/QueryBoard_Detail';
 
@@ -42,7 +41,7 @@ vi.mock('../../../../../actions/StockActions', () => ({
   getStockInfoes: (productNo: string) => () => mockQuery(productNo),
 }));
 
-const mockStore = configureMockStore([thunk]);
+const mockStore = createMockStore;
 
 // The store holds no product information, so nothing overwrites the queried value.
 const renderBoard = (Board: React.ComponentType) =>
