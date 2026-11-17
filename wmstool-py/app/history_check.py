@@ -21,7 +21,10 @@ more candidates, or shared ones, it says so and leaves the decision to a person.
 A piece is a candidate only when its SKI createdAt falls within two seconds after
 the one SKO whose time lines up with the readable children's SKI times (Java writes
 the SKO, then the pieces, in the same request). If that SKO cannot be picked, the
-tool warns and prints no UPDATE. The UPDATE needs migration 0002 (BLOB) applied.
+tool warns and prints no UPDATE. Pieces that pass every other test but whose SKI
+falls outside that window are listed separately with their time from the SKO (a slow
+shrink can take longer); they are never put into the UPDATE. The UPDATE needs
+migration 0002 (BLOB) applied.
 Nothing is written. Exit code 1 when any row is reported.
 """
 
@@ -29,7 +32,7 @@ import argparse
 import datetime as dt
 import os
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from sqlalchemy import bindparam, create_engine, text
 from sqlalchemy.engine import Connection
@@ -75,6 +78,8 @@ class Problem:
     candidates: list[int]
     shared_with: list[int]  # other reported history ids proposing one of these candidates
     note: str | None = None  # set when the SKO/SKI time check cannot confirm a shrink
+    # Pieces that match except for the time: (id, SKI time minus the SKO; None if unknown)
+    outside: list[tuple[int, dt.timedelta | None]] = field(default_factory=list)
 
 
 def _shrink_sko(conn: Connection, roll_id: int, readable: list[int]) -> dt.datetime | None:
@@ -99,38 +104,54 @@ def _shrink_sko(conn: Connection, roll_id: int, readable: list[int]) -> dt.datet
     return next(iter(matched))
 
 
+Outside = list[tuple[int, dt.timedelta | None]]
+
+
 def _candidates(conn: Connection, current_identifier_id: int | None, root_identifier_id: int | None,
-                children: Children, claimed: set[int]) -> tuple[list[int], str | None]:
+                children: Children, claimed: set[int]) -> tuple[list[int], Outside, str | None]:
     """Every piece that can be one of the roll's missing children, without a limit.
 
     A piece of the same tree (its own history row has the roll's rootIdentifierId; Java
     writes it before updating the parent's list), cut in a shrink (SKI) of the same
     product and lot (NULL-safe), after the last readable child, not already listed as a
     child by a readable history row, and whose SKI createdAt is within two seconds after
-    the roll's SKO for this shrink. The second item is a warning when that SKO cannot
-    be chosen; the candidate list is then empty and no UPDATE should be printed.
+    the roll's SKO for this shrink. The second item lists the pieces that pass every
+    test except the time window, with their SKI time minus the SKO. The third is a
+    warning when that SKO cannot be chosen; both lists are then empty and no UPDATE
+    should be printed.
     """
     if current_identifier_id is None or root_identifier_id is None or children.declared is None or not children.ids:
-        return [], None
+        return [], [], None
     if children.declared - len(children.ids) <= 0:
-        return [], None
+        return [], [], None
     roll = conn.execute(text("SELECT productNo, lotNo FROM stockidentifier WHERE id = :id"),
                         {"id": current_identifier_id}).first()
     if roll is None:
-        return [], None
+        return [], [], None
     sko = _shrink_sko(conn, current_identifier_id, children.ids)
     if sko is None:
-        return [], TIME_NOTE
+        return [], [], TIME_NOTE
     rows = conn.execute(text(
-        "SELECT DISTINCT h.currentIdentifierId AS id FROM history h "
+        "SELECT DISTINCT h.currentIdentifierId AS id, t.createdAt AS at FROM history h "
         "JOIN transactionrecord t ON t.stockIdentifierId = h.currentIdentifierId "
         "WHERE t.transactionType = 'SKI' AND t.productNo = :product AND t.lotNo <=> :lot "
         "AND h.rootIdentifierId = :root AND h.currentIdentifierId > :after "
-        "AND t.createdAt >= :sko AND t.createdAt <= :until "
-        "ORDER BY h.currentIdentifierId"),
+        "ORDER BY h.currentIdentifierId, t.createdAt"),
         {"product": roll.productNo, "lot": roll.lotNo, "root": root_identifier_id,
-         "after": max(children.ids), "sko": sko, "until": sko + SKI_AFTER_SKO})
-    return [row.id for row in rows if row.id not in claimed and row.id != current_identifier_id], None
+         "after": max(children.ids)})
+    times: dict[int, list[dt.datetime | None]] = {}
+    for row in rows:
+        if row.id not in claimed and row.id != current_identifier_id:
+            times.setdefault(row.id, []).append(row.at)
+    candidates: list[int] = []
+    outside: Outside = []
+    for piece, ats in times.items():
+        if any(at is not None and sko <= at <= sko + SKI_AFTER_SKO for at in ats):
+            candidates.append(piece)
+        else:
+            known = [at - sko for at in ats if at is not None]
+            outside.append((piece, min(known, key=abs) if known else None))
+    return candidates, outside, None
 
 
 def scan(conn: Connection) -> list[Problem]:
@@ -143,17 +164,25 @@ def scan(conn: Connection) -> list[Problem]:
     for row, children in decoded:
         if children.complete:
             continue
-        candidates, note = _candidates(conn, row.currentIdentifierId, row.rootIdentifierId, children, claimed)
-        found.append((row, children, candidates, note))
+        candidates, outside, note = _candidates(
+            conn, row.currentIdentifierId, row.rootIdentifierId, children, claimed)
+        found.append((row, children, candidates, outside, note))
     proposers: dict[int, set[int]] = {}
-    for row, _, candidates, _ in found:
+    for row, _, candidates, _, _ in found:
         for candidate in candidates:
             proposers.setdefault(candidate, set()).add(row.id)
     return [
         Problem(row.id, row.currentIdentifierId, len(row.childrenIdentifierId), children, candidates,
-                sorted({other for c in candidates for other in proposers[c]} - {row.id}), note)
-        for row, children, candidates, note in found
+                sorted({other for c in candidates for other in proposers[c]} - {row.id}), note, outside)
+        for row, children, candidates, outside, note in found
     ]
+
+
+def _offset(delta: dt.timedelta | None) -> str:
+    if delta is None:
+        return "SKI time unknown"
+    seconds = int(delta.total_seconds())
+    return f"SKI {seconds:+d}s"
 
 
 def _report(p: Problem) -> list[str]:
@@ -167,6 +196,9 @@ def _report(p: Problem) -> list[str]:
     missing = c.declared - len(c.ids)
     found = ", ".join(map(str, p.candidates)) or "(none found)"
     lines.append(f"  candidates for the {missing} missing: {found}")
+    if p.outside:
+        listed = ", ".join(f"{piece} ({_offset(delta)})" for piece, delta in p.outside)
+        lines.append(f"  outside the {SKI_AFTER_SKO.seconds}-second window after the SKO (not candidates): {listed}")
     if p.note:
         lines.append(f"  {p.note}")
         return lines

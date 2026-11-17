@@ -284,3 +284,37 @@ def test_candidates_shared_by_two_cut_rows_get_no_update(database_url, capsys):
     assert "candidates for the 1 missing: 23" in row2
     assert "candidates shared with history 1" in row2
     assert "UPDATE history" not in out
+
+
+def test_a_slow_shrink_lists_the_piece_outside_the_window(database_url, capsys):
+    """The 11th piece's SKI came 5 seconds after the SKO (a slow database). It is not a
+    candidate, but the report must show it and how far it is from the SKO, instead of a
+    bare "(none found)"."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn)
+        conn.execute(text("UPDATE transactionrecord SET createdAt = :at WHERE stockIdentifierId = 12"),
+                     {"at": SHRINK_AT + dt.timedelta(seconds=5)})
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: (none found)" in out
+    assert "outside the 2-second window after the SKO (not candidates): 12 (SKI +5s)" in out
+    assert "UPDATE history" not in out
+
+
+def test_pieces_outside_the_window_do_not_block_the_update(database_url, capsys):
+    """A later shrink's pieces (minutes after, and one before the SKO) are listed with
+    their time difference, and the confirmed candidate still gets its UPDATE."""
+    engine = create_engine(database_url)
+    with engine.begin() as conn:
+        _shrunk_roll(conn)
+        _piece(conn, 30, root=1, at=SHRINK_AT + dt.timedelta(minutes=5))
+        _piece(conn, 31, root=1, at=SHRINK_AT - dt.timedelta(seconds=1))
+    engine.dispose()
+    assert main([database_url]) == 1
+    out = capsys.readouterr().out
+    assert "candidates for the 1 missing: 12" in out
+    assert "outside the 2-second window after the SKO (not candidates): 30 (SKI +300s), 31 (SKI -1s)" in out
+    repaired = serialize_long_array(list(range(2, 13))).hex()
+    assert f"UPDATE history SET childrenIdentifierId = 0x{repaired} WHERE id = 1;" in out
