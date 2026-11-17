@@ -162,3 +162,44 @@ def test_the_directory_check_leaves_no_file_behind(monkeypatch, tmp_path):
     _dirs(monkeypatch, tmp_path, tmp_path)
     create_app()
     assert [p for p in tmp_path.rglob("*") if p.is_file()] == []
+
+
+@pytest.mark.skipif(hasattr(__import__("os"), "geteuid") and __import__("os").geteuid() == 0,
+                    reason="root can write anywhere")
+def test_folders_the_service_never_writes_are_not_checked(monkeypatch, tmp_path):
+    """A mount point's lost+found (root, 0700) or an archive someone keeps read-only
+    next to the report folders must not stop the start: only EXCEL_DIR itself and the
+    five report folders are written."""
+    from app.main import create_app
+
+    lost = tmp_path / "lost+found"
+    archive = tmp_path / "archive" / "2019"
+    lost.mkdir()
+    archive.mkdir(parents=True)
+    lost.chmod(0o000)
+    archive.chmod(0o555)
+    try:
+        _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+        create_app()
+    finally:
+        lost.chmod(0o755)
+        archive.chmod(0o755)
+
+
+def test_the_write_probe_does_not_rely_on_temporary_file(monkeypatch, tmp_path):
+    """Without O_TMPFILE, TemporaryFile deletes the file while it is still open; a
+    share that refuses that would make a writable folder look read-only and leave
+    the file behind. The probe creates, closes and deletes, as a report write does."""
+    import errno
+    import tempfile
+
+    from app.main import create_app
+
+    def no_temporary_file(*args, **kwargs):  # noqa: ANN002, ANN003, ANN202
+        raise OSError(errno.EOPNOTSUPP, "unlink of an open file refused")
+
+    (tmp_path / "STKALLT" / "2026" / "11").mkdir(parents=True)
+    monkeypatch.setattr(tempfile, "TemporaryFile", no_temporary_file)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    create_app()
+    assert [p for p in tmp_path.rglob("*") if p.is_file()] == []

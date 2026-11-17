@@ -161,3 +161,14 @@ def test_an_unknown_id_is_inserted_with_a_new_identity():
     assert row.updatedBy == "某人"
     assert row.createdAt is not None
     assert row.updatedAt is None
+
+
+@pytest.mark.parametrize("raw", ["1e400", "-1e400"])
+def test_a_number_too_large_for_a_double_is_rejected_in_a_string_field(raw):
+    """Python reads 1e400 as inf and would store "inf". Jackson keeps "1e400" as text;
+    the rewrite answers 400 instead of storing a value that is no longer the number
+    sent (decided 2026-11-17)."""
+    import json
+
+    with pytest.raises(ValidationError):
+        OutStockBody.model_validate(json.loads('{"reason": ' + raw + "}"))
