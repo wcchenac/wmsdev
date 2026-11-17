@@ -59,7 +59,7 @@ interface RenderQueryBoardResult extends RenderResult {
 
 // Mock child components
 vi.mock('../../../../../components/BO/Stock/QueryStock/Common/StockInfoContainer', () => ({ default: (() => {
-  return function MockStockInfoContainer(props: MockStockInfoContainerProps): JSX.Element {
+  return function MockStockInfoContainer(props: MockStockInfoContainerProps): React.JSX.Element {
     return (
       <div data-testid="stock-info-container"
            data-type-validation={props.typeValidation}
@@ -71,7 +71,7 @@ vi.mock('../../../../../components/BO/Stock/QueryStock/Common/StockInfoContainer
 })() }));
 
 vi.mock('../../../../../components/BO/Stock/Utilities/QueryProductInformation', () => ({ default: (() => {
-  return function MockQueryProductInformation(props: MockQueryProductInformationProps): JSX.Element {
+  return function MockQueryProductInformation(props: MockQueryProductInformationProps): React.JSX.Element {
     return (
       <form onSubmit={props.onSubmit} data-testid="query-form">
         <input
@@ -87,7 +87,7 @@ vi.mock('../../../../../components/BO/Stock/Utilities/QueryProductInformation', 
 })() }));
 
 vi.mock('../../../../../components/BO/Stock/Utilities/ShowProductInformation', () => ({ default: (() => {
-  return function MockShowProductInformation(props: MockShowProductInformationProps): JSX.Element {
+  return function MockShowProductInformation(props: MockShowProductInformationProps): React.JSX.Element {
     return (
       <div data-testid="show-product-info"
            data-is-basic={props.isBasic}
@@ -100,19 +100,19 @@ vi.mock('../../../../../components/BO/Stock/Utilities/ShowProductInformation', (
 })() }));
 
 vi.mock('../../../../../components/BO/Stock/Utilities/QueryResponseWithNoStock', () => ({ default: (() => {
-  return function MockQueryResponseWithNoStock(): JSX.Element {
+  return function MockQueryResponseWithNoStock(): React.JSX.Element {
     return <div data-testid="no-stock-response">No Stock Found</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/Stock/Utilities/ShowProductQuantity', () => ({ default: (() => {
-  return function MockShowProductQuantity(): JSX.Element {
+  return function MockShowProductQuantity(): React.JSX.Element {
     return <div data-testid="product-quantity">Quantity Info</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/Stock/Utilities/ToolbarForNextPrev', () => ({ default: (() => {
-  return function MockToolbarForNextPrev(props: MockToolbarForNextPrevProps): JSX.Element {
+  return function MockToolbarForNextPrev(props: MockToolbarForNextPrevProps): React.JSX.Element {
     return (
       <div data-testid="toolbar-next-prev">
         <button
@@ -137,7 +137,7 @@ vi.mock('../../../../../components/BO/Stock/Utilities/ToolbarForNextPrev', () =>
 })() }));
 
 vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
-  return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
+  return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): React.JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>
         {active && <div data-testid="spinner">Loading...</div>}
@@ -148,7 +148,7 @@ vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
 })() }));
 
 vi.mock('../../../../../components/Others/Spinner', () => ({
-  Spinner: (): JSX.Element => <div data-testid="spinner-component">Spinner</div>
+  Spinner: (): React.JSX.Element => <div data-testid="spinner-component">Spinner</div>
 }));
 
 // Mock action

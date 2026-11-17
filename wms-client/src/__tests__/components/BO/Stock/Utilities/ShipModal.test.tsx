@@ -21,7 +21,7 @@ interface ShipModalProps {
 
 // Mock ShipModalBody
 vi.mock('../../../../../components/BO/Stock/Utilities/ShipModalBody', () => ({ default: (() => {
-  return function MockShipModalBody(props: MockShipModalBodyProps): JSX.Element {
+  return function MockShipModalBody(props: MockShipModalBodyProps): React.JSX.Element {
     return (
       <div data-testid="ship-modal-body">
         <input

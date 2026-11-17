@@ -22,49 +22,49 @@ interface RenderAdminPlatformResult extends RenderResult {
 
 // Mock all sub-components
 vi.mock('../../../../../components/BO/User/AdminPlatform/UserRegister', () => ({ default: (() => {
-  return function MockUserRegister(): JSX.Element {
+  return function MockUserRegister(): React.JSX.Element {
     return <div data-testid="user-register">UserRegister Component</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/User/AdminPlatform/UserManagement/UserManagement', () => ({ default: (() => {
-  return function MockUserManagement(): JSX.Element {
+  return function MockUserManagement(): React.JSX.Element {
     return <div data-testid="user-management">UserManagement Component</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/User/AdminPlatform/InStockByImportFile', () => ({ default: (() => {
-  return function MockInStockByImportFile(): JSX.Element {
+  return function MockInStockByImportFile(): React.JSX.Element {
     return <div data-testid="import-file">InStockByImportFile Component</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/User/AdminPlatform/ScheduleMission', () => ({ default: (() => {
-  return function MockScheduleMission(): JSX.Element {
+  return function MockScheduleMission(): React.JSX.Element {
     return <div data-testid="schedule-mission">ScheduleMission Component</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/User/AdminPlatform/ShrinkRollback/ShrinkRollback', () => ({ default: (() => {
-  return function MockShrinkRollback(): JSX.Element {
+  return function MockShrinkRollback(): React.JSX.Element {
     return <div data-testid="shrink-rollback">ShrinkRollback Component</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/User/AdminPlatform/StockCategory', () => ({ default: (() => {
-  return function MockStockCategory(): JSX.Element {
+  return function MockStockCategory(): React.JSX.Element {
     return <div data-testid="stock-category">StockCategory Component</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/User/AdminPlatform/InStockRollback/InStockRollback', () => ({ default: (() => {
-  return function MockInStockRollback(): JSX.Element {
+  return function MockInStockRollback(): React.JSX.Element {
     return <div data-testid="instock-rollback">InStockRollback Component</div>;
   };
 })() }));
 
 vi.mock('../../../../../components/BO/User/AdminPlatform/SetWarehouse', () => ({ default: (() => {
-  return function MockSetWarehouse(): JSX.Element {
+  return function MockSetWarehouse(): React.JSX.Element {
     return <div data-testid="set-warehouse">SetWarehouse Component</div>;
   };
 })() }));

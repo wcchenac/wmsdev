@@ -27,7 +27,7 @@ interface StoreState {
 
 // Mock LoadingOverlay - uses @achmadk/react-loading-overlay package
 vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
-  return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
+  return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): React.JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>
         {active && <div data-testid="spinner">Loading...</div>}
@@ -39,12 +39,12 @@ vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
 
 // Mock Spinner
 vi.mock('../../../../components/Others/Spinner', () => ({
-  Spinner: (): JSX.Element => <div data-testid="spinner-component">Spinner</div>
+  Spinner: (): React.JSX.Element => <div data-testid="spinner-component">Spinner</div>
 }));
 
 // Mock FileContainer
 vi.mock('../../../../components/BO/File/FileContainer', () => ({ default: (() => {
-  return function MockFileContainer(props: MockFileContainerProps): JSX.Element {
+  return function MockFileContainer(props: MockFileContainerProps): React.JSX.Element {
     return (
       <div
         data-testid={`file-container-${props.fileType}`}
@@ -58,7 +58,7 @@ vi.mock('../../../../components/BO/File/FileContainer', () => ({ default: (() =>
 
 // Mock FileContainerForCategory
 vi.mock('../../../../components/BO/File/FileContainerForCategory', () => ({ default: (() => {
-  return function MockFileContainerForCategory(props: MockFileContainerForCategoryProps): JSX.Element {
+  return function MockFileContainerForCategory(props: MockFileContainerForCategoryProps): React.JSX.Element {
     return (
       <div
         data-testid={`file-container-${props.fileType}`}

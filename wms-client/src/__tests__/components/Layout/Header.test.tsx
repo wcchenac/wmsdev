@@ -19,7 +19,7 @@ interface MockHeaderUserFunctionsProps {
 
 // Mock child components
 vi.mock('../../../components/Layout/HeaderStockFunctions', () => ({ default: (() => {
-  return function MockHeaderStockFunctions(props: MockHeaderStockFunctionsProps): JSX.Element {
+  return function MockHeaderStockFunctions(props: MockHeaderStockFunctionsProps): React.JSX.Element {
     return (
       <div data-testid="header-stock-functions"
            data-authenticated={props.isAuthencated}
@@ -31,7 +31,7 @@ vi.mock('../../../components/Layout/HeaderStockFunctions', () => ({ default: (()
 })() }));
 
 vi.mock('../../../components/Layout/HeaderUserFunctions', () => ({ default: (() => {
-  return function MockHeaderUserFunctions(props: MockHeaderUserFunctionsProps): JSX.Element {
+  return function MockHeaderUserFunctions(props: MockHeaderUserFunctionsProps): React.JSX.Element {
     return (
       <div data-testid="header-user-functions"
            data-authenticated={props.isAuthencated}

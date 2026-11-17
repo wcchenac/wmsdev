@@ -33,7 +33,7 @@ interface SelectionBoardProps {
 
 // Mock CheckBoxForSelectionBoard
 vi.mock('../../../../../components/BO/Stock/InStock/Common/CheckBoxForSelectionBoard', () => ({ default: (() => {
-  return function MockCheckBoxForSelectionBoard(props: MockCheckBoxProps): JSX.Element {
+  return function MockCheckBoxForSelectionBoard(props: MockCheckBoxProps): React.JSX.Element {
     return (
       <div
         data-testid={`checkbox-${props.index}`}

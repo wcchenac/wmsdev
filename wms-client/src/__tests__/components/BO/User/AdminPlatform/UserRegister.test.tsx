@@ -29,7 +29,7 @@ interface RenderUserRegisterResult extends RenderResult {
 
 // Mock @achmadk/react-loading-overlay
 vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
-  return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): JSX.Element {
+  return function MockLoadingOverlay({ children, active }: MockLoadingOverlayProps): React.JSX.Element {
     return (
       <div data-testid="loading-overlay" data-active={active}>
         {active && <div data-testid="spinner">Loading...</div>}
@@ -41,12 +41,12 @@ vi.mock('@achmadk/react-loading-overlay', () => ({ default: (() => {
 
 // Mock Spinner
 vi.mock('../../../../../components/Others/Spinner', () => ({
-  Spinner: (): JSX.Element => <div data-testid="spinner-component">Spinner</div>
+  Spinner: (): React.JSX.Element => <div data-testid="spinner-component">Spinner</div>
 }));
 
 // Mock react-toastify
 vi.mock('react-toastify', () => ({
-  ToastContainer: (): JSX.Element => <div data-testid="toast-container" />,
+  ToastContainer: (): React.JSX.Element => <div data-testid="toast-container" />,
   toast: {
     success: vi.fn(),
     error: vi.fn()

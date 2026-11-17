@@ -23,7 +23,7 @@ interface DatePeriodSelectModalProps {
 
 // Mock react-datepicker
 vi.mock('react-datepicker', () => ({ default: (() => {
-  return function MockDatePicker(props: MockDatePickerProps): JSX.Element {
+  return function MockDatePicker(props: MockDatePickerProps): React.JSX.Element {
     return (
       <input
         data-testid={`datepicker-${props.name}`}

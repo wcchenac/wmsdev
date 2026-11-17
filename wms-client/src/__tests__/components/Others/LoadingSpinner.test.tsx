@@ -16,7 +16,7 @@ interface PromiseTrackerResult {
 
 // Mock react-loader-spinner
 vi.mock('react-loader-spinner', () => ({
-  ThreeDots: function MockThreeDots(props: MockThreeDotsProps): JSX.Element {
+  ThreeDots: function MockThreeDots(props: MockThreeDotsProps): React.JSX.Element {
     return (
       <div
         data-testid="loader"

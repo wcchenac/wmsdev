@@ -40,7 +40,7 @@ vi.mock('../../../../../../actions/StockActions', () => ({
 
 // Mock child components to isolate ShrinkBoard logic
 vi.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkList', () => ({ default: (() => {
-  return function MockShrinkList({ queryShrinkList, onCancelShrinkClick, onModifyClick }: MockShrinkListProps): JSX.Element {
+  return function MockShrinkList({ queryShrinkList, onCancelShrinkClick, onModifyClick }: MockShrinkListProps): React.JSX.Element {
     return (
       <div data-testid="shrink-list">
         <button onClick={queryShrinkList}>Refresh List</button>
@@ -52,7 +52,7 @@ vi.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkLis
 })() }));
 
 vi.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ModifyRequestBoard', () => ({ default: (() => {
-  return function MockModifyRequestBoard({ handleGoBack, handleModifyRequestSubmit }: MockModifyRequestBoardProps): JSX.Element {
+  return function MockModifyRequestBoard({ handleGoBack, handleModifyRequestSubmit }: MockModifyRequestBoardProps): React.JSX.Element {
     return (
       <div data-testid="modify-request-board">
         <button onClick={handleGoBack}>Go Back</button>
