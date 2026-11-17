@@ -189,7 +189,11 @@ def test_folders_the_service_never_writes_are_not_checked(monkeypatch, tmp_path)
 def test_the_write_probe_does_not_rely_on_temporary_file(monkeypatch, tmp_path):
     """Without O_TMPFILE, TemporaryFile deletes the file while it is still open; a
     share that refuses that would make a writable folder look read-only and leave
-    the file behind. The probe creates, closes and deletes, as a report write does."""
+    the file behind. The probe creates, closes and deletes, as a report write does.
+
+    Limit: this only bans TemporaryFile. It does not simulate a share that refuses to
+    delete an open file, so another API that deletes while the file is open (for
+    example NamedTemporaryFile(delete=True)) would pass it too."""
     import errno
     import tempfile
 
@@ -203,3 +207,60 @@ def test_the_write_probe_does_not_rely_on_temporary_file(monkeypatch, tmp_path):
     _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
     create_app()
     assert [p for p in tmp_path.rglob("*") if p.is_file()] == []
+
+
+@pytest.mark.skipif(hasattr(__import__("os"), "geteuid") and __import__("os").geteuid() == 0,
+                    reason="root can write anywhere")
+def test_create_app_fails_when_a_report_subfolder_cannot_be_listed(monkeypatch, tmp_path):
+    """A folder copied with its old owner and mode 0700 can be neither listed nor
+    written by the service. Walking cannot enter it; it must still be probed."""
+    from app.main import create_app
+
+    year = tmp_path / "STKALLT" / "2026"
+    (year / "11").mkdir(parents=True)
+    year.chmod(0o000)
+    try:
+        _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+        with pytest.raises(RuntimeError, match=r"EXCEL_DIR .*STKALLT/2026 is not writable"):
+            create_app()
+    finally:
+        year.chmod(0o755)
+
+
+@pytest.mark.skipif(hasattr(__import__("os"), "geteuid") and __import__("os").geteuid() == 0,
+                    reason="root can write anywhere")
+def test_create_app_fails_when_a_report_subfolder_links_to_a_read_only_folder(monkeypatch, tmp_path):
+    """The walk does not follow links, but a linked month folder is still written to."""
+    from app.main import create_app
+
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    target.chmod(0o555)
+    (tmp_path / "STKALLT").mkdir()
+    (tmp_path / "STKALLT" / "2026").symlink_to(target, target_is_directory=True)
+    try:
+        _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+        with pytest.raises(RuntimeError, match=r"EXCEL_DIR .*STKALLT/2026 is not writable"):
+            create_app()
+    finally:
+        target.chmod(0o755)
+
+
+def test_a_probe_file_that_cannot_be_deleted_is_named(monkeypatch, tmp_path):
+    """Create works, delete is refused: say so, and name the file left behind, instead
+    of calling the folder "not writable"."""
+    import os
+
+    from app.main import create_app
+
+    real_unlink = os.unlink
+
+    def refuse_probe(path, *args, **kwargs):  # noqa: ANN001, ANN002, ANN003, ANN202
+        if os.path.basename(path).startswith(".wms-write-check-"):
+            raise PermissionError(13, "Permission denied", path)
+        return real_unlink(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, "unlink", refuse_probe)
+    _dirs(monkeypatch, tmp_path, tmp_path / "pictures")
+    with pytest.raises(RuntimeError, match=r"could not delete .*\.wms-write-check-\w+.*delete it by hand"):
+        create_app()
