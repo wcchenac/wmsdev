@@ -6,14 +6,14 @@ React client for the warehouse tool. Use Node.js 22 or later. The build uses Vit
 npm install
 npm start              # Vite dev server on http://localhost:3000
 npm test               # Vitest, single run (npm run test:watch to watch)
-npm run lint
+npm run lint           # tsc over app + tests (tsconfig.json), then ESLint with no warnings
 npm run build          # type-check (tsconfig.app.json) + vite build into build/
 npm run preview        # serve build/ locally
 npm run storybook
 npm run build-storybook
 ```
 
-TypeScript runs side by side, as the TypeScript 7 release notes recommend for tools that still need the compiler API. `tsc` (type-checking in `npm run build`) is TypeScript 7 from the `@typescript/native` alias. The `typescript` package is the TypeScript 6 API (`@typescript/typescript6`, which also ships `tsc6`), because typescript-eslint does not support TypeScript 7 yet ([typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)). Do not point `typescript` at 7.x until typescript-eslint supports it.
+TypeScript runs side by side, as the TypeScript 7 release notes recommend for tools that still need the compiler API. `tsc` (type-checking in `npm run build` and `npm run lint`) is TypeScript 7 from the `@typescript/native` alias. The `typescript` package is the TypeScript 6 API (`@typescript/typescript6`, which also ships `tsc6`), because typescript-eslint does not support TypeScript 7 yet ([typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)). Do not point `typescript` at 7.x until typescript-eslint supports it.
 
 `npm run storybook` opens the component workshop at http://localhost:6006. Stories run on @storybook/react-vite and use the same React 19, MUI 9, React Router 7, and Redux setup as the app.
 

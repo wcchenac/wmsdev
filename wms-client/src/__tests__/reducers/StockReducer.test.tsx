@@ -1,5 +1,5 @@
-import realStockReducer from '../../reducers/StockReducer';
-import type { StockState as RealStockState } from '../../types';
+import StockReducer from '../../reducers/StockReducer';
+import type { StockInfo, StockInfoesWithResult, StockState } from '../../types';
 import {
   GET_Order,
   GET_StockInfo,
@@ -11,39 +11,12 @@ import {
   UPDATE_StockInfo
 } from '../../types';
 
-interface StockIdentifier {
-  id: number;
-  [key: string]: unknown;
-}
+type StockAction = Parameters<typeof StockReducer>[1];
 
-interface StockInfoItem {
-  stockIdentifier: StockIdentifier;
-  productNo?: string;
-  [key: string]: unknown;
-}
-
-interface StockInfoesWithResult {
-  result: StockInfoItem[];
-  otherData?: string;
-  [key: string]: unknown;
-}
-
-interface StockState {
-  stockInfoes: StockInfoItem[] | StockInfoesWithResult | unknown;
-  stockInfo: Record<string, unknown>;
-}
-
-interface StockAction {
-  type: string;
-  payload?: unknown;
-}
-
-// The fixtures are partial stock records; the reducer's own types require complete ones.
-const StockReducer = (state: StockState | undefined, action: StockAction): StockState =>
-  realStockReducer(
-    state as unknown as RealStockState | undefined,
-    action as unknown as Parameters<typeof realStockReducer>[1]
-  ) as unknown as StockState;
+// GET_Order stores the order-status response ({ currentStatus, waitHandleStatus }) in
+// stockInfoes, a shape StockState does not model (the boards cast it, e.g. NormalStockBoard's
+// `result as StockInfoesResponse`). Until that type is fixed, the test builds this action here.
+const getOrderWith = (payload: unknown): StockAction => ({ type: GET_Order, payload }) as StockAction;
 
 describe('StockReducer', () => {
   const initialState: StockState = {
@@ -72,10 +45,10 @@ describe('StockReducer', () => {
 
     test('replaces existing stockInfoes', () => {
       const existingState: StockState = {
-        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 'old' }] as unknown as StockInfoItem[],
+        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 1 }],
         stockInfo: {}
       };
-      const payload = [{ id: 'new' }];
+      const payload = [{ id: 2 }];
       const result = StockReducer(existingState, { type: GET_Order, payload });
 
       expect(result.stockInfoes).toEqual(payload);
@@ -91,7 +64,7 @@ describe('StockReducer', () => {
         currentStatus: { 'PROD001': { roll: 10 } },
         waitHandleStatus: { 'PROD001': { roll: { quantity: '5' } } }
       };
-      const result = StockReducer(initialState, { type: GET_Order, payload });
+      const result = StockReducer(initialState, getOrderWith(payload));
       expect(result.stockInfoes).toEqual(payload);
     });
   });
@@ -107,12 +80,12 @@ describe('StockReducer', () => {
     test('preserves stockInfo when updating stockInfoes', () => {
       const existingState: StockState = {
         stockInfoes: [],
-        stockInfo: { id: 'existing' }
+        stockInfo: { id: 1 }
       };
-      const payload = [{ id: 'new' }];
+      const payload = [{ id: 2 }];
       const result = StockReducer(existingState, { type: GET_StockInfoes, payload });
 
-      expect(result.stockInfo).toEqual({ id: 'existing' });
+      expect(result.stockInfo).toEqual({ id: 1 });
     });
   });
 
@@ -128,9 +101,9 @@ describe('StockReducer', () => {
     test('replaces existing stockInfo', () => {
       const existingState: StockState = {
         stockInfoes: [],
-        stockInfo: { id: 'old' }
+        stockInfo: { id: 1 }
       };
-      const payload = { id: 'new' };
+      const payload = { id: 2 };
       const result = StockReducer(existingState, { type: GET_StockInfo, payload });
 
       expect(result.stockInfo).toEqual(payload);
@@ -138,13 +111,13 @@ describe('StockReducer', () => {
 
     test('preserves stockInfoes when updating stockInfo', () => {
       const existingState: StockState = {
-        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 'existing' }] as unknown as StockInfoItem[],
+        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 10 }],
         stockInfo: {}
       };
-      const payload = { id: 'new' };
+      const payload = { id: 2 };
       const result = StockReducer(existingState, { type: GET_StockInfo, payload });
 
-      expect(result.stockInfoes).toEqual([{ stockIdentifier: { id: 1 }, id: 'existing' }]);
+      expect(result.stockInfoes).toEqual([{ stockIdentifier: { id: 1 }, id: 10 }]);
     });
   });
 
@@ -153,8 +126,8 @@ describe('StockReducer', () => {
       const existingState: StockState = {
         stockInfoes: {
           result: [
-            { stockIdentifier: { id: 1 }, productNo: 'PROD001' },
-            { stockIdentifier: { id: 2 }, productNo: 'PROD002' }
+            { stockIdentifier: { id: 1, productNo: 'PROD001' } },
+            { stockIdentifier: { id: 2, productNo: 'PROD002' } }
           ],
           otherData: 'preserved'
         } as StockInfoesWithResult,
@@ -164,7 +137,7 @@ describe('StockReducer', () => {
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
 
       expect(stockInfoes.result).toHaveLength(1);
-      expect(stockInfoes.result[0].stockIdentifier.id).toBe(2);
+      expect(stockInfoes.result[0].stockIdentifier?.id).toBe(2);
       expect(stockInfoes.otherData).toBe('preserved');
     });
 
@@ -183,7 +156,7 @@ describe('StockReducer', () => {
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
 
       expect(stockInfoes.result).toHaveLength(2);
-      expect(stockInfoes.result.map(s => s.stockIdentifier.id)).toEqual([1, 3]);
+      expect(stockInfoes.result.map(s => s.stockIdentifier?.id)).toEqual([1, 3]);
     });
 
     test('handles payload that does not match any item', () => {
@@ -268,8 +241,8 @@ describe('StockReducer', () => {
             { stockIdentifier: { id: 2 } }
           ],
           productList: [
-            { stockIdentifier: { id: 1 }, productNo: 'A' },
-            { stockIdentifier: { id: 2 }, productNo: 'B' }
+            { stockIdentifier: { id: 1, productNo: 'A' } },
+            { stockIdentifier: { id: 2, productNo: 'B' } }
           ]
         } as StockInfoesWithResult,
         stockInfo: {}
@@ -279,14 +252,14 @@ describe('StockReducer', () => {
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
 
       expect(stockInfoes.productList).toEqual([
-        { stockIdentifier: { id: 2 }, productNo: 'B' }
+        { stockIdentifier: { id: 2, productNo: 'B' } }
       ]);
     });
   });
 
   describe('SHIP_Stocks', () => {
     test('sets stockInfoes to payload', () => {
-      const payload = { result: [{ id: 'updated' }] };
+      const payload = { result: [{ id: 3 }] };
       const result = StockReducer(initialState, { type: SHIP_Stocks, payload });
 
       expect(result.stockInfoes).toEqual(payload);
@@ -306,16 +279,16 @@ describe('StockReducer', () => {
     test('removes cancelled item from stockInfoes by stockIdentifier.id', () => {
       const existingState: StockState = {
         stockInfoes: [
-          { stockIdentifier: { id: 1 }, productNo: 'PROD001' },
-          { stockIdentifier: { id: 2 }, productNo: 'PROD002' }
-        ] as StockInfoItem[],
+          { stockIdentifier: { id: 1, productNo: 'PROD001' } },
+          { stockIdentifier: { id: 2, productNo: 'PROD002' } }
+        ] as StockInfo[],
         stockInfo: {}
       };
       const result = StockReducer(existingState, { type: CANCEL_SHRINK, payload: 1 });
-      const stockInfoes = result.stockInfoes as StockInfoItem[];
+      const stockInfoes = result.stockInfoes as StockInfo[];
 
       expect(stockInfoes).toHaveLength(1);
-      expect(stockInfoes[0].stockIdentifier.id).toBe(2);
+      expect(stockInfoes[0].stockIdentifier?.id).toBe(2);
     });
 
     test('removes correct item when multiple items exist', () => {
@@ -324,14 +297,14 @@ describe('StockReducer', () => {
           { stockIdentifier: { id: 1 } },
           { stockIdentifier: { id: 2 } },
           { stockIdentifier: { id: 3 } }
-        ] as StockInfoItem[],
+        ] as StockInfo[],
         stockInfo: {}
       };
       const result = StockReducer(existingState, { type: CANCEL_SHRINK, payload: 2 });
-      const stockInfoes = result.stockInfoes as StockInfoItem[];
+      const stockInfoes = result.stockInfoes as StockInfo[];
 
       expect(stockInfoes).toHaveLength(2);
-      expect(stockInfoes.map(s => s.stockIdentifier.id)).toEqual([1, 3]);
+      expect(stockInfoes.map(s => s.stockIdentifier?.id)).toEqual([1, 3]);
     });
 
     test('handles payload that does not match any item', () => {
@@ -339,11 +312,11 @@ describe('StockReducer', () => {
         stockInfoes: [
           { stockIdentifier: { id: 1 } },
           { stockIdentifier: { id: 2 } }
-        ] as StockInfoItem[],
+        ] as StockInfo[],
         stockInfo: {}
       };
       const result = StockReducer(existingState, { type: CANCEL_SHRINK, payload: 999 });
-      const stockInfoes = result.stockInfoes as StockInfoItem[];
+      const stockInfoes = result.stockInfoes as StockInfo[];
 
       expect(stockInfoes).toHaveLength(2);
     });
@@ -356,7 +329,7 @@ describe('StockReducer', () => {
 
   describe('UPDATE_StockInfo', () => {
     test('sets stockInfoes to payload', () => {
-      const payload = { result: [{ id: 'updated' }] };
+      const payload = { result: [{ id: 3 }] };
       const result = StockReducer(initialState, { type: UPDATE_StockInfo, payload });
 
       expect(result.stockInfoes).toEqual(payload);
@@ -364,10 +337,10 @@ describe('StockReducer', () => {
 
     test('replaces existing stockInfoes', () => {
       const existingState: StockState = {
-        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 'old' }] as unknown as StockInfoItem[],
+        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 1 }],
         stockInfo: {}
       };
-      const payload = [{ id: 'new', updated: true }];
+      const payload = [{ id: 2, remark: 'updated' }];
       const result = StockReducer(existingState, { type: UPDATE_StockInfo, payload });
 
       expect(result.stockInfoes).toEqual(payload);
@@ -377,8 +350,8 @@ describe('StockReducer', () => {
   describe('state immutability', () => {
     test('does not mutate original state', () => {
       const originalState: StockState = {
-        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 1 }] as unknown as StockInfoItem[],
-        stockInfo: { id: 'info' }
+        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 1 }],
+        stockInfo: { id: 5 }
       };
       const stateCopy = JSON.parse(JSON.stringify(originalState));
 

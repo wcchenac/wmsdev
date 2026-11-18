@@ -16,8 +16,12 @@ type MockStoreMiddleware = NonNullable<Parameters<typeof configureMockStore>[0]>
 const mockStoreCreator = configureMockStore<RootState, AppDispatch>([thunk as unknown as MockStoreMiddleware]);
 
 /**
- * Creates a mock store with the thunk middleware. Tests usually give only the slices the
- * code under test reads, so any partial state is accepted.
+ * The state a test may give: any subset of the app's slices (a misspelled slice name, such as
+ * `files` for `fileName`, is a type error), with whatever part of each slice the code under
+ * test reads, so the slice contents are not checked.
  */
-export const createMockStore = (state: object = {}): TestMockStore =>
+export type MockStoreState = { [K in keyof RootState]?: unknown };
+
+/** Creates a mock store with the thunk middleware. */
+export const createMockStore = (state: MockStoreState = {}): TestMockStore =>
   mockStoreCreator(state as RootState);
