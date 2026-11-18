@@ -90,8 +90,8 @@ test('the header, not the nav inside it, sticks to the top of the page', () => {
 });
 
 // With the header stuck to the top, an opened toggler menu taller than the window could not be
-// scrolled to its last items (登出); it scrolls inside a window-high box instead. jsdom does not
-// apply @media rules, so this reads App.css: below every breakpoint a role uses, the collapsed
+// scrolled to its last items (登出); it scrolls inside a window-high box instead. jsdom evaluates
+// @media only at its fixed 1024px width, so this reads App.css: below every breakpoint a role uses, the collapsed
 // menu's rule caps its height (100vh first, for browsers without dvh) and scrolls. Formatting
 // and declaration order do not matter.
 const COLLAPSE_BELOW: Record<string, string> = { sm: '575.98px', lg: '991.98px', xl: '1199.98px' };

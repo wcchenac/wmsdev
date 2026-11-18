@@ -158,12 +158,15 @@ const StockInfo: React.FC<StockInfoProps> = ({
           {stockIdentifier?.firstInStockAt}
         </button>
       </td>
-      <td>
+      {/* 註解 is free text: it wraps within its own width limits (App.css .stock-remark) while the
+          rest of the table stays on one line. */}
+      <td className="stock-remark">
         <button className="btn-customize" disabled>
           {stockInfo.remark}
         </button>
       </td>
-      <td>
+      {/* Row actions sit at the top of a row made tall by a long 註解 (App.css .stock-actions). */}
+      <td className="stock-actions">
         <button
           type="button"
           className="btn btn-primary me-2"

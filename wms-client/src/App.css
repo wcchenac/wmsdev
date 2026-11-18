@@ -278,6 +278,61 @@ html {
   opacity: 0.65;
 }
 
+/* 庫存異動's 註解 cell. The table keeps its cells on one line (text-nowrap) and scrolls sideways
+   when narrow; 註解 is free text up to 255 characters, so it wraps instead, between 8em and 20em
+   wide (14em minimum for 布料 below 1200px, see below), so one long remark cannot push every
+   row's actions out of view. The limits sit on the text element: browsers do not reliably apply
+   min/max-width to an auto-layout table cell. */
+/* .table td.stock-remark outranks `.table tbody td { vertical-align: middle }` above. */
+.table td.stock-remark {
+  white-space: normal;
+  /* A remark several lines tall starts at the top of its cell. */
+  vertical-align: top;
+}
+
+/* 庫存查詢 and 庫存異動: every cell starts at the top, in line with a tall 註解, so a long
+   remark's row reads across as one line (the other cells hold one line of plain text, so
+   ordinary rows look the same). Outranks `.table tbody td { vertical-align: middle }` below. */
+.table.table-cells-top tbody td {
+  vertical-align: top;
+}
+
+.stock-remark .btn-customize {
+  white-space: normal;
+  min-width: 8em;
+  max-width: 20em;
+  word-break: break-word; /* browsers without overflow-wrap: anywhere (Safari before 15.4) */
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+/* Below 1200px the 布料 table (9 columns) is wider than its box and scrolls sideways, and the
+   browser shrinks every column to its minimum: at 8em a 255-character remark made a 929px row
+   (521px at 14em). From 1200px it fits its box at 8em; 14em there would make it scroll (1173px
+   > 1116px). The 五金 table (7 columns, .stock-table-hardware) fits its 936px box at 992-1199px
+   with 8em but not with 14em (1018px), so it keeps 8em there (14em only below 992px, see below). */
+@media (max-width: 1199.98px) {
+  .table:not(.stock-table-hardware) .stock-remark .btn-customize {
+    min-width: 14em;
+  }
+}
+
+/* Below 992px the 五金 table scrolls sideways even at 8em (922px in a 696px box), so it takes the
+   14em minimum there too: a 255-character remark's row goes from 929px to 521px at no cost. */
+@media (max-width: 991.98px) {
+  .stock-table-hardware .stock-remark .btn-customize {
+    min-width: 14em;
+  }
+}
+
+/* The row actions start at the top of a row made tall by a long 註解, next to where the remark
+   starts. Same specificity (0,3,3) as components.css
+   `.table.table-actions-center tbody tr td:last-child { vertical-align: middle }`: it wins only
+   because App.css loads after components.css (index.tsx imports index.css, App.tsx App.css). */
+.table.table-actions-center tbody tr td.stock-actions {
+  vertical-align: top;
+}
+
 /* ========================================
    SCROLLABLE CONTAINERS
    ======================================== */
