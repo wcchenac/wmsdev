@@ -3,7 +3,7 @@ import { Navigate } from "react-router";
 import { useSelector } from "react-redux";
 import { RoleOption } from "../../../enums/Enums";
 import { RootState } from "../../../types";
-import { userRole } from "./ProtectedRoute";
+import { isSessionValid, userRole } from "./ProtectedRoute";
 
 /** Each role's landing page: the first item of its menu (Layout/RoleHeader/Header*.tsx). */
 export const HOME_BY_ROLE: Record<string, string> = {
@@ -20,7 +20,7 @@ export const HOME_BY_ROLE: Record<string, string> = {
 function HomeRedirect(): React.ReactElement {
   const user = useSelector((state: RootState) => state.user);
 
-  if (!user.validToken) {
+  if (!isSessionValid(user)) {
     return <Navigate to="/login" replace />;
   }
 

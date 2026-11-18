@@ -77,6 +77,7 @@ describe('localStorageValidate', () => {
     localStorageValidate();
 
     expect(window.localStorage.removeItem).toHaveBeenCalledWith('jwtToken');
+    expect(logout).toHaveBeenCalled();
     expect(window.location.href).toBe('');
   });
 });

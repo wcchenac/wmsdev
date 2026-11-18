@@ -86,3 +86,18 @@ test('a page the role may not open sends it to its own first page', async () => 
   signIn('ROLE_Sales');
   expect(await renderAt('/admin')).toBe('/stock/2/2');
 });
+
+test('an expired token in Redux state redirects to /login on route transition', async () => {
+  store.dispatch({
+    type: SET_Current_User,
+    payload: {
+      employeeId: 'E001',
+      fullName: '王小明',
+      role: { authority: 'ROLE_Admin' },
+      exp: Math.floor(Date.now() / 1000) - 60,
+    },
+  });
+
+  expect(await renderAt('/admin')).toBe('/login');
+  expect(store.getState().user.validToken).toBe(false);
+});

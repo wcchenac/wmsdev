@@ -1,10 +1,14 @@
 import API from "./API";
 
 const setJWTToken = (token: string | false): void => {
+  const commonHeaders = API.defaults?.headers?.common;
+  if (!commonHeaders) {
+    return;
+  }
   if (token) {
-    API.defaults.headers.common["Authorization"] = token;
+    commonHeaders["Authorization"] = token;
   } else {
-    delete API.defaults.headers.common["Authorization"];
+    delete commonHeaders["Authorization"];
   }
 };
 

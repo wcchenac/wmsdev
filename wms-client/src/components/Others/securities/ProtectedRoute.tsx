@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, Outlet } from "react-router";
 import { useSelector } from "react-redux";
 import { RoleOption } from "../../../enums/Enums";
-import { RootState, User } from "../../../types";
+import { RootState, User, UserState } from "../../../types";
 
 type RoleLevel = "H" | "M1" | "M2" | "L1" | "L2" | "L3";
 
@@ -30,10 +30,23 @@ export function userRole(user: User | undefined): string | null {
   return typeof role === "string" ? role : role.authority ?? null;
 }
 
+/**
+ * Checks whether Redux auth state represents an active, non-expired session. When `exp` is present
+ * on decoded claims, expiry is enforced immediately on route transitions.
+ */
+export function isSessionValid(userState: Pick<UserState, "validToken" | "user">): boolean {
+  if (!userState.validToken) return false;
+  const exp = userState.user?.exp;
+  if (typeof exp === "number" && exp <= Date.now() / 1000) {
+    return false;
+  }
+  return true;
+}
+
 function ProtectedRoute({ level, children }: ProtectedRouteProps): React.ReactElement {
   const user = useSelector((state: RootState) => state.user);
 
-  if (!user.validToken) {
+  if (!isSessionValid(user)) {
     return <Navigate to="/login" replace />;
   }
 

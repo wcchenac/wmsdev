@@ -2,10 +2,11 @@ import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import classnames from "classnames";
-import { login } from "../../../actions/UserActions";
+import { login, logout } from "../../../actions/UserActions";
 import { RootState } from "../../../store";
 import { AppDispatch } from "../../../types";
 import { useUpdateEffect } from "../../../utilities/useUpdateEffect";
+import { isSessionValid } from "../../Others/securities/ProtectedRoute";
 
 interface LoginErrors {
   username?: string;
@@ -43,12 +44,14 @@ const Login: React.FC = () => {
     password: false
   });
 
-  // Redirect if already logged in
+  // Redirect if already logged in; clear Redux/storage if the session token has expired.
   useEffect(() => {
-    if (user.validToken) {
+    if (isSessionValid(user)) {
       navigate("/");
+    } else if (user.validToken) {
+      dispatch(logout());
     }
-  }, [user.validToken, navigate]);
+  }, [user, navigate, dispatch]);
 
   // Only errors that arrive while the page is open (dev's componentWillReceiveProps): an
   // earlier failed login, or another page's error, must not show up when the page opens.

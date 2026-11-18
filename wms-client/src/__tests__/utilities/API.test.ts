@@ -1,6 +1,8 @@
 import { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
 import { toast } from 'react-toastify';
 import API, { SESSION_EXPIRED_MESSAGE, SESSION_EXPIRED_REDIRECT_DELAY_MS } from '../../utilities/API';
+import store from '../../store';
+import { SET_Current_User } from '../../types';
 
 // A 401 in the middle of a session means the JWT expired. The user is told why before the page
 // moves to /login, instead of being reloaded there with no explanation.
@@ -56,6 +58,19 @@ describe('API 401 handling', () => {
     expect(window.location.href).toBe('');
     vi.advanceTimersByTime(SESSION_EXPIRED_REDIRECT_DELAY_MS);
     expect(window.location.href).toBe('/login');
+  });
+
+  test('clears Redux current user state on 401 so protected routes redirect immediately', async () => {
+    store.dispatch({
+      type: SET_Current_User,
+      payload: { employeeId: 'E001', role: { authority: 'ROLE_Admin' } },
+    });
+    expect(store.getState().user.validToken).toBe(true);
+
+    await expect(onRejected(httpError(401))).rejects.toBeInstanceOf(AxiosError);
+
+    expect(store.getState().user.validToken).toBe(false);
+    expect(store.getState().user.user).toEqual({});
   });
 
   test('several failing requests show one message and schedule one redirect', async () => {

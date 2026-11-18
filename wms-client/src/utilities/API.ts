@@ -1,5 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { toast } from 'react-toastify';
+import store from '../store';
+import { SET_Current_User } from '../types';
 
 declare global {
     interface Window {
@@ -67,6 +69,10 @@ API.interceptors.response.use(
         if (error.response && error.response.status === 401 && error.config?.url !== LOGIN_URL) {
             localStorage.removeItem('jwtToken');
             delete API.defaults.headers.common['Authorization'];
+            store.dispatch({
+                type: SET_Current_User,
+                payload: {},
+            });
             if (!redirectingToLogin) {
                 redirectingToLogin = true;
                 toast.error(SESSION_EXPIRED_MESSAGE, { toastId: 'session-expired' });

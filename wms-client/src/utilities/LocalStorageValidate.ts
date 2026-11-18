@@ -33,7 +33,7 @@ function localStorageValidate(): void {
       const decodedJWT = jwtDecode<DecodedJWT>(jwtToken);
 
       // Validate that decoded token has required fields
-      if (!decodedJWT || !decodedJWT.exp) {
+      if (!decodedJWT || typeof decodedJWT.exp !== "number") {
         throw new Error("Invalid token structure");
       }
 
@@ -56,6 +56,7 @@ function localStorageValidate(): void {
       // Token is malformed or invalid - clear it and redirect
       localStorage.removeItem("jwtToken");
       setJWTToken(false);
+      store.dispatch(logout());
       goToLogin();
     }
   }

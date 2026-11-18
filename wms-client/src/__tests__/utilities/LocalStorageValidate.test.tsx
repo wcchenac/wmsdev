@@ -223,6 +223,18 @@ describe('LocalStorageValidate - localStorageValidate function', () => {
 
       expect(mockedLogout).not.toHaveBeenCalled();
     });
+
+    test('treats token with non-numeric exp string as invalid and logs out', () => {
+      localStorageMock.getItem.mockReturnValue(mockValidToken);
+      mockedJwtDecode.mockReturnValue({
+        ...mockDecodedValidJwt,
+        exp: 'invalid' as unknown as number,
+      });
+
+      localStorageValidate();
+
+      expect(mockedLogout).toHaveBeenCalled();
+    });
   });
 
   describe('localStorage access', () => {
