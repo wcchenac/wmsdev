@@ -1,6 +1,6 @@
 import React, { useState, useCallback, MouseEvent } from "react";
 import DatePeriodSelectModal from "../Stock/Utilities/DatePeriodSelectModal";
-import { dayOfStart, dayOfEnd } from "../Stock/Utilities/DateUtils";
+import { dayOfStart, dayOfEnd, formatLocalDateTime } from "../Stock/Utilities/DateUtils";
 
 const NotFoundMessage = "File Not Found";
 
@@ -46,8 +46,8 @@ const FileContainer: React.FC<FileContainerProps> = ({
   }, []);
 
   const handleDateSelectionModeClick = useCallback(() => {
-    const startDateStr = startDate.toJSON().substring(0, 19);
-    const endDateStr = endDate.toJSON().substring(0, 19);
+    const startDateStr = formatLocalDateTime(startDate);
+    const endDateStr = formatLocalDateTime(endDate);
 
     handleFileCategoryPeriodQuery(fileType, startDateStr, endDateStr);
   }, [startDate, endDate, handleFileCategoryPeriodQuery, fileType]);

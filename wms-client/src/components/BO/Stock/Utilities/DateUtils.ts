@@ -28,3 +28,16 @@ export function setPreviousMonth(date: Date, backward: number): Date {
 
   return result;
 }
+
+/**
+ * Formats a Date as local `YYYY-MM-DDTHH:mm:ss` without shifting to UTC
+ * (unlike `date.toJSON().substring(0, 19)`).
+ */
+export function formatLocalDateTime(date: Date): string {
+  const pad = (n: number, width = 2) => String(n).padStart(width, "0");
+
+  return (
+    `${pad(date.getFullYear(), 4)}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+  );
+}

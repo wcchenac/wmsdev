@@ -76,7 +76,9 @@ describe('StockHistoryBoard', () => {
 
     await waitFor(() => {
       expect(mockGetProductHistory).toHaveBeenCalledWith(expect.objectContaining({
-        productNo: 'TEST-PROD-001'
+        productNo: 'TEST-PROD-001',
+        startDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T00:00:00$/),
+        endDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T23:59:59$/),
       }));
     });
   });

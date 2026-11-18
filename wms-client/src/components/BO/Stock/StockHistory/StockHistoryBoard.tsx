@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 import { getProductHistory } from "../../../../actions/StockActions";
-import { dayOfStart, dayOfEnd, setPreviousMonth } from "../Utilities/DateUtils";
+import { dayOfStart, dayOfEnd, setPreviousMonth, formatLocalDateTime } from "../Utilities/DateUtils";
 import QueryProductInformation, { ProductNoChange } from "../Utilities/QueryProductInformation";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
@@ -93,8 +93,8 @@ function StockHistoryBoard(): React.ReactElement {
     e.preventDefault();
     const request = {
       productNo,
-      startDate: startDate.toJSON().substring(0, 19),
-      endDate: endDate.toJSON().substring(0, 19)
+      startDate: formatLocalDateTime(startDate),
+      endDate: formatLocalDateTime(endDate)
     };
 
     setIsLoading(true);

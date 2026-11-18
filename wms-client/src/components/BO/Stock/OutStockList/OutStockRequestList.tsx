@@ -14,7 +14,7 @@ import { downloadFile } from "../../../../actions/FileActions";
 import "react-datepicker/dist/react-datepicker.css";
 import { copy } from "../../../../utilities/DeepCopy";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
-import { dayOfStart, dayOfEnd } from "../Utilities/DateUtils";
+import { dayOfStart, dayOfEnd, formatLocalDateTime } from "../Utilities/DateUtils";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import ConfirmModal from "./ConfirmModal";
@@ -143,8 +143,8 @@ const OutStockRequestList: React.FC = () => {
   }, []);
 
   const handleDateSelectionModeClick = useCallback(() => {
-    const startDateStr = startDate.toJSON().substring(0, 19);
-    const endDateStr = endDate.toJSON().substring(0, 19);
+    const startDateStr = formatLocalDateTime(startDate);
+    const endDateStr = formatLocalDateTime(endDate);
 
     setIsLoading(true);
     dispatch(getWaitHandleListWithInterval(startDateStr, endDateStr)).then(response => {

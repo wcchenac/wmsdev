@@ -1,4 +1,4 @@
-import { dayOfStart, dayOfEnd, setPreviousMonth } from '../../components/BO/Stock/Utilities/DateUtils';
+import { dayOfStart, dayOfEnd, setPreviousMonth, formatLocalDateTime } from '../../components/BO/Stock/Utilities/DateUtils';
 
 describe('DateUtils', () => {
   describe('dayOfStart', () => {
@@ -163,6 +163,21 @@ describe('DateUtils', () => {
       expect(nonLeapFebResult.getFullYear()).toBe(2023);
       expect(nonLeapFebResult.getMonth()).toBe(1);
       expect(nonLeapFebResult.getDate()).toBe(28);
+    });
+  });
+
+  describe('formatLocalDateTime', () => {
+    test('formats local YYYY-MM-DDTHH:mm:ss without shifting to UTC (C-7)', () => {
+      const localStart = dayOfStart(new Date(2026, 10, 18, 9, 5, 3));
+      const localEnd = dayOfEnd(new Date(2026, 10, 18, 9, 5, 3));
+
+      expect(formatLocalDateTime(localStart)).toBe('2026-11-18T00:00:00');
+      expect(formatLocalDateTime(localEnd)).toBe('2026-11-18T23:59:59');
+    });
+
+    test('zero-pads single-digit months, days, hours, minutes, and seconds', () => {
+      const localDate = new Date(2026, 0, 5, 4, 7, 9);
+      expect(formatLocalDateTime(localDate)).toBe('2026-01-05T04:07:09');
     });
   });
 });
