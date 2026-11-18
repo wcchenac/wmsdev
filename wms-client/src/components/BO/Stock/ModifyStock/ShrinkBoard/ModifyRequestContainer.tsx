@@ -6,6 +6,7 @@ import { NewStockInfoItem } from './ModifyRequestBoard';
 interface ModifyRequestContainerProps {
     typeValidation: boolean;
     newStockInfoes: NewStockInfoItem[];
+    disabled?: boolean;
     onRequestChange: (request: { target: { name: string; value: string } }, index: number) => void;
     handleDefectChange: (selectedOptions: (DefectOption | undefined)[], index: number) => void;
     handleShipCheck: (checked: boolean, index: number) => void;
@@ -15,6 +16,7 @@ interface ModifyRequestContainerProps {
 const ModifyRequestContainer: React.FC<ModifyRequestContainerProps> = ({
     typeValidation,
     newStockInfoes,
+    disabled = false,
     onRequestChange,
     handleDefectChange,
     handleShipCheck,
@@ -52,6 +54,7 @@ const ModifyRequestContainer: React.FC<ModifyRequestContainerProps> = ({
                             index={index}
                             typeValidation={typeValidation}
                             stockInfo={stockInfo}
+                            disabled={disabled}
                             onRequestChange={onRequestChange}
                             handleDefectChange={handleDefectChange}
                             handleShipCheck={handleShipCheck}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
@@ -19,6 +19,7 @@ const ShrinkBoard: React.FC = () => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [waitCreateResp, setWaitCreateResp] = useState<boolean>(false);
+    const isSubmittingRef = useRef<boolean>(false);
     const [shrinkList, setShrinkList] = useState<StockInfo[]>([]);
     const [stockInfo, setStockInfo] = useState<StockInfo>({});
     const [typeExchange, setTypeExchange] = useState<boolean>(false);
@@ -72,7 +73,8 @@ const ShrinkBoard: React.FC = () => {
 
     const handleModifyRequestSubmit = useCallback(
         (shrinkStockRequest: ShrinkStockRequest): void => {
-            if (!waitCreateResp) {
+            if (!waitCreateResp && !isSubmittingRef.current) {
+                isSubmittingRef.current = true;
                 setIsLoading(true);
                 setWaitCreateResp(true);
                 dispatch(batchCreateStockInfoesForShrink(shrinkStockRequest))
@@ -85,6 +87,7 @@ const ShrinkBoard: React.FC = () => {
                         notifyRequestFailed(error);
                     })
                     .finally(() => {
+                        isSubmittingRef.current = false;
                         setIsLoading(false);
                         setWaitCreateResp(false);
                     });
@@ -111,6 +114,7 @@ const ShrinkBoard: React.FC = () => {
             typeExchange={typeExchange}
             sameTypeModify={sameTypeModify}
             hardwareModify={hardwareModify}
+            isLoading={isLoading}
             handleGoBack={handleGoBack}
             handleModifyRequestSubmit={handleModifyRequestSubmit}
         />

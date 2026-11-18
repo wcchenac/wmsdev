@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, RenderResult } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createMockStore, TestMockStore } from '../../../../../helpers/mockStore';
 import ShrinkBoard from '../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkBoard';
@@ -21,6 +21,7 @@ interface MockShrinkListProps {
 }
 
 interface MockModifyRequestBoardProps {
+  isLoading?: boolean;
   handleGoBack: () => void;
   handleModifyRequestSubmit: (data: Record<string, unknown>) => void;
 }
@@ -52,11 +53,11 @@ vi.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkLis
 })() }));
 
 vi.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ModifyRequestBoard', () => ({ default: (() => {
-  return function MockModifyRequestBoard({ handleGoBack, handleModifyRequestSubmit }: MockModifyRequestBoardProps): React.JSX.Element {
+  return function MockModifyRequestBoard({ isLoading, handleGoBack, handleModifyRequestSubmit }: MockModifyRequestBoardProps): React.JSX.Element {
     return (
       <div data-testid="modify-request-board">
-        <button onClick={handleGoBack}>Go Back</button>
-        <button onClick={() => handleModifyRequestSubmit({})}>Submit Request</button>
+        <button onClick={handleGoBack} disabled={isLoading}>Go Back</button>
+        <button onClick={() => handleModifyRequestSubmit({})} disabled={isLoading}>Submit Request</button>
       </div>
     );
   };
@@ -150,6 +151,27 @@ describe('ShrinkBoard', () => {
 
     await waitFor(() => {
       expect(mockBatchCreateStockInfoesForShrink).toHaveBeenCalled();
+    });
+  });
+
+  test('locks ModifyRequestBoard while shrink submission is in flight', async () => {
+    let resolveSubmit!: (value: { status: number }) => void;
+    mockBatchCreateStockInfoesForShrink.mockImplementation(
+      () => new Promise((resolve) => {
+        resolveSubmit = resolve;
+      })
+    );
+    renderWithRedux(<ShrinkBoard />, { initialState });
+
+    fireEvent.click(screen.getByText('Modify Same Type'));
+    const submitBtn = screen.getByRole('button', { name: 'Submit Request' });
+    fireEvent.click(submitBtn);
+
+    expect(submitBtn).toBeDisabled();
+    expect(mockBatchCreateStockInfoesForShrink).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveSubmit({ status: 200 });
     });
   });
 });

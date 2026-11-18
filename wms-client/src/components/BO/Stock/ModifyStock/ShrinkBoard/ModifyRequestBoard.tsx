@@ -12,6 +12,8 @@ import {
 import ToolbarForAddDeleteSubmit from '../../Utilities/ToolbarForAddDeleteSubmit';
 import ShrinkConfirmModal from './ShrinkConfirmModal';
 import { calculateInfoLength } from './calculateInfoLength';
+import LoadingOverlay from '@achmadk/react-loading-overlay';
+import { Spinner } from '../../../../Others/Spinner';
 import { StockInfo, ShrinkStockRequest, ShrinkStockInStockRequest } from '../../../../../types';
 
 export interface NewStockInfoItem {
@@ -46,6 +48,7 @@ interface ModifyRequestBoardProps {
     typeExchange: boolean;
     sameTypeModify: boolean;
     hardwareModify: boolean;
+    isLoading?: boolean;
     handleGoBack: () => void;
     handleModifyRequestSubmit: (request: ShrinkStockRequest) => void;
 }
@@ -55,6 +58,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
     typeExchange,
     sameTypeModify,
     hardwareModify,
+    isLoading = false,
     handleGoBack,
     handleModifyRequestSubmit,
 }) => {
@@ -286,11 +290,13 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
 
     return (
         <div className="stock_info">
+            <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <div className="container">
                 <button
                     type="button"
                     onClick={handleBackClick}
                     className="btn btn-secondary"
+                    disabled={isLoading}
                 >
                     返回
                 </button>
@@ -400,8 +406,9 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                     handleRowNumChange={handleRowNumChange}
                     handleRowNumSubmit={handleRowNumSubmit}
                     deleteDisabled={newStockInfoes.length === 0}
-                    submitDisabled={!isLengthChecked}
+                    submitDisabled={!isLengthChecked || isLoading}
                     assignRowNum={assignRowNum}
+                    isLoading={isLoading}
                 />
                 {newStockInfoes.length === 0 ? (
                     <div
@@ -419,6 +426,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                             handleDefectChange={handleDefectChange}
                             handleShipCheck={handleShipCheck}
                             handleReasonButton={handleReasonButton}
+                            disabled={isLoading}
                         />
                         {modalShow && calculatedInfoLength ? (
                             <ShrinkConfirmModal
@@ -426,12 +434,14 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                                 infoLengthCalculation={calculatedInfoLength}
                                 handleModalClose={handleModalClose}
                                 handleSubmitClick={handleSubmitClick}
+                                isLoading={isLoading}
                             />
                         ) : null}
                     </div>
                 )}
                 <hr />
             </div>
+            </LoadingOverlay>
         </div>
     );
 };

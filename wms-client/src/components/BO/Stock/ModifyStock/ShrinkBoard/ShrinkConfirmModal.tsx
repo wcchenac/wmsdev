@@ -4,6 +4,7 @@ import { InfoLengthCalculation } from './ModifyRequestBoard';
 
 interface ShrinkConfirmModalProps {
     show: boolean;
+    isLoading?: boolean;
     handleModalClose: () => void;
     handleSubmitClick: (infoLengthCalculation: InfoLengthCalculation) => void;
     infoLengthCalculation: InfoLengthCalculation;
@@ -11,6 +12,7 @@ interface ShrinkConfirmModalProps {
 
 const ShrinkConfirmModal: React.FC<ShrinkConfirmModalProps> = ({
     show,
+    isLoading = false,
     handleModalClose,
     handleSubmitClick,
     infoLengthCalculation
@@ -88,10 +90,11 @@ const ShrinkConfirmModal: React.FC<ShrinkConfirmModalProps> = ({
                 <Button
                     variant="secondary"
                     onClick={handleModalClose}
+                    disabled={isLoading}
                 >
                     取消
                 </Button>
-                <Button variant="primary" onClick={onSubmitClick}>
+                <Button variant="primary" onClick={onSubmitClick} disabled={isLoading}>
                     送出
                 </Button>
             </Modal.Footer>

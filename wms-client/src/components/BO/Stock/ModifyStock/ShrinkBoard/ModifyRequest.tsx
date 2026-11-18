@@ -18,6 +18,7 @@ interface ModifyRequestProps {
     typeValidation: boolean;
     stockInfo: NewStockInfoItem;
     index: number;
+    disabled?: boolean;
     onRequestChange: (request: { target: { name: string; value: string } }, index: number) => void;
     handleDefectChange: (selectedOptions: (DefectOption | undefined)[], index: number) => void;
     handleShipCheck: (checked: boolean, index: number) => void;
@@ -28,6 +29,7 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
     typeValidation,
     stockInfo,
     index,
+    disabled = false,
     onRequestChange,
     handleDefectChange,
     handleShipCheck,
@@ -60,10 +62,11 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
     }, [handleShipCheck, stockInfo.outStockReason, index]);
 
     const onCancleShipClick = useCallback(() => {
+        if (disabled) return;
         skipRestore.current = true;
         setModalShow(false);
         handleShipCheck(false, index);
-    }, [handleShipCheck, index]);
+    }, [handleShipCheck, index, disabled]);
 
     const onReansonButtonChange = useCallback(
         (e: MouseEvent<HTMLButtonElement>) => {
@@ -73,10 +76,11 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
     );
 
     const handleModalOpen = useCallback(() => {
+        if (disabled) return;
         skipRestore.current = false;
         reasonAtOpen.current = stockInfo.outStockReason;
         setModalShow(true);
-    }, [stockInfo.outStockReason]);
+    }, [disabled, stockInfo.outStockReason]);
 
     const handleModalClose = useCallback(() => {
         const restore = !skipRestore.current;
@@ -108,8 +112,9 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                         <select
                             className="form-select"
                             name="type"
-                            defaultValue={stockInfo.type}
+                            value={stockInfo.type || ''}
                             onChange={handleChange}
+                            disabled={disabled}
                         >
                             <option value={StockIdentifierType.roll}>
                                 整支
@@ -130,7 +135,9 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                         })}
                         placeholder="數量"
                         name="quantity"
+                        value={stockInfo.quantity}
                         onChange={handleChange}
+                        disabled={disabled}
                     />
                     {stockInfo.errors.quantity && (
                         <div className="invalid-feedback">
@@ -160,8 +167,9 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                             <select
                                 className="form-select"
                                 name="unit"
-                                defaultValue={stockInfo.unit}
+                                value={stockInfo.unit}
                                 onChange={handleChange}
+                                disabled={disabled}
                             >
                                 {UnitOptions.map((unit, idx) => (
                                     <option key={idx} value={unit}>
@@ -176,12 +184,13 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                             className="stock-defect-select"
                             closeMenuOnSelect
                             components={animatedComponents}
-                            defaultValue={stockInfo.defect}
+                            value={stockInfo.defect}
                             isMulti
                             menuPosition="fixed"
                             name="defect"
                             options={[...DefectOptions]}
                             onChange={onDefectChange}
+                            isDisabled={disabled}
                         />
                     </td>
                 </React.Fragment>
@@ -193,7 +202,9 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                         className="form-control"
                         placeholder="註解"
                         name="remark"
+                        value={stockInfo.remark}
                         onChange={handleChange}
+                        disabled={disabled}
                     />
                 </div>
             </td>
