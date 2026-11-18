@@ -8,6 +8,3 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
-
-// Declare modules without types
-declare module 'react-promise-tracker';
