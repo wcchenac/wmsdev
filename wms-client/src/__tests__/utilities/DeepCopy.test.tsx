@@ -37,17 +37,48 @@ describe('DeepCopy - copy function', () => {
   });
 
   describe('primitive value handling', () => {
-    test('converts number to empty object (due to for...in on primitive)', () => {
-      expect(copy(42)).toEqual({});
+    test('returns number as is', () => {
+      expect(copy(42)).toBe(42);
     });
 
-    test('converts string to object with indexed characters', () => {
-      const result = copy('hello');
-      expect(result).toEqual({ '0': 'h', '1': 'e', '2': 'l', '3': 'l', '4': 'o' });
+    test('returns string as is', () => {
+      expect(copy('hello')).toBe('hello');
     });
 
-    test('converts boolean to empty object', () => {
-      expect(copy(true)).toEqual({});
+    test('returns boolean as is', () => {
+      expect(copy(true)).toBe(true);
+    });
+  });
+
+  describe('built-in and prototype handling', () => {
+    test('deep copies Date without sharing instance', () => {
+      const original = new Date('2026-11-18T12:00:00Z');
+      const copied = copy(original);
+
+      expect(copied).toBeInstanceOf(Date);
+      expect(copied.getTime()).toBe(original.getTime());
+      expect(copied).not.toBe(original);
+    });
+
+    test('deep copies RegExp with source and flags', () => {
+      const original = /wms-\d+/gi;
+      const copied = copy(original);
+
+      expect(copied).toBeInstanceOf(RegExp);
+      expect(copied.source).toBe(original.source);
+      expect(copied.flags).toBe(original.flags);
+      expect(copied).not.toBe(original);
+    });
+
+    test('ignores inherited prototype properties', () => {
+      const proto = { inherited: 'from-proto' };
+      const original = Object.create(proto) as { own: string; inherited?: string };
+      original.own = 'mine';
+
+      const copied = copy(original);
+
+      expect(copied).toEqual({ own: 'mine' });
+      expect(Object.hasOwn(copied, 'inherited')).toBe(false);
     });
   });
 

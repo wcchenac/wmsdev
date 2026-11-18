@@ -1,27 +1,41 @@
+function recursiveCopy<T>(value: T): T {
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+  if (value instanceof Date) {
+    return new Date(value.getTime()) as T;
+  }
+  if (value instanceof RegExp) {
+    return new RegExp(value.source, value.flags) as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => recursiveCopy(item)) as T;
+  }
+
+  const copied: Record<string, unknown> = {};
+  for (const key of Object.keys(value)) {
+    copied[key] = recursiveCopy((value as Record<string, unknown>)[key]);
+  }
+  return copied as T;
+}
+
 /**
- * Deep copy an object or array
- * Creates a new object with all nested properties copied (not referenced)
- *
- * @param aObject - The object or array to copy
- * @returns A deep copy of the input
- *
- * @example
- * const original = { a: 1, b: { c: 2 } };
- * const copied = copy(original);
- * copied.b.c = 3; // original.b.c remains 2
+ * Deep copy a value.
+ * Preserves primitives, Date, RegExp, arrays, and plain own-property objects without
+ * walking inherited prototypes or mutating the original structure.
  */
 export function copy<T>(aObject: T): T {
-  if (!aObject) {
+  if (aObject === null || typeof aObject !== "object") {
     return aObject;
   }
 
-  let v: unknown;
-  const bObject: Record<string, unknown> | unknown[] = Array.isArray(aObject) ? [] : {};
-
-  for (const k in aObject) {
-    v = aObject[k as keyof T];
-    (bObject as Record<string, unknown>)[k] = typeof v === "object" ? copy(v) : v;
+  if (typeof structuredClone === "function") {
+    try {
+      return structuredClone(aObject);
+    } catch {
+      // Fallback for values containing functions or other non-structured-cloneable fields.
+    }
   }
 
-  return bObject as T;
+  return recursiveCopy(aObject);
 }
