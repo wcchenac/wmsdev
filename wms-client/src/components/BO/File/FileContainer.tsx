@@ -106,7 +106,9 @@ const FileContainer: React.FC<FileContainerProps> = ({
                     padding: "7px 0px",
                     textAlign: "center"
                   }}
-                />
+                >
+                  <span className="visually-hidden">操作</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -116,9 +118,7 @@ const FileContainer: React.FC<FileContainerProps> = ({
                     <React.Fragment key={index}>
                       <tr>
                         <td style={{ padding: "0.5em 1em" }}>
-                          <button className="btn-customize" disabled>
-                            {filename}
-                          </button>
+                          {filename}
                         </td>
                         <td style={{ padding: "0.5em 1em" }}>
                           {filename === NotFoundMessage ? null : (

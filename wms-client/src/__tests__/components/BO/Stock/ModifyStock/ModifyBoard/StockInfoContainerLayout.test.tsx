@@ -85,7 +85,7 @@ test.each([
 
   const cell = container.querySelector<HTMLElement>('td.stock-remark')!;
   expect(cell).toHaveTextContent(remark);
-  const text = cell.querySelector<HTMLElement>('button')!;
+  const text = cell.querySelector<HTMLElement>('.stock-remark-text')!;
   const em = parseFloat(getComputedStyle(text).fontSize);
   const cs = getComputedStyle(text);
   expect({
@@ -131,7 +131,7 @@ test.each([
   expect(container.querySelector('colgroup')).toBeNull();
 
   const cell = container.querySelector<HTMLElement>('td.stock-remark')!;
-  const text = cell.querySelector<HTMLElement>('button')!;
+  const text = cell.querySelector<HTMLElement>('.stock-remark-text')!;
   expect({
     cellVerticalAlign: getComputedStyle(cell).verticalAlign,
     wordBreak: getComputedStyle(text).wordBreak,
@@ -153,12 +153,12 @@ test.each([
 test('the 註解 minimum width is 8em, and 14em in the 布料 layout below 1200px', () => {
   const css = readFileSync(join(process.cwd(), 'src/App.css'), 'utf8');
 
-  expect(ruleDeclarations(css, null, '.stock-remark .btn-customize')).toContain('min-width: 8em');
+  expect(ruleDeclarations(css, null, '.stock-remark .stock-remark-text')).toContain('min-width: 8em');
   expect(
     ruleDeclarations(
       css,
       '@media (max-width: 1199.98px)',
-      '.table:not(.stock-table-hardware) .stock-remark .btn-customize'
+      '.table:not(.stock-table-hardware) .stock-remark .stock-remark-text'
     )
   ).toEqual(['min-width: 14em']);
 });
@@ -169,7 +169,7 @@ test('the 五金 註解 minimum width is 14em below 992px', () => {
   const css = readFileSync(join(process.cwd(), 'src/App.css'), 'utf8');
 
   expect(
-    ruleDeclarations(css, '@media (max-width: 991.98px)', '.stock-table-hardware .stock-remark .btn-customize')
+    ruleDeclarations(css, '@media (max-width: 991.98px)', '.stock-table-hardware .stock-remark .stock-remark-text')
   ).toEqual(['min-width: 14em']);
 });
 

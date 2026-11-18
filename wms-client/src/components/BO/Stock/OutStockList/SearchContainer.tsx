@@ -207,7 +207,9 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
                   </th>
                   <th>開單人員</th>
                   <th>倉別</th>
-                  <th></th>
+                  <th>
+                    <span className="visually-hidden">操作</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>

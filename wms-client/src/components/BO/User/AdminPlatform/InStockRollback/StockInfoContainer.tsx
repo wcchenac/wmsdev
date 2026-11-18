@@ -25,7 +25,9 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
             <th style={{ width: "25%" }}>
               <div className="ps-2">子項目總數</div>
             </th>
-            <th style={{ width: "25%" }}></th>
+            <th style={{ width: "25%" }}>
+              <span className="visually-hidden">操作</span>
+            </th>
           </tr>
         </thead>
         <tbody>

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useId, useState } from "react";
 import { Modal } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 
@@ -73,6 +73,8 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
   const [draftEndDate, setDraftEndDate] = useState<Date>(endDate);
   const wrongDateSetting = dateSettingAlgorithm(draftStartDate, draftEndDate, dayRange);
   const titleId = "dateCondition-" + fileType + "-title";
+  const startDateId = useId();
+  const endDateId = useId();
 
   const handleOpen = useCallback(() => {
     setDraftStartDate(startDate);
@@ -141,8 +143,9 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
         <div className="modal-body">
           <div className="row">
             <div className="col">
-              <label>起始日期</label>
+              <label htmlFor={startDateId}>起始日期</label>
               <DatePicker
+                id={startDateId}
                 name="start"
                 selected={draftStartDate}
                 onChange={(date: Date | null) => {
@@ -151,8 +154,9 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
               />
             </div>
             <div className="col">
-              <label>結束日期</label>
+              <label htmlFor={endDateId}>結束日期</label>
               <DatePicker
+                id={endDateId}
                 name="end"
                 selected={draftEndDate}
                 onChange={(date: Date | null) => {

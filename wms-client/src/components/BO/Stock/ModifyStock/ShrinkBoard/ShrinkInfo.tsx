@@ -127,46 +127,18 @@ const ShrinkInfo: React.FC<ShrinkInfoProps> = ({
 
     return (
         <tr>
+            <td>{stockIdentifier?.productNo}</td>
+            <td>{stockIdentifier?.lotNo}</td>
+            <td>{stockIdentifier?.type}</td>
+            <td>{stockIdentifier?.quantity}</td>
+            <td>{stockIdentifier?.unit}</td>
             <td>
-                <button className="btn-customize" disabled>
-                    {stockIdentifier?.productNo}
-                </button>
-            </td>
-            <td>
-                <button className="btn-customize" disabled>
-                    {stockIdentifier?.lotNo}
-                </button>
-            </td>
-            <td>
-                <button className="btn-customize" disabled>
-                    {stockIdentifier?.type}
-                </button>
-            </td>
-            <td>
-                <button className="btn-customize" disabled>
-                    {stockIdentifier?.quantity}
-                </button>
-            </td>
-            <td>
-                <button className="btn-customize" disabled>
-                    {stockIdentifier?.unit}
-                </button>
+                {stockIdentifier?.type ===
+                StockIdentifierType.hardware ? null : stockInfo.color}
             </td>
             <td>
                 {stockIdentifier?.type ===
-                StockIdentifierType.hardware ? null : (
-                    <button className="btn-customize" disabled>
-                        {stockInfo.color}
-                    </button>
-                )}
-            </td>
-            <td>
-                {stockIdentifier?.type ===
-                StockIdentifierType.hardware ? null : (
-                    <button className="btn-customize" disabled>
-                        {stockInfo.defect as string}
-                    </button>
-                )}
+                StockIdentifierType.hardware ? null : (stockInfo.defect as string)}
             </td>
             {actionButtonContent}
             {cancelButtonContent}

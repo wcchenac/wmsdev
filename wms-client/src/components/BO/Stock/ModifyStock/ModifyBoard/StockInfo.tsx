@@ -120,51 +120,21 @@ const StockInfo: React.FC<StockInfoProps> = ({
 
   return (
     <tr className={stockIdentifier?.waitToShrink ? "table-warning" : ""}>
-      <td>
-        <button className="btn-customize" disabled>
-          {stockIdentifier?.productNo}
-        </button>
-      </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {stockIdentifier?.lotNo}
-        </button>
-      </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {stockIdentifier?.type}
-        </button>
-      </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {stockIdentifier?.quantity + " " + stockIdentifier?.unit}
-        </button>
-      </td>
+      <td>{stockIdentifier?.productNo}</td>
+      <td>{stockIdentifier?.lotNo}</td>
+      <td>{stockIdentifier?.type}</td>
+      <td>{(stockIdentifier?.quantity ?? "") + " " + (stockIdentifier?.unit ?? "")}</td>
       {typeValidation ? null : (
         <React.Fragment>
-          <td>
-            <button className="btn-customize" disabled>
-              {stockInfo.color}
-            </button>
-          </td>
-          <td>
-            <button className="btn-customize" disabled>
-              {stockInfo.defect as string}
-            </button>
-          </td>
+          <td>{stockInfo.color}</td>
+          <td>{stockInfo.defect as string}</td>
         </React.Fragment>
       )}
-      <td>
-        <button className="btn-customize" disabled>
-          {stockIdentifier?.firstInStockAt}
-        </button>
-      </td>
+      <td>{stockIdentifier?.firstInStockAt}</td>
       {/* 註解 is free text: it wraps within its own width limits (App.css .stock-remark) while the
           rest of the table stays on one line. */}
       <td className="stock-remark">
-        <button className="btn-customize" disabled>
-          {stockInfo.remark}
-        </button>
+        <div className="stock-remark-text">{stockInfo.remark}</div>
       </td>
       {/* Row actions sit at the top of a row made tall by a long 註解 (App.css .stock-actions). */}
       <td className="stock-actions">

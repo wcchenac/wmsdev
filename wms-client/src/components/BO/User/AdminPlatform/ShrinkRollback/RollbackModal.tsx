@@ -95,42 +95,16 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
                       : "table-secondary"
                   }
                 >
+                  <td>{node.stockInfo.stockIdentifier?.productNo}</td>
+                  <td>{node.stockInfo.stockIdentifier?.lotNo}</td>
+                  <td>{node.stockInfo.stockIdentifier?.type}</td>
                   <td>
-                    <button className="btn-customize" disabled>
-                      {node.stockInfo.stockIdentifier?.productNo}
-                    </button>
+                    {(node.stockInfo.stockIdentifier?.quantity || "") +
+                      (node.stockInfo.stockIdentifier?.unit || "")}
                   </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {node.stockInfo.stockIdentifier?.lotNo}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {node.stockInfo.stockIdentifier?.type}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {(node.stockInfo.stockIdentifier?.quantity || "") +
-                        (node.stockInfo.stockIdentifier?.unit || "")}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {formatDefect(node.stockInfo.defect)}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {node.stockInfo.record}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {node.stockInfo.remark}
-                    </button>
-                  </td>
+                  <td>{formatDefect(node.stockInfo.defect)}</td>
+                  <td>{node.stockInfo.record}</td>
+                  <td>{node.stockInfo.remark}</td>
                 </tr>
               );
             })}

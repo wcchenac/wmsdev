@@ -58,7 +58,9 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
                   <div className="ps-2">{"\u9032\u8ca8\u65e5\u671f"}</div>
                 </th>
                 <th>{"\u8a3b\u89e3"}</th>
-                <th />
+                <th>
+                  <span className="visually-hidden">{"\u64cd\u4f5c"}</span>
+                </th>
               </React.Fragment>
             ) : (
               <React.Fragment>
@@ -82,7 +84,9 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
                   <div className="ps-2">{"\u9032\u8ca8\u65e5\u671f"}</div>
                 </th>
                 <th>{"\u8a3b\u89e3"}</th>
-                <th />
+                <th>
+                  <span className="visually-hidden">{"\u64cd\u4f5c"}</span>
+                </th>
               </React.Fragment>
             )}
           </tr>

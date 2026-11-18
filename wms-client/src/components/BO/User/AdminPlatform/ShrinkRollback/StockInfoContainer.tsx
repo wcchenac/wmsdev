@@ -31,7 +31,9 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
             <th>
               <div className="ps-2">減肥日期</div>
             </th>
-            <th></th>
+            <th>
+              <span className="visually-hidden">操作</span>
+            </th>
           </tr>
         </thead>
         <tbody>

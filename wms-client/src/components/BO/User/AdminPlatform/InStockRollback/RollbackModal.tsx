@@ -103,42 +103,16 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
                     item.stockIdentifier?.exist ? "" : "table-secondary"
                   }
                 >
+                  <td>{item.stockIdentifier?.productNo}</td>
+                  <td>{item.stockIdentifier?.lotNo}</td>
+                  <td>{item.stockIdentifier?.type}</td>
                   <td>
-                    <button className="btn-customize" disabled>
-                      {item.stockIdentifier?.productNo}
-                    </button>
+                    {(item.stockIdentifier?.quantity || "") +
+                      (item.stockIdentifier?.unit || "")}
                   </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {item.stockIdentifier?.lotNo}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {item.stockIdentifier?.type}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {(item.stockIdentifier?.quantity || "") +
-                        (item.stockIdentifier?.unit || "")}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {formatDefect(item.defect)}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {item.record}
-                    </button>
-                  </td>
-                  <td>
-                    <button className="btn-customize" disabled>
-                      {item.remark}
-                    </button>
-                  </td>
+                  <td>{formatDefect(item.defect)}</td>
+                  <td>{item.record}</td>
+                  <td>{item.remark}</td>
                 </tr>
               );
             })}

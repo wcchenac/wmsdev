@@ -29,32 +29,14 @@ const StockInfo: React.FC<StockInfoProps> = ({ object, handleShrinkRollback }) =
 
   return (
     <tr>
+      <td>{object.stockInfo.stockIdentifier?.productNo}</td>
+      <td>{object.stockInfo.stockIdentifier?.lotNo}</td>
+      <td>{object.stockInfo.stockIdentifier?.type}</td>
       <td>
-        <button className="btn-customize" disabled>
-          {object.stockInfo.stockIdentifier?.productNo}
-        </button>
+        {(object.stockInfo.stockIdentifier?.quantity || "") +
+          (object.stockInfo.stockIdentifier?.unit || "")}
       </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {object.stockInfo.stockIdentifier?.lotNo}
-        </button>
-      </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {object.stockInfo.stockIdentifier?.type}
-        </button>
-      </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {(object.stockInfo.stockIdentifier?.quantity || "") +
-            (object.stockInfo.stockIdentifier?.unit || "")}
-        </button>
-      </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {object.stockInfo.stockIdentifier?.eliminateDate}
-        </button>
-      </td>
+      <td>{object.stockInfo.stockIdentifier?.eliminateDate}</td>
       <td>
         <Button variant="primary" onClick={handleModalShow}>
           詳細資料

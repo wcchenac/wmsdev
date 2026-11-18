@@ -46,21 +46,9 @@ const StockInfo: React.FC<StockInfoProps> = ({
 
   return (
     <tr>
-      <td>
-        <button className="btn-customize" disabled>
-          {productNo}
-        </button>
-      </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {content.totalQuantity + content.unit}
-        </button>
-      </td>
-      <td>
-        <button className="btn-customize" disabled>
-          {list.length}
-        </button>
-      </td>
+      <td>{productNo}</td>
+      <td>{content.totalQuantity + content.unit}</td>
+      <td>{list.length}</td>
       <td>
         <Button variant="primary" onClick={handleModalShow}>
           詳細資料

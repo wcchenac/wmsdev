@@ -204,9 +204,9 @@ function StockHistoryBoard(): React.ReactElement {
             />
           </div>
           <div className="col-md-auto">
-            <button className="btn-customize" disabled>
-              <small className="text-muted">若無設定，預設查詢前一個月</small>
-            </button>
+            <span className="form-text text-muted d-inline-block py-2">
+              若無設定，預設查詢前一個月
+            </span>
           </div>
         </div>
         <hr />
