@@ -20,11 +20,13 @@ describe('DateUtils', () => {
       expect(result.getDate()).toBe(15);
     });
 
-    test('returns the same date object (mutates in place)', () => {
+    test('returns a new Date without mutating the input date', () => {
       const date = new Date('2024-06-15T14:30:45');
+      const originalTime = date.getTime();
       const result = dayOfStart(date);
 
-      expect(result).toBe(date);
+      expect(result).not.toBe(date);
+      expect(date.getTime()).toBe(originalTime);
     });
 
     test('handles midnight correctly', () => {
@@ -65,11 +67,13 @@ describe('DateUtils', () => {
       expect(result.getDate()).toBe(15);
     });
 
-    test('returns the same date object (mutates in place)', () => {
+    test('returns a new Date without mutating the input date', () => {
       const date = new Date('2024-06-15T14:30:45');
+      const originalTime = date.getTime();
       const result = dayOfEnd(date);
 
-      expect(result).toBe(date);
+      expect(result).not.toBe(date);
+      expect(date.getTime()).toBe(originalTime);
     });
 
     test('handles midnight correctly', () => {
@@ -132,11 +136,13 @@ describe('DateUtils', () => {
       expect(result.getFullYear()).toBe(2024);
     });
 
-    test('returns the same date object (mutates in place)', () => {
+    test('returns a new Date without mutating the input date', () => {
       const date = new Date('2024-06-15T14:30:45');
+      const originalTime = date.getTime();
       const result = setPreviousMonth(date, 1);
 
-      expect(result).toBe(date);
+      expect(result).not.toBe(date);
+      expect(date.getTime()).toBe(originalTime);
     });
 
     test('preserves day of month when valid', () => {
@@ -144,6 +150,19 @@ describe('DateUtils', () => {
       const result = setPreviousMonth(date, 1);
 
       expect(result.getDate()).toBe(15);
+    });
+
+    test('clamps month-end day instead of overflowing into the next month', () => {
+      const leapMarchEnd = new Date('2024-03-31T14:30:45');
+      const febLeapResult = setPreviousMonth(leapMarchEnd, 1);
+      expect(febLeapResult.getFullYear()).toBe(2024);
+      expect(febLeapResult.getMonth()).toBe(1);
+      expect(febLeapResult.getDate()).toBe(29);
+
+      const nonLeapFebResult = setPreviousMonth(leapMarchEnd, 13);
+      expect(nonLeapFebResult.getFullYear()).toBe(2023);
+      expect(nonLeapFebResult.getMonth()).toBe(1);
+      expect(nonLeapFebResult.getDate()).toBe(28);
     });
   });
 });

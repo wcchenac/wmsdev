@@ -11,6 +11,8 @@ import {
 } from "../../Utilities/StockInfoHelperMethods";
 import { StockInfo as StockInfoType, StockIdentifier, UpdateStockInfoRequest } from "../../../../../types";
 
+const animatedComponents = makeAnimated();
+
 // ============================================
 // Type Definitions
 // ============================================
@@ -136,7 +138,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                 </label>
               </div>
               <div className="row mb-0">
-                <label className="col-6 col-form-label text-center">{"\u7461\u75b5"}</label>
+                <label className="col-6 col-form-label text-center">{"\u7455\u75b5"}</label>
                 <label className="col-6 col-form-label">
                   {propStockInfo.defect as string}
                 </label>
@@ -167,7 +169,6 @@ const InformationModal: React.FC<InformationModalProps> = ({
 
   const renderEditModeOn = (): React.ReactElement => {
     const { stockIdentifier } = stockInfo;
-    const animatedComponents = makeAnimated();
 
     return (
       <React.Fragment>
@@ -222,7 +223,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                 </div>
               </div>
               <div className="row mb-0">
-                <label className="col-6 col-form-label text-center">{"\u7461\u75b5"}</label>
+                <label className="col-6 col-form-label text-center">{"\u7455\u75b5"}</label>
                 <div className="col-6">
                   <Select
                     closeMenuOnSelect

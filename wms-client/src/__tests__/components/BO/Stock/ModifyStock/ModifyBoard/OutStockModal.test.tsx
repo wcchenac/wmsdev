@@ -78,4 +78,45 @@ describe('OutStockModal submission & range validation', () => {
     expect(within(dialog).getByRole('button', { name: '儲存至明細' })).toBeEnabled();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
+
+  test('clears DOM input values when productNo changes because fields are controlled', () => {
+    const { rerender } = render(
+      <OutStockModal
+        productNo="CF1001"
+        show
+        handleModalClose={vi.fn()}
+        handleOutStockRequestCreate={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(dialog.querySelector('input[name=assignMode]')!);
+    fireEvent.change(dialog.querySelector('select[name=unit]')!, {
+      target: { value: '尺', name: 'unit' },
+    });
+    fireEvent.change(dialog.querySelector('input[name=outStockReason]')!, {
+      target: { value: '中壢', name: 'outStockReason' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('最小數量'), {
+      target: { value: '10', name: 'quantity1' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('最大數量'), {
+      target: { value: '20', name: 'quantity2' },
+    });
+
+    rerender(
+      <OutStockModal
+        productNo="CF1002"
+        show
+        handleModalClose={vi.fn()}
+        handleOutStockRequestCreate={vi.fn()}
+      />
+    );
+
+    expect(dialog.querySelector<HTMLSelectElement>('select[name=unit]')!.value).toBe('碼');
+    expect(dialog.querySelector<HTMLInputElement>('input[name=outStockReason]')!.value).toBe('');
+    fireEvent.click(dialog.querySelector('input[name=assignMode]')!);
+    expect(screen.getByPlaceholderText<HTMLInputElement>('最小數量').value).toBe('');
+    expect(screen.getByPlaceholderText<HTMLInputElement>('最大數量').value).toBe('');
+  });
 });

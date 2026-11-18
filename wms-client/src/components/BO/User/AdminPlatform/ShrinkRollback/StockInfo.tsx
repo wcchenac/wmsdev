@@ -21,8 +21,9 @@ const StockInfo: React.FC<StockInfoProps> = ({ object, handleShrinkRollback }) =
 
   const handleSubmitClick = useCallback(() => {
     setModalShow(false);
-    if (object.stockInfo.stockIdentifier?.id) {
-      handleShrinkRollback(object.stockInfo.stockIdentifier.id);
+    const id = object.stockInfo.stockIdentifier?.id;
+    if (id !== undefined && id !== null) {
+      handleShrinkRollback(id);
     }
   }, [handleShrinkRollback, object.stockInfo.stockIdentifier?.id]);
 

@@ -28,17 +28,18 @@ export function calculateInfoLength(
         }
     }
 
-    const adjustment = totalQuantity - oldTotalLength;
+    const roundedTotal = round10(totalQuantity, -2);
+    const adjustment = roundedTotal - oldTotalLength;
 
     const result: InfoLengthCalculation = {
-        adjustment: round10(adjustment, -1),
-        totalQuantity: totalQuantity,
+        adjustment: round10(adjustment, -2),
+        totalQuantity: roundedTotal,
         allocation: 0,
         shrinkType: "",
     };
 
     if (typeDifference) {
-        result.allocation = round10(allocation, -1);
+        result.allocation = round10(allocation, -2);
 
         if (oldType === StockIdentifierType.board) {
             result.shrinkType = ShrinkType.BtoR;

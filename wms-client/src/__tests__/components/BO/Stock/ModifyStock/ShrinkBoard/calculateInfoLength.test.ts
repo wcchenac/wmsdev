@@ -58,4 +58,14 @@ describe('calculateInfoLength', () => {
 
     expect(result).toEqual({ adjustment: -28, totalQuantity: 0, allocation: 0, shrinkType: 'RR' });
   });
+
+  test('rounds totalQuantity, adjustment and allocation to 2 decimals without float drift', () => {
+    const result = calculateInfoLength(oldStock(board, 1), [
+      row(board, '0.1'),
+      row(roll, '0.2'),
+      row(roll, '0.05'),
+    ]);
+
+    expect(result).toEqual({ adjustment: -0.65, totalQuantity: 0.35, allocation: 0.25, shrinkType: 'BR' });
+  });
 });

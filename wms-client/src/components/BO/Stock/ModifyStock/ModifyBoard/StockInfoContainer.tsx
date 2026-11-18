@@ -65,7 +65,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
                 </th>
                 <th style={{ width: "5%" }}>{"\u8272\u865f"}</th>
                 <th style={{ width: "8%" }}>
-                  <div className="ps-2">{"\u7461\u75b5"}</div>
+                  <div className="ps-2">{"\u7455\u75b5"}</div>
                 </th>
                 <th style={{ width: "12%" }}>
                   <div className="ps-2">{"\u9032\u8ca8\u65e5\u671f"}</div>

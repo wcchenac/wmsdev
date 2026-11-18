@@ -356,6 +356,18 @@ describe('StockInfoHelperMethods', () => {
       const stockInfo: StockInfoWithDefect = { defect: [{ label: 'GA', value: 'GA' }, { label: 'GB', value: 'GB' }] };
       expect(joinInfoDefectArray(stockInfo)).toBe('GA/GB');
     });
+
+    test('skips empty defect values (無) so no leading or double slash is produced', () => {
+      const stockInfo: StockInfoWithDefect = {
+        defect: [
+          { label: '無', value: '' },
+          { label: 'GA', value: 'GA' },
+          { label: '無', value: '' },
+          { label: 'GB', value: 'GB' },
+        ]
+      };
+      expect(joinInfoDefectArray(stockInfo)).toBe('GA/GB');
+    });
   });
 
   describe('defectIndexMapper', () => {

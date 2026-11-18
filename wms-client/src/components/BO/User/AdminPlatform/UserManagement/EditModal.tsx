@@ -133,6 +133,7 @@ const EditModal: React.FC<EditModalProps> = ({
               className="form-control"
               placeholder="新密碼"
               name="newPassword"
+              value={userInfo.newPassword ?? ""}
               onChange={handleInfoChange}
             />
           </div>
@@ -143,7 +144,7 @@ const EditModal: React.FC<EditModalProps> = ({
             <select
               name="role"
               className="form-select"
-              defaultValue={userInfo.role}
+              value={userInfo.role ?? ""}
               onChange={handleInfoChange}
             >
               {Object.keys(RoleOption).map((title, index) => (

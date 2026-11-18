@@ -116,7 +116,7 @@ const InStockRollback: React.FC = () => {
             <select
               className="form-select"
               name="orderType"
-              defaultValue=""
+              value={orderType}
               onChange={handleOrderChange}
             >
               {Object.keys(OrderType).map((type, index) => (
@@ -135,6 +135,7 @@ const InStockRollback: React.FC = () => {
               type="text"
               name="orderNo"
               placeholder="請輸入單號"
+              value={orderNo}
               disabled={orderType === ""}
               onChange={handleOrderChange}
             />

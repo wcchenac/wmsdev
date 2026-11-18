@@ -13,6 +13,8 @@ import { toast } from "react-toastify";
 import { RootState } from "../../../../store";
 import { AppDispatch } from "../../../../types";
 
+const animatedComponents = makeAnimated();
+
 interface CategoryOption {
   value: string;
   label: string;
@@ -59,8 +61,6 @@ const StockCategory: React.FC = () => {
         setIsLoading(false);
       });
   }, [dispatch, selectedCategory]);
-
-  const animatedComponents = makeAnimated();
 
   const stockInfoes: unknown = categoryList.stockInfoes;
   const options = Array.isArray(stockInfoes) ? stockInfoes.filter(isCategoryOption) : [];

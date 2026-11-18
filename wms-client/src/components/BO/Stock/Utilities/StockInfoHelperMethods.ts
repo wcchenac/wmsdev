@@ -217,23 +217,15 @@ interface StockInfoWithDefectArray {
 
 // join stockInfo.defect array contents
 export function joinInfoDefectArray(stockInfo: StockInfoWithDefectArray): string {
-  let newDefectContent = "";
-
   const defectArray = stockInfo.defect as (DefectOption | undefined)[];
 
-  defectArray.forEach((object, index) => {
-    if (object === undefined) {
-      return newDefectContent;
-    }
-
-    if (index === defectArray.length - 1) {
-      newDefectContent = newDefectContent + object.value;
-    } else {
-      newDefectContent = newDefectContent + object.value + "/";
-    }
-  });
-
-  return newDefectContent;
+  return defectArray
+    .filter(
+      (object): object is DefectOption =>
+        object !== undefined && object.value !== ""
+    )
+    .map((object) => object.value)
+    .join("/");
 }
 
 // translate defect string to option index
