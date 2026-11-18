@@ -150,6 +150,50 @@ describe('FileActions', () => {
 
       expect(notifyRequestFailed).toHaveBeenCalledWith(error);
     });
+
+    test('parses quoted filename, RFC 5987 filename*, and fallback filename', async () => {
+      mockedAPI.get.mockResolvedValueOnce({
+        data: new Blob(['test']),
+        headers: {
+          'content-type': 'application/pdf',
+          'content-disposition': 'attachment; filename="report (1).pdf"; size=42'
+        }
+      });
+      await actions.downloadFile(fileCategory, filename);
+      expect(mockLink.setAttribute).toHaveBeenCalledWith('download', 'report (1).pdf');
+
+      mockedAPI.get.mockResolvedValueOnce({
+        data: new Blob(['test']),
+        headers: {
+          'content-type': 'application/pdf',
+          'content-disposition': "attachment; filename*=UTF-8''%E5%87%BA%E5%BA%AB%E5%96%AE.xlsx"
+        }
+      });
+      await actions.downloadFile(fileCategory, filename);
+      expect(mockLink.setAttribute).toHaveBeenCalledWith('download', '出庫單.xlsx');
+
+      mockedAPI.get.mockResolvedValueOnce({
+        data: new Blob(['test']),
+        headers: { 'content-type': 'application/pdf' }
+      });
+      await actions.downloadFile(fileCategory, filename);
+      expect(mockLink.setAttribute).toHaveBeenCalledWith('download', filename);
+    });
+
+    test('unwraps JSON Blob error response before calling notifyRequestFailed', async () => {
+      const jsonBlob = new Blob([JSON.stringify({ message: '找不到檔案' })], {
+        type: 'application/json'
+      });
+      mockedAPI.get.mockRejectedValue({
+        response: { status: 400, data: jsonBlob }
+      });
+
+      await actions.downloadFile(fileCategory, filename);
+
+      expect(notifyRequestFailed).toHaveBeenCalledWith({
+        response: { status: 400, data: { message: '找不到檔案' } }
+      });
+    });
   });
 
   describe('queryFileCategoryTodayFile', () => {
