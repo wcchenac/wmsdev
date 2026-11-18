@@ -12,7 +12,7 @@ export default [
     ignores: ["build/", "coverage/", "node_modules/", "storybook-static/"],
   },
   {
-    files: ["src/**/*.{js,jsx,ts,tsx}"],
+    files: ["src/**/*.{js,jsx,ts,tsx}", ".storybook/**/*.{ts,tsx}", "vite.config.ts"],
     plugins: {
       react,
       "react-hooks": reactHooks,
@@ -342,7 +342,7 @@ export default [
     },
   },
   {
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}", "vite.config.ts"],
     plugins: { "@typescript-eslint": tseslint.plugin },
     languageOptions: { parser: tseslint.parser },
     rules: {
