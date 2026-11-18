@@ -4,6 +4,12 @@ import react from "@vitejs/plugin-react";
 import { devApiProxy } from "./src/utilities/devApiProxy";
 
 export default defineConfig(({ mode }) => {
+  // jsdom is already in devDependencies; skip Vitest's preflight package check
+  // whose resolver walks past wms-client/ and fails with EPERM in restricted sandboxes.
+  if (process.env.VITEST) {
+    process.env.VITEST_SKIP_INSTALL_CHECKS ??= "1";
+  }
+
   // VITE_API_PROXY_TARGET may come from the shell or from .env / .env.local.
   const env = { ...process.env, ...loadEnv(mode, process.cwd(), "VITE_") };
 
