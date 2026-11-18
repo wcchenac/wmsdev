@@ -181,7 +181,7 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
           aria-labelledby={"nav-tab-" + date}
         >
           <div className="table-wrapper-scroll-y my-custom-scrollbar">
-            <table className="table table-hover">
+            <table className="table table-hover table-actions-center">
               <thead className="table-dark">
                 <tr>
                   <th style={{ width: "3%" }}>

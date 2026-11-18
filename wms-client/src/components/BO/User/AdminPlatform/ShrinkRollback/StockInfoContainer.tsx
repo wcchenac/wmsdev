@@ -13,7 +13,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
 }) => {
   return (
     <div className="table-wrapper-scroll-y scrollbar-70">
-      <table className="table table-sm table-hover">
+      <table className="table table-sm table-hover table-actions-center">
         <thead className="table-dark">
           <tr>
             <th style={{ width: "20%" }}>

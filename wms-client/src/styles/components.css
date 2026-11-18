@@ -596,8 +596,8 @@ td .action-button-group {
   box-shadow: var(--shadow-focus);
 }
 
-/* Bootstrap table row actions */
-.table tbody tr td:last-child {
+/* Bootstrap table row actions (opt-in so trailing data columns stay left-aligned) */
+.table.table-actions-center tbody tr td:last-child {
   text-align: center;
   vertical-align: middle;
 }

@@ -418,11 +418,14 @@ img {
   padding: var(--spacing-4);
   background-color: var(--color-gray-50);
   border-radius: var(--modal-border-radius) var(--modal-border-radius) 0 0;
+  color: var(--color-gray-800);
 }
 
+/* The title follows its header's text colour, so a header that sets its own background and
+   colour (white on blue or green, dark on yellow) gets a readable title. */
 .modal-title {
   font-weight: var(--font-weight-semibold);
-  color: var(--color-gray-800);
+  color: inherit;
 }
 
 .modal-body {
@@ -435,8 +438,9 @@ img {
   gap: var(--spacing-2);
 }
 
+/* Bootstrap colours the backdrop (#000 at --bs-backdrop-opacity, .5); a translucent colour
+   here would stack with that opacity and halve the dimming. */
 .modal-backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
 }
 
@@ -626,12 +630,17 @@ img {
     display: none !important;
   }
 
-  .modal-dialog {
-    margin: var(--spacing-4);
-  }
-
   .table-responsive {
     border-radius: var(--border-radius-md);
+  }
+}
+
+/* Tablet modal spacing, through Bootstrap's variable so the auto side margins and the height
+   of centred and scrollable dialogs (calc(100% - 2 * --bs-modal-margin)) agree. Starts at 576px:
+   below that, utilities.css sets the phone spacing, and this file loads after it. */
+@media (min-width: 576px) and (max-width: 768px) {
+  .modal {
+    --bs-modal-margin: var(--spacing-4);
   }
 }
 

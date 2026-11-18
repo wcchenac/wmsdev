@@ -204,7 +204,6 @@
   --card-bg: var(--color-white);
 
   /* Modals */
-  --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
   --modal-border-radius: var(--border-radius-lg);
   --modal-shadow: var(--shadow-xl);
 

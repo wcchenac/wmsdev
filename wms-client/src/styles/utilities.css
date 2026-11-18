@@ -745,11 +745,12 @@
   }
 }
 
-/* Responsive modal width */
+/* Responsive modal spacing: through Bootstrap's variable, so the margin and the height of
+   centred and scrollable dialogs (calc(100% - 2 * --bs-modal-margin)) agree. Below 576px the
+   dialog is width: auto, so the side margins alone set its width. */
 @media (max-width: 575.98px) {
-  .modal-dialog {
-    margin: var(--spacing-2);
-    max-width: calc(100% - var(--spacing-4));
+  .modal {
+    --bs-modal-margin: var(--spacing-2);
   }
 }
 

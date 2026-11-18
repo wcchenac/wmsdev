@@ -137,7 +137,7 @@ const FileContainerForCategory: React.FC<FileContainerForCategoryProps> = ({
         </div>
         <hr />
         <div>
-          <table className="table table-bordered table-hover">
+          <table className="table table-bordered table-hover table-actions-center">
             <thead className="table-dark">
               <tr>
                 <th style={{ width: "80%", padding: "0.5em 1.5em" }}>檔名</th>
