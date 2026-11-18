@@ -405,4 +405,67 @@ describe('ModifyBoard', () => {
 
     expect(screen.getByRole('button', { name: '批量出庫' })).toBeDisabled();
   });
+
+  test('shipping row 0 does not leak its outStockReason into row 1 after list update', async () => {
+    const twoRowsState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001' },
+          prevProduct: null,
+          nextProduct: null,
+          result: [
+            {
+              stockIdentifier: { id: 101, productNo: 'PROD-001', lotNo: 'LOT-A', type: '板卷', waitToShrink: false },
+              stockInfo: { defect: 'none' },
+            },
+            {
+              stockIdentifier: { id: 102, productNo: 'PROD-001', lotNo: 'LOT-B', type: '板卷', waitToShrink: false },
+              stockInfo: { defect: 'none' },
+            },
+          ],
+          productList: [{ type: '板卷', quantity: 20, unit: '碼' }],
+        },
+      },
+    };
+    const oneRowState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          ...twoRowsState.stockInfo.stockInfoes,
+          result: [twoRowsState.stockInfo.stockInfoes.result[1]],
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    };
+    mockStockIdentifierIsShiped.mockResolvedValue({ status: 200 });
+    mockGetStockInfoes.mockResolvedValue({ status: 200 });
+
+    const { rerender } = renderWithRedux(<ModifyBoard />, { initialState });
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'PROD-001', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(twoRowsState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    const shipButtons = await screen.findAllByRole('button', { name: '出庫' });
+    fireEvent.click(shipButtons[0]);
+
+    const dialog1 = await screen.findByRole('dialog');
+    const reasonInput = within(dialog1).getByRole('textbox') as HTMLInputElement;
+    fireEvent.change(reasonInput, { target: { name: 'outStockReason', value: '中壢' } });
+    fireEvent.click(within(dialog1).getByRole('button', { name: '確認' }));
+
+    rerender(
+      <Provider store={mockStore(oneRowState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '出庫' }));
+    const dialog2 = await screen.findByRole('dialog');
+    expect((within(dialog2).getByRole('textbox') as HTMLInputElement).value).toBe('');
+  });
 });

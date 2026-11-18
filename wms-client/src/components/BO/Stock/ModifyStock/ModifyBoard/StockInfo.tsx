@@ -41,6 +41,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
     };
 
     setModalShow(false);
+    setOutStockReason("");
     handleShip(shipRequest);
   }, [stockInfo.stockIdentifier?.id, outStockReason, handleShip]);
 

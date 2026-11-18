@@ -90,7 +90,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
         <tbody>
           {stockInfoes.map((stockInfo, index) => (
             <StockInfo
-              key={index}
+              key={stockInfo.stockIdentifier?.id ?? index}
               index={index}
               typeValidation={typeValidation}
               stockInfo={stockInfo}
