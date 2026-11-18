@@ -371,5 +371,36 @@ describe('SearchBoard', () => {
         outStockUpdate: { '1': '內倉' },
       });
     });
+
+    test('updating non-empty queryResult preserves unsaved warehouse selections for existing rows', () => {
+      const ref = createRef<SearchBoard>();
+      const { rerender } = render(<SearchBoard ref={ref} {...defaultProps} />);
+      const board = ref.current;
+      if (board === null) {
+        throw new Error('SearchBoard did not mount');
+      }
+
+      act(() => {
+        board.setState({
+          toBeSubmit: board.initialToBeSubmit(defaultProps.queryResult!, defaultProps.selectedUserList),
+        });
+      });
+      act(() => {
+        board.handleToBeSubmitWHChange('2024-01-01', '內倉', 1);
+      });
+
+      const updatedQueryResult = queryResultFixture({
+        ...defaultProps.queryResult!,
+        '2024-01-02': [
+          ...(defaultProps.queryResult!['2024-01-02'] ?? []),
+          { id: 99, productNo: 'PROD099', createdBy: 'user1', handled: false, outStockType: 1 },
+        ],
+      });
+
+      rerender(<SearchBoard ref={ref} {...defaultProps} queryResult={updatedQueryResult} />);
+
+      expect(board.state.toBeSubmit['2024-01-01']?.[1]?.whName).toBe('內倉');
+      expect(board.state.toBeSubmit['2024-01-02']?.[99]?.selected).toBe(true);
+    });
   });
 });

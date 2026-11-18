@@ -47,6 +47,7 @@ const OutStockRequestList: React.FC = () => {
   const appliedListResponseId = useRef(0);
 
   const apiCallRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isIntervalModeRef = useRef<boolean>(false);
 
   const acceptListResponse = useCallback((response: { status: number }) => {
     if (response.status === 200) {
@@ -66,6 +67,7 @@ const OutStockRequestList: React.FC = () => {
   }, [dispatch, acceptListResponse]);
 
   const getInitialState = useCallback(() => {
+    isIntervalModeRef.current = false;
     setIsLoading(false);
     setModalShow(false);
     setQueryResult({});
@@ -83,7 +85,9 @@ const OutStockRequestList: React.FC = () => {
     loadingWaitHandleList();
 
     apiCallRef.current = setInterval(() => {
-      loadingWaitHandleList();
+      if (!isIntervalModeRef.current) {
+        loadingWaitHandleList();
+      }
     }, refreshTime);
 
     return () => {
@@ -109,23 +113,22 @@ const OutStockRequestList: React.FC = () => {
     const newQueryResult = (queryResultFromStore.outStockRequests?.queryResult as QueryResult | undefined) || {};
 
     if (!equal(queryResult, newQueryResult)) {
-      const selectedList: SelectedUser[] = [];
-
-      if (queryResultFromStore.outStockRequests?.userList !== undefined) {
-        [...queryResultFromStore.outStockRequests.userList]
-          .sort()
-          .forEach((element, index) => {
-            selectedList.push({
-              user: element,
-              selected: true,
-              index: index
-            });
-          });
-      }
+      const sortedUsers = queryResultFromStore.outStockRequests?.userList
+        ? [...queryResultFromStore.outStockRequests.userList].sort()
+        : [];
 
       setQueryResult(newQueryResult);
       setUserList(queryResultFromStore.outStockRequests?.userList || []);
-      setSelectedUserList(selectedList);
+      setSelectedUserList((prevSelectedList) => {
+        const prevSelectedByUser = new Map(
+          prevSelectedList.map((item) => [item.user, item.selected])
+        );
+        return sortedUsers.map((element, index) => ({
+          user: element,
+          selected: prevSelectedByUser.get(element) ?? true,
+          index
+        }));
+      });
     }
   }, [queryResultFromStore, queryResult, listResponseId]);
 
@@ -142,18 +145,22 @@ const OutStockRequestList: React.FC = () => {
     }
   }, []);
 
-  const handleDateSelectionModeClick = useCallback(() => {
-    const startDateStr = formatLocalDateTime(startDate);
-    const endDateStr = formatLocalDateTime(endDate);
+  const handleDateSelectionModeClick = useCallback(
+    (nextStart?: Date, nextEnd?: Date) => {
+      const startDateStr = formatLocalDateTime(nextStart ? dayOfStart(nextStart) : startDate);
+      const endDateStr = formatLocalDateTime(nextEnd ? dayOfEnd(nextEnd) : endDate);
 
-    setIsLoading(true);
-    dispatch(getWaitHandleListWithInterval(startDateStr, endDateStr)).then(response => {
-      acceptListResponse(response);
-    }).catch((error) => {
-      setIsLoading(false);
-      notifyRequestFailed(error);
-    });
-  }, [dispatch, startDate, endDate, acceptListResponse]);
+      isIntervalModeRef.current = true;
+      setIsLoading(true);
+      dispatch(getWaitHandleListWithInterval(startDateStr, endDateStr)).then(response => {
+        acceptListResponse(response);
+      }).catch((error) => {
+        setIsLoading(false);
+        notifyRequestFailed(error);
+      });
+    },
+    [dispatch, startDate, endDate, acceptListResponse]
+  );
 
   const handleSubmitClick = useCallback((outStockUpdateRequest: OutStockUpdateRequest) => {
     setIsLoading(true);
@@ -194,9 +201,9 @@ const OutStockRequestList: React.FC = () => {
     setHandlingInfo(info);
   }, []);
 
-  const handleRollBackShipStatus = useCallback((id: number) => {
+  const handleRollBackShipStatus = useCallback((id: number): Promise<void> => {
     setIsLoading(true);
-    dispatch(stockIdentifierIsNotShiped(id)).then(res => {
+    return dispatch(stockIdentifierIsNotShiped(id)).then(res => {
       if (res.status === 200) {
         getInitialState();
       }
@@ -206,9 +213,9 @@ const OutStockRequestList: React.FC = () => {
     });
   }, [dispatch, getInitialState]);
 
-  const handleDeleteOutStockRequest = useCallback((id: number) => {
+  const handleDeleteOutStockRequest = useCallback((id: number): Promise<void> => {
     setIsLoading(true);
-    dispatch(deleteOutStockRequest(id)).then(res => {
+    return dispatch(deleteOutStockRequest(id)).then(res => {
       if (res.status === 200) {
         getInitialState();
       }

@@ -54,11 +54,18 @@ class SearchBoard extends Component<SearchBoardProps, SearchBoardState> {
 
   componentDidUpdate(prevProps: SearchBoardProps): void {
     if (!equal(prevProps.queryResult, this.props.queryResult)) {
+      const prevWasEmpty = Object.keys(prevProps.queryResult ?? {}).length === 0;
       this.setState({
-        toBeSubmit: this.initialToBeSubmit(
-          this.props.queryResult,
-          this.props.selectedUserList
-        )
+        toBeSubmit: prevWasEmpty
+          ? this.initialToBeSubmit(
+              this.props.queryResult,
+              this.props.selectedUserList
+            )
+          : this.retainVisibleToBeSubmit(
+              this.state.toBeSubmit,
+              this.props.queryResult,
+              this.props.selectedUserList
+            )
       });
     } else if (
       this.props.queryResult !== undefined &&
