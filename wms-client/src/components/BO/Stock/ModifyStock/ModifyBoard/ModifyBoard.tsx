@@ -229,10 +229,10 @@ const ModifyBoard: React.FC = () => {
     setModalShow_OutStock(true);
   }, []);
 
-  const infoSimplify = useCallback((): StockIdentifier[] => {
+  const shippableIdentifiers = useMemo((): StockIdentifier[] => {
     const identifiers: StockIdentifier[] = [];
     stockInfoes.forEach((info) => {
-      if (info.stockIdentifier) {
+      if (info.stockIdentifier && !info.stockIdentifier.waitToShrink) {
         identifiers.push(info.stockIdentifier);
       }
     });
@@ -274,6 +274,7 @@ const ModifyBoard: React.FC = () => {
             <Button
               variant="info"
               size="sm"
+              disabled={shippableIdentifiers.length === 0}
               onClick={handleModalShow_BatchShip}
             >
               {"\u6279\u91cf\u51fa\u5eab"}
@@ -286,7 +287,7 @@ const ModifyBoard: React.FC = () => {
               handleModalClose={handleModalClose_BatchShip}
               handleShipList={handleShipList}
               typeValidation={typeValidation}
-              data={infoSimplify() as Parameters<typeof BatchShipModal>[0]['data']}
+              data={shippableIdentifiers as Parameters<typeof BatchShipModal>[0]['data']}
             />
           ) : null}
         </div>

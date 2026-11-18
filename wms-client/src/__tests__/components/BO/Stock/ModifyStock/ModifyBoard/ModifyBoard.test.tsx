@@ -15,6 +15,7 @@ interface StockIdentifier {
   productNo: string;
   lotNo?: string;
   type: string;
+  waitToShrink?: boolean;
 }
 
 interface StockInfo {
@@ -334,5 +335,74 @@ describe('ModifyBoard', () => {
       expect(screen.queryByText('LOT-OLD')).not.toBeInTheDocument();
       expect(screen.getByText('查無庫存資料')).toBeInTheDocument();
     });
+  });
+
+  test('excludes waitToShrink items from BatchShipModal and disables 批量出庫 when all shrink (C-6)', async () => {
+    const mixedState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001' },
+          prevProduct: null,
+          nextProduct: null,
+          result: [
+            {
+              stockIdentifier: { id: 1, productNo: 'PROD-001', lotNo: 'LOT-READY', type: '板卷', waitToShrink: false },
+              stockInfo: { defect: 'none' },
+            },
+            {
+              stockIdentifier: { id: 2, productNo: 'PROD-001', lotNo: 'LOT-SHRINKING', type: '板卷', waitToShrink: true },
+              stockInfo: { defect: 'none' },
+            },
+          ],
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    };
+    mockGetStockInfoes.mockResolvedValue({ status: 200 });
+
+    const { rerender } = renderWithRedux(<ModifyBoard />, { initialState });
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'PROD-001', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(mixedState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    const batchBtn = await screen.findByRole('button', { name: '批量出庫' });
+    expect(batchBtn).toBeEnabled();
+    fireEvent.click(batchBtn);
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('LOT-READY')).toBeInTheDocument();
+    expect(within(dialog).queryByText('LOT-SHRINKING')).not.toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '取消' }));
+
+    const allShrinkingState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001' },
+          prevProduct: null,
+          nextProduct: null,
+          result: [
+            {
+              stockIdentifier: { id: 2, productNo: 'PROD-001', lotNo: 'LOT-SHRINKING', type: '板卷', waitToShrink: true },
+              stockInfo: { defect: 'none' },
+            },
+          ],
+          productList: [{ type: '板卷', quantity: 5, unit: '碼' }],
+        },
+      },
+    };
+    rerender(
+      <Provider store={mockStore(allShrinkingState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    expect(screen.getByRole('button', { name: '批量出庫' })).toBeDisabled();
   });
 });

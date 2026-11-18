@@ -59,4 +59,33 @@ describe('BatchShipModal', () => {
     fireEvent.click(saveBtn);
     expect(handleShipList).toHaveBeenCalledWith([{ stockIdentifierId: 1, reason: '中壢' }]);
   });
+
+  test('disables selection and excludes waitToShrink items from batch shipping', () => {
+    const handleShipList = vi.fn();
+    const mixedRows = [
+      { id: 1, productNo: 'CF1001', lotNo: 'L1', type: '整支', quantity: 10, unit: '碼', waitToShrink: false },
+      { id: 2, productNo: 'CF1001', lotNo: 'L2', type: '整支', quantity: 5, unit: '碼', waitToShrink: true },
+    ];
+
+    render(
+      <BatchShipModal
+        show
+        isLoading={false}
+        handleModalClose={vi.fn()}
+        handleShipList={handleShipList}
+        data={mixedRows}
+      />
+    );
+
+    const dialog = screen.getByRole('dialog');
+    const rowCheckboxes = within(dialog).getAllByRole('checkbox', { name: /Select row/i });
+    expect(rowCheckboxes[0]).toBeEnabled();
+    expect(rowCheckboxes[1]).toBeDisabled();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '中壢' }));
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: /Select all rows/i }));
+    fireEvent.click(within(dialog).getByRole('button', { name: '儲存選取項目' }));
+
+    expect(handleShipList).toHaveBeenCalledWith([{ stockIdentifierId: 1, reason: '中壢' }]);
+  });
 });

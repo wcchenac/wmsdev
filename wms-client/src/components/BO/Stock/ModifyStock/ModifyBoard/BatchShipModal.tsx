@@ -15,6 +15,7 @@ interface StockIdentifierData {
   type?: string;
   quantity?: number;
   unit?: string;
+  waitToShrink?: boolean;
 }
 
 
@@ -56,7 +57,7 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
   }, []);
 
   const selectedCount = useMemo(
-    () => data.filter((item) => isRowSelected(selectedIds, item.id)).length,
+    () => data.filter((item) => !item.waitToShrink && isRowSelected(selectedIds, item.id)).length,
     [data, selectedIds]
   );
 
@@ -64,7 +65,9 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
     if (isLoading) {
       return;
     }
-    const selectedRows = data.filter((item) => isRowSelected(selectedIds, item.id));
+    const selectedRows = data.filter(
+      (item) => !item.waitToShrink && isRowSelected(selectedIds, item.id)
+    );
     const shipList: ShipRequest[] = selectedRows.map((identifier) => ({
       stockIdentifierId: identifier.id,
       reason: outStockReason
@@ -132,6 +135,7 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
                 rows={rows}
                 columns={columns}
                 checkboxSelection
+                isRowSelectable={(params) => !params.row.waitToShrink}
                 onRowSelectionModelChange={(ids) => setSelectedIds(ids)}
                 rowSelectionModel={selectedIds}
                 disableRowSelectionOnClick
