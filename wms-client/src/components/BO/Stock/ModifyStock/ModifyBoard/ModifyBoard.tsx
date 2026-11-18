@@ -65,6 +65,7 @@ const ModifyBoard: React.FC = () => {
   const [modalShow_BatchShip, setModalShow_BatchShip] = useState<boolean>(false);
   const [modalShow_OutStock, setModalShow_OutStock] = useState<boolean>(false);
   const [productNo, setProductNo] = useState<string>("");
+  const [queriedProductNo, setQueriedProductNo] = useState<string>("");
   const [prevProduct, setPrevProduct] = useState<string>("");
   const [nextProduct, setNextProduct] = useState<string>("");
   const [productInfo, setProductInfo] = useState<ProductInfo>({});
@@ -80,11 +81,18 @@ const ModifyBoard: React.FC = () => {
       stockInfoesData?.information?.productNo !== undefined
     ) {
       setProductNo(stockInfoesData.information.productNo);
+      setQueriedProductNo(stockInfoesData.information.productNo);
       setPrevProduct(stockInfoesData.prevProduct || "");
       setNextProduct(stockInfoesData.nextProduct || "");
       setProductInfo(stockInfoesData.information);
       setStockInfoes(stockInfoesData.result || []);
       setStockQuantity(stockInfoesData.productList || []);
+    } else {
+      setPrevProduct("");
+      setNextProduct("");
+      setProductInfo({});
+      setStockInfoes([]);
+      setStockQuantity([]);
     }
   });
 
@@ -96,6 +104,7 @@ const ModifyBoard: React.FC = () => {
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setIsLoading(true);
+      setQueriedProductNo(productNo);
       dispatch(getStockInfoes(productNo)).then((response) => {
         if (response.status === 200) {
           setIsQuery(true);
@@ -114,6 +123,8 @@ const ModifyBoard: React.FC = () => {
       e.preventDefault();
       const select = e.currentTarget.value;
       setIsLoading(true);
+      setProductNo(select);
+      setQueriedProductNo(select);
       dispatch(getStockInfoes(select)).then((response) => {
         if (response.status === 200) {
           setIsQuery(true);
@@ -250,7 +261,7 @@ const ModifyBoard: React.FC = () => {
     }
 
     if (stockInfoes.length === 0) {
-      return <QueryResponseWithNoStock />;
+      return <QueryResponseWithNoStock productNo={queriedProductNo} />;
     }
 
     return (

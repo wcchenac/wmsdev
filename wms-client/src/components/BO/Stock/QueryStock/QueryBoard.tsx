@@ -48,19 +48,26 @@ const QueryBoard: React.FC = () => {
   // left in the shared stockInfo slice (componentDidUpdate in dev).
   useUpdateEffect(stockInfo.stockInfoes, (result) => {
     const reduxStockInfoes = result as StockInfoesResponse | undefined;
+    const infoProductNo = reduxStockInfoes?.information?.productNo;
 
     if (
-      reduxStockInfoes &&
-      reduxStockInfoes.information &&
-      reduxStockInfoes.information.productNo !== null
+      reduxStockInfoes?.information &&
+      infoProductNo !== null &&
+      infoProductNo !== undefined
     ) {
-      setProductNo(reduxStockInfoes.information.productNo || "");
-      setQueriedProductNo(reduxStockInfoes.information.productNo || "");
+      setProductNo(infoProductNo);
+      setQueriedProductNo(infoProductNo);
       setPrevProduct(reduxStockInfoes.prevProduct || "");
       setNextProduct(reduxStockInfoes.nextProduct || "");
       setProductInfo(reduxStockInfoes.information);
       setStockInfoes(reduxStockInfoes.result || []);
       setStockQuantity(reduxStockInfoes.productList || []);
+    } else {
+      setPrevProduct("");
+      setNextProduct("");
+      setProductInfo({});
+      setStockInfoes([]);
+      setStockQuantity([]);
     }
   });
 
@@ -96,6 +103,7 @@ const QueryBoard: React.FC = () => {
       const select = e.currentTarget.value;
 
       setIsLoading(true);
+      setProductNo(select);
       setQueriedProductNo(select);
 
       dispatch(getStockInfoesBasic(select)).then((response: { status: number }) => {

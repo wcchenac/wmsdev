@@ -95,4 +95,63 @@ describe.each([
 
     expect(screen.getByTestId('no-stock-response')).toHaveTextContent('CF9999');
   });
+
+  test('clears previous product stock when a later query returns no stock (C-4)', async () => {
+    const validStore = mockStore({
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'CF1001' },
+          result: [{ id: 1, stockIdentifier: { id: 1, productNo: 'CF1001', lotNo: 'LOT-VALID', type: '板卷', quantity: 10, unit: '碼' } }],
+          prevProduct: 'CF1000',
+          nextProduct: 'CF1002',
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    });
+    const emptyStore = mockStore({
+      stockInfo: {
+        stockInfoes: { information: { productNo: null }, result: [], prevProduct: '', nextProduct: '', productList: [] },
+      },
+    });
+
+    const { rerender } = render(
+      <Provider store={validStore}>
+        <Board />
+      </Provider>
+    );
+    await query('CF1001');
+    rerender(
+      <Provider store={validStore}>
+        <Board />
+      </Provider>
+    );
+    // Simulate new stockInfoes arriving after mount
+    const validStore2 = mockStore({
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'CF1001' },
+          result: [{ id: 1, stockIdentifier: { id: 1, productNo: 'CF1001', lotNo: 'LOT-VALID', type: '板卷', quantity: 10, unit: '碼' } }],
+          prevProduct: 'CF1000',
+          nextProduct: 'CF1002',
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    });
+    rerender(
+      <Provider store={validStore2}>
+        <Board />
+      </Provider>
+    );
+    expect(screen.getByText('LOT-VALID')).toBeInTheDocument();
+
+    await query('CF9999');
+    rerender(
+      <Provider store={emptyStore}>
+        <Board />
+      </Provider>
+    );
+
+    expect(screen.queryByText('LOT-VALID')).not.toBeInTheDocument();
+    expect(screen.getByTestId('no-stock-response')).toHaveTextContent('CF9999');
+  });
 });

@@ -276,4 +276,63 @@ describe('ModifyBoard', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(mockCreateOutStockRequest).toHaveBeenCalledTimes(1);
   });
+
+  test('clears previous stock rows when a subsequent query returns no stock (C-4)', async () => {
+    const validState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001', name: '布料A', category: '棉' },
+          prevProduct: 'PREV-1',
+          nextProduct: 'NEXT-1',
+          result: [
+            {
+              stockIdentifier: { id: 1, productNo: 'PROD-001', lotNo: 'LOT-OLD', type: '板卷' },
+              stockInfo: { defect: 'none' },
+            },
+          ],
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    };
+    const emptyState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: null },
+          prevProduct: null,
+          nextProduct: null,
+          result: [],
+          productList: [],
+        },
+      },
+    };
+    mockGetStockInfoes.mockResolvedValue({ status: 200 });
+
+    const { rerender } = renderWithRedux(<ModifyBoard />, { initialState });
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'PROD-001', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(validState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    expect(await screen.findByText('LOT-OLD')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'UNKNOWN-999', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(emptyState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText('LOT-OLD')).not.toBeInTheDocument();
+      expect(screen.getByText('查無庫存資料')).toBeInTheDocument();
+    });
+  });
 });
