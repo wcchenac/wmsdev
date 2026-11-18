@@ -30,7 +30,9 @@ const StockInfo: React.FC<StockInfoProps> = ({ typeValidation, stockInfo }) => {
           <td>{typeof stockInfo.defect === 'string' ? stockInfo.defect : ''}</td>
         </React.Fragment>
       )}
-      <td>{stockInfo.remark}</td>
+      <td className="stock-remark">
+        <div className="stock-remark-text">{stockInfo.remark}</div>
+      </td>
       <td>{stockIdentifier.firstInStockAt}</td>
     </tr>
   );

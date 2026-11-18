@@ -25,35 +25,35 @@ const ShrinkInfoContainer: React.FC<ShrinkInfoContainerProps> = ({
 
     return (
         <div className="table-wrapper-scroll-y scrollbar-75">
-            <table className="table table-hover table-actions-center">
+            <table className="table table-hover table-actions-center text-nowrap">
                 <thead className="table-dark">
                     <tr>
-                        <th style={{ width: '18%' }}>
+                        <th>
                             <div className="ps-3">貨號</div>
                         </th>
-                        <th style={{ width: '8%' }}>
+                        <th>
                             <div className="ps-1">批號</div>
                         </th>
-                        <th style={{ width: '8%' }}>
+                        <th>
                             {' '}
                             <div className="ps-2">型態</div>
                         </th>
-                        <th style={{ width: '9%' }}>
+                        <th>
                             {' '}
                             <div className="ps-1">數量</div>
                         </th>
-                        <th style={{ width: '8%' }}>
+                        <th>
                             {' '}
                             <div className="ps-1">單位</div>
                         </th>
-                        <th style={{ width: '7.5%' }}>色號</th>
-                        <th style={{ width: '9%' }}>
+                        <th>色號</th>
+                        <th>
                             {' '}
                             <div className="ps-2">瑕疵</div>
                         </th>
-                        <th style={{ width: '10.5%' }} />
-                        <th style={{ width: '10.5%' }} />
-                        <th style={{ width: '10.5%' }} />
+                        <th />
+                        <th />
+                        <th />
                     </tr>
                 </thead>
                 <tbody>

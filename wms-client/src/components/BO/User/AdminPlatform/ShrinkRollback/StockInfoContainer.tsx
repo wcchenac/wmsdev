@@ -13,25 +13,25 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
 }) => {
   return (
     <div className="table-wrapper-scroll-y scrollbar-70">
-      <table className="table table-sm table-hover table-actions-center">
+      <table className="table table-sm table-hover table-actions-center text-nowrap">
         <thead className="table-dark">
           <tr>
-            <th style={{ width: "20%" }}>
+            <th>
               <div className="ps-3">貨號</div>
             </th>
-            <th style={{ width: "10%" }}>
+            <th>
               <div className="ps-2">批號</div>
             </th>
-            <th style={{ width: "10%" }}>
+            <th>
               <div className="ps-2">型態</div>
             </th>
-            <th style={{ width: "20%" }}>
+            <th>
               <div className="ps-2">數量/單位</div>
             </th>
-            <th style={{ width: "20%" }}>
+            <th>
               <div className="ps-2">減肥日期</div>
             </th>
-            <th style={{ width: "20%" }}></th>
+            <th></th>
           </tr>
         </thead>
         <tbody>

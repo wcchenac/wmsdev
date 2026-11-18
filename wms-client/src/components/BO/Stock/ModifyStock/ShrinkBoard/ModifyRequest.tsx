@@ -173,10 +173,12 @@ const ModifyRequest: React.FC<ModifyRequestProps> = ({
                     </td>
                     <td>
                         <Select
+                            className="stock-defect-select"
                             closeMenuOnSelect
                             components={animatedComponents}
                             defaultValue={stockInfo.defect}
                             isMulti
+                            menuPosition="fixed"
                             name="defect"
                             options={[...DefectOptions]}
                             onChange={onDefectChange}

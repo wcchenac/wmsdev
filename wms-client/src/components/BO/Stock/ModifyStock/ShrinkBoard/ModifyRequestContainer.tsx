@@ -21,26 +21,26 @@ const ModifyRequestContainer: React.FC<ModifyRequestContainerProps> = ({
     handleReasonButton,
 }) => {
     return (
-        <div>
-            <table className="table">
+        <div className="table-responsive">
+            <table className="table table-actions-center text-nowrap">
                 <thead className="table-dark">
                     <tr>
                         {typeValidation ? (
                             <React.Fragment>
-                                <th style={{ width: '24%' }}>型態</th>
-                                <th style={{ width: '23%' }}>數量</th>
-                                <th style={{ width: '23%' }}>單位</th>
-                                <th style={{ width: '24%' }}>註解</th>
-                                <th style={{ width: '6%' }}>直出</th>
+                                <th>型態</th>
+                                <th>數量</th>
+                                <th>單位</th>
+                                <th>註解</th>
+                                <th>直出</th>
                             </React.Fragment>
                         ) : (
                             <React.Fragment>
-                                <th style={{ width: '20%' }}>型態</th>
-                                <th style={{ width: '14%' }}>數量</th>
-                                <th style={{ width: '14%' }}>單位</th>
-                                <th style={{ width: '23%' }}>瑕疵</th>
-                                <th style={{ width: '23%' }}>註解</th>
-                                <th style={{ width: '6%' }}>直出</th>
+                                <th>型態</th>
+                                <th>數量</th>
+                                <th>單位</th>
+                                <th>瑕疵</th>
+                                <th>註解</th>
+                                <th>直出</th>
                             </React.Fragment>
                         )}
                     </tr>

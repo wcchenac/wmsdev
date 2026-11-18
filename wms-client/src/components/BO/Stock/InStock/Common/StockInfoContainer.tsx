@@ -407,52 +407,54 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(functio
         assignRowNum={assignRowNum}
         isLoading={isLoading}
       />
-      <table className="table table-sm">
-        <thead className="table-dark">
-          <tr>
-            {typeValidation ? (
-              <React.Fragment>
-                <th style={{ width: "20%" }}>貨號</th>
-                <th style={{ width: "14%" }}>批號</th>
-                <th style={{ width: "14%" }}>型態</th>
-                <th style={{ width: "14%" }}>數量</th>
-                <th style={{ width: "14%" }}>單位</th>
-                <th style={{ width: "20%" }}>記錄</th>
-                <th style={{ width: "4%" }}>直出</th>
-              </React.Fragment>
-            ) : (
-              <React.Fragment>
-                <th style={{ width: "20%" }}>貨號</th>
-                <th style={{ width: "8%" }}>批號</th>
-                <th style={{ width: "8%" }}>型態</th>
-                <th style={{ width: "12%" }}>數量</th>
-                <th style={{ width: "8%" }}>單位</th>
-                <th style={{ width: "8%" }}>色號</th>
-                <th style={{ width: "16%" }}>瑕疵</th>
-                <th style={{ width: "16%" }}>記錄</th>
-                <th style={{ width: "4%" }}>直出</th>
-              </React.Fragment>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {stockInfoes.map((stockInfo, idx) => (
-            <StockInfo
-              key={idx}
-              index={idx}
-              typeValidation={typeValidation}
-              stockInfo={stockInfo}
-              errors={stockInfo.errors}
-              typeList={typeList}
-              handleInfoChange={handleInfoChange}
-              handleDefectChange={handleDefectChange}
-              handleShipCheck={handleShipCheck}
-              handleReasonButton={handleReasonButton}
-              disabled={isLoading}
-            />
-          ))}
-        </tbody>
-      </table>
+      <div className="table-responsive">
+        <table className="table table-sm table-actions-center text-nowrap">
+          <thead className="table-dark">
+            <tr>
+              {typeValidation ? (
+                <React.Fragment>
+                  <th>貨號</th>
+                  <th>批號</th>
+                  <th>型態</th>
+                  <th>數量</th>
+                  <th>單位</th>
+                  <th>記錄</th>
+                  <th>直出</th>
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  <th>貨號</th>
+                  <th>批號</th>
+                  <th>型態</th>
+                  <th>數量</th>
+                  <th>單位</th>
+                  <th>色號</th>
+                  <th>瑕疵</th>
+                  <th>記錄</th>
+                  <th>直出</th>
+                </React.Fragment>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {stockInfoes.map((stockInfo, idx) => (
+              <StockInfo
+                key={idx}
+                index={idx}
+                typeValidation={typeValidation}
+                stockInfo={stockInfo}
+                errors={stockInfo.errors}
+                typeList={typeList}
+                handleInfoChange={handleInfoChange}
+                handleDefectChange={handleDefectChange}
+                handleShipCheck={handleShipCheck}
+                handleReasonButton={handleReasonButton}
+                disabled={isLoading}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 });

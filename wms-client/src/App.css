@@ -297,7 +297,8 @@ html {
   vertical-align: top;
 }
 
-.stock-remark .btn-customize {
+.stock-remark .btn-customize,
+.stock-remark .stock-remark-text {
   white-space: normal;
   min-width: 8em;
   max-width: 20em;
@@ -312,7 +313,8 @@ html {
    > 1116px). The 五金 table (7 columns, .stock-table-hardware) fits its 936px box at 992-1199px
    with 8em but not with 14em (1018px), so it keeps 8em there (14em only below 992px, see below). */
 @media (max-width: 1199.98px) {
-  .table:not(.stock-table-hardware) .stock-remark .btn-customize {
+  .table:not(.stock-table-hardware) .stock-remark .btn-customize,
+  .table:not(.stock-table-hardware) .stock-remark .stock-remark-text {
     min-width: 14em;
   }
 }
@@ -320,7 +322,8 @@ html {
 /* Below 992px the 五金 table scrolls sideways even at 8em (922px in a 696px box), so it takes the
    14em minimum there too: a 255-character remark's row goes from 929px to 521px at no cost. */
 @media (max-width: 991.98px) {
-  .stock-table-hardware .stock-remark .btn-customize {
+  .stock-table-hardware .stock-remark .btn-customize,
+  .stock-table-hardware .stock-remark .stock-remark-text {
     min-width: 14em;
   }
 }
@@ -338,6 +341,27 @@ html {
    because App.css loads after components.css (index.tsx imports index.css, App.tsx App.css). */
 .table.table-actions-center tbody tr td.stock-actions {
   vertical-align: top;
+}
+
+/* Form controls inside a nowrap scrolling table keep a usable minimum width instead of
+   shrinking to the header's width when the table overflows. Text inputs take 80px: the 入庫
+   Step 3 detail table (4 text inputs, 3 selects at components.css' 100px, the 瑕疵 select) then
+   fits its 1084px box at 1200px; at 100px it was 1157px and scrolled. 80px still shows a value
+   like CF1001 or the 批號/數量/記錄 placeholders in full. The 瑕疵 multi-select keeps 140px:
+   at 130px two chosen defects (GA, GB) wrap onto a third line. */
+.table.text-nowrap .form-control {
+  min-width: 80px;
+}
+
+.table.text-nowrap .stock-defect-select {
+  min-width: 140px;
+}
+
+/* A validation message under an input (e.g. 數量's 請輸入純數字或數量不可空白) wraps within the
+   input's column; kept on one line by text-nowrap it widened the 入庫 Step 3 table past its box
+   at 1200px (1084px -> 1179px) and pushed 直出 out of view while the value was being fixed. */
+.table.text-nowrap .invalid-feedback {
+  white-space: normal;
 }
 
 /* ========================================

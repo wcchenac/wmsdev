@@ -242,10 +242,12 @@ const StockInfo: React.FC<StockInfoProps> = ({
           </td>
           <td>
             <Select
+              className="stock-defect-select"
               closeMenuOnSelect
               components={animatedComponents}
               defaultValue={stockInfo.defect as DefectOption[]}
               isMulti
+              menuPosition="fixed"
               name="defect"
               options={[...DefectOptions]}
               onChange={onDefectChange}
