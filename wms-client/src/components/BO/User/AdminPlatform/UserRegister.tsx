@@ -6,8 +6,8 @@ import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
 import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
-import "react-toastify/dist/ReactToastify.css";
 import { AppDispatch } from "../../../../types";
+import { Card, Button } from "../../../UI";
 
 interface UserRegisterState {
   isLoading: boolean;
@@ -100,12 +100,8 @@ const UserRegister: React.FC = () => {
       <LoadingOverlay active={state.isLoading} spinner={<Spinner />}>
         <div style={{ height: "80vh" }}>
           <div className="row justify-content-center">
-            <div
-              className="col-4"
-              style={{ border: "1px solid black", borderRadius: "5px" }}
-            >
-              <div className="mt-2 mb-3">
-                <p className="h5 text-center mb-3">註冊新員工</p>
+            <div className="col-12 col-sm-10 col-md-6 col-lg-5">
+              <Card title="註冊新員工">
                 <form onSubmit={handleSubmit}>
                   <div className="mb-3 row">
                     <label htmlFor="employeeId" className="col-4 col-form-label">
@@ -177,17 +173,18 @@ const UserRegister: React.FC = () => {
                   </div>
                   <div className="row justify-content-center">
                     <div className="col-6">
-                      <button
+                      <Button
                         type="submit"
-                        className="btn btn-primary w-100"
+                        variant="primary"
+                        block
                         disabled={submissionValidate()}
                       >
                         註冊
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </form>
-              </div>
+              </Card>
             </div>
           </div>
         </div>

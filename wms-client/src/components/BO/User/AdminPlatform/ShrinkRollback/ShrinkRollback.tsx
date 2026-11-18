@@ -8,6 +8,7 @@ import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
 import QueryProductInformation, { ProductNoChange } from "../../../Stock/Utilities/QueryProductInformation";
 import StockInfoContainer from "./StockInfoContainer";
+import { Alert } from "../../../../UI";
 import { RootState, ShrinkRollbackObject } from "../../../../../types";
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
@@ -97,9 +98,9 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
         return (
           <div className="row justify-content-md-center">
             <div className="col-md-6">
-              <div className="alert alert-warning" role="alert">
+              <Alert variant="warning" showIcon={false}>
                 <p className="h5 text-center mb-0">查無此貨號資料</p>
-              </div>
+              </Alert>
             </div>
           </div>
         );
@@ -141,9 +142,9 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
             />
           </div>
           <div className="col-md-auto">
-            <button className="btn-customize" disabled>
-              <small className="text-muted">預設查詢最近五筆</small>
-            </button>
+            <span className="form-text text-muted d-inline-block py-2">
+              預設查詢最近五筆
+            </span>
           </div>
         </div>
         <hr />

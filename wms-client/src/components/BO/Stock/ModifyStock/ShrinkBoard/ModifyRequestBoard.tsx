@@ -14,6 +14,7 @@ import ShrinkConfirmModal from './ShrinkConfirmModal';
 import { calculateInfoLength } from './calculateInfoLength';
 import LoadingOverlay from '@achmadk/react-loading-overlay';
 import { Spinner } from '../../../../Others/Spinner';
+import { Alert } from '../../../../UI';
 import { StockInfo, ShrinkStockRequest, ShrinkStockInStockRequest } from '../../../../../types';
 
 export interface NewStockInfoItem {
@@ -411,12 +412,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                     isLoading={isLoading}
                 />
                 {newStockInfoes.length === 0 ? (
-                    <div
-                        className="alert alert-warning text-center"
-                        role="alert"
-                    >
-                        請新增資料
-                    </div>
+                    <Alert variant="warning" showIcon={false} className="text-center">請新增資料</Alert>
                 ) : (
                     <div>
                         <ModifyRequestContainer

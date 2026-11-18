@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { RootState } from "../../../../store";
 import { AppDispatch, SelectOption } from "../../../../types";
 import { isSelectOption } from "../../../../utilities/selectOption";
+import { Card, Button } from "../../../UI";
 
 const animatedComponents = makeAnimated();
 
@@ -59,24 +60,31 @@ const StockCategory: React.FC = () => {
       <LoadingOverlay active={isLoading} spinner={<Spinner />}>
         <div style={{ height: "80vh" }}>
           <div className="row justify-content-center">
-            <div className="col-6">
-              <label>請選擇想要輸出的分類...</label>
-              <Select<SelectOption, false>
-                closeMenuOnSelect
-                components={animatedComponents}
-                isSearchable
-                isClearable
-                options={options}
-                onChange={handleCategorySelect}
-              />
-              <br />
-              <button
-                type="button"
-                className="btn btn-success w-100"
-                onClick={handleSubmit}
-              >
-                送出
-              </button>
+            <div className="col-12 col-md-8 col-lg-6">
+              <Card title="庫存分類本匯出">
+                <label htmlFor="react-select-stock-category" className="form-label">
+                  請選擇想要輸出的分類...
+                </label>
+                <Select<SelectOption, false>
+                  inputId="react-select-stock-category"
+                  closeMenuOnSelect
+                  components={animatedComponents}
+                  isSearchable
+                  isClearable
+                  options={options}
+                  onChange={handleCategorySelect}
+                />
+                <div className="mt-3">
+                  <Button
+                    type="button"
+                    variant="success"
+                    block
+                    onClick={handleSubmit}
+                  >
+                    送出
+                  </Button>
+                </div>
+              </Card>
             </div>
           </div>
         </div>

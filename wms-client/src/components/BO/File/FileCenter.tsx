@@ -12,6 +12,7 @@ import {
 } from "../../../actions/FileActions";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../Others/Spinner";
+import { PageHeader } from "../../UI";
 import { RootState, AppDispatch } from "../../../types";
 
 type FileCategoryKey = "adjustment" | "allocation" | "dailyComparison" | "categoryDetail";
@@ -112,31 +113,14 @@ const FileCenter: React.FC = () => {
   return (
     <div className="fileCenter">
       <div className="container">
-        {/* Page Header - RWD */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--spacing-3)',
-            marginBottom: 'var(--spacing-3)',
-          }}
-        >
-          <i
-            className="fa fa-download"
-            style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-xl)' }}
-            aria-hidden="true"
-          />
-          <h4
-            style={{
-              margin: 0,
-              color: 'var(--color-gray-800)',
-              fontWeight: 'var(--font-weight-semibold)',
-            }}
-          >
-            檔案下載
-          </h4>
-        </div>
-        <hr />
+        <PageHeader
+          title={
+            <>
+              <i className="fa fa-download me-2 text-primary" aria-hidden="true" />
+              檔案下載
+            </>
+          }
+        />
         <LoadingOverlay active={isLoading} spinner={<Spinner />}>
           <div style={{ minHeight: "80vh" }}>
             {/* First Row - RWD Grid */}

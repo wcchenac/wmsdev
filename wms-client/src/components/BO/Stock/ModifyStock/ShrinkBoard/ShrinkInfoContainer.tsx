@@ -1,5 +1,6 @@
 import React from 'react';
 import ShrinkInfo from './ShrinkInfo';
+import { EmptyState } from '../../../../UI';
 import { StockInfo } from '../../../../../types';
 
 type ModifyType = 'typeExchange' | 'sameTypeModify' | 'hardwareModify';
@@ -17,9 +18,12 @@ const ShrinkInfoContainer: React.FC<ShrinkInfoContainerProps> = ({
 }) => {
     if (shrinkList.length === 0) {
         return (
-            <div className="alert alert-warning text-center" role="alert">
-                查無資料
-            </div>
+            <EmptyState
+                type="search"
+                title="查無資料"
+                description="目前沒有待減肥項目"
+                compact
+            />
         );
     }
 
@@ -51,9 +55,15 @@ const ShrinkInfoContainer: React.FC<ShrinkInfoContainerProps> = ({
                             {' '}
                             <div className="ps-2">瑕疵</div>
                         </th>
-                        <th />
-                        <th />
-                        <th />
+                        <th>
+                            <span className="visually-hidden">異動方式</span>
+                        </th>
+                        <th>
+                            <span className="visually-hidden">異動按鈕</span>
+                        </th>
+                        <th>
+                            <span className="visually-hidden">取消減肥</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>

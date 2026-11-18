@@ -12,6 +12,7 @@ import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
 import { isEmpty } from "../../../../../utilities/IsEmpty";
 import StockInfoContainer from "./StockInfoContainer";
+import { Alert } from "../../../../UI";
 import { RootState, InStockRollbackResult, AppDispatch } from "../../../../../types";
 
 const InStockRollback: React.FC = () => {
@@ -88,9 +89,9 @@ const InStockRollback: React.FC = () => {
         return (
           <div className="row justify-content-md-center">
             <div className="col-md-6">
-              <div className="alert alert-warning" role="alert">
+              <Alert variant="warning" showIcon={false}>
                 <p className="h5 text-center mb-0">查無此單號資料</p>
-              </div>
+              </Alert>
             </div>
           </div>
         );
@@ -109,11 +110,12 @@ const InStockRollback: React.FC = () => {
     <div className="container">
       <form onSubmit={handleOrderQuerySubmit}>
         <div className="row mb-0">
-          <label className="col-md-auto col-form-label text-center">
+          <label htmlFor="instock-rollback-orderType" className="col-md-auto col-form-label text-center">
             進貨方式:
           </label>
           <div className="col-md-auto">
             <select
+              id="instock-rollback-orderType"
               className="form-select"
               name="orderType"
               value={orderType}
@@ -126,11 +128,12 @@ const InStockRollback: React.FC = () => {
               ))}
             </select>
           </div>
-          <label className="col-md-auto col-form-label text-center">
+          <label htmlFor="instock-rollback-orderNo" className="col-md-auto col-form-label text-center">
             單號:
           </label>
           <div className="col-md-auto">
             <input
+              id="instock-rollback-orderNo"
               className="form-control"
               type="text"
               name="orderNo"
