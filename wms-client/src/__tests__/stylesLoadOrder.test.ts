@@ -7,6 +7,7 @@ describe('CSS load order and scoped table action selector', () => {
   test('loads bootstrap CSS before custom index.css and App.css', () => {
     const indexSource = readFileSync(join(srcDir, 'index.tsx'), 'utf8');
     const appSource = readFileSync(join(srcDir, 'App.tsx'), 'utf8');
+    const storybookPreviewSource = readFileSync(join(process.cwd(), '.storybook', 'preview.tsx'), 'utf8');
 
     const bootstrapToken = "bootstrap/dist/css/bootstrap.min.css";
     expect(indexSource.indexOf(bootstrapToken)).toBeGreaterThan(-1);
@@ -14,6 +15,13 @@ describe('CSS load order and scoped table action selector', () => {
 
     expect(appSource.indexOf(bootstrapToken)).toBeGreaterThan(-1);
     expect(appSource.indexOf(bootstrapToken)).toBeLessThan(appSource.indexOf('./App.css'));
+
+    const previewBootstrap = storybookPreviewSource.indexOf(bootstrapToken);
+    const previewIndex = storybookPreviewSource.indexOf('../src/index.css');
+    const previewApp = storybookPreviewSource.indexOf('../src/App.css');
+    expect(previewBootstrap).toBeGreaterThan(-1);
+    expect(previewBootstrap).toBeLessThan(previewIndex);
+    expect(previewIndex).toBeLessThan(previewApp);
   });
 
   // App.css loads after Bootstrap. Its small-screen modal spacing must go through Bootstrap's

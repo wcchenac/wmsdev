@@ -3,6 +3,8 @@ import type { Preview } from "@storybook/react-vite";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { MemoryRouter } from "react-router";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../src/index.css";
+import "../src/App.css";
 
 const theme = createTheme();
 
