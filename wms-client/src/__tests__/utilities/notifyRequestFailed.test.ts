@@ -1,5 +1,5 @@
 import { toast } from 'react-toastify';
-import { REQUEST_FAILED_MESSAGE, notifyRequestFailed, responseStatus } from '../../utilities/notifyRequestFailed';
+import { REQUEST_FAILED_MESSAGE, isRefreshFailure, markRefreshFailure, notifyRequestFailed, responseStatus } from '../../utilities/notifyRequestFailed';
 
 // The backend's own message is shown only for a 4xx answer that has a non-empty message the
 // app wrote (a request the user can correct). Server errors, Spring's default error bodies
@@ -50,6 +50,23 @@ describe('notifyRequestFailed', () => {
   test('the backend message is trimmed', () => {
     notifyRequestFailed(failure(400, { message: '  查無此貨號 \n' }));
     expect(toast.error).toHaveBeenCalledWith('查無此貨號');
+  });
+
+  test('shows the refresh-failure message when marked and non-401', () => {
+    const error = failure(500, {});
+    markRefreshFailure(error, '已完成，但重整失敗');
+
+    expect(isRefreshFailure(error)).toBe(true);
+    notifyRequestFailed(error);
+    expect(toast.error).toHaveBeenCalledWith('已完成，但重整失敗');
+  });
+
+  test('401 still suppresses toast even if marked as refresh failure', () => {
+    const error = failure(401, {});
+    markRefreshFailure(error, '已完成，但重整失敗');
+
+    notifyRequestFailed(error);
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });
 

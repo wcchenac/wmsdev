@@ -2,6 +2,26 @@ import { toast } from "react-toastify";
 
 export const REQUEST_FAILED_MESSAGE = "操作失敗，請稍後再試";
 
+const refreshFailureMessages = new WeakMap<object, string>();
+
+/**
+ * Marks a thrown refresh-query error after a mutation already succeeded, without mutating
+ * properties on the error object itself.
+ */
+export function markRefreshFailure(error: unknown, message: string): void {
+  if (typeof error === "object" && error !== null) {
+    refreshFailureMessages.set(error, message);
+  }
+}
+
+/**
+ * Returns true when an error came from the follow-up refresh query of a two-step action whose
+ * mutation step already succeeded on the server.
+ */
+export function isRefreshFailure(error: unknown): boolean {
+  return typeof error === "object" && error !== null && refreshFailureMessages.has(error);
+}
+
 /**
  * Spring's own error body ({ timestamp, status, error, message, path }), whose message is for
  * developers ("Access Denied", "No message available", "Required request body is missing").
@@ -63,6 +83,13 @@ export function notifyRequestFailed(error: unknown): void {
   // API.ts already tells the user the session expired and sends them to /login.
   if (isSessionExpired(error)) {
     return;
+  }
+  if (typeof error === "object" && error !== null) {
+    const refreshMessage = refreshFailureMessages.get(error);
+    if (refreshMessage !== undefined) {
+      toast.error(refreshMessage);
+      return;
+    }
   }
   toast.error(clientErrorMessage(error) ?? REQUEST_FAILED_MESSAGE);
 }

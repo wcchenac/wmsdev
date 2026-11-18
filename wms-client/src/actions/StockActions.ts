@@ -1,5 +1,6 @@
 import { AxiosResponse } from "axios";
 import API from "../utilities/API";
+import { mutateThenRefresh } from "../utilities/mutateThenRefresh";
 import { RollbackError, rollbackThenQueryList } from "../utilities/rollbackRequest";
 import {
   GET_Order,
@@ -244,29 +245,24 @@ export const stockIdentifierIsShiped =
 
 export const stockIdentifiersAreShiped =
   (productNo: string, shipRequests: ShipRequest[]) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      await API.patch("/api/stock/shipStocks", shipRequests);
-
-      const res = await API.get(
-        `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
-      );
-
-      dispatch({
-        type: SHIP_Stocks,
-        payload: res.data,
-      });
-
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "批次出貨操作失敗" },
-      });
-      throw err;
-    }
-  };
+  async (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    mutateThenRefresh({
+      dispatch,
+      errorType: GET_Errors,
+      mutate: () => API.patch("/api/stock/shipStocks", shipRequests),
+      mutateErrorMessage: "批次出貨操作失敗",
+      refresh: async () => {
+        const res = await API.get(
+          `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
+        );
+        dispatch({
+          type: SHIP_Stocks,
+          payload: res.data,
+        });
+        return res;
+      },
+      refreshErrorMessage: "批次出貨已完成，但重新整理庫存失敗，請重新查詢",
+    });
 
 export const stockIdentifierIsNotShiped =
   (stockIdentifierId: number) =>
@@ -287,31 +283,26 @@ export const stockIdentifierIsNotShiped =
 
 export const stockIdentifierWaitToShrinkIsTrue =
   (stockIdentifierId: number) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      const result = await API.patch(
-        `/api/stock/waitToShrink/${encodeURIComponent(stockIdentifierId)}`
-      );
-      const productNo: string = result.data;
-      const res = await API.get(
-        `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
-      );
-
-      dispatch({
-        type: SHRINK_Stock,
-        payload: res.data,
-      });
-
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "設定待減肥失敗" },
-      });
-      throw err;
-    }
-  };
+  async (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    mutateThenRefresh({
+      dispatch,
+      errorType: GET_Errors,
+      mutate: () =>
+        API.patch(`/api/stock/waitToShrink/${encodeURIComponent(stockIdentifierId)}`),
+      mutateErrorMessage: "設定待減肥失敗",
+      refresh: async (result) => {
+        const productNo: string = result.data;
+        const res = await API.get(
+          `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
+        );
+        dispatch({
+          type: SHRINK_Stock,
+          payload: res.data,
+        });
+        return res;
+      },
+      refreshErrorMessage: "設定待減肥已完成，但重新整理庫存失敗，請重新查詢",
+    });
 
 export const stockIdentifierWaitToShrinkIsFalse =
   (stockIdentifierId: number) =>
@@ -490,29 +481,25 @@ export const shrinkRollback =
 
 export const updateStockInfo =
   (updateInfoRequest: UpdateStockInfoRequest) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      const result = await API.patch("/api/stock/updateStock", updateInfoRequest);
-      const productNo: string = result.data;
-      const res = await API.get(
-        `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
-      );
-
-      dispatch({
-        type: UPDATE_StockInfo,
-        payload: res.data,
-      });
-
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: UPDATE_Errors,
-        payload: error.response?.data || { message: "更新庫存資訊失敗" },
-      });
-      throw err;
-    }
-  };
+  async (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    mutateThenRefresh({
+      dispatch,
+      errorType: UPDATE_Errors,
+      mutate: () => API.patch("/api/stock/updateStock", updateInfoRequest),
+      mutateErrorMessage: "更新庫存資訊失敗",
+      refresh: async (result) => {
+        const productNo: string = result.data;
+        const res = await API.get(
+          `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
+        );
+        dispatch({
+          type: UPDATE_StockInfo,
+          payload: res.data,
+        });
+        return res;
+      },
+      refreshErrorMessage: "更新庫存資訊已完成，但重新整理庫存失敗，請重新查詢",
+    });
 
 export const createOutStockRequest =
   (outStockRequest: OutStockRequestCreate) =>

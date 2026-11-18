@@ -15,7 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import { RootState } from "../../../../../store";
 import { AppDispatch, UpdateUserRequest, User } from "../../../../../types";
-import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { isRefreshFailure, notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { toast } from "react-toastify";
 
 interface UserRow extends User {
@@ -63,7 +63,12 @@ const UserManagement: React.FC = () => {
         setSelectedData({});
         toast.success("已更新員工資料");
       })
-      .catch(notifyRequestFailed)
+      .catch((error) => {
+        if (isRefreshFailure(error)) {
+          setSelectedData({});
+        }
+        notifyRequestFailed(error);
+      })
       .finally(() => {
         setIsLoading(false);
       });

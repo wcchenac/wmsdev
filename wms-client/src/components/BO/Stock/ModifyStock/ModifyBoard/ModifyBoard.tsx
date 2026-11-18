@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, FormEvent, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { isRefreshFailure, notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import {
   getStockInfoes,
@@ -180,6 +180,9 @@ const ModifyBoard: React.FC = () => {
           setModalShow_BatchShip(false);
         }
       ).catch((error) => {
+        if (isRefreshFailure(error)) {
+          setModalShow_BatchShip(false);
+        }
         notifyRequestFailed(error);
       }).finally(() => {
         setIsLoading(false);

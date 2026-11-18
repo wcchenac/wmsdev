@@ -391,6 +391,9 @@ describe('StockActions', () => {
       ).rejects.toEqual({ response: { data: errorData } });
 
       expect(realStore.getState().stockInfo.stockInfoes).toEqual(stockInfoes);
+      expect(realStore.getState().errors.errors).toEqual({
+        message: '批次出貨已完成，但重新整理庫存失敗，請重新查詢'
+      });
       expect(mockedAPI.patch).toHaveBeenCalledWith('/api/stock/shipStocks', shipRequests);
     });
   });
@@ -470,6 +473,21 @@ describe('StockActions', () => {
       expect(dispatchedActions[0]).toEqual({
         type: types.GET_Errors,
         payload: errorData
+      });
+    });
+
+    test('dispatches refresh failure message when shrink mark succeeds but refresh fails', async () => {
+      mockedAPI.patch.mockResolvedValue({ data: productNo });
+      mockedAPI.get.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        store.dispatch(actions.stockIdentifierWaitToShrinkIsTrue(stockIdentifierId))
+      ).rejects.toThrow('Network error');
+
+      const dispatchedActions = store.getActions();
+      expect(dispatchedActions[0]).toEqual({
+        type: types.GET_Errors,
+        payload: { message: '設定待減肥已完成，但重新整理庫存失敗，請重新查詢' }
       });
     });
   });
@@ -847,6 +865,21 @@ describe('StockActions', () => {
       expect(dispatchedActions[0]).toEqual({
         type: types.UPDATE_Errors,
         payload: errorData
+      });
+    });
+
+    test('dispatches refresh failure message when update succeeds but refresh fails', async () => {
+      mockedAPI.patch.mockResolvedValue({ data: productNo });
+      mockedAPI.get.mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        store.dispatch(actions.updateStockInfo(updateRequest))
+      ).rejects.toThrow('Network error');
+
+      const dispatchedActions = store.getActions();
+      expect(dispatchedActions[0]).toEqual({
+        type: types.UPDATE_Errors,
+        payload: { message: '更新庫存資訊已完成，但重新整理庫存失敗，請重新查詢' }
       });
     });
   });

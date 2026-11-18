@@ -2,6 +2,7 @@ import { AxiosResponse } from "axios";
 import { jwtDecode } from "jwt-decode";
 import API from "../utilities/API";
 import SetJWTToken from "../utilities/SetJWTToken";
+import { mutateThenRefresh } from "../utilities/mutateThenRefresh";
 import {
   SET_Current_User,
   GET_UserList,
@@ -63,17 +64,33 @@ export const login =
   async (dispatch: AppDispatch): Promise<AxiosResponse | void> => {
     try {
       const res = await API.post("/api/user/login", loginRequest);
-      const token: string = res.data.accessToken;
+      const token: unknown = res.data?.accessToken;
+      if (typeof token !== "string" || token.trim() === "") {
+        throw new Error("Invalid login token");
+      }
+
+      // Decode and validate claims before persisting the token to storage or default headers.
+      const decodedJWT = jwtDecode<DecodedToken>(token);
+      if (
+        !decodedJWT ||
+        typeof decodedJWT !== "object" ||
+        typeof decodedJWT.exp !== "number" ||
+        decodedJWT.exp <= Date.now() / 1000
+      ) {
+        throw new Error("Invalid decoded token");
+      }
 
       localStorage.setItem("jwtToken", token);
 
       SetJWTToken(token);
 
-      const decodedJWT = jwtDecode<DecodedToken>(token);
-
       dispatch({
         type: SET_Current_User,
         payload: decodedJWT,
+      });
+      dispatch({
+        type: GET_Errors,
+        payload: null,
       });
 
       return res;
@@ -145,28 +162,20 @@ export const deleteUser =
 
 export const updateUser =
   (updateInfoRequest: UpdateUserRequest) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      // Update user first, then refresh user list
-      await API.patch(
-        "/api/user/adminManagement/user/update",
-        updateInfoRequest
-      );
-
-      const res = await API.get("/api/user/adminManagement/user/userList");
-
-      dispatch({
-        type: UPDATE_User,
-        payload: res.data,
-      });
-
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "更新使用者失敗" },
-      });
-      throw err;
-    }
-  };
+  async (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    mutateThenRefresh({
+      dispatch,
+      errorType: GET_Errors,
+      mutate: () =>
+        API.patch("/api/user/adminManagement/user/update", updateInfoRequest),
+      mutateErrorMessage: "更新使用者失敗",
+      refresh: async () => {
+        const res = await API.get("/api/user/adminManagement/user/userList");
+        dispatch({
+          type: UPDATE_User,
+          payload: res.data,
+        });
+        return res;
+      },
+      refreshErrorMessage: "更新使用者已完成，但重新整理列表失敗，請重新整理頁面",
+    });

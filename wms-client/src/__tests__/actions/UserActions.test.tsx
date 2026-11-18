@@ -3,6 +3,7 @@ import { createMockStore } from '../helpers/mockStore';
 import * as actions from '../../actions/UserActions';
 import * as types from '../../types';
 import API from '../../utilities/API';
+import SetJWTToken from '../../utilities/SetJWTToken';
 import { jwtDecode } from 'jwt-decode';
 
 // Mock dependencies
@@ -138,7 +139,7 @@ describe('UserActions', () => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith('jwtToken', mockToken);
     });
 
-    test('decodes JWT token and dispatches SET_Current_User', async () => {
+    test('decodes JWT token and dispatches SET_Current_User and clears errors', async () => {
       mockedAPI.post.mockResolvedValue({ data: { accessToken: mockToken } });
       mockedJwtDecode.mockReturnValue(mockDecodedUser);
 
@@ -149,6 +150,27 @@ describe('UserActions', () => {
       expect(dispatchedActions[0]).toEqual({
         type: types.SET_Current_User,
         payload: mockDecodedUser
+      });
+      expect(dispatchedActions[1]).toEqual({
+        type: types.GET_Errors,
+        payload: null
+      });
+    });
+
+    test('does not store token or header when accessToken is missing or malformed', async () => {
+      mockedAPI.post.mockResolvedValue({ data: { accessToken: 'bad-token' } });
+      mockedJwtDecode.mockImplementation(() => {
+        throw new Error('Invalid token specified');
+      });
+
+      await store.dispatch(actions.login(loginRequest));
+
+      expect(localStorageMock.setItem).not.toHaveBeenCalled();
+      expect(SetJWTToken).not.toHaveBeenCalled();
+      const dispatchedActions = store.getActions();
+      expect(dispatchedActions[0]).toEqual({
+        type: types.GET_Errors,
+        payload: { message: '登入失敗，請檢查帳號密碼' }
       });
     });
 
@@ -360,6 +382,19 @@ describe('UserActions', () => {
       expect(dispatchedActions[0]).toEqual({
         type: types.GET_Errors,
         payload: errorData
+      });
+    });
+
+    test('dispatches refresh failure message when update succeeds but list refresh fails', async () => {
+      mockedAPI.patch.mockResolvedValue({ data: {} });
+      mockedAPI.get.mockRejectedValue(new Error('Network error'));
+
+      await expect(store.dispatch(actions.updateUser(updateRequest))).rejects.toThrow('Network error');
+
+      const dispatchedActions = store.getActions();
+      expect(dispatchedActions[0]).toEqual({
+        type: types.GET_Errors,
+        payload: { message: '更新使用者已完成，但重新整理列表失敗，請重新整理頁面' }
       });
     });
   });
