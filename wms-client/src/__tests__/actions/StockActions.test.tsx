@@ -1180,4 +1180,29 @@ describe('StockActions', () => {
       });
     });
   });
+
+  describe('URL encoding (C-3)', () => {
+    test('encodes special characters in path segments and query parameters', async () => {
+      mockedAPI.get.mockResolvedValue({ data: {} });
+
+      await store.dispatch(actions.getStockInfoes('A/B#1?%2'));
+      expect(mockedAPI.get).toHaveBeenCalledWith('/api/stock/queryStock/query/1/A%2FB%231%3F%252');
+
+      await store.dispatch(actions.getInStockRollbackList('normal', 'IN#1&2'));
+      expect(mockedAPI.get).toHaveBeenCalledWith(
+        '/api/stock/queryStock/inStockRollback?orderType=normal&orderNo=IN%231%262'
+      );
+
+      await store.dispatch(
+        actions.getProductHistory({
+          productNo: 'C#1/2',
+          startDate: '2026-01-01T00:00:00',
+          endDate: '2026-01-02T23:59:59',
+        })
+      );
+      expect(mockedAPI.get).toHaveBeenCalledWith(
+        '/api/stock/queryStock/history/C%231%2F2?startDate=2026-01-01T00%3A00%3A00&endDate=2026-01-02T23%3A59%3A59'
+      );
+    });
+  });
 });

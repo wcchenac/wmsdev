@@ -124,7 +124,7 @@ export const deleteUser =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.delete(
-        `/api/user/adminManagement/user/delete?employeeId=${employeeId}`
+        `/api/user/adminManagement/user/delete?employeeId=${encodeURIComponent(employeeId)}`
       );
 
       dispatch({

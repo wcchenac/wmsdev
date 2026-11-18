@@ -29,7 +29,9 @@ export const getInStockOrder =
   (inStockOrderNo: string) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
-      const res = await API.get(`/api/stock/queryOrder/inStock/${inStockOrderNo}`);
+      const res = await API.get(
+        `/api/stock/queryOrder/inStock/${encodeURIComponent(inStockOrderNo)}`
+      );
 
       dispatch({
         type: GET_Order,
@@ -52,7 +54,7 @@ export const getAssembleOrder =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.get(
-        `/api/stock/queryOrder/assemble/${assembleOrderNo}`
+        `/api/stock/queryOrder/assemble/${encodeURIComponent(assembleOrderNo)}`
       );
 
       dispatch({
@@ -76,7 +78,7 @@ export const getCustomerReturnOrder =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.get(
-        `/api/stock/queryOrder/customerReturn/${returnOrderNo}`
+        `/api/stock/queryOrder/customerReturn/${encodeURIComponent(returnOrderNo)}`
       );
 
       dispatch({
@@ -100,7 +102,7 @@ export const getStoreReturnOrder =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.get(
-        `/api/stock/queryOrder/storeReturn/${returnOrderNo}`
+        `/api/stock/queryOrder/storeReturn/${encodeURIComponent(returnOrderNo)}`
       );
 
       dispatch({
@@ -124,7 +126,7 @@ export const getOutStockToStoreOrder =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.get(
-        `/api/stock/queryOrder/outStockToStore/${outStockOrderNo}`
+        `/api/stock/queryOrder/outStockToStore/${encodeURIComponent(outStockOrderNo)}`
       );
 
       dispatch({
@@ -147,7 +149,9 @@ export const getStockInfoesBasic =
   (productNo: string) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
-      const res = await API.get(`/api/stock/queryStock/query/2/${productNo}`);
+      const res = await API.get(
+        `/api/stock/queryStock/query/2/${encodeURIComponent(productNo)}`
+      );
 
       dispatch({
         type: GET_StockInfoes,
@@ -169,7 +173,9 @@ export const getStockInfoes =
   (productNo: string) =>
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
-      const res = await API.get(`/api/stock/queryStock/query/1/${productNo}`);
+      const res = await API.get(
+        `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
+      );
 
       dispatch({
         type: GET_StockInfoes,
@@ -237,7 +243,9 @@ export const stockIdentifiersAreShiped =
     try {
       await API.patch("/api/stock/shipStocks", shipRequests);
 
-      const res = await API.get(`/api/stock/queryStock/query/1/${productNo}`);
+      const res = await API.get(
+        `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
+      );
 
       dispatch({
         type: SHIP_Stocks,
@@ -260,7 +268,7 @@ export const stockIdentifierIsNotShiped =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       return await API.patch(
-        `/api/stock/shipStock/rollback/${stockIdentifierId}`
+        `/api/stock/shipStock/rollback/${encodeURIComponent(stockIdentifierId)}`
       );
     } catch (err) {
       const error = err as { response?: { data?: unknown } };
@@ -277,10 +285,12 @@ export const stockIdentifierWaitToShrinkIsTrue =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const result = await API.patch(
-        `/api/stock/waitToShrink/${stockIdentifierId}`
+        `/api/stock/waitToShrink/${encodeURIComponent(stockIdentifierId)}`
       );
       const productNo: string = result.data;
-      const res = await API.get(`/api/stock/queryStock/query/1/${productNo}`);
+      const res = await API.get(
+        `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
+      );
 
       dispatch({
         type: SHRINK_Stock,
@@ -303,7 +313,7 @@ export const stockIdentifierWaitToShrinkIsFalse =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.patch(
-        `/api/stock/waitToShrink/rollback/${stockIdentifierId}`
+        `/api/stock/waitToShrink/rollback/${encodeURIComponent(stockIdentifierId)}`
       );
 
       dispatch({
@@ -357,7 +367,7 @@ export const getInStockRollbackList =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.get(
-        `/api/stock/queryStock/inStockRollback?orderType=${orderType}&orderNo=${orderNo}`
+        `/api/stock/queryStock/inStockRollback?orderType=${encodeURIComponent(orderType)}&orderNo=${encodeURIComponent(orderNo)}`
       );
 
       dispatch({
@@ -406,7 +416,7 @@ export const inStockRollback =
         () => API.patch("/api/stock/inStocks/rollback", idList),
         async () => {
           const res = await API.get(
-            `/api/stock/queryStock/inStockRollback?orderType=${orderType}&orderNo=${orderNo}`
+            `/api/stock/queryStock/inStockRollback?orderType=${encodeURIComponent(orderType)}&orderNo=${encodeURIComponent(orderNo)}`
           );
           dispatch({
             type: GET_StockInfoes,
@@ -426,7 +436,7 @@ export const getShrinkRollbackList =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.get(
-        `/api/stock/queryStock/shrinkRollback/${productNo}`
+        `/api/stock/queryStock/shrinkRollback/${encodeURIComponent(productNo)}`
       );
 
       dispatch({
@@ -455,10 +465,10 @@ export const shrinkRollback =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       return await rollbackThenQueryList(
-        () => API.patch(`/api/stock/shrinkStock/rollback/${stockIdentifierId}`),
+        () => API.patch(`/api/stock/shrinkStock/rollback/${encodeURIComponent(stockIdentifierId)}`),
         async () => {
           const res = await API.get(
-            `/api/stock/queryStock/shrinkRollback/${productNo}`
+            `/api/stock/queryStock/shrinkRollback/${encodeURIComponent(productNo)}`
           );
           dispatch({
             type: GET_StockInfoes,
@@ -479,7 +489,9 @@ export const updateStockInfo =
     try {
       const result = await API.patch("/api/stock/updateStock", updateInfoRequest);
       const productNo: string = result.data;
-      const res = await API.get(`/api/stock/queryStock/query/1/${productNo}`);
+      const res = await API.get(
+        `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
+      );
 
       dispatch({
         type: UPDATE_StockInfo,
@@ -517,7 +529,7 @@ export const deleteOutStockRequest =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.patch(
-        `/api/stock/outStock/rollback/${outStockRequestId}`
+        `/api/stock/outStock/rollback/${encodeURIComponent(outStockRequestId)}`
       );
 
       return res;
@@ -558,7 +570,7 @@ export const getWaitHandleListWithInterval =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.get(
-        `/api/stock/outStock/waitHandleList/interval?startDate=${startDate}&endDate=${endDate}`
+        `/api/stock/outStock/waitHandleList/interval?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
       );
 
       dispatch({
@@ -597,7 +609,7 @@ export const getProductHistory =
   async (dispatch: AppDispatch): Promise<AxiosResponse> => {
     try {
       const res = await API.get(
-        `/api/stock/queryStock/history/${request.productNo}?startDate=${request.startDate}&endDate=${request.endDate}`
+        `/api/stock/queryStock/history/${encodeURIComponent(request.productNo)}?startDate=${encodeURIComponent(request.startDate)}&endDate=${encodeURIComponent(request.endDate)}`
       );
 
       dispatch({
@@ -620,7 +632,9 @@ export const missionTrigger = async (
   periodType: string,
   fn: string
 ): Promise<AxiosResponse> => {
-  return await API.get(`/api/stock/stockManagement/${periodType}/${fn}`);
+  return await API.get(
+    `/api/stock/stockManagement/${encodeURIComponent(periodType)}/${encodeURIComponent(fn)}`
+  );
 };
 
 export const getAllCategory =
@@ -653,7 +667,9 @@ export const findCategoryDetails =
     });
 
     try {
-      return await API.get(`/api/stock/queryStock/category/${category}`);
+      return await API.get(
+        `/api/stock/queryStock/category/${encodeURIComponent(category)}`
+      );
     } catch (err) {
       const error = err as { response?: { data?: unknown } };
       dispatch({

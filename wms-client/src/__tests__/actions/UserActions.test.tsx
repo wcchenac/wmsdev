@@ -245,6 +245,16 @@ describe('UserActions', () => {
       );
     });
 
+    test('encodes employeeId with special characters in deleteUser query param (C-3)', async () => {
+      mockedAPI.delete.mockResolvedValue({ data: {}, status: 200 });
+
+      await store.dispatch(actions.deleteUser('EMP#1&x=2'));
+
+      expect(mockedAPI.delete).toHaveBeenCalledWith(
+        '/api/user/adminManagement/user/delete?employeeId=EMP%231%26x%3D2'
+      );
+    });
+
     test('dispatches DELETE_User with employeeId on success', async () => {
       mockedAPI.delete.mockResolvedValue({ data: {}, status: 200 });
 

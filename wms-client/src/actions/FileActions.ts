@@ -7,9 +7,12 @@ export const downloadFile = (
   fileCategory: string,
   filename: string
 ): void => {
-  API.get(`api/file/download/${fileCategory}/${filename}`, {
-    responseType: "blob",
-  })
+  API.get(
+    `api/file/download/${encodeURIComponent(fileCategory)}/${encodeURIComponent(filename)}`,
+    {
+      responseType: "blob",
+    }
+  )
     .then((response) => {
       const url = window.URL.createObjectURL(
         new Blob([response.data], {
@@ -40,7 +43,7 @@ export const downloadFile = (
 export const queryFileCategoryTodayFile = async (
   fileCategory: string
 ): Promise<AxiosResponse> => {
-  return await API.get(`/api/file/query/${fileCategory}/today`);
+  return await API.get(`/api/file/query/${encodeURIComponent(fileCategory)}/today`);
 };
 
 export const queryFileCategoryIntervalFiles = async (
@@ -49,7 +52,7 @@ export const queryFileCategoryIntervalFiles = async (
   endDate: string
 ): Promise<AxiosResponse> => {
   return await API.get(
-    `/api/file/query/${fileCategory}/interval?startDate=${startDate}&endDate=${endDate}`
+    `/api/file/query/${encodeURIComponent(fileCategory)}/interval?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
   );
 };
 

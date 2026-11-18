@@ -324,5 +324,23 @@ describe('FileActions', () => {
         response: errorResponse
       });
     });
+
+    test('encodes special characters in file category and filename URLs (C-3)', async () => {
+      mockedAPI.get.mockResolvedValue({
+        data: new Blob(['x']),
+        headers: { 'content-type': 'application/octet-stream' },
+      });
+
+      await actions.queryFileCategoryIntervalFiles('cat/1', '2026-01-01T00:00:00', '2026-01-02T23:59:59');
+      expect(mockedAPI.get).toHaveBeenCalledWith(
+        '/api/file/query/cat%2F1/interval?startDate=2026-01-01T00%3A00%3A00&endDate=2026-01-02T23%3A59%3A59'
+      );
+
+      await actions.downloadFile('cat/1', 'a#b 1.xlsx');
+      expect(mockedAPI.get).toHaveBeenCalledWith(
+        'api/file/download/cat%2F1/a%23b%201.xlsx',
+        { responseType: 'blob' }
+      );
+    });
   });
 });
