@@ -12,6 +12,13 @@ interface WaitHandleProductStatus {
   [type: string]: WaitHandleStatusType;
 }
 
+interface SelectableProductRow {
+  productNo: string;
+  selected: boolean;
+  index: number;
+  isSubmitted: boolean;
+}
+
 // check there is any quantity equals 0 in waitHandleStatus
 // if there is a type which is not equal 0, return false; otherwise, return true
 export function checkWaitHandleStatusCompletion(
@@ -46,4 +53,23 @@ export function checkWaitHandleProductStatus(
   });
 
   return quantityValid;
+}
+
+/**
+ * Applies select-all / deselect-all to Step 2 rows while keeping completed
+ * (zero remaining quantity) products unchecked because their checkboxes are disabled.
+ */
+export function applyProductSelection<T extends SelectableProductRow>(
+  selectedList: T[],
+  waitHandleStatus: WaitHandleStatus,
+  selectAll: boolean
+): T[] {
+  return selectedList.map((item) => {
+    const productStatus = waitHandleStatus[item.productNo];
+    const canSelect = productStatus ? checkWaitHandleProductStatus(productStatus) : false;
+    return {
+      ...item,
+      selected: selectAll && canSelect,
+    };
+  });
 }

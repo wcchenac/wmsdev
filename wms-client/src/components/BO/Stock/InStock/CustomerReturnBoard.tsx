@@ -12,6 +12,7 @@ import {
 import {
   checkWaitHandleStatusCompletion,
   checkWaitHandleProductStatus,
+  applyProductSelection,
 } from "../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../utilities/IsEmpty";
 import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
@@ -130,15 +131,12 @@ const CustomerReturnBoard: React.FC = () => {
   }, []);
 
   const handleSelectionClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    const value = (e.target as HTMLButtonElement).value === "true";
+    const value = e.currentTarget.value === "true";
 
-    setSelectedProductNoList((prevList) => {
-      return prevList.map((object) => ({
-        ...object,
-        selected: value,
-      }));
-    });
-  }, []);
+    setSelectedProductNoList((prevList) =>
+      applyProductSelection(prevList, waitHandleStatus, value)
+    );
+  }, [waitHandleStatus]);
 
   const handleInStockRequestSubmit = useCallback(
     (e: MouseEvent<HTMLButtonElement>, index: number, inStockRequests: InStockRequest[]) => {
