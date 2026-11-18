@@ -4,7 +4,7 @@ import { join } from 'node:path';
 describe('CSS load order and scoped table action selector', () => {
   const srcDir = join(process.cwd(), 'src');
 
-  test('loads bootstrap CSS before custom index.css and App.css', () => {
+  test('loads bootstrap CSS once before custom index.css and App.css without duplicate subpage CSS imports', () => {
     const indexSource = readFileSync(join(srcDir, 'index.tsx'), 'utf8');
     const appSource = readFileSync(join(srcDir, 'App.tsx'), 'utf8');
     const storybookPreviewSource = readFileSync(join(process.cwd(), '.storybook', 'preview.tsx'), 'utf8');
@@ -12,9 +12,21 @@ describe('CSS load order and scoped table action selector', () => {
     const bootstrapToken = "bootstrap/dist/css/bootstrap.min.css";
     expect(indexSource.indexOf(bootstrapToken)).toBeGreaterThan(-1);
     expect(indexSource.indexOf(bootstrapToken)).toBeLessThan(indexSource.indexOf('./index.css'));
+    expect(indexSource.indexOf('./index.css')).toBeLessThan(indexSource.indexOf('./App'));
 
-    expect(appSource.indexOf(bootstrapToken)).toBeGreaterThan(-1);
-    expect(appSource.indexOf(bootstrapToken)).toBeLessThan(appSource.indexOf('./App.css'));
+    // App.tsx should not duplicate bootstrap CSS already loaded in index.tsx, and owns ToastContainer CSS.
+    expect(appSource).not.toContain(bootstrapToken);
+    expect(appSource).toContain('react-toastify/dist/ReactToastify.css');
+    expect(appSource).toContain('./App.css');
+
+    for (const subpage of [
+      'components/BO/User/AdminPlatform/ScheduleMission.tsx',
+      'components/BO/User/AdminPlatform/InStockByImportFile.tsx',
+      'components/BO/User/AdminPlatform/SetWarehouse.tsx',
+      'components/BO/User/AdminPlatform/UserRegister.tsx',
+    ]) {
+      expect(readFileSync(join(srcDir, subpage), 'utf8')).not.toContain('ReactToastify.css');
+    }
 
     const previewBootstrap = storybookPreviewSource.indexOf(bootstrapToken);
     const previewIndex = storybookPreviewSource.indexOf('../src/index.css');
@@ -66,10 +78,13 @@ describe('CSS load order and scoped table action selector', () => {
     expect(block).not.toContain('--bs-modal-margin');
   });
 
-  test('scopes centered last-column cell styling to .table.table-actions-center', () => {
+  test('scopes centered last-column cell styling to .table.table-actions-center and drops !important btn-customize / global flex .alert', () => {
     const componentsCss = readFileSync(join(srcDir, 'styles', 'components.css'), 'utf8');
+    const utilitiesCss = readFileSync(join(srcDir, 'styles', 'utilities.css'), 'utf8');
 
     expect(componentsCss).toContain('.table.table-actions-center tbody tr td:last-child');
     expect(componentsCss).not.toMatch(/(^|\n)\.table\s+tbody\s+tr\s+td:last-child/);
+    expect(componentsCss).not.toMatch(/\.btn-customize\s*\{/);
+    expect(utilitiesCss).not.toMatch(/\.alert\s*\{[^}]*display:\s*flex/);
   });
 });

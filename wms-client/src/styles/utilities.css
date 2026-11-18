@@ -305,10 +305,13 @@
 
 /* Alert enhancement */
 .alert {
+  border-radius: var(--border-radius-md);
+}
+
+.alert.alert-with-icon {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-3);
-  border-radius: var(--border-radius-md);
 }
 
 .alert-icon {

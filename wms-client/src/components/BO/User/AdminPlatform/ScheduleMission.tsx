@@ -3,7 +3,6 @@ import { missionTrigger } from "../../../../actions/StockActions";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
 
 const ScheduleMission: React.FC = () => {

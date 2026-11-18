@@ -263,21 +263,6 @@ html {
   border-color: var(--color-danger-dark);
 }
 
-.btn-customize:disabled {
-  display: inline-block;
-  font-weight: var(--font-weight-normal);
-  color: var(--color-gray-900);
-  text-align: center;
-  vertical-align: middle;
-  user-select: none;
-  background-color: transparent;
-  border: 1px solid transparent;
-  padding: var(--btn-padding-y) var(--btn-padding-x);
-  font-size: var(--font-size-base);
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
 /* 庫存異動's 註解 cell. The table keeps its cells on one line (text-nowrap) and scrolls sideways
    when narrow; 註解 is free text up to 255 characters, so it wraps instead, between 8em and 20em
    wide (14em minimum for 布料 below 1200px, see below), so one long remark cannot push every
@@ -297,7 +282,6 @@ html {
   vertical-align: top;
 }
 
-.stock-remark .btn-customize,
 .stock-remark .stock-remark-text {
   white-space: normal;
   min-width: 8em;
@@ -313,7 +297,6 @@ html {
    > 1116px). The 五金 table (7 columns, .stock-table-hardware) fits its 936px box at 992-1199px
    with 8em but not with 14em (1018px), so it keeps 8em there (14em only below 992px, see below). */
 @media (max-width: 1199.98px) {
-  .table:not(.stock-table-hardware) .stock-remark .btn-customize,
   .table:not(.stock-table-hardware) .stock-remark .stock-remark-text {
     min-width: 14em;
   }
@@ -322,7 +305,6 @@ html {
 /* Below 992px the 五金 table scrolls sideways even at 8em (922px in a 696px box), so it takes the
    14em minimum there too: a 255-character remark's row goes from 929px to 521px at no cost. */
 @media (max-width: 991.98px) {
-  .stock-table-hardware .stock-remark .btn-customize,
   .stock-table-hardware .stock-remark .stock-remark-text {
     min-width: 14em;
   }

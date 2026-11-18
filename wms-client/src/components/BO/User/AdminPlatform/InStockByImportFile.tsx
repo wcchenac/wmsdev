@@ -3,7 +3,6 @@ import { inStockByImportFile } from "../../../../actions/FileActions";
 import { toast } from "react-toastify";
 import { isSessionExpired } from "../../../../utilities/notifyRequestFailed";
 import { acceptXlsxSelection } from "./xlsxImport";
-import "react-toastify/dist/ReactToastify.css";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 

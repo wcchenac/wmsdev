@@ -651,13 +651,13 @@ thead.table-light th {
 }
 
 /* Bootstrap table hover enhancement */
-.table-hover tbody tr:hover {
-  background-color: var(--color-primary-light) !important;
+.table-hover > tbody > tr:hover > * {
+  --bs-table-hover-bg: var(--color-primary-light);
 }
 
 /* Table secondary row */
 .table-secondary {
-  background-color: var(--color-gray-100) !important;
+  --bs-table-bg: var(--color-gray-100);
 }
 
 .table-secondary td {
@@ -676,14 +676,4 @@ thead.table-light th {
 .table .form-select:focus {
   border-color: var(--input-border-color-focus);
   box-shadow: var(--shadow-focus);
-}
-
-/* Deprecated btn-customize override */
-.btn-customize {
-  background: none !important;
-  border: none !important;
-  padding: var(--spacing-2) !important;
-  color: var(--color-gray-800) !important;
-  text-align: left !important;
-  cursor: default !important;
 }
