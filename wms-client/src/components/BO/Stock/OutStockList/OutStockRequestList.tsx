@@ -283,7 +283,7 @@ const OutStockRequestList: React.FC = () => {
           >
             <button
               type="button"
-              className="btn btn-outline-secondary btn-sm btn-md-regular"
+              className="btn btn-outline-secondary btn-sm"
               onClick={getInitialState}
               style={{
                 display: 'inline-flex',

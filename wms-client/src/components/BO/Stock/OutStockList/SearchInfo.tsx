@@ -60,6 +60,10 @@ class SearchInfo extends Component<SearchInfoProps> {
   render(): React.ReactNode {
     const { searchInfo } = this.props;
     const { handled, outStockType } = this.props.searchInfo;
+    // Visible text and title are the file name. aria-label adds 下載. A title equal to the
+    // aria-label is announced again as the description; the shorter title is not.
+    // An unhandled row has no file yet (the API sends null).
+    const downloadName = searchInfo.fileName?.substring(13) ?? "";
 
     return (
       <tr
@@ -124,9 +128,12 @@ class SearchInfo extends Component<SearchInfoProps> {
             {searchInfo.unit}
           </span>
         </td>
+        {/* 出庫原因: one line, cut with an ellipsis at 14em (App.css .outstock-reason); the full
+            reason shows on hover. */}
         <td>
           <span
-            className="text-cell"
+            className="text-cell outstock-reason"
+            title={searchInfo.reason}
             style={{
               display: "block",
               padding: "var(--spacing-2)",
@@ -154,7 +161,8 @@ class SearchInfo extends Component<SearchInfoProps> {
                 type="button"
                 className="btn btn-sm"
                 onClick={this.onDownloadClick}
-                aria-label={`下載 ${searchInfo.fileName.substring(13)}`}
+                aria-label={`下載 ${downloadName}`}
+                title={downloadName}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -179,7 +187,8 @@ class SearchInfo extends Component<SearchInfoProps> {
                 }}
               >
                 <GetAppIcon style={{ fontSize: "1rem" }} />
-                <span>{searchInfo.fileName.substring(13)}</span>
+                {/* capped at 10em with an ellipsis (App.css .download-file-name); title is the file name */}
+                <span className="download-file-name">{downloadName}</span>
               </button>
             </ActionButtonGroup>
           ) : (

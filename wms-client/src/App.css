@@ -283,7 +283,7 @@ html {
    wide (14em minimum for 布料 below 1200px, see below), so one long remark cannot push every
    row's actions out of view. The limits sit on the text element: browsers do not reliably apply
    min/max-width to an auto-layout table cell. */
-/* .table td.stock-remark outranks `.table tbody td { vertical-align: middle }` above. */
+/* .table td.stock-remark outranks `.table tbody td { vertical-align: middle }` below. */
 .table td.stock-remark {
   white-space: normal;
   /* A remark several lines tall starts at the top of its cell. */
@@ -323,6 +323,13 @@ html {
   .stock-table-hardware .stock-remark .btn-customize {
     min-width: 14em;
   }
+}
+
+/* 拉貨明細's 出庫原因 stays on one line (components.css .text-cell: nowrap, ellipsis). The table
+   is text-nowrap with no fixed column widths, so the cap that used to come from its 17% column
+   is set here: 14em, about that column at 1440px; the full reason is in the cell's title. */
+.outstock-reason {
+  max-width: 14em;
 }
 
 /* The row actions start at the top of a row made tall by a long 註解, next to where the remark
@@ -752,4 +759,25 @@ html {
   .hide-on-desktop {
     display: none !important;
   }
+}
+
+/* 拉貨明細: a handled row's download button shows the file name (OutStockList-yyyyMMddHHmmss.xls
+   minus its 13-character prefix, so yyyyMMddHHmmss.xls, ~135–138px at the button's 14px font).
+   The span is a flex item of the inline-flex button (which lets overflow/ellipsis apply), capped
+   at 10em (140px) so real names show in full while an unexpectedly long name is still cut with an
+   ellipsis and cannot widen the 倉別 column (the button's title is the file name; its
+   aria-label is `下載 <name>`). */
+.download-file-name {
+  max-width: 10em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The icon buttons' CSS tooltip (components.css .icon-button::after) is an absolute box that stays
+   in the layout while hidden; in the last column of a scrolling table it made the box scroll
+   sideways (2px at 1200px, 9px at 992px on 拉貨明細) and was clipped when shown. Inside a scrolling
+   table the button's own title shows the native tooltip instead. */
+.table-responsive .icon-button::after {
+  content: none;
 }

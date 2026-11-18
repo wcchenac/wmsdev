@@ -617,19 +617,6 @@
   }
 }
 
-/* Button size responsive */
-.btn-md-regular {
-  padding: var(--spacing-1) var(--spacing-2);
-  font-size: var(--font-size-sm);
-}
-
-@media (min-width: 768px) {
-  .btn-md-regular {
-    padding: var(--spacing-2) var(--spacing-4);
-    font-size: var(--font-size-base);
-  }
-}
-
 /* Responsive flex direction */
 .flex-column-sm {
   flex-direction: column;

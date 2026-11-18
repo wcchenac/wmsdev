@@ -180,34 +180,34 @@ class SearchContainer extends PureComponent<SearchContainerProps, SearchContaine
           role="tabpanel"
           aria-labelledby={"nav-tab-" + date}
         >
-          <div className="table-wrapper-scroll-y my-custom-scrollbar">
-            <table className="table table-hover table-actions-center">
+          <div className="table-responsive table-wrapper-scroll-y my-custom-scrollbar">
+            <table className="table table-hover table-actions-center text-nowrap">
               <thead className="table-dark">
                 <tr>
-                  <th style={{ width: "3%" }}>
+                  <th>
                     <HeaderCheckBox
                       checked={headerCheckBoxChecked}
                       onHeaderCheckBoxChange={this.onHeaderCheckBoxChange}
                     />
                   </th>
-                  <th style={{ width: "20%" }}>
+                  <th>
                     <div className="ps-2">貨號</div>
                   </th>
-                  <th style={{ width: "8%" }}>
+                  <th>
                     <div className="ps-2">型態</div>
                   </th>
-                  <th style={{ width: "13%" }}>
+                  <th>
                     <div className="ps-2">數量</div>
                   </th>
-                  <th style={{ width: "8%" }}>
+                  <th>
                     <div className="ps-2">單位</div>
                   </th>
-                  <th style={{ width: "17%" }}>
+                  <th>
                     <div className="ps-1">出庫原因</div>
                   </th>
-                  <th style={{ width: "13%" }}>開單人員</th>
-                  <th style={{ width: "15%" }}>倉別</th>
-                  <th style={{ width: "6%" }}></th>
+                  <th>開單人員</th>
+                  <th>倉別</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
