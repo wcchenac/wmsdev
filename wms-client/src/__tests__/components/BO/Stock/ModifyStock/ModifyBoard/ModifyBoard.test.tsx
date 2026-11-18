@@ -18,13 +18,13 @@ interface StockIdentifier {
   waitToShrink?: boolean;
 }
 
-interface StockInfo {
-  defect: string;
-}
-
 interface StockInfoResult {
+  id?: number;
+  defect?: string;
+  color?: number;
+  record?: string;
+  remark?: string;
   stockIdentifier: StockIdentifier;
-  stockInfo: StockInfo;
 }
 
 interface StockInfoes {
@@ -63,7 +63,7 @@ vi.mock('../../../../../../actions/StockActions', () => ({
   getStockInfoes: (id: string) => () => mockGetStockInfoes(id),
   stockIdentifierIsShiped: (req: unknown) => () => mockStockIdentifierIsShiped(req),
   stockIdentifiersAreShiped: (no: string, reqs: unknown[]) => () => mockStockIdentifiersAreShiped(no, reqs),
-  stockIdentifierWaitToShrinkIsTrue: (id: string) => () => mockStockIdentifierWaitToShrinkIsTrue(id),
+  stockIdentifierWaitToShrinkIsTrue: (id: number) => () => mockStockIdentifierWaitToShrinkIsTrue(id),
   createOutStockRequest: (req: unknown) => () => mockCreateOutStockRequest(req),
   updateStockInfo: (req: unknown) => () => mockUpdateStockInfo(req)
 }));
@@ -131,13 +131,13 @@ describe('ModifyBoard', () => {
                 id: 1,
                 productNo: 'PROD-001',
                 lotNo: 'LOT1',
-                type: 'hardware'
+                type: '雜項'
               },
-              stockInfo: { defect: 'none' }
+              defect: 'none'
             }
           ],
           productList: [
-            { type: 'normal', quantity: 10, unit: 'pcs' }
+            { type: '雜項', quantity: 10, unit: '個' }
           ]
         }
       }
@@ -176,13 +176,13 @@ describe('ModifyBoard', () => {
             {
               stockIdentifier: {
                 productNo: 'PROD-001',
-                type: 'not-hardware' // To enable the button
+                type: '整支' // To enable the button
               },
-              stockInfo: { defect: 'none' }
+              defect: 'none'
             }
           ],
           productList: [
-            { type: 'normal', quantity: 10, unit: 'pcs' }
+            { type: '整支', quantity: 10, unit: '碼' }
           ]
         }
       }
@@ -230,8 +230,8 @@ describe('ModifyBoard', () => {
           information: { productNo: 'PROD-001' },
           prevProduct: null,
           nextProduct: null,
-          result: [{ stockIdentifier: { productNo: 'PROD-001', type: 'not-hardware' }, stockInfo: { defect: 'none' } }],
-          productList: [{ type: 'normal', quantity: 10, unit: 'pcs' }],
+          result: [{ stockIdentifier: { productNo: 'PROD-001', type: '整支' }, defect: 'none' }],
+          productList: [{ type: '整支', quantity: 10, unit: '碼' }],
         },
       },
     };
@@ -288,7 +288,7 @@ describe('ModifyBoard', () => {
           result: [
             {
               stockIdentifier: { id: 1, productNo: 'PROD-001', lotNo: 'LOT-OLD', type: '板卷' },
-              stockInfo: { defect: 'none' },
+              defect: 'none',
             },
           ],
           productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
@@ -347,11 +347,11 @@ describe('ModifyBoard', () => {
           result: [
             {
               stockIdentifier: { id: 1, productNo: 'PROD-001', lotNo: 'LOT-READY', type: '板卷', waitToShrink: false },
-              stockInfo: { defect: 'none' },
+              defect: 'none',
             },
             {
               stockIdentifier: { id: 2, productNo: 'PROD-001', lotNo: 'LOT-SHRINKING', type: '板卷', waitToShrink: true },
-              stockInfo: { defect: 'none' },
+              defect: 'none',
             },
           ],
           productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
@@ -390,7 +390,7 @@ describe('ModifyBoard', () => {
           result: [
             {
               stockIdentifier: { id: 2, productNo: 'PROD-001', lotNo: 'LOT-SHRINKING', type: '板卷', waitToShrink: true },
-              stockInfo: { defect: 'none' },
+              defect: 'none',
             },
           ],
           productList: [{ type: '板卷', quantity: 5, unit: '碼' }],
@@ -416,11 +416,11 @@ describe('ModifyBoard', () => {
           result: [
             {
               stockIdentifier: { id: 101, productNo: 'PROD-001', lotNo: 'LOT-A', type: '板卷', waitToShrink: false },
-              stockInfo: { defect: 'none' },
+              defect: 'none',
             },
             {
               stockIdentifier: { id: 102, productNo: 'PROD-001', lotNo: 'LOT-B', type: '板卷', waitToShrink: false },
-              stockInfo: { defect: 'none' },
+              defect: 'none',
             },
           ],
           productList: [{ type: '板卷', quantity: 20, unit: '碼' }],
@@ -467,5 +467,145 @@ describe('ModifyBoard', () => {
     fireEvent.click(screen.getByRole('button', { name: '出庫' }));
     const dialog2 = await screen.findByRole('dialog');
     expect((within(dialog2).getByRole('textbox') as HTMLInputElement).value).toBe('');
+  });
+
+  test('batch ship flow submits selected stockIdentifier ids and closes modal', async () => {
+    const readyState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001' },
+          prevProduct: null,
+          nextProduct: null,
+          result: [
+            {
+              stockIdentifier: { id: 301, productNo: 'PROD-001', lotNo: 'LOT-1', type: '板卷', waitToShrink: false },
+              defect: 'none',
+            },
+          ],
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    };
+    mockStockIdentifiersAreShiped.mockResolvedValue({ status: 200 });
+    mockGetStockInfoes.mockResolvedValue({ status: 200 });
+
+    const { rerender } = renderWithRedux(<ModifyBoard />, { initialState });
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'PROD-001', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(readyState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '批量出庫' }));
+    const dialog = await screen.findByRole('dialog');
+    const checkbox = within(dialog).getByRole('checkbox', { name: /select row/i });
+    fireEvent.click(checkbox);
+    const reasonInput = dialog.querySelector<HTMLInputElement>('input[name="outStockReason"]')!;
+    fireEvent.change(reasonInput, { target: { name: 'outStockReason', value: '新竹' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: '儲存選取項目' }));
+
+    await waitFor(() => {
+      expect(mockStockIdentifiersAreShiped).toHaveBeenCalledWith('PROD-001', [
+        { stockIdentifierId: 301, reason: '新竹' },
+      ]);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  test('handleShrink calls stockIdentifierWaitToShrinkIsTrue with numeric id', async () => {
+    const readyState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001' },
+          prevProduct: null,
+          nextProduct: null,
+          result: [
+            {
+              id: 501,
+              defect: 'GA',
+              stockIdentifier: { id: 301, productNo: 'PROD-001', lotNo: 'LOT-1', type: '板卷', waitToShrink: false },
+            },
+          ],
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    };
+    mockGetStockInfoes.mockResolvedValue({ status: 200 });
+    mockStockIdentifierWaitToShrinkIsTrue.mockResolvedValue({ status: 200 });
+
+    const { rerender } = renderWithRedux(<ModifyBoard />, { initialState });
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'PROD-001', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(readyState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '減肥' }));
+    await waitFor(() => {
+      expect(mockStockIdentifierWaitToShrinkIsTrue).toHaveBeenCalledWith(301);
+    });
+  });
+
+  test('handleStockInfoUpdate opens InformationModal, switches to edit mode, and submits updateStockInfo', async () => {
+    const readyState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001' },
+          prevProduct: null,
+          nextProduct: null,
+          result: [
+            {
+              id: 501,
+              color: 2,
+              defect: 'GA',
+              record: 'R-OLD',
+              remark: 'OLD-REMARK',
+              stockIdentifier: { id: 301, productNo: 'PROD-001', lotNo: 'LOT-1', type: '板卷', waitToShrink: false },
+            },
+          ],
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    };
+    mockGetStockInfoes.mockResolvedValue({ status: 200 });
+    mockUpdateStockInfo.mockResolvedValue({ status: 200 });
+
+    const { rerender } = renderWithRedux(<ModifyBoard />, { initialState });
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'PROD-001', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(readyState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '詳細資料' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: '編輯' }));
+
+    const remarkInput = dialog.querySelector<HTMLInputElement>('input[name="remark"]')!;
+    fireEvent.change(remarkInput, { target: { name: 'remark', value: 'NEW-REMARK' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: '確認' }));
+
+    await waitFor(() => {
+      expect(mockUpdateStockInfo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 501,
+          remark: 'NEW-REMARK',
+          defect: 'GA',
+          record: 'R-OLD',
+        })
+      );
+    });
   });
 });

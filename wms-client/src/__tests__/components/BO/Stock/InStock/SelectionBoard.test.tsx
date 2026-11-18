@@ -6,7 +6,8 @@ interface MockCheckBoxProps {
   index: number;
   productNo: string;
   checked: boolean;
-  handleCheckBoxSelected: (index: number) => void;
+  waitHandleStatus: Record<string, { quantity: string | number; unit: string }>;
+  handleCheckBoxSelected: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
 }
 
 type SelectionBoardProps = React.ComponentProps<typeof SelectionBoard>;
@@ -23,7 +24,7 @@ vi.mock('../../../../../components/BO/Stock/InStock/Common/CheckBoxForSelectionB
         <input
           type="checkbox"
           checked={props.checked}
-          onChange={() => props.handleCheckBoxSelected(props.index)}
+          onChange={(e) => props.handleCheckBoxSelected(e, props.index)}
         />
         {props.productNo}
       </div>
@@ -151,13 +152,21 @@ describe('SelectionBoard', () => {
     test('calls handleSelectionClick with true when select all clicked', () => {
       renderSelectionBoard();
       fireEvent.click(screen.getByRole('button', { name: '全選' }));
-      expect(defaultProps.handleSelectionClick).toHaveBeenCalled();
+      expect(defaultProps.handleSelectionClick).toHaveBeenCalledWith(
+        expect.objectContaining({
+          target: expect.objectContaining({ value: 'true' })
+        })
+      );
     });
 
     test('calls handleSelectionClick with false when deselect all clicked', () => {
       renderSelectionBoard();
       fireEvent.click(screen.getByRole('button', { name: '取消全選' }));
-      expect(defaultProps.handleSelectionClick).toHaveBeenCalled();
+      expect(defaultProps.handleSelectionClick).toHaveBeenCalledWith(
+        expect.objectContaining({
+          target: expect.objectContaining({ value: 'false' })
+        })
+      );
     });
   });
 
@@ -179,6 +188,18 @@ describe('SelectionBoard', () => {
       renderSelectionBoard(propsWithSelection);
       expect(screen.getByTestId('checkbox-0')).toHaveAttribute('data-checked', 'true');
       expect(screen.getByTestId('checkbox-1')).toHaveAttribute('data-checked', 'false');
+    });
+
+    test('calls handleCheckBoxSelected with change event and row index when checkbox toggled', () => {
+      renderSelectionBoard();
+      const firstInput = screen.getByTestId('checkbox-0').querySelector('input[type="checkbox"]')!;
+      const secondInput = screen.getByTestId('checkbox-1').querySelector('input[type="checkbox"]')!;
+
+      fireEvent.click(firstInput);
+      expect(defaultProps.handleCheckBoxSelected).toHaveBeenCalledWith(expect.any(Object), 0);
+
+      fireEvent.click(secondInput);
+      expect(defaultProps.handleCheckBoxSelected).toHaveBeenCalledWith(expect.any(Object), 1);
     });
   });
 

@@ -134,7 +134,26 @@ describe('StockHistoryBoard', () => {
               exist: true
             }
           },
-          nodes: []
+          nodes: [
+            {
+              stockInfo: {
+                defect: 'none',
+                color: 'blue',
+                record: 'child record',
+                stockIdentifier: {
+                  productNo: 'PROD-1',
+                  lotNo: 'LOT-CHILD',
+                  type: 'test',
+                  quantity: 5,
+                  unit: 'pcs',
+                  firstInStockAt: '2024-01-02',
+                  inStockType: 'shrink',
+                  exist: true
+                }
+              },
+              nodes: []
+            }
+          ]
         }
       ]
     };
@@ -155,10 +174,17 @@ describe('StockHistoryBoard', () => {
     );
 
     await waitFor(() => {
-      // Component now uses TreeDataNode which renders stock info
-      // When data is available and isQuery is true, it should render tree nodes
-      // Check that the empty message is NOT shown
       expect(screen.queryByText('查無此貨號資料 或 此貨號設定期間內無進貨資料')).not.toBeInTheDocument();
+      expect(screen.getByText(/LOT-1/)).toBeInTheDocument();
+      expect(screen.getByText(/10pcs/)).toBeInTheDocument();
     });
+
+    // Child node is initially collapsed, then toggled open/closed by clicking expand icon
+    expect(screen.queryByText(/LOT-CHILD/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('ChevronRightIcon').parentElement!);
+    expect(screen.getByText(/LOT-CHILD/)).toBeInTheDocument();
+    expect(screen.getByText(/5pcs/)).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('ExpandMoreIcon').parentElement!);
+    expect(screen.queryByText(/LOT-CHILD/)).not.toBeInTheDocument();
   });
 });

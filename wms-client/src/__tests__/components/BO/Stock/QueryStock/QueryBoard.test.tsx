@@ -11,7 +11,7 @@ interface MockLoadingOverlayProps {
 }
 
 interface MockStockInfoContainerProps {
-  typeValidation: string;
+  typeValidation: boolean;
   stockInfoes?: unknown[];
 }
 
@@ -28,9 +28,9 @@ interface MockShowProductInformationProps {
 }
 
 interface MockToolbarForNextPrevProps {
-  prevProduct: string;
-  nextProduct: string;
-  handleFutureProductQuery: () => void;
+  prevProduct: string | null;
+  nextProduct: string | null;
+  handleFutureProductQuery: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 interface ProductListItem {
@@ -117,7 +117,7 @@ vi.mock('../../../../../components/BO/Stock/Utilities/ToolbarForNextPrev', () =>
       <div data-testid="toolbar-next-prev">
         <button
           data-testid="prev-button"
-          value={props.prevProduct}
+          value={props.prevProduct ?? ''}
           onClick={props.handleFutureProductQuery}
           disabled={!props.prevProduct}
         >
@@ -125,7 +125,7 @@ vi.mock('../../../../../components/BO/Stock/Utilities/ToolbarForNextPrev', () =>
         </button>
         <button
           data-testid="next-button"
-          value={props.nextProduct}
+          value={props.nextProduct ?? ''}
           onClick={props.handleFutureProductQuery}
           disabled={!props.nextProduct}
         >
@@ -314,7 +314,7 @@ describe('QueryBoard', () => {
   });
 
   describe('componentDidUpdate behavior', () => {
-    test('updates state when stockInfo changes', () => {
+    test('updates state when stockInfo changes', async () => {
       const initialState: StoreState = {
         stockInfo: {
           stockInfoes: {
@@ -331,6 +331,12 @@ describe('QueryBoard', () => {
 
       // Verify initial state is shown
       expect(screen.getByTestId('show-product-info')).toHaveAttribute('data-product-no', '');
+
+      fireEvent.change(screen.getByTestId('product-no-input'), {
+        target: { value: 'PROD001', name: 'productNo' }
+      });
+      fireEvent.submit(screen.getByTestId('query-form'));
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       // Create new store with updated data
       const updatedState: StoreState = {
@@ -352,6 +358,11 @@ describe('QueryBoard', () => {
           <QueryBoard />
         </Provider>
       );
+
+      expect(screen.getByTestId('show-product-info')).toHaveAttribute('data-product-no', 'PROD001');
+      expect(screen.getByTestId('prev-button')).toHaveAttribute('value', 'PROD000');
+      expect(screen.getByTestId('next-button')).toHaveAttribute('value', 'PROD002');
+      expect(screen.getByTestId('stock-info-container')).toHaveAttribute('data-count', '1');
     });
   });
 });

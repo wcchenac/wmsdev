@@ -322,17 +322,21 @@ describe('UserRegister', () => {
     });
 
     test('resets form after successful registration', async () => {
-      renderUserRegister();
+      mockRegisterUser.mockResolvedValue({ status: 200 });
+      const { container } = renderUserRegister();
       fillForm();
 
       fireEvent.click(screen.getByRole('button', { name: '註冊' }));
 
-      // Wait for async operations to complete
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
-      // The component calls initialState() which resets all values to ''
-      // Note: The inputs are uncontrolled (no value prop), so we verify the mock was called
       expect(mockRegisterUser).toHaveBeenCalled();
+      expect((container.querySelector('#employeeId') as HTMLInputElement).value).toBe('');
+      expect((container.querySelector('#fullName') as HTMLInputElement).value).toBe('');
+      expect((container.querySelector('#password') as HTMLInputElement).value).toBe('');
+      expect((container.querySelector('#role') as HTMLSelectElement).value).toBe('');
     });
 
     // A taken employee ID or an unknown role is something the admin can fix, so the backend's

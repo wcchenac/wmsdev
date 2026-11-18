@@ -14,10 +14,12 @@ interface RenderWithReduxResult extends RenderResult {
   store: TestMockStore;
 }
 
+type ModifyType = 'typeExchange' | 'sameTypeModify' | 'hardwareModify';
+
 interface MockShrinkListProps {
   queryShrinkList: () => void;
-  onCancelShrinkClick: (id: string) => void;
-  onModifyClick: (type: string, info: { id: string }) => void;
+  onCancelShrinkClick: (stockIdentifierId: number) => void;
+  onModifyClick: (type: ModifyType, info: { stockIdentifier: { id: number } }) => void;
 }
 
 interface MockModifyRequestBoardProps {
@@ -35,7 +37,7 @@ const mockBatchCreateStockInfoesForShrink = vi.fn();
 
 vi.mock('../../../../../../actions/StockActions', () => ({
   getShrinkList: () => () => mockGetShrinkList(),
-  stockIdentifierWaitToShrinkIsFalse: (id: string) => () => mockStockIdentifierWaitToShrinkIsFalse(id),
+  stockIdentifierWaitToShrinkIsFalse: (id: number) => () => mockStockIdentifierWaitToShrinkIsFalse(id),
   batchCreateStockInfoesForShrink: (req: unknown) => () => mockBatchCreateStockInfoesForShrink(req)
 }));
 
@@ -45,8 +47,8 @@ vi.mock('../../../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkLis
     return (
       <div data-testid="shrink-list">
         <button onClick={queryShrinkList}>Refresh List</button>
-        <button onClick={() => onCancelShrinkClick('ID-123')}>Cancel Shrink</button>
-        <button onClick={() => onModifyClick('sameTypeModify', { id: 'INFO-1' })}>Modify Same Type</button>
+        <button onClick={() => onCancelShrinkClick(123)}>Cancel Shrink</button>
+        <button onClick={() => onModifyClick('sameTypeModify', { stockIdentifier: { id: 1 } })}>Modify Same Type</button>
       </div>
     );
   };
@@ -106,7 +108,7 @@ describe('ShrinkBoard', () => {
     fireEvent.click(screen.getByText('Cancel Shrink'));
 
     await waitFor(() => {
-      expect(mockStockIdentifierWaitToShrinkIsFalse).toHaveBeenCalledWith('ID-123');
+      expect(mockStockIdentifierWaitToShrinkIsFalse).toHaveBeenCalledWith(123);
     });
   });
 
