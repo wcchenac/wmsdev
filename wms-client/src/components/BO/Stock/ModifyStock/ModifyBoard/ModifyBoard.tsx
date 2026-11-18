@@ -98,12 +98,12 @@ const ModifyBoard: React.FC = () => {
       setIsLoading(true);
       dispatch(getStockInfoes(productNo)).then((response) => {
         if (response.status === 200) {
-          setIsLoading(false);
           setIsQuery(true);
         }
       }).catch((error) => {
-        setIsLoading(false);
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch, productNo]
@@ -116,29 +116,29 @@ const ModifyBoard: React.FC = () => {
       setIsLoading(true);
       dispatch(getStockInfoes(select)).then((response) => {
         if (response.status === 200) {
-          setIsLoading(false);
           setIsQuery(true);
         }
       }).catch((error) => {
-        setIsLoading(false);
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch]
   );
 
   const handleOutStockRequestCreate = useCallback(
-    (outStockRequest: OutStockRequestCreate) => {
+    (outStockRequest: OutStockRequestCreate): Promise<void> => {
       setIsLoading(true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dispatch(createOutStockRequest(outStockRequest)).then((response) => {
+      return dispatch(createOutStockRequest(outStockRequest)).then((response) => {
         if (response.status === 200) {
-          setIsLoading(false);
           setModalShow_OutStock(false);
         }
       }).catch((error) => {
-        setIsLoading(false);
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch]
@@ -149,12 +149,12 @@ const ModifyBoard: React.FC = () => {
       setIsLoading(true);
       dispatch(stockIdentifierIsShiped(shipRequest)).then((response) => {
         if (response.status === 200) {
-          setIsLoading(false);
           setModalShow_BatchShip(false);
         }
       }).catch((error) => {
-        setIsLoading(false);
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch]
@@ -166,12 +166,12 @@ const ModifyBoard: React.FC = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       dispatch(stockIdentifiersAreShiped(productNo, shipRequests)).then(
         () => {
-          setIsLoading(false);
           setModalShow_BatchShip(false);
         }
       ).catch((error) => {
-        setIsLoading(false);
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch, productNo]
@@ -180,13 +180,10 @@ const ModifyBoard: React.FC = () => {
   const handleShrink = useCallback(
     (id: number) => {
       setIsLoading(true);
-      dispatch(stockIdentifierWaitToShrinkIsTrue(id)).then((response) => {
-        if (response.status === 200) {
-          setIsLoading(false);
-        }
-      }).catch((error) => {
-        setIsLoading(false);
+      dispatch(stockIdentifierWaitToShrinkIsTrue(id)).catch((error) => {
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch]
@@ -196,13 +193,10 @@ const ModifyBoard: React.FC = () => {
     (updateInfoRequest: UpdateStockInfoRequest) => {
       setIsLoading(true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dispatch(updateStockInfo(updateInfoRequest)).then((response) => {
-        if (response.status === 200) {
-          setIsLoading(false);
-        }
-      }).catch((error) => {
-        setIsLoading(false);
+      dispatch(updateStockInfo(updateInfoRequest)).catch((error) => {
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch]
@@ -277,6 +271,7 @@ const ModifyBoard: React.FC = () => {
           {modalShow_BatchShip ? (
             <BatchShipModal
               show
+              isLoading={isLoading}
               handleModalClose={handleModalClose_BatchShip}
               handleShipList={handleShipList}
               typeValidation={typeValidation}

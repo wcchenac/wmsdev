@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, RenderResult } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createMockStore, TestMockStore } from '../../../../../helpers/mockStore';
 import ModifyBoard from '../../../../../../components/BO/Stock/ModifyStock/ModifyBoard/ModifyBoard';
@@ -91,6 +91,8 @@ describe('ModifyBoard', () => {
       }
     };
     vi.clearAllMocks();
+    // clearAllMocks keeps implementations; drop the never-settling one a test may set.
+    mockCreateOutStockRequest.mockReset();
   });
 
   test('renders search input', () => {
@@ -215,5 +217,63 @@ describe('ModifyBoard', () => {
       // Look for the one in the modal header
       expect(titles.some(el => el.classList.contains('modal-title'))).toBe(true);
     });
+  });
+
+  // ModifyBoard must hand the dispatch promise back to OutStockModal: the modal keeps its
+  // submit locked until that promise settles. Without the `return`, the modal unlocks at
+  // once and a second click sends a second 拉貨要求.
+  test('keeps the 拉貨要求 modal locked until createOutStockRequest settles', async () => {
+    const successState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001' },
+          prevProduct: null,
+          nextProduct: null,
+          result: [{ stockIdentifier: { productNo: 'PROD-001', type: 'not-hardware' }, stockInfo: { defect: 'none' } }],
+          productList: [{ type: 'normal', quantity: 10, unit: 'pcs' }],
+        },
+      },
+    };
+    let resolveCreate!: (value: { status: number }) => void;
+    mockCreateOutStockRequest.mockImplementation(
+      () => new Promise((resolve) => { resolveCreate = resolve; })
+    );
+    mockGetStockInfoes.mockResolvedValue({ status: 200 });
+
+    const { rerender } = renderWithRedux(<ModifyBoard />, { initialState });
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'PROD-001', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(successState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+    await waitFor(() =>
+      expect(screen.getAllByText('拉貨要求').find((el) => el.tagName === 'BUTTON')).toBeEnabled()
+    );
+    fireEvent.click(screen.getAllByText('拉貨要求').find((el) => el.tagName === 'BUTTON')!);
+
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(dialog.querySelector('input[name=outStockReason]')!, {
+      target: { value: '中壢', name: 'outStockReason' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: '儲存至明細' }));
+    // Let every already-settled promise run, as it would before the user's next click.
+    await act(async () => {});
+
+    expect(mockCreateOutStockRequest).toHaveBeenCalledTimes(1);
+    const busyBtn = within(dialog).getByRole('button', { name: '處理中...' });
+    expect(busyBtn).toBeDisabled();
+    fireEvent.click(busyBtn);
+    fireEvent.keyDown(dialog.querySelector('form')!, { key: 'Enter', code: 'Enter' });
+    expect(mockCreateOutStockRequest).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveCreate({ status: 200 });
+    });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(mockCreateOutStockRequest).toHaveBeenCalledTimes(1);
   });
 });

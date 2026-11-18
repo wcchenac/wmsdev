@@ -65,11 +65,12 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
       const { productNo } = this.state;
       this.props.getShrinkRollbackList(productNo).then((response: { status: number }) => {
         if (response.status === 200) {
-          this.setState({ isLoading: false, isQuery: true, queriedProductNo: productNo });
+          this.setState({ isQuery: true, queriedProductNo: productNo });
         }
       }).catch((error: unknown) => {
-        this.setState({ isLoading: false });
         notifyRequestFailed(error);
+      }).finally(() => {
+        this.setState({ isLoading: false });
       });
     });
   }

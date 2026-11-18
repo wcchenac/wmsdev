@@ -55,6 +55,9 @@ const UserRegister: React.FC = () => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    if (state.isLoading) {
+      return;
+    }
 
     const { employeeId, fullName, password, role } = state;
 
@@ -88,8 +91,8 @@ const UserRegister: React.FC = () => {
   };
 
   const submissionValidate = (): boolean => {
-    const { employeeId, fullName, password, role } = state;
-    return !(employeeId !== "" && fullName !== "" && password !== "" && role !== "");
+    const { isLoading, employeeId, fullName, password, role } = state;
+    return isLoading || !(employeeId !== "" && fullName !== "" && password !== "" && role !== "");
   };
 
   return (

@@ -182,3 +182,39 @@ describe.each([
     expect(overlaysIdle()).toBe(true);
   });
 });
+
+describe.each([
+  ['庫存查詢 (QueryBoard)', QueryBoard, async (c: HTMLElement) => submitForm(c, '#productNo-search', 'CF1001')],
+  ['庫存查詢 (QueryBoardDetail)', QueryBoardDetail, async (c: HTMLElement) => submitForm(c, '#productNo-search', 'CF1001')],
+  ['庫存異動 (ModifyBoard)', ModifyBoard, async (c: HTMLElement) => submitForm(c, '#productNo-search', 'CF1001')],
+  ['減肥回朔 (ShrinkRollback)', ShrinkRollback, async (c: HTMLElement) => submitForm(c, '#productNo-search', 'CF1001')],
+  [
+    '入庫回朔 (InStockRollback)',
+    InStockRollback,
+    async (c: HTMLElement) => {
+      fireEvent.change(c.querySelector('select[name=orderType]')!, {
+        target: { value: 'inStock', name: 'orderType' },
+      });
+      await submitForm(c, 'input[name=orderNo]', 'X1');
+    },
+  ],
+  ['減肥清單 (ShrinkBoard)', ShrinkBoard, async () => settle()],
+])('%s: a non-200 response', (_name, Page, trigger) => {
+  test('still clears the loading overlay via finally', async () => {
+    let resolveRequest!: (value: { status: number; data: unknown[] }) => void;
+    vi.mocked(API.get).mockImplementation(
+      () => new Promise((resolve) => { resolveRequest = resolve; })
+    );
+    const { container } = renderPage(Page);
+
+    await trigger(container);
+    expect(overlaysIdle()).toBe(false);
+
+    await act(async () => {
+      resolveRequest({ status: 204, data: [] });
+    });
+    await settle();
+
+    expect(overlaysIdle()).toBe(true);
+  });
+});

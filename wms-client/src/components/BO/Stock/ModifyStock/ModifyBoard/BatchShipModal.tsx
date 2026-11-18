@@ -20,6 +20,7 @@ interface StockIdentifierData {
 
 interface BatchShipModalProps {
   show: boolean;
+  isLoading?: boolean;
   handleModalClose: () => void;
   handleShipList: (shipList: ShipRequest[]) => void;
   data: StockIdentifierData[];
@@ -38,6 +39,7 @@ const isRowSelected = (model: GridRowSelectionModel, id: GridRowId): boolean =>
 // ============================================
 const BatchShipModal: React.FC<BatchShipModalProps> = ({
   show,
+  isLoading = false,
   handleModalClose,
   handleShipList,
   data
@@ -59,13 +61,16 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
   );
 
   const onSave = useCallback(() => {
+    if (isLoading) {
+      return;
+    }
     const selectedRows = data.filter((item) => isRowSelected(selectedIds, item.id));
     const shipList: ShipRequest[] = selectedRows.map((identifier) => ({
       stockIdentifierId: identifier.id,
       reason: outStockReason
     }));
     handleShipList(shipList);
-  }, [data, selectedIds, outStockReason, handleShipList]);
+  }, [isLoading, data, selectedIds, outStockReason, handleShipList]);
 
   const columns: GridColDef[] = [
     { field: "productNo", headerName: "\u8ca8\u865f", flex: 1 },
@@ -85,11 +90,13 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
       centered
       scrollable
       show={show}
-      onHide={handleModalClose}
+      onHide={isLoading ? undefined : handleModalClose}
+      backdrop={isLoading ? "static" : true}
+      keyboard={!isLoading}
       size="xl"
     >
       <Modal.Header
-        closeButton
+        closeButton={!isLoading}
         style={{
           background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)",
           color: "var(--color-white)",
@@ -135,16 +142,17 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleModalClose}>
+        <Button variant="secondary" onClick={handleModalClose} disabled={isLoading}>
           {"\u53d6\u6d88"}
         </Button>
         <Button
           variant="primary"
           onClick={onSave}
-          disabled={outStockReason === "" || selectedCount === 0}
+          disabled={isLoading || outStockReason === "" || selectedCount === 0}
+          aria-busy={isLoading}
         >
           <SaveIcon style={{ marginRight: 8, fontSize: 18 }} />
-          {"\u5132\u5b58\u9078\u53d6\u9805\u76ee"}
+          {isLoading ? "\u8655\u7406\u4e2d..." : "\u5132\u5b58\u9078\u53d6\u9805\u76ee"}
         </Button>
       </Modal.Footer>
     </Modal>

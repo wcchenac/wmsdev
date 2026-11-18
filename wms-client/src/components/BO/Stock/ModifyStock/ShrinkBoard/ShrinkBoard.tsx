@@ -63,13 +63,10 @@ const ShrinkBoard: React.FC = () => {
 
     const queryShrinkList = useCallback((): void => {
         setIsLoading(true);
-        dispatch(getShrinkList()).then((response: { status: number }) => {
-            if (response.status === 200) {
-                setIsLoading(false);
-            }
-        }).catch((error) => {
-          setIsLoading(false);
+        dispatch(getShrinkList()).catch((error) => {
           notifyRequestFailed(error);
+        }).finally(() => {
+          setIsLoading(false);
         });
     }, [dispatch]);
 
@@ -85,10 +82,11 @@ const ShrinkBoard: React.FC = () => {
                         }
                     })
                     .catch((error) => {
-                        // Reset loading state on error
+                        notifyRequestFailed(error);
+                    })
+                    .finally(() => {
                         setIsLoading(false);
                         setWaitCreateResp(false);
-                        notifyRequestFailed(error);
                     });
             }
         },
@@ -98,15 +96,10 @@ const ShrinkBoard: React.FC = () => {
     const onCancelShrinkClick = useCallback(
         (stockIdentifierId: number): void => {
             setIsLoading(true);
-            dispatch(stockIdentifierWaitToShrinkIsFalse(stockIdentifierId)).then(
-                (response: { status: number }) => {
-                    if (response.status === 200) {
-                        setIsLoading(false);
-                    }
-                }
-            ).catch((error) => {
-              setIsLoading(false);
+            dispatch(stockIdentifierWaitToShrinkIsFalse(stockIdentifierId)).catch((error) => {
               notifyRequestFailed(error);
+            }).finally(() => {
+              setIsLoading(false);
             });
         },
         [dispatch]

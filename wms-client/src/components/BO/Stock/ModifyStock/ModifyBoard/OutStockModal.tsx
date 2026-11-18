@@ -36,7 +36,7 @@ interface OutStockModalProps {
   productNo: string;
   show: boolean;
   handleModalClose: () => void;
-  handleOutStockRequestCreate: (request: OutStockRequestCreate) => void;
+  handleOutStockRequestCreate: (request: OutStockRequestCreate) => Promise<unknown> | void;
 }
 
 // ============================================
@@ -107,6 +107,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
         Number(request.quantity1) > 0 &&
         request.errors.quantity2 === "" &&
         Number(request.quantity2) > 0 &&
+        Number(request.quantity1) <= Number(request.quantity2) &&
         request.reason !== ""
       ) {
         isFormValid = true;
@@ -123,6 +124,9 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
   }, [assignMode]);
 
   const handleSubmit = useCallback(() => {
+    if (isSubmitting) {
+      return;
+    }
     setIsSubmitting(true);
 
     const newOutStockRequest: OutStockRequestCreate = {
@@ -135,18 +139,29 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
         : outStockRequest.quantity
     };
 
-    handleOutStockRequestCreate(newOutStockRequest);
-    setIsSubmitting(false);
-  }, [assignMode, outStockRequest, handleOutStockRequestCreate]);
+    Promise.resolve(handleOutStockRequestCreate(newOutStockRequest)).finally(() => {
+      setIsSubmitting(false);
+    });
+  }, [assignMode, isSubmitting, outStockRequest, handleOutStockRequestCreate]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLFormElement>) => {
-    if (e.key === "Enter" && checkFormAlgorithm(outStockRequest)) {
+    if (e.key === "Enter" && !isSubmitting && checkFormAlgorithm(outStockRequest)) {
       e.preventDefault();
       handleSubmit();
     }
-  }, [checkFormAlgorithm, outStockRequest, handleSubmit]);
+  }, [isSubmitting, checkFormAlgorithm, outStockRequest, handleSubmit]);
 
   const { errors } = outStockRequest;
+  const rangeError =
+    assignMode &&
+    errors.quantity1 === "" &&
+    errors.quantity2 === "" &&
+    Number(outStockRequest.quantity1) > 0 &&
+    Number(outStockRequest.quantity2) > 0 &&
+    Number(outStockRequest.quantity1) > Number(outStockRequest.quantity2)
+      ? "最大數量須大於或等於最小數量"
+      : "";
+  const quantity2Error = errors.quantity2 || rangeError;
   const isFormValid = checkFormAlgorithm(outStockRequest);
 
   return (
@@ -313,18 +328,18 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                       name="quantity2"
                       placeholder="最大數量"
                       onChange={handleRequestChange}
-                      isInvalid={!!errors.quantity2}
+                      isInvalid={!!quantity2Error}
                       aria-label="最大數量"
-                      aria-describedby={errors.quantity2 ? "quantity2-error" : undefined}
+                      aria-describedby={quantity2Error ? "quantity2-error" : undefined}
                       min="0"
                     />
-                    {errors.quantity2 && (
+                    {quantity2Error && (
                       <Form.Control.Feedback
                         type="invalid"
                         id="quantity2-error"
                         role="alert"
                       >
-                        {errors.quantity2}
+                        {quantity2Error}
                       </Form.Control.Feedback>
                     )}
                   </Col>

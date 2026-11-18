@@ -54,13 +54,13 @@ const InStockRollback: React.FC = () => {
 
       dispatch(getInStockRollbackList(orderType, orderNo)).then((response: { status: number }) => {
         if (response.status === 200) {
-          setIsLoading(false);
           setIsQuery(true);
           setQueriedOrder({ orderType, orderNo });
         }
       }).catch((error) => {
-        setIsLoading(false);
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch, orderType, orderNo]

@@ -10,17 +10,20 @@ const ScheduleMission: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleMissionTrigger = useCallback((e: MouseEvent<HTMLButtonElement>): void => {
+    if (isLoading) {
+      return;
+    }
     const arr = e.currentTarget.name.split("-");
 
     setIsLoading(true);
     missionTrigger(arr[0], arr[1]).then(() => {
-      setIsLoading(false);
       toast.success("Misson Complete");
     }).catch((error) => {
-      setIsLoading(false);
       notifyRequestFailed(error);
+    }).finally(() => {
+      setIsLoading(false);
     });
-  }, []);
+  }, [isLoading]);
 
   return (
     <div className="container">
@@ -30,6 +33,7 @@ const ScheduleMission: React.FC = () => {
             className="btn btn-primary me-2"
             name="daily-stockCompare"
             onClick={handleMissionTrigger}
+            disabled={isLoading}
           >
             每日比對
           </button>
@@ -37,6 +41,7 @@ const ScheduleMission: React.FC = () => {
             className="btn btn-primary me-2"
             name="weekly-syncProductCategory"
             onClick={handleMissionTrigger}
+            disabled={isLoading}
           >
             貨號類別同步
           </button>

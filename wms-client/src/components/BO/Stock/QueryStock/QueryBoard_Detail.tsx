@@ -76,12 +76,12 @@ const QueryBoard_Detail: React.FC = () => {
       setQueriedProductNo(productNo);
       dispatch(getStockInfoes(productNo)).then((response: { status: number }) => {
         if (response.status === 200) {
-          setIsLoading(false);
           setIsQuery(true);
         }
       }).catch((error) => {
-        setIsLoading(false);
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch, productNo]
@@ -96,12 +96,12 @@ const QueryBoard_Detail: React.FC = () => {
       setQueriedProductNo(select);
       dispatch(getStockInfoes(select)).then((response: { status: number }) => {
         if (response.status === 200) {
-          setIsLoading(false);
           setIsQuery(true);
         }
       }).catch((error) => {
-        setIsLoading(false);
         notifyRequestFailed(error);
+      }).finally(() => {
+        setIsLoading(false);
       });
     },
     [dispatch]

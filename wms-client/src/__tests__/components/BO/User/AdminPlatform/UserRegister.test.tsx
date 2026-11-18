@@ -408,6 +408,31 @@ describe('UserRegister', () => {
 
       expect(screen.getByTestId('loading-overlay')).toHaveAttribute('data-active', 'false');
     });
+
+    test('disables submit button and blocks duplicate submit while registering', async () => {
+      let resolveRegister!: (value: { status: number }) => void;
+      mockRegisterUser.mockImplementation(
+        () =>
+          new Promise<{ status: number }>((resolve) => {
+            resolveRegister = resolve;
+          })
+      );
+
+      const { container } = renderUserRegister();
+      fillForm();
+
+      const submitBtn = screen.getByRole('button', { name: '註冊' });
+      fireEvent.submit(container.querySelector('form')!);
+      expect(submitBtn).toBeDisabled();
+      expect(mockRegisterUser).toHaveBeenCalledTimes(1);
+
+      fireEvent.submit(container.querySelector('form')!);
+      expect(mockRegisterUser).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveRegister({ status: 200 });
+      });
+    });
   });
 
   describe('CSS structure', () => {
