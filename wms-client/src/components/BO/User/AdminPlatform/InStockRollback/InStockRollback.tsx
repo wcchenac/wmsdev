@@ -32,7 +32,7 @@ const InStockRollback: React.FC = () => {
 
   // Only react to a result that arrives while this page is mounted, not one another page
   // left in the shared stockInfo slice (componentDidUpdate in dev).
-  useUpdateEffect(queryResult.stockInfoes, (result) => {
+  useUpdateEffect(queryResult.inStockRollbackList, (result) => {
     if (result) {
       setResult(result as InStockRollbackResult);
     }

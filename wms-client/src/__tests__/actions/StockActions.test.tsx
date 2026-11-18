@@ -14,6 +14,17 @@ const mockedAPI = API as Mocked<typeof API>;
 
 const mockStore = createMockStore;
 
+const makeStockState = (stockInfoes: types.StockState['stockInfoes']): types.StockState => ({
+  stockInfoes,
+  stockInfo: {},
+  orderResult: null,
+  shrinkList: [],
+  inStockRollbackList: {},
+  shrinkRollbackList: [],
+  productHistory: [],
+  categories: []
+});
+
 describe('StockActions', () => {
   let store: ReturnType<typeof mockStore>;
 
@@ -231,14 +242,14 @@ describe('StockActions', () => {
       expect(mockedAPI.get).toHaveBeenCalledWith('/api/stock/queryStock/shrinkList');
     });
 
-    test('dispatches GET_StockInfoes with response data', async () => {
+    test('dispatches GET_ShrinkList with response data', async () => {
       mockedAPI.get.mockResolvedValue({ data: mockShrinkList });
 
       await store.dispatch(actions.getShrinkList());
 
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
-        type: types.GET_StockInfoes,
+        type: types.GET_ShrinkList,
         payload: mockShrinkList
       });
     });
@@ -265,7 +276,7 @@ describe('StockActions', () => {
         ]
       };
       const realStore = createStore(rootReducer, {
-        stockInfo: { stockInfoes, stockInfo: {} }
+        stockInfo: makeStockState(stockInfoes)
       }, applyMiddleware(thunk));
 
       mockedAPI.patch.mockImplementation(async () => {
@@ -300,7 +311,7 @@ describe('StockActions', () => {
         productList: [{ type: '板卷', quantity: 4, unit: '碼' }]
       };
       const realStore = createStore(rootReducer, {
-        stockInfo: { stockInfoes, stockInfo: {} }
+        stockInfo: makeStockState(stockInfoes)
       }, applyMiddleware(thunk));
       mockedAPI.patch.mockRejectedValue({ response: { data: errorData } });
 
@@ -351,7 +362,7 @@ describe('StockActions', () => {
         productList: [{ type: '板卷', quantity: 3, unit: '碼' }]
       };
       const realStore = createStore(rootReducer, {
-        stockInfo: { stockInfoes, stockInfo: {} }
+        stockInfo: makeStockState(stockInfoes)
       }, applyMiddleware(thunk));
       mockedAPI.patch.mockRejectedValue({ response: { data: errorData } });
 
@@ -370,7 +381,7 @@ describe('StockActions', () => {
         productList: [{ type: '板卷', quantity: 3, unit: '碼' }]
       };
       const realStore = createStore(rootReducer, {
-        stockInfo: { stockInfoes, stockInfo: {} }
+        stockInfo: makeStockState(stockInfoes)
       }, applyMiddleware(thunk));
       mockedAPI.patch.mockResolvedValue({ data: {} });
       mockedAPI.get.mockRejectedValue({ response: { data: errorData } });
@@ -615,14 +626,14 @@ describe('StockActions', () => {
       );
     });
 
-    test('dispatches GET_StockInfoes with response data', async () => {
+    test('dispatches GET_InStockRollbackList with response data', async () => {
       mockedAPI.get.mockResolvedValue({ data: mockRollbackList });
 
       await store.dispatch(actions.getInStockRollbackList(orderType, orderNo));
 
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
-        type: types.GET_StockInfoes,
+        type: types.GET_InStockRollbackList,
         payload: mockRollbackList
       });
     });
@@ -663,7 +674,7 @@ describe('StockActions', () => {
       );
     });
 
-    test('dispatches GET_StockInfoes with refreshed data', async () => {
+    test('dispatches GET_InStockRollbackList with refreshed data', async () => {
       mockedAPI.patch.mockResolvedValue({ data: {} });
       mockedAPI.get.mockResolvedValue({ data: mockRollbackList });
 
@@ -671,7 +682,7 @@ describe('StockActions', () => {
 
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
-        type: types.GET_StockInfoes,
+        type: types.GET_InStockRollbackList,
         payload: mockRollbackList
       });
     });
@@ -707,14 +718,14 @@ describe('StockActions', () => {
       expect(mockedAPI.get).toHaveBeenCalledWith(`/api/stock/queryStock/shrinkRollback/${productNo}`);
     });
 
-    test('dispatches GET_StockInfoes with response data', async () => {
+    test('dispatches GET_ShrinkRollbackList with response data', async () => {
       mockedAPI.get.mockResolvedValue({ data: mockRollbackList });
 
       await store.dispatch(actions.getShrinkRollbackList(productNo));
 
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
-        type: types.GET_StockInfoes,
+        type: types.GET_ShrinkRollbackList,
         payload: mockRollbackList
       });
     });
@@ -752,7 +763,7 @@ describe('StockActions', () => {
       expect(mockedAPI.get).toHaveBeenCalledWith(`/api/stock/queryStock/shrinkRollback/${productNo}`);
     });
 
-    test('dispatches GET_StockInfoes with refreshed data', async () => {
+    test('dispatches GET_ShrinkRollbackList with refreshed data', async () => {
       mockedAPI.patch.mockResolvedValue({ data: {} });
       mockedAPI.get.mockResolvedValue({ data: mockRollbackList });
 
@@ -760,7 +771,7 @@ describe('StockActions', () => {
 
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
-        type: types.GET_StockInfoes,
+        type: types.GET_ShrinkRollbackList,
         payload: mockRollbackList
       });
     });
@@ -1046,14 +1057,14 @@ describe('StockActions', () => {
       );
     });
 
-    test('dispatches GET_StockInfoes with response data', async () => {
+    test('dispatches GET_ProductHistory with response data', async () => {
       mockedAPI.get.mockResolvedValue({ data: mockHistory });
 
       await store.dispatch(actions.getProductHistory(request));
 
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
-        type: types.GET_StockInfoes,
+        type: types.GET_ProductHistory,
         payload: mockHistory
       });
     });
@@ -1100,14 +1111,14 @@ describe('StockActions', () => {
       expect(mockedAPI.get).toHaveBeenCalledWith('/api/stock/queryStock/categoryList');
     });
 
-    test('dispatches GET_StockInfoes with response data', async () => {
+    test('dispatches GET_Categories with response data', async () => {
       mockedAPI.get.mockResolvedValue({ data: mockCategories });
 
       await store.dispatch(actions.getAllCategory());
 
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
-        type: types.GET_StockInfoes,
+        type: types.GET_Categories,
         payload: mockCategories
       });
     });

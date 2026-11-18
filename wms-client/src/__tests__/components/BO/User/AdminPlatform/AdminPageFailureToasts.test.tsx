@@ -6,7 +6,7 @@ import { thunk } from 'redux-thunk';
 import { toast } from 'react-toastify';
 import rootReducer from '../../../../../reducers';
 import API from '../../../../../utilities/API';
-import { GET_StockInfoes } from '../../../../../types';
+import { GET_Categories } from '../../../../../types';
 import { REQUEST_FAILED_MESSAGE } from '../../../../../utilities/notifyRequestFailed';
 import StockCategory from '../../../../../components/BO/User/AdminPlatform/StockCategory';
 import UserRegister from '../../../../../components/BO/User/AdminPlatform/UserRegister';
@@ -93,7 +93,7 @@ const pages: [string, string, () => Promise<void>][] = [
     async () => {
       const { container, store, getByRole } = renderPage(StockCategory);
       act(() => {
-        store.dispatch({ type: GET_StockInfoes, payload: [{ label: '棉', value: '棉' }] });
+        store.dispatch({ type: GET_Categories, payload: [{ label: '棉', value: '棉' }] });
       });
       const input = container.querySelector<HTMLInputElement>('input[id^="react-select"]')!;
       fireEvent.keyDown(input, { key: 'ArrowDown', code: 'ArrowDown' });

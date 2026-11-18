@@ -11,25 +11,14 @@ import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
 import { RootState } from "../../../../store";
-import { AppDispatch } from "../../../../types";
+import { AppDispatch, SelectOption } from "../../../../types";
+import { isSelectOption } from "../../../../utilities/selectOption";
 
 const animatedComponents = makeAnimated();
 
-interface CategoryOption {
-  value: string;
-  label: string;
-}
-
-// GET /api/stock/queryStock/categoryList returns [{ label, value }]; it shares the stockInfo
-// slice with other pages, so keep only entries of that shape.
-const isCategoryOption = (value: unknown): value is CategoryOption =>
-  typeof value === "object" && value !== null &&
-  "value" in value && typeof value.value === "string" &&
-  "label" in value && typeof value.label === "string";
-
 const StockCategory: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<SelectOption | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
   const categoryList = useSelector((state: RootState) => state.stockInfo);
@@ -38,7 +27,7 @@ const StockCategory: React.FC = () => {
     dispatch(getAllCategory()).catch(notifyRequestFailed);
   }, [dispatch]);
 
-  const handleCategorySelect = useCallback((selected: SingleValue<CategoryOption>): void => {
+  const handleCategorySelect = useCallback((selected: SingleValue<SelectOption>): void => {
     setSelectedCategory(selected);
   }, []);
 
@@ -62,8 +51,8 @@ const StockCategory: React.FC = () => {
       });
   }, [dispatch, selectedCategory]);
 
-  const stockInfoes: unknown = categoryList.stockInfoes;
-  const options = Array.isArray(stockInfoes) ? stockInfoes.filter(isCategoryOption) : [];
+  const rawCategories: unknown = categoryList.categories;
+  const options = Array.isArray(rawCategories) ? rawCategories.filter(isSelectOption) : [];
 
   return (
     <div className="container">
@@ -72,7 +61,7 @@ const StockCategory: React.FC = () => {
           <div className="row justify-content-center">
             <div className="col-6">
               <label>請選擇想要輸出的分類...</label>
-              <Select<CategoryOption, false>
+              <Select<SelectOption, false>
                 closeMenuOnSelect
                 components={animatedComponents}
                 isSearchable

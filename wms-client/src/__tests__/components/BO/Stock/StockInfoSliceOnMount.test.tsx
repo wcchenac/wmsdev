@@ -4,7 +4,14 @@ import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
 import rootReducer from '../../../../reducers';
-import { GET_Order, GET_StockInfoes } from '../../../../types';
+import {
+  GET_Order,
+  GET_StockInfoes,
+  GET_ShrinkList,
+  GET_InStockRollbackList,
+  GET_ShrinkRollbackList,
+  GET_ProductHistory,
+} from '../../../../types';
 import NormalStockBoard from '../../../../components/BO/Stock/InStock/NormalStockBoard';
 import AssembleStockBoard from '../../../../components/BO/Stock/InStock/AssembleStockBoard';
 import CustomerReturnBoard from '../../../../components/BO/Stock/InStock/CustomerReturnBoard';
@@ -16,6 +23,7 @@ import ModifyBoard from '../../../../components/BO/Stock/ModifyStock/ModifyBoard
 import ShrinkBoard from '../../../../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkBoard';
 import QueryOutStockToStore from '../../../../components/BO/Stock/QueryStock/QueryOutStockToStore';
 import InStockRollback from '../../../../components/BO/User/AdminPlatform/InStockRollback/InStockRollback';
+import ShrinkRollback from '../../../../components/BO/User/AdminPlatform/ShrinkRollback/ShrinkRollback';
 
 // Every query page shares state.stockInfo.stockInfoes. A page must only react to results that
 // arrive while it is mounted (dev's componentDidUpdate), never to whatever another page left in
@@ -102,7 +110,7 @@ describe('歷史記錄查詢 (StockHistoryBoard)', () => {
 
     expect(() =>
       act(() => {
-        store.dispatch({ type: GET_StockInfoes, payload: productQueryPayload });
+        store.dispatch({ type: GET_ProductHistory, payload: productQueryPayload });
       })
     ).not.toThrow();
   });
@@ -139,7 +147,7 @@ describe('減肥清單 (ShrinkBoard)', () => {
 
   test('a list another page left in the store is not shown as the shrink list', () => {
     const store = makeStore();
-    store.dispatch({ type: GET_StockInfoes, payload: leftover });
+    store.dispatch({ type: GET_ShrinkList, payload: leftover });
 
     renderPage(ShrinkBoard, store);
 
@@ -151,7 +159,7 @@ describe('減肥清單 (ShrinkBoard)', () => {
     renderPage(ShrinkBoard, store);
 
     act(() => {
-      store.dispatch({ type: GET_StockInfoes, payload: leftover });
+      store.dispatch({ type: GET_ShrinkList, payload: leftover });
     });
 
     expect(screen.getByText('LEFTOVER-1')).toBeInTheDocument();
@@ -159,24 +167,42 @@ describe('減肥清單 (ShrinkBoard)', () => {
 });
 
 describe('出庫單查詢 (QueryOutStockToStore)', () => {
-  test('rows another page left in the store are not shown', () => {
+  test('ignores pre-mount empty GET_Order and only marks invalid on post-mount GET_Order', () => {
     const store = makeStore();
-    store.dispatch({ type: GET_StockInfoes, payload: [{ productNo: 'LEFTOVER-2', quantity: '1', unit: '碼' }] });
+    store.dispatch({ type: GET_Order, payload: [] });
 
-    renderPage(QueryOutStockToStore, store);
+    const { container } = renderPage(QueryOutStockToStore, store);
+    expect(container.querySelector('input[name="orderNo"]')).not.toHaveClass('is-invalid');
 
-    expect(screen.queryByText('LEFTOVER-2')).not.toBeInTheDocument();
+    act(() => {
+      store.dispatch({ type: GET_Order, payload: [] });
+    });
+    expect(container.querySelector('input[name="orderNo"]')).toHaveClass('is-invalid');
   });
 });
 
 describe('入庫回朔 (InStockRollback)', () => {
   test('a result another page left in the store is not shown', () => {
     const store = makeStore();
-    store.dispatch({ type: GET_StockInfoes, payload: { 'LEFTOVER-3': [] } });
+    store.dispatch({ type: GET_InStockRollbackList, payload: { 'LEFTOVER-3': [] } });
 
     renderPage(InStockRollback, store);
 
     expect(screen.queryByText('LEFTOVER-3')).not.toBeInTheDocument();
+  });
+});
+
+describe('減肥回朔 (ShrinkRollback)', () => {
+  test('a result another page left in the store is not shown', () => {
+    const store = makeStore();
+    store.dispatch({
+      type: GET_ShrinkRollbackList,
+      payload: [{ id: 9, stockIdentifier: { productNo: 'LEFTOVER-5' }, parent: { productNo: 'LEFTOVER-5' } }],
+    });
+
+    renderPage(ShrinkRollback, store);
+
+    expect(screen.queryByText('LEFTOVER-5')).not.toBeInTheDocument();
   });
 });
 
@@ -187,7 +213,7 @@ describe('歷史記錄查詢 tree data', () => {
 
     expect(() =>
       act(() => {
-        store.dispatch({ type: GET_StockInfoes, payload: [{ id: 7, productNo: 'LEFTOVER-4' }] });
+        store.dispatch({ type: GET_ProductHistory, payload: [{ id: 7, productNo: 'LEFTOVER-4' }] });
       })
     ).not.toThrow();
     expect(screen.queryByText('LEFTOVER-4')).not.toBeInTheDocument();

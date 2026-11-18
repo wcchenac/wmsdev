@@ -65,7 +65,7 @@ function StockHistoryBoard(): React.ReactElement {
 
   // Only react to a result that arrives while this page is mounted, not one another page
   // left in the shared stockInfo slice (componentDidUpdate in dev).
-  useUpdateEffect(stockInfo.stockInfoes, (result) => {
+  useUpdateEffect(stockInfo.productHistory, (result) => {
     setTreeData(treeDataTranslation(result));
   });
 

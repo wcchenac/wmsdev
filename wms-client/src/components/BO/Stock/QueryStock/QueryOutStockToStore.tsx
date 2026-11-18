@@ -52,7 +52,7 @@ const QueryOutStockToStore: React.FC = () => {
   // left in the shared stockInfo slice (componentDidUpdate in dev).
   // The backend answers an unknown order number with an empty list, so every new result
   // decides whether the order was found.
-  useUpdateEffect(orderInfo.stockInfoes, (result) => {
+  useUpdateEffect(orderInfo.orderResult, (result) => {
     const rows = Array.isArray(result) ? (result as ProductInfo[]) : [];
     setOrderInfoes(rows);
     setIsOrderValid(rows.length > 0);

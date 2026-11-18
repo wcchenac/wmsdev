@@ -6,7 +6,7 @@ import StockHistoryBoard from '../../../../../components/BO/Stock/StockHistory/S
 
 interface StockInfoState {
   stockInfo: {
-    stockInfoes: unknown[];
+    productHistory: unknown[];
   };
 }
 
@@ -41,7 +41,7 @@ describe('StockHistoryBoard', () => {
   beforeEach(() => {
     initialState = {
       stockInfo: {
-        stockInfoes: []
+        productHistory: []
       }
     };
     vi.clearAllMocks();
@@ -94,7 +94,7 @@ describe('StockHistoryBoard', () => {
     // Update store with empty results
     const updatedState: StockInfoState = {
       stockInfo: {
-        stockInfoes: []
+        productHistory: []
       }
     };
 
@@ -115,7 +115,7 @@ describe('StockHistoryBoard', () => {
 
     // Data structure that matches what Redux provides
     const mockTreeData = {
-      stockInfoes: [
+      productHistory: [
         {
           stockInfo: {
             defect: 'none',
@@ -138,7 +138,7 @@ describe('StockHistoryBoard', () => {
     };
 
     const { rerender } = renderWithRedux(<StockHistoryBoard />, {
-        initialState: { stockInfo: { stockInfoes: [] } }
+        initialState: { stockInfo: { productHistory: [] } }
     });
 
     // Simulate query success to set isQuery = true

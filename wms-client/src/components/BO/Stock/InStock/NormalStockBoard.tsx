@@ -168,7 +168,7 @@ const NormalStockBoard: React.FC = () => {
 
   // Only react to an order that arrives while this page is mounted, not one another page
   // left in the shared stockInfo slice (componentDidUpdate in dev).
-  useUpdateEffect(queryInStockOrderResult.stockInfoes, (result) => {
+  useUpdateEffect(queryInStockOrderResult.orderResult, (result) => {
     if (result) {
       const stockInfoes = result as StockInfoesResponse;
       const newCurrentOrderStatus = stockInfoes.currentStatus;

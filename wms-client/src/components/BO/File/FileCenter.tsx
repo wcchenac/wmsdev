@@ -1,6 +1,7 @@
-import React, { useState, useCallback, MouseEvent } from "react";
+import React, { useState, useCallback, useMemo, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed } from "../../../utilities/notifyRequestFailed";
+import { isSelectOption } from "../../../utilities/selectOption";
 import FileContainer from "./FileContainer";
 import FileContainerForCategory from "./FileContainerForCategory";
 import {
@@ -11,7 +12,7 @@ import {
 } from "../../../actions/FileActions";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../Others/Spinner";
-import { RootState, AppDispatch, SelectOption } from "../../../types";
+import { RootState, AppDispatch } from "../../../types";
 
 type FileCategoryKey = "adjustment" | "allocation" | "dailyComparison" | "categoryDetail";
 
@@ -32,9 +33,13 @@ const FileCenter: React.FC = () => {
   });
 
   const dispatch = useDispatch<AppDispatch>();
-  const categoryList = useSelector(
-    (state: RootState) => state.stockInfo.stockInfoes
-  ) as SelectOption[];
+  const rawCategories: unknown = useSelector(
+    (state: RootState) => state.stockInfo.categories
+  );
+  const categoryList = useMemo(
+    () => (Array.isArray(rawCategories) ? rawCategories.filter(isSelectOption) : []),
+    [rawCategories]
+  );
 
   const handleFileCategoryCurrentQuery = useCallback((fileCategory: string) => {
     setIsLoading(true);

@@ -12,6 +12,11 @@ export const UPDATE_Errors = "UPDATE_Errors";
 export const GET_Order = "GET_Order";
 export const GET_StockInfo = "GET_StockInfo";
 export const GET_StockInfoes = "GET_StockInfoes";
+export const GET_ShrinkList = "GET_ShrinkList";
+export const GET_InStockRollbackList = "GET_InStockRollbackList";
+export const GET_ShrinkRollbackList = "GET_ShrinkRollbackList";
+export const GET_ProductHistory = "GET_ProductHistory";
+export const GET_Categories = "GET_Categories";
 export const UPDATE_StockInfo = "UPDATE_StockInfo";
 export const DELETE_Stock = "DELETE_Stock";
 export const SHIP_Stock = "SHIP_Stock";
@@ -86,6 +91,12 @@ export interface StockInfoesWithResult {
 export interface StockState {
   stockInfoes: StockInfo[] | StockInfoesWithResult;
   stockInfo: StockInfo;
+  orderResult: unknown;
+  shrinkList: StockInfo[];
+  inStockRollbackList: InStockRollbackResult;
+  shrinkRollbackList: ShrinkRollbackObject[];
+  productHistory: unknown[];
+  categories: SelectOption[];
 }
 
 // ============================================

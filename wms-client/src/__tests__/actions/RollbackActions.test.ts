@@ -26,7 +26,8 @@ const httpError = (status: number) =>
   Object.assign(new Error(`Request failed with status code ${status}`), { response: { status, data: '' } });
 const networkError = () => Object.assign(new Error('timeout of 30000ms exceeded'), { code: 'ECONNABORTED' });
 
-const freshList = { CF1001: [{ id: 9 }] };
+const freshInStockList = { CF1001: [{ id: 9 }] };
+const freshShrinkList = [{ stockInfo: { id: 9 }, nodes: [] }];
 
 const makeStore = () => createStore(rootReducer, applyMiddleware(thunk));
 
@@ -35,15 +36,19 @@ const cases = [
     '入庫回朔 (inStockRollback)',
     () => inStockRollback([1, 2], 'normal', 'IN001'),
     '/api/stock/queryStock/inStockRollback?orderType=normal&orderNo=IN001',
+    'inStockRollbackList',
+    freshInStockList,
   ],
   [
     '減肥回朔 (shrinkRollback)',
     () => shrinkRollback(7, 'CF1001'),
     '/api/stock/queryStock/shrinkRollback/CF1001',
+    'shrinkRollbackList',
+    freshShrinkList,
   ],
 ] as const;
 
-describe.each(cases)('%s', (_name, rollback, listUrl) => {
+describe.each(cases)('%s', (_name, rollback, listUrl, sliceKey, freshList) => {
   beforeEach(() => {
     vi.mocked(API.patch).mockReset().mockResolvedValue({ status: 200, data: '' });
     vi.mocked(API.get).mockReset().mockResolvedValue({ status: 200, data: freshList });
@@ -57,7 +62,7 @@ describe.each(cases)('%s', (_name, rollback, listUrl) => {
     await expect(run(store)).resolves.toMatchObject({ status: 200 });
 
     expect(API.get).toHaveBeenCalledWith(listUrl);
-    expect(store.getState().stockInfo.stockInfoes).toEqual(freshList);
+    expect(store.getState().stockInfo[sliceKey]).toEqual(freshList);
   });
 
   test('a rejected rollback (400) still queries the list again and says nothing changed', async () => {
@@ -69,7 +74,7 @@ describe.each(cases)('%s', (_name, rollback, listUrl) => {
     expect(error).toBeInstanceOf(RollbackError);
     expect((error as RollbackError).message).toBe(ROLLBACK_REJECTED_MESSAGE);
     expect(API.get).toHaveBeenCalledWith(listUrl);
-    expect(store.getState().stockInfo.stockInfoes).toEqual(freshList);
+    expect(store.getState().stockInfo[sliceKey]).toEqual(freshList);
   });
 
   test('a rejected rollback whose list query also fails says so', async () => {

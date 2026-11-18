@@ -167,7 +167,7 @@ const CustomerReturnBoard: React.FC = () => {
 
   // Only react to an order that arrives while this page is mounted, not one another page
   // left in the shared stockInfo slice (componentDidUpdate in dev).
-  useUpdateEffect(queryReturnOrderResult.stockInfoes, (result) => {
+  useUpdateEffect(queryReturnOrderResult.orderResult, (result) => {
     if (result) {
       const stockInfoes = result as {
         currentStatus?: CurrentOrderStatus;

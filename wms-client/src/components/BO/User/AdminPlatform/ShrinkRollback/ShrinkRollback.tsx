@@ -116,10 +116,12 @@ class ShrinkRollback extends Component<PropsFromRedux, ShrinkRollbackState> {
 
   componentDidUpdate(prevProps: PropsFromRedux): void {
     if (
-      this.props.queryResult.stockInfoes !== prevProps.queryResult.stockInfoes
+      this.props.queryResult.shrinkRollbackList !== prevProps.queryResult.shrinkRollbackList
     ) {
       this.setState({
-        result: this.props.queryResult.stockInfoes as ShrinkRollbackObject[]
+        result: Array.isArray(this.props.queryResult.shrinkRollbackList)
+          ? (this.props.queryResult.shrinkRollbackList as ShrinkRollbackObject[])
+          : []
       });
     }
   }

@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { applyMiddleware, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
 import rootReducer from '../../../../../reducers';
-import { GET_StockInfoes } from '../../../../../types';
+import { GET_Categories, GET_StockInfoes } from '../../../../../types';
 import StockCategory from '../../../../../components/BO/User/AdminPlatform/StockCategory';
 
 // The category list arrives in the shared stockInfo slice as [{ label, value }]. Only entries
@@ -37,7 +37,7 @@ describe('庫存類別 options', () => {
   test('the category list becomes the options', () => {
     const { container, store } = renderPage();
     act(() => {
-      store.dispatch({ type: GET_StockInfoes, payload: [{ label: '棉', value: '棉' }, { label: '麻', value: '麻' }] });
+      store.dispatch({ type: GET_Categories, payload: [{ label: '棉', value: '棉' }, { label: '麻', value: '麻' }] });
     });
 
     openMenu(container);
@@ -49,6 +49,7 @@ describe('庫存類別 options', () => {
     const { container, store } = renderPage();
     act(() => {
       store.dispatch({ type: GET_StockInfoes, payload: [{ id: 7, productNo: 'CF1001' }] });
+      store.dispatch({ type: GET_Categories, payload: [{ id: 7, productNo: 'CF1001' }] });
     });
 
     openMenu(container);

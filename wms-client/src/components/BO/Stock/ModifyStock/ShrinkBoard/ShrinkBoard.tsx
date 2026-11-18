@@ -27,7 +27,7 @@ const ShrinkBoard: React.FC = () => {
 
     // Only react to a list that arrives while this page is mounted, not one another page
     // left in the shared stockInfo slice (componentDidUpdate in dev).
-    useUpdateEffect(shrinkListFromStore.stockInfoes, (result) => {
+    useUpdateEffect(shrinkListFromStore.shrinkList, (result) => {
         if (Array.isArray(result)) {
             setShrinkList(result);
         }

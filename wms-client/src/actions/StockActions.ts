@@ -4,6 +4,11 @@ import { RollbackError, rollbackThenQueryList } from "../utilities/rollbackReque
 import {
   GET_Order,
   GET_StockInfoes,
+  GET_ShrinkList,
+  GET_InStockRollbackList,
+  GET_ShrinkRollbackList,
+  GET_ProductHistory,
+  GET_Categories,
   GET_Errors,
   CREATE_Errors,
   SHRINK_Errors,
@@ -200,7 +205,7 @@ export const getShrinkList =
       const res = await API.get("/api/stock/queryStock/shrinkList");
 
       dispatch({
-        type: GET_StockInfoes,
+        type: GET_ShrinkList,
         payload: res.data,
       });
 
@@ -371,7 +376,7 @@ export const getInStockRollbackList =
       );
 
       dispatch({
-        type: GET_StockInfoes,
+        type: GET_InStockRollbackList,
         payload: res.data,
       });
 
@@ -419,7 +424,7 @@ export const inStockRollback =
             `/api/stock/queryStock/inStockRollback?orderType=${encodeURIComponent(orderType)}&orderNo=${encodeURIComponent(orderNo)}`
           );
           dispatch({
-            type: GET_StockInfoes,
+            type: GET_InStockRollbackList,
             payload: res.data,
           });
           return res;
@@ -440,7 +445,7 @@ export const getShrinkRollbackList =
       );
 
       dispatch({
-        type: GET_StockInfoes,
+        type: GET_ShrinkRollbackList,
         payload: res.data,
       });
 
@@ -471,7 +476,7 @@ export const shrinkRollback =
             `/api/stock/queryStock/shrinkRollback/${encodeURIComponent(productNo)}`
           );
           dispatch({
-            type: GET_StockInfoes,
+            type: GET_ShrinkRollbackList,
             payload: res.data,
           });
           return res;
@@ -613,7 +618,7 @@ export const getProductHistory =
       );
 
       dispatch({
-        type: GET_StockInfoes,
+        type: GET_ProductHistory,
         payload: res.data,
       });
 
@@ -644,7 +649,7 @@ export const getAllCategory =
       const res = await API.get("/api/stock/queryStock/categoryList");
 
       dispatch({
-        type: GET_StockInfoes,
+        type: GET_Categories,
         payload: res.data,
       });
 

@@ -2,6 +2,11 @@ import {
   GET_Order,
   GET_StockInfo,
   GET_StockInfoes,
+  GET_ShrinkList,
+  GET_InStockRollbackList,
+  GET_ShrinkRollbackList,
+  GET_ProductHistory,
+  GET_Categories,
   SHIP_Stock,
   SHIP_Stocks,
   SHRINK_Stock,
@@ -10,17 +15,31 @@ import {
   StockState,
   StockInfo,
   StockInfoesWithResult,
+  InStockRollbackResult,
+  ShrinkRollbackObject,
+  SelectOption,
   Action
 } from "../types";
 
 const initialState: StockState = {
   stockInfoes: [],
-  stockInfo: {}
+  stockInfo: {},
+  orderResult: null,
+  shrinkList: [],
+  inStockRollbackList: {},
+  shrinkRollbackList: [],
+  productHistory: [],
+  categories: []
 };
 
 type StockAction =
   | Action<StockInfo[] | StockInfoesWithResult>
   | Action<StockInfo>
+  | Action<InStockRollbackResult>
+  | Action<ShrinkRollbackObject[]>
+  | Action<unknown[]>
+  | Action<SelectOption[]>
+  | Action<unknown>
   | Action<number>;
 
 /**
@@ -100,6 +119,10 @@ export default function StockReducer(
 ): StockState {
   switch (action.type) {
     case GET_Order:
+      return {
+        ...state,
+        orderResult: action.payload ?? null
+      };
     case GET_StockInfoes:
     case SHIP_Stocks:
     case SHRINK_Stock:
@@ -107,6 +130,35 @@ export default function StockReducer(
       return {
         ...state,
         stockInfoes: (action.payload as StockInfo[] | StockInfoesWithResult) || []
+      };
+    case GET_ShrinkList:
+      return {
+        ...state,
+        shrinkList: Array.isArray(action.payload) ? (action.payload as StockInfo[]) : []
+      };
+    case GET_InStockRollbackList:
+      return {
+        ...state,
+        inStockRollbackList: isRecord(action.payload) && !Array.isArray(action.payload)
+          ? (action.payload as InStockRollbackResult)
+          : {}
+      };
+    case GET_ShrinkRollbackList:
+      return {
+        ...state,
+        shrinkRollbackList: Array.isArray(action.payload)
+          ? (action.payload as ShrinkRollbackObject[])
+          : []
+      };
+    case GET_ProductHistory:
+      return {
+        ...state,
+        productHistory: Array.isArray(action.payload) ? action.payload : []
+      };
+    case GET_Categories:
+      return {
+        ...state,
+        categories: Array.isArray(action.payload) ? (action.payload as SelectOption[]) : []
       };
     case GET_StockInfo:
       return {
@@ -139,10 +191,10 @@ export default function StockReducer(
       return state;
     }
     case CANCEL_SHRINK: {
-      if (Array.isArray(state.stockInfoes)) {
+      if (Array.isArray(state.shrinkList)) {
         return {
           ...state,
-          stockInfoes: state.stockInfoes.filter(
+          shrinkList: state.shrinkList.filter(
             (stockInfo) =>
               stockInfo.stockIdentifier?.id !== (action.payload as number)
           )

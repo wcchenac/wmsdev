@@ -4,6 +4,11 @@ import {
   GET_Order,
   GET_StockInfo,
   GET_StockInfoes,
+  GET_ShrinkList,
+  GET_InStockRollbackList,
+  GET_ShrinkRollbackList,
+  GET_ProductHistory,
+  GET_Categories,
   SHIP_Stock,
   SHIP_Stocks,
   SHRINK_Stock,
@@ -13,16 +18,25 @@ import {
 
 type StockAction = Parameters<typeof StockReducer>[1];
 
-// GET_Order stores the order-status response ({ currentStatus, waitHandleStatus }) in
-// stockInfoes, a shape StockState does not model (the boards cast it, e.g. NormalStockBoard's
-// `result as StockInfoesResponse`). Until that type is fixed, the test builds this action here.
 const getOrderWith = (payload: unknown): StockAction => ({ type: GET_Order, payload }) as StockAction;
 
+const initialState: StockState = {
+  stockInfoes: [],
+  stockInfo: {},
+  orderResult: null,
+  shrinkList: [],
+  inStockRollbackList: {},
+  shrinkRollbackList: [],
+  productHistory: [],
+  categories: []
+};
+
+const makeState = (overrides: Partial<StockState> = {}): StockState => ({
+  ...initialState,
+  ...overrides
+});
+
 describe('StockReducer', () => {
-  const initialState: StockState = {
-    stockInfoes: [],
-    stockInfo: {}
-  };
 
   describe('initial state', () => {
     test('returns initial state when no state provided', () => {
@@ -35,28 +49,28 @@ describe('StockReducer', () => {
   });
 
   describe('GET_Order', () => {
-    test('sets stockInfoes to payload', () => {
+    test('sets orderResult to payload without touching stockInfoes', () => {
       const payload = [{ id: 1, productNo: 'PROD001' }];
       const result = StockReducer(initialState, { type: GET_Order, payload });
 
-      expect(result.stockInfoes).toEqual(payload);
+      expect(result.orderResult).toEqual(payload);
+      expect(result.stockInfoes).toEqual([]);
       expect(result.stockInfo).toEqual({});
     });
 
-    test('replaces existing stockInfoes', () => {
-      const existingState: StockState = {
-        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 1 }],
-        stockInfo: {}
-      };
+    test('replaces existing orderResult', () => {
+      const existingState = makeState({
+        orderResult: [{ id: 1 }]
+      });
       const payload = [{ id: 2 }];
       const result = StockReducer(existingState, { type: GET_Order, payload });
 
-      expect(result.stockInfoes).toEqual(payload);
+      expect(result.orderResult).toEqual(payload);
     });
 
     test('handles empty payload', () => {
       const result = StockReducer(initialState, { type: GET_Order, payload: [] });
-      expect(result.stockInfoes).toEqual([]);
+      expect(result.orderResult).toEqual([]);
     });
 
     test('handles object payload (for order with status)', () => {
@@ -65,7 +79,7 @@ describe('StockReducer', () => {
         waitHandleStatus: { 'PROD001': { roll: { quantity: '5' } } }
       };
       const result = StockReducer(initialState, getOrderWith(payload));
-      expect(result.stockInfoes).toEqual(payload);
+      expect(result.orderResult).toEqual(payload);
     });
   });
 
@@ -78,10 +92,9 @@ describe('StockReducer', () => {
     });
 
     test('preserves stockInfo when updating stockInfoes', () => {
-      const existingState: StockState = {
-        stockInfoes: [],
+      const existingState = makeState({
         stockInfo: { id: 1 }
-      };
+      });
       const payload = [{ id: 2 }];
       const result = StockReducer(existingState, { type: GET_StockInfoes, payload });
 
@@ -99,10 +112,9 @@ describe('StockReducer', () => {
     });
 
     test('replaces existing stockInfo', () => {
-      const existingState: StockState = {
-        stockInfoes: [],
+      const existingState = makeState({
         stockInfo: { id: 1 }
-      };
+      });
       const payload = { id: 2 };
       const result = StockReducer(existingState, { type: GET_StockInfo, payload });
 
@@ -110,10 +122,9 @@ describe('StockReducer', () => {
     });
 
     test('preserves stockInfoes when updating stockInfo', () => {
-      const existingState: StockState = {
-        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 10 }],
-        stockInfo: {}
-      };
+      const existingState = makeState({
+        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 10 }]
+      });
       const payload = { id: 2 };
       const result = StockReducer(existingState, { type: GET_StockInfo, payload });
 
@@ -123,16 +134,15 @@ describe('StockReducer', () => {
 
   describe('SHIP_Stock', () => {
     test('removes shipped item from stockInfoes.result by stockIdentifier.id', () => {
-      const existingState: StockState = {
+      const existingState = makeState({
         stockInfoes: {
           result: [
             { stockIdentifier: { id: 1, productNo: 'PROD001' } },
             { stockIdentifier: { id: 2, productNo: 'PROD002' } }
           ],
           otherData: 'preserved'
-        } as StockInfoesWithResult,
-        stockInfo: {}
-      };
+        } as StockInfoesWithResult
+      });
       const result = StockReducer(existingState, { type: SHIP_Stock, payload: 1 });
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
 
@@ -142,16 +152,15 @@ describe('StockReducer', () => {
     });
 
     test('removes correct item when multiple items exist', () => {
-      const existingState: StockState = {
+      const existingState = makeState({
         stockInfoes: {
           result: [
             { stockIdentifier: { id: 1 } },
             { stockIdentifier: { id: 2 } },
             { stockIdentifier: { id: 3 } }
           ]
-        } as StockInfoesWithResult,
-        stockInfo: {}
-      };
+        } as StockInfoesWithResult
+      });
       const result = StockReducer(existingState, { type: SHIP_Stock, payload: 2 });
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
 
@@ -160,15 +169,14 @@ describe('StockReducer', () => {
     });
 
     test('handles payload that does not match any item', () => {
-      const existingState: StockState = {
+      const existingState = makeState({
         stockInfoes: {
           result: [
             { stockIdentifier: { id: 1 } },
             { stockIdentifier: { id: 2 } }
           ]
-        } as StockInfoesWithResult,
-        stockInfo: {}
-      };
+        } as StockInfoesWithResult
+      });
       const result = StockReducer(existingState, { type: SHIP_Stock, payload: 999 });
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
 
@@ -176,10 +184,9 @@ describe('StockReducer', () => {
     });
 
     test('handles empty result array', () => {
-      const existingState: StockState = {
-        stockInfoes: { result: [] } as StockInfoesWithResult,
-        stockInfo: {}
-      };
+      const existingState = makeState({
+        stockInfoes: { result: [] } as StockInfoesWithResult
+      });
       const result = StockReducer(existingState, { type: SHIP_Stock, payload: 1 });
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
 
@@ -191,16 +198,15 @@ describe('StockReducer', () => {
         { type: '板卷', quantity: 10, unit: '碼' },
         { type: '整支', quantity: 2, unit: '支' }
       ];
-      const existingState: StockState = {
+      const existingState = makeState({
         stockInfoes: {
           result: [
             { stockIdentifier: { id: 1, type: '板卷', quantity: 4, unit: '碼' } },
             { stockIdentifier: { id: 2, type: '板卷', quantity: 6, unit: '碼' } }
           ],
           productList
-        } as StockInfoesWithResult,
-        stockInfo: {}
-      };
+        } as StockInfoesWithResult
+      });
 
       const result = StockReducer(existingState, { type: SHIP_Stock, payload: 1 });
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
@@ -215,15 +221,14 @@ describe('StockReducer', () => {
     });
 
     test('keeps a string productList quantity as a string', () => {
-      const existingState: StockState = {
+      const existingState = makeState({
         stockInfoes: {
           result: [
             { stockIdentifier: { id: 7, type: '板卷', quantity: 1.5, unit: '碼' } }
           ],
           productList: [{ type: '板卷', quantity: '10.00', unit: '碼' }]
-        } as StockInfoesWithResult,
-        stockInfo: {}
-      };
+        } as StockInfoesWithResult
+      });
 
       const result = StockReducer(existingState, { type: SHIP_Stock, payload: 7 });
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
@@ -234,7 +239,7 @@ describe('StockReducer', () => {
     });
 
     test('filters stock-shaped productList rows by the shipped id', () => {
-      const existingState: StockState = {
+      const existingState = makeState({
         stockInfoes: {
           result: [
             { stockIdentifier: { id: 1 } },
@@ -244,9 +249,8 @@ describe('StockReducer', () => {
             { stockIdentifier: { id: 1, productNo: 'A' } },
             { stockIdentifier: { id: 2, productNo: 'B' } }
           ]
-        } as StockInfoesWithResult,
-        stockInfo: {}
-      };
+        } as StockInfoesWithResult
+      });
 
       const result = StockReducer(existingState, { type: SHIP_Stock, payload: 1 });
       const stockInfoes = result.stockInfoes as StockInfoesWithResult;
@@ -276,54 +280,81 @@ describe('StockReducer', () => {
   });
 
   describe('CANCEL_SHRINK', () => {
-    test('removes cancelled item from stockInfoes by stockIdentifier.id', () => {
-      const existingState: StockState = {
-        stockInfoes: [
+    test('removes cancelled item from shrinkList by stockIdentifier.id', () => {
+      const existingState = makeState({
+        shrinkList: [
           { stockIdentifier: { id: 1, productNo: 'PROD001' } },
           { stockIdentifier: { id: 2, productNo: 'PROD002' } }
-        ] as StockInfo[],
-        stockInfo: {}
-      };
+        ] as StockInfo[]
+      });
       const result = StockReducer(existingState, { type: CANCEL_SHRINK, payload: 1 });
-      const stockInfoes = result.stockInfoes as StockInfo[];
 
-      expect(stockInfoes).toHaveLength(1);
-      expect(stockInfoes[0].stockIdentifier?.id).toBe(2);
+      expect(result.shrinkList).toHaveLength(1);
+      expect(result.shrinkList[0].stockIdentifier?.id).toBe(2);
     });
 
     test('removes correct item when multiple items exist', () => {
-      const existingState: StockState = {
-        stockInfoes: [
+      const existingState = makeState({
+        shrinkList: [
           { stockIdentifier: { id: 1 } },
           { stockIdentifier: { id: 2 } },
           { stockIdentifier: { id: 3 } }
-        ] as StockInfo[],
-        stockInfo: {}
-      };
+        ] as StockInfo[]
+      });
       const result = StockReducer(existingState, { type: CANCEL_SHRINK, payload: 2 });
-      const stockInfoes = result.stockInfoes as StockInfo[];
 
-      expect(stockInfoes).toHaveLength(2);
-      expect(stockInfoes.map(s => s.stockIdentifier?.id)).toEqual([1, 3]);
+      expect(result.shrinkList).toHaveLength(2);
+      expect(result.shrinkList.map(s => s.stockIdentifier?.id)).toEqual([1, 3]);
     });
 
     test('handles payload that does not match any item', () => {
-      const existingState: StockState = {
-        stockInfoes: [
+      const existingState = makeState({
+        shrinkList: [
           { stockIdentifier: { id: 1 } },
           { stockIdentifier: { id: 2 } }
-        ] as StockInfo[],
-        stockInfo: {}
-      };
+        ] as StockInfo[]
+      });
       const result = StockReducer(existingState, { type: CANCEL_SHRINK, payload: 999 });
-      const stockInfoes = result.stockInfoes as StockInfo[];
 
-      expect(stockInfoes).toHaveLength(2);
+      expect(result.shrinkList).toHaveLength(2);
     });
 
-    test('handles empty stockInfoes array', () => {
+    test('handles empty shrinkList array', () => {
       const result = StockReducer(initialState, { type: CANCEL_SHRINK, payload: 1 });
+      expect(result.shrinkList).toEqual([]);
+    });
+  });
+
+  describe('dedicated slices (C-2)', () => {
+    test('GET_ShrinkList updates shrinkList without touching stockInfoes', () => {
+      const payload = [{ stockIdentifier: { id: 9 } }] as StockInfo[];
+      const result = StockReducer(initialState, { type: GET_ShrinkList, payload });
+      expect(result.shrinkList).toEqual(payload);
       expect(result.stockInfoes).toEqual([]);
+    });
+
+    test('GET_InStockRollbackList updates inStockRollbackList', () => {
+      const payload = { CF1001: [{ id: 1 }] };
+      const result = StockReducer(initialState, { type: GET_InStockRollbackList, payload });
+      expect(result.inStockRollbackList).toEqual(payload);
+    });
+
+    test('GET_ShrinkRollbackList updates shrinkRollbackList', () => {
+      const payload = [{ stockInfo: { id: 1 }, nodes: [] }];
+      const result = StockReducer(initialState, { type: GET_ShrinkRollbackList, payload });
+      expect(result.shrinkRollbackList).toEqual(payload);
+    });
+
+    test('GET_ProductHistory updates productHistory', () => {
+      const payload = [{ stockInfo: { id: 1 }, nodes: [] }];
+      const result = StockReducer(initialState, { type: GET_ProductHistory, payload });
+      expect(result.productHistory).toEqual(payload);
+    });
+
+    test('GET_Categories updates categories', () => {
+      const payload = [{ value: '棉', label: '棉' }];
+      const result = StockReducer(initialState, { type: GET_Categories, payload });
+      expect(result.categories).toEqual(payload);
     });
   });
 
@@ -336,10 +367,9 @@ describe('StockReducer', () => {
     });
 
     test('replaces existing stockInfoes', () => {
-      const existingState: StockState = {
-        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 1 }],
-        stockInfo: {}
-      };
+      const existingState = makeState({
+        stockInfoes: [{ stockIdentifier: { id: 1 }, id: 1 }]
+      });
       const payload = [{ id: 2, remark: 'updated' }];
       const result = StockReducer(existingState, { type: UPDATE_StockInfo, payload });
 
@@ -349,10 +379,10 @@ describe('StockReducer', () => {
 
   describe('state immutability', () => {
     test('does not mutate original state', () => {
-      const originalState: StockState = {
+      const originalState = makeState({
         stockInfoes: [{ stockIdentifier: { id: 1 }, id: 1 }],
         stockInfo: { id: 5 }
-      };
+      });
       const stateCopy = JSON.parse(JSON.stringify(originalState));
 
       StockReducer(originalState, { type: GET_Order, payload: [{ id: 2 }] });

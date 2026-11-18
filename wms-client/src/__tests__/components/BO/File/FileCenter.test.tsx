@@ -21,7 +21,7 @@ interface MockFileContainerForCategoryProps {
 
 interface StoreState {
   stockInfo: {
-    stockInfoes: string[];
+    categories: Array<{ value: string; label: string }>;
   };
 }
 
@@ -86,7 +86,10 @@ interface RenderFileCenterResult extends RenderResult {
 const renderFileCenter = (storeState: Partial<StoreState> = {}): RenderFileCenterResult => {
   const defaultState: StoreState = {
     stockInfo: {
-      stockInfoes: ['Category1', 'Category2']
+      categories: [
+        { value: 'Category1', label: 'Category1' },
+        { value: 'Category2', label: 'Category2' }
+      ]
     }
   };
 

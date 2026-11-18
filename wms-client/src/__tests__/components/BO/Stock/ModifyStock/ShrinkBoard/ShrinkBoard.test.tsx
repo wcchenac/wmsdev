@@ -6,7 +6,7 @@ import ShrinkBoard from '../../../../../../components/BO/Stock/ModifyStock/Shrin
 
 interface StoreState {
   stockInfo: {
-    stockInfoes: unknown[];
+    shrinkList: unknown[];
   };
 }
 
@@ -76,7 +76,7 @@ describe('ShrinkBoard', () => {
   beforeEach(() => {
     initialState = {
       stockInfo: {
-        stockInfoes: []
+        shrinkList: []
       }
     };
     vi.clearAllMocks();

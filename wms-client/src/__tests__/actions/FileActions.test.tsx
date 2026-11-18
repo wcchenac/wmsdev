@@ -261,14 +261,14 @@ describe('FileActions', () => {
       expect(mockedAPI.get).toHaveBeenCalledWith('api/file/query/categoryList');
     });
 
-    test('dispatches GET_StockInfoes with response data', async () => {
+    test('dispatches GET_Categories with response data', async () => {
       mockedAPI.get.mockResolvedValue({ data: mockCategoryList });
 
       await store.dispatch(actions.queryCategoryDetailList());
 
       const dispatchedActions = store.getActions();
       expect(dispatchedActions[0]).toEqual({
-        type: types.GET_StockInfoes,
+        type: types.GET_Categories,
         payload: mockCategoryList
       });
     });

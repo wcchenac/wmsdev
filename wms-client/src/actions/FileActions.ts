@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
 import API from "../utilities/API";
 import { notifyRequestFailed } from "../utilities/notifyRequestFailed";
-import { GET_StockInfoes, AppDispatch } from "../types";
+import { GET_Categories, AppDispatch } from "../types";
 
 export const downloadFile = (
   fileCategory: string,
@@ -75,7 +75,7 @@ export const queryCategoryDetailList =
       const res = await API.get("api/file/query/categoryList");
 
       dispatch({
-        type: GET_StockInfoes,
+        type: GET_Categories,
         payload: res.data,
       });
 
