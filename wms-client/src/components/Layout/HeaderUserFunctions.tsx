@@ -29,9 +29,11 @@ const HeaderUserFunctions: React.FC<HeaderUserFunctionsProps> = ({
     <React.Fragment>
       <ul className="navbar-nav ms-auto">
         <li className="nav-item">
-          <NavLink className="nav-link" to="/login">
+          {/* The name is capped (App.css .navbar-user-name) so a long one cannot push the bar
+              onto a second line; the full name shows on hover. */}
+          <NavLink className="nav-link" to="/login" title={fullName}>
             <i className="fa fa-user-circle-o fa-lg me-1"></i>
-            {fullName}
+            <span className="navbar-user-name">{fullName}</span>
           </NavLink>
         </li>
         <li className="nav-item">

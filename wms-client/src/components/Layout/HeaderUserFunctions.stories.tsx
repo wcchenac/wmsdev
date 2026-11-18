@@ -16,8 +16,8 @@ const meta = {
     logout: fn(),
   },
   decorators: [
-    (Story) => (
-      <AppNavbar>
+    (Story, { args }) => (
+      <AppNavbar authority={args.authority}>
         <div className="ms-auto d-flex">{/* spacer so the user links sit on the right */}</div>
         <Story />
       </AppNavbar>
@@ -47,7 +47,8 @@ export const SignedIn: Story = {
     // The avatar icon keeps its gap to the name (me-1).
     await expect(canvasElement.querySelector(".fa-user-circle-o")).toHaveClass("me-1");
 
-    await userEvent.click(within(canvasElement).getByRole("link", { name: "登出" }));
+    // 登出 is an action, so a button (27a34e9), not a link.
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "登出" }));
     await expect(args.logout).toHaveBeenCalledTimes(1);
   },
 };

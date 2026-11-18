@@ -26,6 +26,9 @@ img {
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--border-radius-base);
   transition: var(--transition-fast);
+  /* Each role's bar expands only where its menu fits (Header's EXPAND_BY_ROLE), with little to
+     spare; a link never breaks its text over several lines. */
+  white-space: nowrap;
 }
 
 .navbar-nav .nav-link:hover {
@@ -34,6 +37,52 @@ img {
 
 .navbar-nav .nav-link.active {
   background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* The stuck header covers the top of the window. Whatever the browser scrolls into view (the
+   skip link's #main-content, a field reached with Tab, the first invalid field of a form) is
+   kept below it. */
+html {
+  scroll-padding-top: calc(var(--navbar-height) + var(--spacing-2));
+}
+
+/* The header sticks to the top of the page, so an opened toggler menu taller than the window
+   scrolls inside a window-high box (its last item, 登出, stays reachable). The rule applies
+   below each breakpoint a role's bar can expand at (Header's EXPAND_BY_ROLE: sm, lg, xl). */
+@media (max-width: 575.98px) {
+  .navbar-expand-sm .navbar-collapse {
+    max-height: calc(100vh - var(--navbar-height)); /* browsers without dvh */
+    max-height: calc(100dvh - var(--navbar-height));
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .navbar-expand-lg .navbar-collapse {
+    max-height: calc(100vh - var(--navbar-height)); /* browsers without dvh */
+    max-height: calc(100dvh - var(--navbar-height));
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .navbar-expand-xl .navbar-collapse {
+    max-height: calc(100vh - var(--navbar-height)); /* browsers without dvh */
+    max-height: calc(100dvh - var(--navbar-height));
+    overflow-y: auto;
+  }
+}
+
+/* The signed-in user's name: the one nav item whose width the app does not control. Capped so
+   a long name cannot outgrow the room the role's expand breakpoint leaves, cut with an ellipsis
+   (the link's title has the full name). 6em is the room the tightest bar leaves (Sales and
+   Normal at 576px): names up to 6 Chinese characters fit, longer ones are cut. */
+.navbar-user-name {
+  display: inline-block;
+  max-width: 6em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
 }
 
 /* Navbar actions that are buttons (登出) look like the links next to them: no button

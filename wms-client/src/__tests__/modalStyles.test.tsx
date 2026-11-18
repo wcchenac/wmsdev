@@ -1,6 +1,4 @@
 import React from 'react';
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
 import { render } from '@testing-library/react';
 import ShrinkRollbackModal from '../components/BO/User/AdminPlatform/ShrinkRollback/RollbackModal';
 import InStockRollbackModal from '../components/BO/User/AdminPlatform/InStockRollback/RollbackModal';
@@ -9,30 +7,13 @@ import OutStockModal from '../components/BO/Stock/ModifyStock/ModifyBoard/OutSto
 import BatchShipModal from '../components/BO/Stock/ModifyStock/ModifyBoard/BatchShipModal';
 import ShrinkConfirmModal from '../components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkConfirmModal';
 import type { StockInfo } from '../types';
+import { appCss } from './helpers/appCss';
 
 // Loads the app's real CSS in the order the browser gets it (index.tsx: Bootstrap, then
 // index.css with its design-system imports; App.tsx: App.css) and checks the computed modal
 // styles. Since 0d19d49 loads Bootstrap first, App.css wins over Bootstrap here: its
 // `.modal-title { color }` overrode the white header colour the titles used to inherit through
 // Bootstrap's `.h4`, and its translucent backdrop colour stacked with Bootstrap's opacity.
-
-const read = (path: string) => readFileSync(join(process.cwd(), path), 'utf8');
-
-// A stylesheet with its @import rules replaced by the imported files (recursively, resolved
-// from the importing file), as the browser applies them, so a new import in index.css is
-// picked up here too. Any @import this cannot read fails the test.
-const withImports = (path: string): string =>
-  read(path).replace(/^@import[^;]*;/gm, (rule) => {
-    const target = rule.match(/^@import\s+(?:url\()?\s*['"]([^'"]+)['"]\s*\)?\s*;$/);
-    if (!target) throw new Error(`modalStyles.test cannot read ${path}: ${rule}`);
-    return withImports(join(dirname(path), target[1]));
-  });
-
-const appCss = [
-  read('node_modules/bootstrap/dist/css/bootstrap.min.css'),
-  withImports('src/index.css'),
-  read('src/App.css'),
-].join('\n');
 
 // react-bootstrap ends a modal's fade with a setTimeout as long as the computed
 // transition-duration (.15s/.3s with Bootstrap's CSS), which would fire after the test

@@ -19,9 +19,11 @@ const meta = {
   title: "Layout/RoleHeaders",
   component: HeaderAdmin,
   parameters: { layout: "fullscreen" },
+  // Each story names its role in parameters.authority, so the frame expands at that role's
+  // breakpoint as the app's Header does.
   decorators: [
-    (Story) => (
-      <AppNavbar>
+    (Story, { parameters }) => (
+      <AppNavbar authority={parameters.authority as string | undefined}>
         <Story />
       </AppNavbar>
     ),
@@ -33,6 +35,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Admin: Story = {
+  parameters: { authority: "ROLE_Admin" },
   play: async ({ canvasElement }) => {
     await expect(navLabels(canvasElement)).toEqual(ROLE_NAV.admin);
     await expectDropdownLinks(canvasElement, "入庫作業", STOCK_IN_LINKS);
@@ -43,6 +46,7 @@ export const Admin: Story = {
 };
 
 export const Operator: Story = {
+  parameters: { authority: "ROLE_Operator" },
   render: () => <HeaderOperator />,
   play: async ({ canvasElement }) => {
     await expect(navLabels(canvasElement)).toEqual(ROLE_NAV.operator);
@@ -53,6 +57,7 @@ export const Operator: Story = {
 };
 
 export const Normal: Story = {
+  parameters: { authority: "ROLE_Normal" },
   render: () => <HeaderNormal />,
   play: async ({ canvasElement }) => {
     await expect(navLabels(canvasElement)).toEqual(ROLE_NAV.normal);
@@ -63,6 +68,7 @@ export const Normal: Story = {
 };
 
 export const Sales: Story = {
+  parameters: { authority: "ROLE_Sales" },
   render: () => <HeaderSales />,
   play: async ({ canvasElement }) => {
     await expect(navLabels(canvasElement)).toEqual(ROLE_NAV.sales);

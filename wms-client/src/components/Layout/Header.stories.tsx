@@ -37,16 +37,16 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // Header reads the session from the store and shows the role's menu plus the user links.
-// (登出 is not clicked: Header's logout reloads the page.)
+// (登出 is not clicked: it would sign the story's store out and navigate to /login.)
 const showsNav = (expected: string[]): Story["play"] =>
   async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole("link", { name: "庫存管理工具" })).toHaveAttribute("href", "/");
     await expect(navLabels(canvasElement)).toEqual(expected);
 
-    // The mobile toggler opens and closes the collapsed menu. Bootstrap hides it on wide
-    // screens (navbar-expand-sm), and a display: none element has no accessible name, so it
-    // is found by the menu it controls.
+    // The mobile toggler opens and closes the collapsed menu. Bootstrap hides it from the
+    // role's navbar-expand-* breakpoint up, and a display: none element has no accessible name,
+    // so it is found by the menu it controls.
     const toggler = canvasElement.querySelector<HTMLButtonElement>('button[aria-controls="mobile-nav"]')!;
     await expect(toggler).toHaveAttribute("aria-label", "開啟導覽選單");
     await expect(toggler).toHaveAttribute("aria-expanded", "false");

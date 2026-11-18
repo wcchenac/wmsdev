@@ -3,7 +3,8 @@ import { render, screen, fireEvent, RenderResult } from '@testing-library/react'
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import { createMockStore, TestMockStore } from '../../helpers/mockStore';
-import Header from '../../../components/Layout/Header';
+import Header, { HeaderNavbarContext } from '../../../components/Layout/Header';
+import Nav from 'react-bootstrap/Nav';
 
 interface MockHeaderStockFunctionsProps {
   isAuthencated: boolean;
@@ -261,6 +262,51 @@ describe('Header', () => {
     });
   });
 
+  // Each role's menu expands into a bar only from the width where it fits on one line (measured:
+  // Admin needs about 1021px, Operator 749px, Sales and Normal about 450px); below that the
+  // toggler menu is used, instead of squeezing the links into one character per line.
+  describe('responsive breakpoint per role', () => {
+    test.each([
+      ['ROLE_Admin', 'navbar-expand-xl'],
+      ['ROLE_Operator', 'navbar-expand-lg'],
+      ['ROLE_Sales', 'navbar-expand-sm'],
+      ['ROLE_Normal', 'navbar-expand-sm'],
+      // A role the mapping does not know (e.g. an old one still in a token) gets the default.
+      ['ROLE_Legacy', 'navbar-expand-sm'],
+    ])('%s expands at %s', (roleAuthority, expandClass) => {
+      const store = mockStore({
+        user: { validToken: true, user: { fullName: 'Test User', role: { authority: roleAuthority } } },
+      });
+
+      const { container } = renderWithProviders(store);
+
+      const nav = container.querySelector('nav')!;
+      expect([...nav.classList].filter((c) => c.startsWith('navbar-expand'))).toEqual([expandClass]);
+    });
+
+    // react-bootstrap's Nav reads bsPrefix from NavbarContext to name its class (`${bsPrefix}-nav`).
+    test('a react-bootstrap Nav in the header gets the navbar-nav class', () => {
+      render(
+        <HeaderNavbarContext expand="sm">
+          <Nav data-testid="nav" />
+        </HeaderNavbarContext>
+      );
+
+      expect(screen.getByTestId('nav')).toHaveClass('navbar-nav');
+      expect(screen.getByTestId('nav').className).not.toContain('undefined');
+    });
+
+    test('a role given as a plain string gets the same breakpoint', () => {
+      const store = mockStore({
+        user: { validToken: true, user: { fullName: 'Test User', role: 'ROLE_Admin' } },
+      });
+
+      const { container } = renderWithProviders(store);
+
+      expect(container.querySelector('nav')).toHaveClass('navbar-expand-xl');
+    });
+  });
+
   describe('navbar structure', () => {
     test('has correct Bootstrap classes', () => {
       const store = mockStore({
@@ -274,7 +320,9 @@ describe('Header', () => {
 
       const nav = container.querySelector('nav');
       expect(nav).toHaveClass('navbar');
-      expect(nav).toHaveClass('sticky-top');
+      // The header sticks (see HeaderNavStyles.test), not the nav inside it.
+      expect(nav).not.toHaveClass('sticky-top');
+      expect(container.querySelector('header')).toHaveClass('sticky-top');
       expect(nav).toHaveClass('navbar-expand-sm');
       expect(nav).toHaveClass('navbar-dark');
       expect(nav).toHaveClass('bg-primary');

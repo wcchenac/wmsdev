@@ -1,10 +1,54 @@
-import React, { useState, useCallback, MouseEvent } from "react";
+import React, { useState, useCallback, useMemo, MouseEvent } from "react";
+import NavbarContext, { type NavbarContextType } from "react-bootstrap/NavbarContext";
 import { NavLink, useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../actions/UserActions";
 import HeaderStockFunctions from "./HeaderStockFunctions";
 import HeaderUserFunctions from "./HeaderUserFunctions";
 import { RootState, AppDispatch } from "../../types";
+
+export type NavbarExpand = "sm" | "lg" | "xl";
+
+// The width from which each role's menu fits on one line in the bar (Admin needs about 1021px,
+// Operator 749px, Sales and Normal about 450px). Below it the toggler menu is used, so the links
+// are not squeezed into one character per line. Storybook's navbar frame uses the same mapping.
+export const EXPAND_BY_ROLE: Readonly<Record<string, NavbarExpand>> = {
+  ROLE_Admin: "xl",
+  ROLE_Operator: "lg",
+};
+const DEFAULT_EXPAND: NavbarExpand = "sm";
+
+/** The navbar-expand-* breakpoint for a role; "sm" for anyone else (signed out, unknown role). */
+export const navbarExpandFor = (authority: string | null | undefined): NavbarExpand =>
+  (authority && EXPAND_BY_ROLE[authority]) || DEFAULT_EXPAND;
+
+interface HeaderNavbarContextProps {
+  expand: NavbarExpand;
+  expanded?: boolean;
+  onToggle?: () => void;
+  children: React.ReactNode;
+}
+
+const noop = () => {};
+
+/**
+ * Tells the react-bootstrap dropdowns in the menu that they sit in a navbar: they then skip
+ * Popper and leave layout to Bootstrap's navbar CSS (static in the collapsed toggler menu, so an
+ * opened dropdown pushes the items below it down; absolute from the expand breakpoint up).
+ */
+export const HeaderNavbarContext: React.FC<HeaderNavbarContextProps> = ({
+  expand,
+  expanded = false,
+  onToggle = noop,
+  children,
+}) => {
+  // bsPrefix "navbar" is what react-bootstrap's Navbar provides; Nav builds its class from it.
+  const value = useMemo<NavbarContextType>(
+    () => ({ onToggle, expanded, expand, bsPrefix: "navbar" }),
+    [onToggle, expanded, expand]
+  );
+  return <NavbarContext.Provider value={value}>{children}</NavbarContext.Provider>;
+};
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
@@ -31,17 +75,18 @@ const Header: React.FC = () => {
     setIsMobileMenuOpen((prevState) => !prevState);
   }, []);
 
-  const renderHeaderContent = (): React.ReactNode => {
-    const { validToken, user: userData } = user;
-    // Handle both string and object formats for role
-    // Backend JWT may return { authority: "ROLE_Admin" } or "ROLE_Admin"
-    const role = userData.role;
-    const authority: string | null = role
-      ? typeof role === 'string'
-        ? role
-        : role.authority ?? null
-      : null;
+  const { validToken, user: userData } = user;
+  // Handle both string and object formats for role
+  // Backend JWT may return { authority: "ROLE_Admin" } or "ROLE_Admin"
+  const role = userData.role;
+  const authority: string | null = role
+    ? typeof role === 'string'
+      ? role
+      : role.authority ?? null
+    : null;
+  const expand = navbarExpandFor(authority);
 
+  const renderHeaderContent = (): React.ReactNode => {
     return (
       <div
         className={`collapse navbar-collapse ${isMobileMenuOpen ? 'show' : ''}`}
@@ -65,7 +110,9 @@ const Header: React.FC = () => {
   const headerContent = renderHeaderContent();
 
   return (
-    <header role="banner">
+    // sticky-top sits on the header: a sticky element only sticks inside its parent, and the
+    // header (a child of the page-long div.App) is the nav's parent, exactly as tall as it.
+    <header role="banner" className="sticky-top">
       {/* Skip to main content link for accessibility */}
       <a
         href="#main-content"
@@ -89,7 +136,7 @@ const Header: React.FC = () => {
       </a>
 
       <nav
-        className="navbar sticky-top navbar-expand-sm navbar-dark bg-primary mb-4"
+        className={`navbar navbar-expand-${expand} navbar-dark bg-primary mb-4`}
         role="navigation"
         aria-label="主要導覽列"
         style={{
@@ -118,7 +165,9 @@ const Header: React.FC = () => {
           >
             <span className="navbar-toggler-icon" />
           </button>
-          {headerContent}
+          <HeaderNavbarContext expand={expand} expanded={isMobileMenuOpen} onToggle={toggleMobileMenu}>
+            {headerContent}
+          </HeaderNavbarContext>
         </div>
       </nav>
     </header>

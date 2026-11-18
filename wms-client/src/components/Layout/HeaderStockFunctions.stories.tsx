@@ -21,8 +21,8 @@ const meta = {
     },
   },
   decorators: [
-    (Story) => (
-      <AppNavbar>
+    (Story, { args }) => (
+      <AppNavbar authority={args.authority}>
         <Story />
       </AppNavbar>
     ),

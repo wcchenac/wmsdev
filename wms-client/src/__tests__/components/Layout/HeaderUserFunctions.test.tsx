@@ -29,7 +29,7 @@ describe('HeaderUserFunctions', () => {
 
   test('spaces the avatar icon from the user name with a Bootstrap 5 margin utility', () => {
     renderUserFunctions({ isAuthencated: true, fullName: '陳管理' });
-    const icon = screen.getByText('陳管理').querySelector('i.fa-user-circle-o');
+    const icon = screen.getByText('陳管理').closest('a')!.querySelector('i.fa-user-circle-o');
     expect(icon).not.toBeNull();
     // Bootstrap 5 renamed mr-* to me-*; mr-1 no longer exists and leaves no gap.
     expect(icon).toHaveClass('me-1');
