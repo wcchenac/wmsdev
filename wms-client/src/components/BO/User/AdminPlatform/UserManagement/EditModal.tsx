@@ -1,7 +1,7 @@
 import React, { useState, useCallback, ChangeEvent } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { copy } from "../../../../../utilities/DeepCopy";
-import { RoleOption } from "../../../../../enums/Enums";
+import { RoleOption, RoleOptionKey } from "../../../../../enums/Enums";
 import { UpdateUserRequest, User } from "../../../../../types";
 
 interface EditModalProps {
@@ -34,7 +34,8 @@ const EditModal: React.FC<EditModalProps> = ({
       const roleValue = typeof info.role === 'string'
         ? info.role
         : info.role.authority ?? '';
-      userInfoCopy["role"] = RoleOption[roleValue] || roleValue;
+      const isRoleKey = (key: string): key is RoleOptionKey => Object.hasOwn(RoleOption, key);
+      userInfoCopy["role"] = isRoleKey(roleValue) ? RoleOption[roleValue] : roleValue;
     }
     return userInfoCopy;
   }, []);
@@ -147,8 +148,8 @@ const EditModal: React.FC<EditModalProps> = ({
               value={userInfo.role ?? ""}
               onChange={handleInfoChange}
             >
-              {Object.keys(RoleOption).map((title, index) => (
-                <option key={index} value={RoleOption[title]}>
+              {Object.entries(RoleOption).map(([title, value]) => (
+                <option key={title} value={value}>
                   {title}
                 </option>
               ))}

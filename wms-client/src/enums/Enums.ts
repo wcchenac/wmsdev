@@ -1,14 +1,18 @@
+import type { DefectOption } from "../types";
+
+export type { DefectOption };
+
 // StockIdentifier Type
-export const StockIdentifierType: Record<string, string> = {
+export const StockIdentifierType = {
   board: "板卷",
   roll: "整支",
   hardware: "雜項"
-} as const;
+} as const satisfies Record<string, string>;
 
 export type StockIdentifierTypeKey = keyof typeof StockIdentifierType;
 
 // Used at ModifyBoard-ClothInfo-OutStockModal
-export const StoreList: readonly string[] = [
+export const StoreList = [
   "中壢",
   "新竹",
   "台中",
@@ -18,31 +22,25 @@ export const StoreList: readonly string[] = [
   "中山",
   "屏東",
   "西門"
-] as const;
+] as const satisfies readonly string[];
 
 export type StoreName = (typeof StoreList)[number];
 
 // Used at ModifyBoard-ClothInfo-OutStockModal
-export const OutStockOtherReason: readonly string[] = ["上貨櫃", "轉零碼", "晶品倉"] as const;
+export const OutStockOtherReason = ["上貨櫃", "轉零碼", "晶品倉"] as const satisfies readonly string[];
 
 export type OutStockOtherReasonType = (typeof OutStockOtherReason)[number];
 
 // Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo/
 //         AssembleClothBoard-ClothContainer-ClothInfo
-export const ColorOptions: readonly number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+export const ColorOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const satisfies readonly number[];
 
 export type ColorOption = (typeof ColorOptions)[number];
-
-// Defect option interface
-export interface DefectOption {
-  label: string;
-  value: string;
-}
 
 // Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo/
 //         AssembleClothBoard-ClothContainer-ClothInfo/
 //         ShrinkBoard-ModifyRequestBoard-ModifyRequestContainer-ModifyRequestInfo
-export const DefectOptions: readonly DefectOption[] = [
+export const DefectOptions = [
   { label: "無", value: "" },
   { label: "GA", value: "GA" },
   { label: "GB", value: "GB" },
@@ -52,10 +50,10 @@ export const DefectOptions: readonly DefectOption[] = [
   { label: "B", value: "B" },
   { label: "C", value: "C" },
   { label: "保留", value: "保留" }
-] as const;
+] as const satisfies readonly DefectOption[];
 
 // Used at BatchAddClothInfo-EditBoard-ClothContainer-ClothInfo
-export const UnitOptions: readonly string[] = [
+export const UnitOptions = [
   "碼",
   "尺",
   "台",
@@ -83,42 +81,42 @@ export const UnitOptions: readonly string[] = [
   "次",
   "疊",
   "組"
-] as const;
+] as const satisfies readonly string[];
 
 export type UnitOption = (typeof UnitOptions)[number];
 
 // Use at UserManagement-Register
-export const RoleOption: Record<string, string> = {
+export const RoleOption = {
   "請選擇...": "",
   "一般人員/門市": "ROLE_Normal",
   業務: "ROLE_Sales",
   庫存相關人員: "ROLE_Operator",
   管理員: "ROLE_Admin"
-} as const;
+} as const satisfies Record<string, string>;
 
 export type RoleOptionKey = keyof typeof RoleOption;
 export type RoleOptionValue = (typeof RoleOption)[RoleOptionKey];
 
 // Use at ModifyRequestBoard
-export const ShrinkType: Record<string, string> = {
+export const ShrinkType = {
   RtoR: "RR",
   RtoB: "RB",
   BtoB: "BB",
   BtoR: "BR",
   HtoH: "HH"
-} as const;
+} as const satisfies Record<string, string>;
 
 export type ShrinkTypeKey = keyof typeof ShrinkType;
 export type ShrinkTypeValue = (typeof ShrinkType)[ShrinkTypeKey];
 
 // Use at InStockRollback
-export const OrderType: Record<string, string> = {
+export const OrderType = {
   "請選擇...": "",
   進貨單: "normal",
   組裝單: "assemble",
   退貨單: "customerReturn",
   調撥單: "storeReturn"
-} as const;
+} as const satisfies Record<string, string>;
 
 export type OrderTypeKey = keyof typeof OrderType;
 export type OrderTypeValue = (typeof OrderType)[OrderTypeKey];

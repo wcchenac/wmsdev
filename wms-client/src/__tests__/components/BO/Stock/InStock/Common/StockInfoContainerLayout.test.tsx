@@ -13,7 +13,7 @@ beforeAll(() => {
 afterAll(() => style.remove());
 
 const renderDetailTable = (typeValidation: boolean) => {
-  const waitHandleStatus = typeValidation
+  const waitHandleStatus: React.ComponentProps<typeof StockInfoContainer>['waitHandleStatus'] = typeValidation
     ? { [StockIdentifierType.hardware]: { quantity: '30', unit: '個' } }
     : { [StockIdentifierType.roll]: { quantity: '30', unit: '碼' } };
 

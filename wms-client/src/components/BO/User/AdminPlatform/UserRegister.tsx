@@ -167,8 +167,8 @@ const UserRegister: React.FC = () => {
                         value={state.role}
                         onChange={userKeyInChange}
                       >
-                        {Object.keys(RoleOption).map((title, index) => (
-                          <option key={index} value={RoleOption[title]}>
+                        {Object.entries(RoleOption).map(([title, value]) => (
+                          <option key={title} value={value}>
                             {title}
                           </option>
                         ))}

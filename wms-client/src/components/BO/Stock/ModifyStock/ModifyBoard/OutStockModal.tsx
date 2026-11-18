@@ -248,9 +248,9 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                   onChange={handleRequestChange}
                   aria-label="選擇庫存型態"
                 >
-                  {Object.keys(StockIdentifierType).map((type, index) => (
-                    <option key={index} value={StockIdentifierType[type]}>
-                      {StockIdentifierType[type]}
+                  {Object.entries(StockIdentifierType).map(([key, label]) => (
+                    <option key={key} value={label}>
+                      {label}
                     </option>
                   ))}
                 </Form.Control>
