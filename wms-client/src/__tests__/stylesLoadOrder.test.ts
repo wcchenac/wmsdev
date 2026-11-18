@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { mediaBlocks, ruleDeclarations } from './helpers/appCss';
 
 describe('CSS load order and scoped table action selector', () => {
   const srcDir = join(process.cwd(), 'src');
@@ -41,50 +42,40 @@ describe('CSS load order and scoped table action selector', () => {
   // margins (dialogs at the left edge on tablets) or disagreed with the
   // calc(100% - 2 * --bs-modal-margin) height of centred and scrollable dialogs (16px of extra
   // scroll at 375px).
-  // Every block under this media query header in the file, joined.
-  const mediaBlocks = (css: string, header: string): string => {
-    const blocks: string[] = [];
-    for (let head = css.indexOf(header); head > -1; head = css.indexOf(header, head + 1)) {
-      let depth = 0;
-      let end = css.indexOf('{', head);
-      do {
-        if (css[end] === '{') depth++;
-        if (css[end] === '}') depth--;
-        end++;
-      } while (depth > 0);
-      blocks.push(css.slice(head, end));
-    }
-    expect(blocks.length).toBeGreaterThan(0);
-    return blocks.join('\n');
-  };
-  const setsModalMargin = (block: string, value: string) =>
-    new RegExp(`(^|[\\s}])\\.modal\\s*\\{[^}]*--bs-modal-margin:\\s*${value.replace(/[()]/g, '\\$&')}\\s*;`).test(block);
-
   test.each([
     ['App.css', '@media (min-width: 576px) and (max-width: 768px)', 'var(--spacing-4)'],
     ['styles/utilities.css', '@media (max-width: 575.98px)', 'var(--spacing-2)'],
   ])('%s %s sets --bs-modal-margin: %s and no .modal-dialog margin', (file, header, value) => {
-    const block = mediaBlocks(readFileSync(join(srcDir, file), 'utf8'), header);
+    const css = readFileSync(join(srcDir, file), 'utf8');
+    const blocks = mediaBlocks(css, header);
+    expect(blocks.length).toBeGreaterThan(0);
 
-    expect(setsModalMargin(block, value)).toBe(true);
-    expect(block).not.toMatch(/\.modal-dialog\s*\{/);
+    expect(ruleDeclarations(css, header, '.modal')).toContain(`--bs-modal-margin: ${value}`);
+    expect(ruleDeclarations(css, header, '.modal-dialog')).toEqual([]);
   });
 
   // App.css loads after utilities.css, so a tablet rule that also covers phones would override
   // the phone spacing.
   test('App.css does not set --bs-modal-margin below 576px', () => {
-    const block = mediaBlocks(readFileSync(join(srcDir, 'App.css'), 'utf8'), '@media (max-width: 768px)');
+    const appCssSource = readFileSync(join(srcDir, 'App.css'), 'utf8');
+    const blocks = mediaBlocks(appCssSource, '@media (max-width: 768px)');
+    expect(blocks.length).toBeGreaterThan(0);
 
-    expect(block).not.toContain('--bs-modal-margin');
+    expect(
+      ruleDeclarations(appCssSource, '@media (max-width: 768px)', '.modal')
+        .filter((decl) => decl.startsWith('--bs-modal-margin:'))
+    ).toEqual([]);
   });
 
   test('scopes centered last-column cell styling to .table.table-actions-center and drops !important btn-customize / global flex .alert', () => {
     const componentsCss = readFileSync(join(srcDir, 'styles', 'components.css'), 'utf8');
     const utilitiesCss = readFileSync(join(srcDir, 'styles', 'utilities.css'), 'utf8');
 
-    expect(componentsCss).toContain('.table.table-actions-center tbody tr td:last-child');
-    expect(componentsCss).not.toMatch(/(^|\n)\.table\s+tbody\s+tr\s+td:last-child/);
-    expect(componentsCss).not.toMatch(/\.btn-customize\s*\{/);
-    expect(utilitiesCss).not.toMatch(/\.alert\s*\{[^}]*display:\s*flex/);
+    expect(
+      ruleDeclarations(componentsCss, null, '.table.table-actions-center tbody tr td:last-child').length
+    ).toBeGreaterThan(0);
+    expect(ruleDeclarations(componentsCss, null, '.table tbody tr td:last-child')).toEqual([]);
+    expect(ruleDeclarations(componentsCss, null, '.btn-customize')).toEqual([]);
+    expect(ruleDeclarations(utilitiesCss, null, '.alert')).not.toContain('display: flex');
   });
 });

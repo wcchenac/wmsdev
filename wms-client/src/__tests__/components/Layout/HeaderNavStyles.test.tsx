@@ -9,7 +9,7 @@ import { thunk } from 'redux-thunk';
 import rootReducer from '../../../reducers';
 import { SET_Current_User } from '../../../types';
 import Header, { EXPAND_BY_ROLE, navbarExpandFor } from '../../../components/Layout/Header';
-import { appCss } from '../../helpers/appCss';
+import { appCss, ruleDeclarations } from '../../helpers/appCss';
 
 // Each role's navbar expands only from the width where its menu fits on one line, with little
 // to spare (Admin about 79px at 1200px, Sales 48px at 576px). Nav links never wrap their text,
@@ -96,39 +96,11 @@ test('the header, not the nav inside it, sticks to the top of the page', () => {
 // and declaration order do not matter.
 const COLLAPSE_BELOW: Record<string, string> = { sm: '575.98px', lg: '991.98px', xl: '1199.98px' };
 
-const mediaBlocks = (css: string, query: string): string[] => {
-  const blocks: string[] = [];
-  const head = new RegExp(`@media\\s*\\(\\s*max-width:\\s*${query.replace('.', '\\.')}\\s*\\)\\s*\\{`, 'g');
-  for (let m = head.exec(css); m; m = head.exec(css)) {
-    let depth = 1;
-    let i = m.index + m[0].length;
-    for (; depth > 0 && i < css.length; i++) {
-      if (css[i] === '{') depth++;
-      if (css[i] === '}') depth--;
-    }
-    blocks.push(css.slice(m.index + m[0].length, i - 1));
-  }
-  return blocks;
-};
-
-// "max-height:calc(...)" and "max-height : calc(...)" both read "max-height: calc(...)".
-const normalizeDeclaration = (declaration: string): string => {
-  const [property, ...value] = declaration.split(':');
-  return value.length ? `${property.trim()}: ${value.join(':').trim().replace(/\s+/g, ' ')}` : '';
-};
-
-const declarations = (blocks: string[], selector: string): string[] =>
-  blocks.flatMap((block) =>
-    [...block.matchAll(/([^{}]+)\{([^}]*)\}/g)]
-      .filter(([, sel]) => sel.split(',').some((part) => part.trim().replace(/\s+/g, ' ') === selector))
-      .flatMap(([, , body]) => body.split(';').map(normalizeDeclaration).filter(Boolean))
-  );
-
 test.each(Object.entries(COLLAPSE_BELOW))(
   'the collapsed navbar-expand-%s menu scrolls within the window',
   (expand, maxWidth) => {
-    const css = readFileSync(join(process.cwd(), 'src/App.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-    const decls = declarations(mediaBlocks(css, maxWidth), `.navbar-expand-${expand} .navbar-collapse`);
+    const css = readFileSync(join(process.cwd(), 'src/App.css'), 'utf8');
+    const decls = ruleDeclarations(css, `@media (max-width: ${maxWidth})`, `.navbar-expand-${expand} .navbar-collapse`);
 
     expect(decls).toContain('overflow-y: auto');
     const heights = decls.filter((d) => d.startsWith('max-height:'));

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import postcss, { AtRule, Node, Rule } from 'postcss';
 
 const read = (path: string) => readFileSync(join(process.cwd(), path), 'utf8');
 
@@ -25,40 +26,63 @@ export const appCss = [
   read('src/App.css'),
 ].join('\n');
 
+const normalizeWhitespace = (value: string): string => value.replace(/\s+/g, ' ').trim();
+const normalizeMediaHeader = (header: string): string =>
+  normalizeWhitespace(header).replace(/\s*:\s*/g, ': ');
+
+const mediaHeaderOf = (rule: Rule): string | null => {
+  let parent: Node | undefined = rule.parent;
+  while (parent) {
+    if (parent.type === 'atrule' && (parent as AtRule).name === 'media') {
+      return normalizeMediaHeader(`@media ${(parent as AtRule).params}`);
+    }
+    parent = parent.parent;
+  }
+  return null;
+};
+
+/**
+ * Extracts top-level `@media` rule bodies whose header matches `mediaHeader` via PostCSS AST.
+ */
+export const mediaBlocks = (css: string, mediaHeader: string): string[] => {
+  const target = normalizeMediaHeader(mediaHeader);
+  const root = postcss.parse(css);
+  const blocks: string[] = [];
+
+  root.walkAtRules('media', (atRule) => {
+    if (normalizeMediaHeader(`@media ${atRule.params}`) === target) {
+      blocks.push((atRule.nodes ?? []).map((node) => node.toString()).join('\n'));
+    }
+  });
+
+  return blocks;
+};
+
 /**
  * Extracts normalized `property: value` declarations from a CSS file for an exact selector
- * inside either top-level (`media === null`) or a normalized `@media (...)` block.
+ * inside either top-level (`media === null`) or a normalized `@media (...)` block via PostCSS AST.
  * jsdom evaluates `@media` rules only against its fixed 1024px window, so rules targeting
  * other breakpoints are checked in source.
  */
 export const ruleDeclarations = (css: string, media: string | null, selector: string): string[] => {
-  const rules: Array<[string | null, string, string]> = [];
-  const parse = (text: string, within: string | null) => {
-    let i = 0;
-    while (i < text.length) {
-      const open = text.indexOf('{', i);
-      if (open < 0) break;
-      const head = text.slice(i, open).trim();
-      let depth = 1;
-      let j = open + 1;
-      for (; depth > 0 && j < text.length; j++) {
-        if (text[j] === '{') depth++;
-        if (text[j] === '}') depth--;
-      }
-      const body = text.slice(open + 1, j - 1);
-      if (head.startsWith('@media')) parse(body, head.replace(/\s+/g, ' ').replace(/\s*:\s*/g, ': '));
-      else rules.push([within, head.replace(/\s+/g, ' '), body]);
-      i = j;
-    }
-  };
-  parse(css.replace(/\/\*[\s\S]*?\*\//g, ''), null);
-  return rules
-    .filter(([m, sel]) => m === media && sel.split(',').some((part) => part.trim() === selector))
-    .flatMap(([, , body]) =>
-      body
-        .split(';')
-        .map((d) => d.split(':').map((part) => part.trim().replace(/\s+/g, ' ')))
-        .filter(([property, value]) => property && value)
-        .map(([property, value]) => `${property}: ${value}`)
+  const normalizedMedia = media ? normalizeMediaHeader(media) : null;
+  const normalizedSelector = normalizeWhitespace(selector);
+  const root = postcss.parse(css);
+  const declarations: string[] = [];
+
+  root.walkRules((rule) => {
+    if (mediaHeaderOf(rule) !== normalizedMedia) return;
+    const matchesSelector = rule.selectors.some(
+      (part) => normalizeWhitespace(part) === normalizedSelector
     );
+    if (!matchesSelector) return;
+
+    rule.each((node) => {
+      if (node.type === 'decl') {
+        declarations.push(`${node.prop.trim()}: ${normalizeWhitespace(node.value)}`);
+      }
+    });
+  });
+
+  return declarations;
 };
