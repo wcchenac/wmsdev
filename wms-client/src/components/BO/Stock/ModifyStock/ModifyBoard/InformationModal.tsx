@@ -228,7 +228,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                   <Select
                     closeMenuOnSelect
                     components={animatedComponents}
-                    defaultValue={stockInfo.defect}
+                    value={stockInfo.defect}
                     isMulti
                     name="defect"
                     options={[...DefectOptions]}

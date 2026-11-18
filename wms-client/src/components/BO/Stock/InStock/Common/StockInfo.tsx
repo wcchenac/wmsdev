@@ -182,6 +182,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
             })}
             placeholder="數量"
             name="quantity"
+            value={stockInfo.quantity}
             onChange={onChange}
             disabled={disabled}
           />
@@ -245,7 +246,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
               className="stock-defect-select"
               closeMenuOnSelect
               components={animatedComponents}
-              defaultValue={stockInfo.defect as DefectOption[]}
+              value={stockInfo.defect as DefectOption[]}
               isMulti
               menuPosition="fixed"
               name="defect"

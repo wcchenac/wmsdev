@@ -3,8 +3,6 @@ import { InStockRequest } from "../../../../../types";
 import StockInfoContainer from "./StockInfoContainer";
 import { StockIdentifierType } from "../../../../../enums/Enums";
 
-import equal from "fast-deep-equal";
-
 interface WaitHandleStatusItem {
   quantity: string | number;
   unit: string;
@@ -127,10 +125,10 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
           <div className="tab-content" id="nav-tabContent">
             <br />
             {filterSelectedList.map((object, index) => {
-              const typeValidation = equal(
-                Object.keys(waitHandleStatus[object.productNo]).pop(),
-                StockIdentifierType.hardware
-              );
+              const productTypes = Object.keys(waitHandleStatus[object.productNo] ?? {});
+              const typeValidation =
+                productTypes.length > 0 &&
+                productTypes.every((productType) => productType === StockIdentifierType.hardware);
 
               return (
                 <StockInfoContainer

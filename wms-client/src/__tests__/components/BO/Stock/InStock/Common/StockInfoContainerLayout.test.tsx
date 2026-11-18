@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import StockInfoContainer from '../../../../../../components/BO/Stock/InStock/Common/StockInfoContainer';
+import EditBoard from '../../../../../../components/BO/Stock/InStock/Common/EditBoard';
 import { DefectOptions, StockIdentifierType } from '../../../../../../enums/Enums';
 import { appCss } from '../../../../../helpers/appCss';
 
@@ -122,4 +123,83 @@ test('布料: the 瑕疵 menu opens outside the table scroll box (position: fixe
   while (fixed && getComputedStyle(fixed).position !== 'fixed') fixed = fixed.parentElement;
   expect(fixed).not.toBeNull();
   expect(detailTable.querySelector('.stock-defect-select')!.contains(fixed)).toBe(true);
+});
+
+test('supports any multi-type combination (板卷+雜項 / 3 types) for form submission validation', () => {
+  render(
+    <StockInfoContainer
+      sequence={0}
+      index={0}
+      productNo="MIXED-1"
+      typeValidation={false}
+      waitHandleStatus={{
+        [StockIdentifierType.board]: { quantity: '5', unit: '碼' },
+        [StockIdentifierType.hardware]: { quantity: '3', unit: '個' },
+      }}
+      isLoading={false}
+      type="normal"
+      orderNo="IN2026002"
+      handleInStockRequestSubmit={vi.fn()}
+    />
+  );
+
+  expect(screen.getByRole('button', { name: '送出' })).toBeDisabled();
+
+  fireEvent.change(document.querySelector('input[name="quantity"]')!, {
+    target: { name: 'quantity', value: '5' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: '新增一列' }));
+  const typeSelects = document.querySelectorAll<HTMLSelectElement>('select[name="type"]');
+  fireEvent.change(typeSelects[1], {
+    target: { name: 'type', value: StockIdentifierType.hardware },
+  });
+  const qtyInputs = document.querySelectorAll<HTMLInputElement>('input[name="quantity"]');
+  fireEvent.change(qtyInputs[1], {
+    target: { name: 'quantity', value: '3' },
+  });
+
+  expect(screen.getByRole('button', { name: '送出' })).toBeEnabled();
+});
+
+test('initialInfoContent skips 0-quantity types and EditBoard keeps select enabled for multi-type products ending in hardware', () => {
+  render(
+    <StockInfoContainer
+      sequence={0}
+      index={0}
+      productNo="MIXED-ZERO"
+      typeValidation={false}
+      waitHandleStatus={{
+        [StockIdentifierType.roll]: { quantity: '0', unit: '碼' },
+        [StockIdentifierType.board]: { quantity: '20', unit: '碼' },
+      }}
+      isLoading={false}
+      type="normal"
+      orderNo="IN2026003"
+      handleInStockRequestSubmit={vi.fn()}
+    />
+  );
+
+  const initialTypeSelect = document.querySelector<HTMLSelectElement>('select[name="type"]')!;
+  expect(initialTypeSelect.value).toBe(StockIdentifierType.board);
+
+  render(
+    <EditBoard
+      isLoading={false}
+      selectedProductNoList={[{ productNo: 'MIXED-HW', selected: true, index: 0, isSubmitted: false }]}
+      orderNo="IN2026004"
+      type="normal"
+      waitHandleStatus={{
+        'MIXED-HW': {
+          [StockIdentifierType.board]: { quantity: '5', unit: '碼' },
+          [StockIdentifierType.hardware]: { quantity: '3', unit: '個' },
+        },
+      }}
+      getInitialize={vi.fn()}
+      handleInStockRequestSubmit={vi.fn()}
+      handlePrevStep={vi.fn()}
+    />
+  );
+
+  const tabContentSelects = document.querySelectorAll<HTMLSelectElement>('select[name="type"]');
+  expect(tabContentSelects.length).toBe(2);
 });

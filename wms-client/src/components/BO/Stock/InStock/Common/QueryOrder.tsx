@@ -3,6 +3,7 @@ import classnames from "classnames";
 
 interface QueryOrderProps {
   type: string;
+  orderNo?: string;
   handleQueryOrderSubmit: (e: FormEvent<HTMLFormElement>) => void;
   isOrderValid: boolean | undefined;
   handleOrderNo: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -10,6 +11,7 @@ interface QueryOrderProps {
 
 const QueryOrder: React.FC<QueryOrderProps> = ({
   type,
+  orderNo = "",
   handleQueryOrderSubmit,
   isOrderValid,
   handleOrderNo,
@@ -25,6 +27,7 @@ const QueryOrder: React.FC<QueryOrderProps> = ({
             <input
               type="text"
               name="orderNo"
+              value={orderNo}
               placeholder={"請輸入" + type + "單號"}
               className={classnames("form-control", {
                 "is-invalid": isOrderValid === false,

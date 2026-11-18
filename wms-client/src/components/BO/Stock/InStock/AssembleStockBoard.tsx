@@ -189,11 +189,12 @@ const AssembleStockBoard: React.FC = () => {
 
       if (
         !newCurrentOrderStatus ||
+        !newWaitHandleStatus ||
         isEmpty(newCurrentOrderStatus as Record<string, unknown>) ||
-        (newWaitHandleStatus && checkWaitHandleStatusCompletion(newWaitHandleStatus))
+        checkWaitHandleStatusCompletion(newWaitHandleStatus)
       ) {
         setIsOrderValid(false);
-      } else if (newCurrentOrderStatus && newWaitHandleStatus) {
+      } else {
         initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
         setIsOrderValid(true);
         // Only auto-jump to step 2 if we are coming from step 1
@@ -280,6 +281,7 @@ const AssembleStockBoard: React.FC = () => {
                   <div style={{ minHeight: "80vh" }}>
                     <QueryOrder
                       type="組裝單"
+                      orderNo={orderNo}
                       handleOrderNo={handleOrderNo}
                       handleQueryOrderSubmit={handleQueryOrderSubmit}
                       isOrderValid={isOrderValid}

@@ -76,6 +76,13 @@ describe('QueryOrder', () => {
 
       expect(handleOrderNo).toHaveBeenCalled();
     });
+
+    test('renders controlled orderNo value when provided', () => {
+      renderQueryOrder({ orderNo: 'ORDER-999' });
+
+      const input = screen.getByPlaceholderText('請輸入進貨單號') as HTMLInputElement;
+      expect(input.value).toBe('ORDER-999');
+    });
   });
 
   describe('form submission', () => {

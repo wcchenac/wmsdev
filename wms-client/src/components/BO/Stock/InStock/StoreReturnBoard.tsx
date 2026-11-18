@@ -170,28 +170,31 @@ const StoreReturnBoard: React.FC = () => {
   useUpdateEffect(queryReturnOrderResult.orderResult, (result) => {
     if (result) {
       const stockInfoes = result as {
-        currentStatus?: CurrentOrderStatus;
-        waitHandleStatus?: WaitHandleStatus;
+        currentStatus?: CurrentOrderStatus | null;
+        waitHandleStatus?: WaitHandleStatus | null;
       };
+      const newCurrentOrderStatus = stockInfoes.currentStatus;
+      const newWaitHandleStatus = stockInfoes.waitHandleStatus;
 
-      if (stockInfoes.currentStatus && stockInfoes.waitHandleStatus) {
-        const newCurrentOrderStatus = stockInfoes.currentStatus;
-        const newWaitHandleStatus = stockInfoes.waitHandleStatus;
-
+      if (newCurrentOrderStatus) {
         setCurrentOrderStatus(newCurrentOrderStatus);
+      }
+      if (newWaitHandleStatus) {
         setWaitHandleStatus(newWaitHandleStatus);
+      }
 
-        if (
-          isEmpty(newCurrentOrderStatus as Record<string, unknown>) ||
-          checkWaitHandleStatusCompletion(newWaitHandleStatus)
-        ) {
-          setIsOrderValid(false);
-        } else {
-          initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
-          setIsOrderValid(true);
-          // Only auto-jump to step 2 if we are coming from step 1
-          setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
-        }
+      if (
+        !newCurrentOrderStatus ||
+        !newWaitHandleStatus ||
+        isEmpty(newCurrentOrderStatus as Record<string, unknown>) ||
+        checkWaitHandleStatusCompletion(newWaitHandleStatus)
+      ) {
+        setIsOrderValid(false);
+      } else {
+        initialSelectedList(newCurrentOrderStatus, newWaitHandleStatus);
+        setIsOrderValid(true);
+        // Only auto-jump to step 2 if we are coming from step 1
+        setKey((prevKey) => (prevKey === 1 ? 2 : prevKey));
       }
     }
   });
@@ -274,6 +277,7 @@ const StoreReturnBoard: React.FC = () => {
                   <div style={{ minHeight: "80vh" }}>
                     <QueryOrder
                       type="調撥單"
+                      orderNo={orderNo}
                       handleOrderNo={handleOrderNo}
                       handleQueryOrderSubmit={handleQueryOrderSubmit}
                       isOrderValid={isOrderValid}

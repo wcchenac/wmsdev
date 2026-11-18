@@ -67,13 +67,17 @@ interface QuantitySum {
 
 function initialInfoContent(props: StockInfoContainerProps): StockInfoData {
   const { typeValidation, waitHandleStatus, productNo, type, orderNo } = props;
-  const typeKey = Object.keys(waitHandleStatus).pop() as string;
+  const typeKeys = Object.keys(waitHandleStatus);
+  const typeKey =
+    typeKeys.find((key) => parseFloat(String(waitHandleStatus[key]?.quantity)) > 0) ??
+    typeKeys[0] ??
+    "";
   const newStockInfo: StockInfoData = {
     productNo: productNo,
     lotNo: "",
-    type: typeKey.toString(),
+    type: typeKey,
     quantity: "",
-    unit: waitHandleStatus[typeKey].unit,
+    unit: waitHandleStatus[typeKey]?.unit ?? "",
     color: "1",
     defect: [DefectOptions[0]],
     record: "",
@@ -119,30 +123,13 @@ function checkFormAlgorithm(
     }
   }
 
-  const quantityValid: Record<string, boolean> = { "雜項": false, "整支": false, "板卷": false };
-
-  // check input total quantity is same as waitHandleStatus
-  typeList.forEach((type) => {
-    if (
-      parseFloat(waitHandleStatus[type].quantity as string) ===
-      quantitySum[type]
-    ) {
-      quantityValid[type] = true;
-    } else {
-      quantityValid[type] = false;
-    }
-  });
-
-  // every type in waitHandleStatus must to meet the equation
-  // "quantitySum[type] equal to waitHandleStatus[type].quantity"
-  // otherwise, return false
-  if (typeList.length === 1) {
-    return quantityValid[typeList[0]];
-  } else if (typeList.length === 2) {
-    return quantityValid["板卷"] && quantityValid["整支"];
-  } else {
+  if (typeList.length === 0) {
     return false;
   }
+
+  return typeList.every(
+    (type) => parseFloat(String(waitHandleStatus[type]?.quantity)) === quantitySum[type]
+  );
 }
 
 const StockInfoContainer: React.FC<StockInfoContainerProps> = React.memo(function StockInfoContainer(
