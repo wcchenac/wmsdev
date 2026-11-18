@@ -187,6 +187,34 @@ describe('DatePeriodSelectModal', () => {
       });
       expect(screen.getByRole('button', { name: '確認' })).not.toBeDisabled();
     });
+
+    test('treats exact dayRange calendar span with 23:59:59.999 endDate as valid', () => {
+      const start = new Date(2026, 10, 1, 0, 0, 0, 0);
+      const exactSeventhDayEnd = new Date(2026, 10, 8, 23, 59, 59, 999);
+      const eighthDayStart = new Date(2026, 10, 9, 0, 0, 0, 0);
+
+      const { rerender } = renderModal({
+        startDate: start,
+        endDate: exactSeventhDayEnd,
+        dayRange: 7,
+      });
+      fireEvent.click(screen.getByRole('button', { name: '選擇日期' }));
+      expect(screen.queryByText('日期設定錯誤，請修改日期')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '確認' })).toBeEnabled();
+
+      fireEvent.click(screen.getByRole('button', { name: '取消' }));
+      rerender(
+        <DatePeriodSelectModal
+          {...defaultProps}
+          startDate={start}
+          endDate={eighthDayStart}
+          dayRange={7}
+        />
+      );
+      fireEvent.click(screen.getByRole('button', { name: '選擇日期' }));
+      expect(screen.getByText('日期設定錯誤，請修改日期')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '確認' })).toBeDisabled();
+    });
   });
 
   describe('button interactions', () => {
@@ -197,11 +225,21 @@ describe('DatePeriodSelectModal', () => {
       await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
     });
 
-    test('closes without applying when cancel clicked', async () => {
-      openModal();
+    test('closes without applying draft changes when cancel clicked and restores on reopen', async () => {
+      const start = new Date(2026, 10, 1, 0, 0, 0, 0);
+      const end = new Date(2026, 10, 2, 23, 59, 59, 999);
+      openModal({ startDate: start, endDate: end });
+
+      fireEvent.change(screen.getByTestId('datepicker-end'), { target: { value: '2026-11-05' } });
       fireEvent.click(screen.getByRole('button', { name: '取消' }));
+
       await waitForElementToBeRemoved(() => screen.queryByRole('dialog'));
+      expect(defaultProps.handleStartDateSelection).not.toHaveBeenCalled();
+      expect(defaultProps.handleEndDateSelection).not.toHaveBeenCalled();
       expect(defaultProps.handleDateSelectionModeClick).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: '選擇日期' }));
+      expect(screen.getByTestId('datepicker-end')).toHaveValue(end.toISOString().split('T')[0]);
     });
 
     test('closes without applying when the close button is clicked', async () => {

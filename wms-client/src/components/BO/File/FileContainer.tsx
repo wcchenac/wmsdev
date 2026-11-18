@@ -45,12 +45,15 @@ const FileContainer: React.FC<FileContainerProps> = ({
     }
   }, []);
 
-  const handleDateSelectionModeClick = useCallback(() => {
-    const startDateStr = formatLocalDateTime(startDate);
-    const endDateStr = formatLocalDateTime(endDate);
+  const handleDateSelectionModeClick = useCallback(
+    (nextStart?: Date, nextEnd?: Date) => {
+      const startDateStr = formatLocalDateTime(nextStart ? dayOfStart(nextStart) : startDate);
+      const endDateStr = formatLocalDateTime(nextEnd ? dayOfEnd(nextEnd) : endDate);
 
-    handleFileCategoryPeriodQuery(fileType, startDateStr, endDateStr);
-  }, [startDate, endDate, handleFileCategoryPeriodQuery, fileType]);
+      handleFileCategoryPeriodQuery(fileType, startDateStr, endDateStr);
+    },
+    [startDate, endDate, handleFileCategoryPeriodQuery, fileType]
+  );
 
   return (
     <div

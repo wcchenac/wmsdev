@@ -13,23 +13,31 @@ interface DatePeriodSelectModalProps {
   fileType: string;
   handleStartDateSelection: (date: Date | null) => void;
   handleEndDateSelection: (date: Date | null) => void;
-  handleDateSelectionModeClick: () => void;
+  handleDateSelectionModeClick: (startDate?: Date, endDate?: Date) => void;
 }
 
+const MS_PER_DAY = 86_400_000;
+
+const toUtcCalendarDayMs = (date: Date): number =>
+  Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+
+/**
+ * Validates that endDate is not before startDate and the calendar-day span does not exceed
+ * dayRange (comparing normalized calendar dates rather than raw 23:59:59.999 timestamps).
+ */
 const dateSettingAlgorithm = (
   startDate: Date,
   endDate: Date,
   dayRange: number
 ): boolean => {
-  if (endDate < startDate) {
+  const startDayMs = toUtcCalendarDayMs(startDate);
+  const endDayMs = toUtcCalendarDayMs(endDate);
+
+  if (endDayMs < startDayMs) {
     return true;
   }
 
-  if (endDate.getTime() - startDate.getTime() > 86400000 * dayRange) {
-    return true;
-  }
-
-  return false;
+  return (endDayMs - startDayMs) / MS_PER_DAY > dayRange;
 };
 
 const getClassNameString = (btnSize: ButtonSize): string => {
@@ -61,22 +69,36 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
   handleDateSelectionModeClick,
 }) => {
   const [show, setShow] = useState(false);
-  const wrongDateSetting = dateSettingAlgorithm(startDate, endDate, dayRange);
+  const [draftStartDate, setDraftStartDate] = useState<Date>(startDate);
+  const [draftEndDate, setDraftEndDate] = useState<Date>(endDate);
+  const wrongDateSetting = dateSettingAlgorithm(draftStartDate, draftEndDate, dayRange);
   const titleId = "dateCondition-" + fileType + "-title";
 
-  const handleClose = useCallback(() => setShow(false), []);
+  const handleOpen = useCallback(() => {
+    setDraftStartDate(startDate);
+    setDraftEndDate(endDate);
+    setShow(true);
+  }, [startDate, endDate]);
+
+  const handleClose = useCallback(() => {
+    setDraftStartDate(startDate);
+    setDraftEndDate(endDate);
+    setShow(false);
+  }, [startDate, endDate]);
 
   const handleConfirm = useCallback(() => {
     setShow(false);
-    handleDateSelectionModeClick();
-  }, [handleDateSelectionModeClick]);
+    handleStartDateSelection(draftStartDate);
+    handleEndDateSelection(draftEndDate);
+    handleDateSelectionModeClick(draftStartDate, draftEndDate);
+  }, [draftStartDate, draftEndDate, handleStartDateSelection, handleEndDateSelection, handleDateSelectionModeClick]);
 
   return (
     <React.Fragment>
       <button
         type="button"
         className={getClassNameString(btnSize)}
-        onClick={() => setShow(true)}
+        onClick={handleOpen}
       >
         {btnTitle}
       </button>
@@ -122,16 +144,20 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
               <label>起始日期</label>
               <DatePicker
                 name="start"
-                selected={startDate}
-                onChange={handleStartDateSelection}
+                selected={draftStartDate}
+                onChange={(date: Date | null) => {
+                  if (date) setDraftStartDate(date);
+                }}
               />
             </div>
             <div className="col">
               <label>結束日期</label>
               <DatePicker
                 name="end"
-                selected={endDate}
-                onChange={handleEndDateSelection}
+                selected={draftEndDate}
+                onChange={(date: Date | null) => {
+                  if (date) setDraftEndDate(date);
+                }}
               />
             </div>
           </div>
