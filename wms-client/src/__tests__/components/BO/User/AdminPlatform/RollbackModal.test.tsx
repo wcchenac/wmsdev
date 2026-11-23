@@ -43,6 +43,22 @@ describe('RollbackModal isRollbackDisabled and submission (H-20)', () => {
       expect(screen.getByRole('button', { name: '確認' })).toBeDisabled();
       expect(screen.getByText('L2').closest('tr')).toHaveClass('table-secondary');
     });
+
+    test('renders 0 quantity instead of hiding it', () => {
+      const zeroRow: StockInfo = {
+        ...makeRow(3, true),
+        stockIdentifier: { id: 3, productNo: 'CF1001', lotNo: 'L3', type: '板卷', quantity: 0, unit: '碼', exist: true },
+      };
+      render(
+        <InStockRollbackModal
+          show
+          list={[zeroRow]}
+          handleModalClose={vi.fn()}
+          handleSubmitClick={vi.fn()}
+        />
+      );
+      expect(screen.getByText('0碼')).toBeInTheDocument();
+    });
   });
 
   describe('ShrinkRollback RollbackModal', () => {

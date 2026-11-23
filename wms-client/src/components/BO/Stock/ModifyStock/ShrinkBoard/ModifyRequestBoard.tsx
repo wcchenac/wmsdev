@@ -427,6 +427,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
                         {modalShow && calculatedInfoLength ? (
                             <ShrinkConfirmModal
                                 show
+                                unit={oldStockInfo.stockIdentifier?.unit || '碼'}
                                 infoLengthCalculation={calculatedInfoLength}
                                 handleModalClose={handleModalClose}
                                 handleSubmitClick={handleSubmitClick}

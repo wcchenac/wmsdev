@@ -107,8 +107,8 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
                   <td>{item.stockIdentifier?.lotNo}</td>
                   <td>{item.stockIdentifier?.type}</td>
                   <td>
-                    {(item.stockIdentifier?.quantity || "") +
-                      (item.stockIdentifier?.unit || "")}
+                    {(item.stockIdentifier?.quantity ?? "") +
+                      (item.stockIdentifier?.unit ?? "")}
                   </td>
                   <td>{formatDefect(item.defect)}</td>
                   <td>{item.record}</td>

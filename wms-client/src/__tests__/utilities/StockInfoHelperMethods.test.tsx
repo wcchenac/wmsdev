@@ -234,6 +234,13 @@ describe('StockInfoHelperMethods', () => {
       expect(stockInfoesCopy[0].errors.quantity).toBe('請輸入純數字或數量不可空白');
     });
 
+    test('sets error for zero quantity', () => {
+      updateStockInfoesCopy(stockInfoesCopy, 'quantity', '0', 0);
+      expect(stockInfoesCopy[0].errors.quantity).toBe('數量必須大於 0');
+      updateStockInfoesCopy(stockInfoesCopy, 'quantity', '0.0', 0);
+      expect(stockInfoesCopy[0].errors.quantity).toBe('數量必須大於 0');
+    });
+
     test('accepts integer quantity', () => {
       updateStockInfoesCopy(stockInfoesCopy, 'quantity', '100', 0);
       expect(stockInfoesCopy[0].errors.quantity).toBe('');
@@ -316,6 +323,11 @@ describe('StockInfoHelperMethods', () => {
     test('sets error for invalid quantity1', () => {
       updateStockInfoCopy(stockInfoCopy, 'quantity1', 'invalid');
       expect(stockInfoCopy.errors.quantity1).toBe('請輸入純數字或數量不可空白');
+    });
+
+    test('sets error for zero quantity', () => {
+      updateStockInfoCopy(stockInfoCopy, 'quantity', '0');
+      expect(stockInfoCopy.errors.quantity).toBe('數量必須大於 0');
     });
 
     test('updates outStockReason to reason property', () => {

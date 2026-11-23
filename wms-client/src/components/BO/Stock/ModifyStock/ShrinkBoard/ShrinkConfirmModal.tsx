@@ -5,6 +5,7 @@ import { InfoLengthCalculation } from './ModifyRequestBoard';
 interface ShrinkConfirmModalProps {
     show: boolean;
     isLoading?: boolean;
+    unit?: string;
     handleModalClose: () => void;
     handleSubmitClick: (infoLengthCalculation: InfoLengthCalculation) => void;
     infoLengthCalculation: InfoLengthCalculation;
@@ -13,6 +14,7 @@ interface ShrinkConfirmModalProps {
 const ShrinkConfirmModal: React.FC<ShrinkConfirmModalProps> = ({
     show,
     isLoading = false,
+    unit = '碼',
     handleModalClose,
     handleSubmitClick,
     infoLengthCalculation
@@ -39,7 +41,7 @@ const ShrinkConfirmModal: React.FC<ShrinkConfirmModalProps> = ({
                     <p>
                         差異量：
                         <strong>{infoLengthCalculation.adjustment}</strong>{' '}
-                        碼，大於平常值，
+                        {unit}，大於平常值，
                     </p>
                     <p>是否確認送出？</p>
                 </React.Fragment>
@@ -50,7 +52,7 @@ const ShrinkConfirmModal: React.FC<ShrinkConfirmModalProps> = ({
                     <p>減肥前後總數量不符，</p>
                     <p>
                         差異量：{' '}
-                        <strong>{infoLengthCalculation.adjustment}</strong> 碼，
+                        <strong>{infoLengthCalculation.adjustment}</strong> {unit}，
                     </p>
                     <p>是否確認送出？</p>
                 </React.Fragment>

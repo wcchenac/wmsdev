@@ -20,6 +20,7 @@ import {
   SelectOption,
   Action
 } from "../types";
+import { round10 } from "../utilities/DecimalAdjust";
 
 const initialState: StockState = {
   stockInfoes: [],
@@ -68,7 +69,8 @@ const quantityAfterShip = (
   current: unknown,
   shippedQty: number
 ): number | string => {
-  const next = Math.round((Number(current) - shippedQty) * 100) / 100;
+  const rounded = round10(Number(current) - shippedQty, -2);
+  const next = rounded === 0 ? 0 : rounded;
   if (typeof current === "string") {
     return Number.isInteger(next) ? String(next) : next.toFixed(2);
   }

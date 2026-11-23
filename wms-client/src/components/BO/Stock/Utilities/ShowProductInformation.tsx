@@ -32,6 +32,43 @@ interface ShowProductInformationProps {
   productInfo: ProductInfo;
 }
 
+interface InfoRowProps {
+  label: string;
+  value: string | number | undefined;
+}
+
+const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
+  <div
+    className="info-row"
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      padding: 'var(--spacing-2) 0',
+      borderBottom: '1px solid var(--color-gray-100)',
+    }}
+  >
+    <span
+      style={{
+        width: '40%',
+        color: 'var(--color-gray-600)',
+        fontWeight: 'var(--font-weight-medium)',
+        fontSize: 'var(--font-size-sm)',
+      }}
+    >
+      {label}
+    </span>
+    <span
+      style={{
+        width: '60%',
+        color: 'var(--color-gray-800)',
+        fontWeight: 'var(--font-weight-normal)',
+      }}
+    >
+      {value !== undefined && value !== null && value !== '' ? value : '-'}
+    </span>
+  </div>
+);
+
 const ShowProductInformation: React.FC<ShowProductInformationProps> = ({
   isBasic,
   isQuery,
@@ -41,38 +78,6 @@ const ShowProductInformation: React.FC<ShowProductInformationProps> = ({
   const [show, setShow] = useState(false);
   const isDisabled = !isQuery || productNo.toUpperCase() !== productInfo.productNo;
   const handleClose = useCallback(() => setShow(false), []);
-
-  const InfoRow: React.FC<{ label: string; value: string | number | undefined }> = ({ label, value }) => (
-    <div
-      className="info-row"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: 'var(--spacing-2) 0',
-        borderBottom: '1px solid var(--color-gray-100)',
-      }}
-    >
-      <span
-        style={{
-          width: '40%',
-          color: 'var(--color-gray-600)',
-          fontWeight: 'var(--font-weight-medium)',
-          fontSize: 'var(--font-size-sm)',
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          width: '60%',
-          color: 'var(--color-gray-800)',
-          fontWeight: 'var(--font-weight-normal)',
-        }}
-      >
-        {value || '-'}
-      </span>
-    </div>
-  );
 
   return (
     <React.Fragment>

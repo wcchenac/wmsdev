@@ -154,4 +154,39 @@ describe('ModifyRequestBoard confirm and submit flow (H-20)', () => {
       expect.objectContaining({ oldStockIdentifierId: 79, adjustment: -5 })
     );
   });
+
+  test('displays the stock unit instead of hardcoded 碼 in ShrinkConfirmModal', () => {
+    const stockInfo: StockInfo = {
+      color: 2,
+      defect: 'GA',
+      record: 'R1',
+      stockIdentifier: {
+        id: 80,
+        productNo: 'CF503',
+        lotNo: 'LOT-80',
+        type: StockIdentifierType.roll,
+        quantity: 20,
+        unit: '支',
+      },
+    };
+
+    const { container } = render(
+      <ModifyRequestBoard
+        stockInfo={stockInfo}
+        typeExchange={false}
+        sameTypeModify={true}
+        hardwareModify={false}
+        handleGoBack={vi.fn()}
+        handleModifyRequestSubmit={vi.fn()}
+      />
+    );
+
+    const qtyInputs = container.querySelectorAll<HTMLInputElement>('input[name="quantity"]:not([disabled])');
+    fireEvent.change(qtyInputs[0], { target: { name: 'quantity', value: '10' } });
+    fireEvent.change(qtyInputs[1], { target: { name: 'quantity', value: '8' } });
+    fireEvent.click(screen.getByRole('button', { name: '送出' }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByText(/支，大於平常值/)).toBeInTheDocument();
+  });
 });

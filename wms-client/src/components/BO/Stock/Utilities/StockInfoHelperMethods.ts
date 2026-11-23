@@ -81,6 +81,16 @@ export function quantityAccumulate(stockInfoes: ReadonlyArray<QuantityRow>): Qua
 }
 
 
+function validateQuantityInput(value: string): string {
+  if (!/^\d*\.?\d+$/.test(value)) {
+    return "請輸入純數字或數量不可空白";
+  }
+  if (parseFloat(value) <= 0) {
+    return "數量必須大於 0";
+  }
+  return "";
+}
+
 // update the value at stockInfoesCopy[i].[name]
 export function updateStockInfoesCopy(
   stockInfoesCopy: EditableStockRow[],
@@ -97,9 +107,7 @@ export function updateStockInfoesCopy(
       stockInfoesCopy[i].type = value;
       break;
     case "quantity":
-      stockInfoesCopy[i].errors.quantity = /^\d*\.?\d+$/.test(value)
-        ? ""
-        : "請輸入純數字或數量不可空白";
+      stockInfoesCopy[i].errors.quantity = validateQuantityInput(value);
       stockInfoesCopy[i].quantity = value;
       break;
     case "unit":
@@ -168,25 +176,19 @@ export function updateStockInfoCopy(
       break;
     case "quantity":
       if (stockInfoCopy.errors) {
-        stockInfoCopy.errors.quantity = /^\d*\.?\d+$/.test(value)
-          ? ""
-          : "請輸入純數字或數量不可空白";
+        stockInfoCopy.errors.quantity = validateQuantityInput(value);
       }
       stockInfoCopy.quantity = value;
       break;
     case "quantity1":
       if (stockInfoCopy.errors) {
-        stockInfoCopy.errors.quantity1 = /^\d*\.?\d+$/.test(value)
-          ? ""
-          : "請輸入純數字或數量不可空白";
+        stockInfoCopy.errors.quantity1 = validateQuantityInput(value);
       }
       stockInfoCopy.quantity1 = value;
       break;
     case "quantity2":
       if (stockInfoCopy.errors) {
-        stockInfoCopy.errors.quantity2 = /^\d*\.?\d+$/.test(value)
-          ? ""
-          : "請輸入純數字或數量不可空白";
+        stockInfoCopy.errors.quantity2 = validateQuantityInput(value);
       }
       stockInfoCopy.quantity2 = value;
       break;

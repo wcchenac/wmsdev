@@ -259,6 +259,30 @@ describe('StockReducer', () => {
         { stockIdentifier: { id: 2, productNo: 'B' } }
       ]);
     });
+
+    test('rounds productList quantity with round10 and normalizes zero', () => {
+      const existingState = makeState({
+        stockInfoes: {
+          result: [
+            { stockIdentifier: { id: 1, type: '板卷', quantity: 9, unit: '碼' } },
+            { stockIdentifier: { id: 2, type: '整支', quantity: 1.5, unit: '支' } }
+          ],
+          productList: [
+            { type: '板卷', quantity: 10.005, unit: '碼' },
+            { type: '整支', quantity: 1.5, unit: '支' }
+          ]
+        } as StockInfoesWithResult
+      });
+
+      const afterFirst = StockReducer(existingState, { type: SHIP_Stock, payload: 1 });
+      const afterSecond = StockReducer(afterFirst, { type: SHIP_Stock, payload: 2 });
+      const stockInfoes = afterSecond.stockInfoes as StockInfoesWithResult;
+
+      expect(stockInfoes.productList).toEqual([
+        { type: '板卷', quantity: 1.01, unit: '碼' },
+        { type: '整支', quantity: 0, unit: '支' }
+      ]);
+    });
   });
 
   describe('SHIP_Stocks', () => {

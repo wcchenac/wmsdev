@@ -55,7 +55,7 @@ const FormField: React.FC<FormFieldProps> = ({
     "form-control",
     {
       "is-invalid": hasError,
-      "is-valid": touched && !error && value
+      "is-valid": touched && !error && value !== undefined && value !== null && value !== ""
     },
     inputClassName
   );
