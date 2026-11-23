@@ -33,8 +33,8 @@ const StockInfo: React.FC<StockInfoProps> = ({ object, handleShrinkRollback }) =
       <td>{object.stockInfo.stockIdentifier?.lotNo}</td>
       <td>{object.stockInfo.stockIdentifier?.type}</td>
       <td>
-        {(object.stockInfo.stockIdentifier?.quantity || "") +
-          (object.stockInfo.stockIdentifier?.unit || "")}
+        {(object.stockInfo.stockIdentifier?.quantity ?? "") +
+          (object.stockInfo.stockIdentifier?.unit ?? "")}
       </td>
       <td>{object.stockInfo.stockIdentifier?.eliminateDate}</td>
       <td>

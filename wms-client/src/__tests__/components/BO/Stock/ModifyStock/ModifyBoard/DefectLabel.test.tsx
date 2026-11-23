@@ -1,5 +1,5 @@
 import React from 'react';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import StockInfoContainer from '../../../../../../components/BO/Stock/ModifyStock/ModifyBoard/StockInfoContainer';
@@ -57,13 +57,14 @@ test('詳細資料 labels the defect 瑕疵 when showing and when editing', () =
 
 // 瑡 has no use in this app's vocabulary; it only appears as a mistyped 瑕.
 test('no source file uses 瑡, written out or as \\u7461', () => {
-  const src = join(process.cwd(), 'src');
+  const src = realpathSync(join(process.cwd(), 'src'));
+  const selfPath = realpathSync(__filename);
   const files: string[] = [];
   const walk = (dir: string) => {
     for (const name of readdirSync(dir)) {
       const path = join(dir, name);
       if (statSync(path).isDirectory()) walk(path);
-      else if (/\.(tsx?|css)$/.test(name) && path !== __filename) files.push(path);
+      else if (/\.(tsx?|css)$/.test(name) && path !== selfPath) files.push(path);
     }
   };
   walk(src);

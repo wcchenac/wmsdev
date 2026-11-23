@@ -140,6 +140,20 @@ describe('SearchBoard', () => {
       expect(tabs[0]).toHaveTextContent('2024-01-01');
       expect(tabs[1]).toHaveTextContent('2024-01-02');
     });
+
+    test('switches active tab and pane when another date tab is clicked', () => {
+      renderSearchBoard();
+      const tab1 = screen.getByRole('tab', { name: '2024-01-01' });
+      const tab2 = screen.getByRole('tab', { name: '2024-01-02' });
+
+      expect(tab1).toHaveClass('active');
+      expect(tab2).not.toHaveClass('active');
+
+      fireEvent.click(tab2);
+
+      expect(tab2).toHaveClass('active');
+      expect(tab1).not.toHaveClass('active');
+    });
   });
 
   describe('submit button state', () => {

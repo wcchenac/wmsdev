@@ -1,8 +1,7 @@
-import React, { useState, useRef, useMemo, useCallback, MouseEvent } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback, MouseEvent } from "react";
 import SearchContainer from "./SearchContainer";
 import { SelectedUser, OutStockUpdateRequest } from "../../../../types";
 import { OutStockInfo } from "./SearchInfo";
-import { useUpdateEffect } from "../../../../utilities/useUpdateEffect";
 
 import equal from "fast-deep-equal";
 
@@ -124,31 +123,40 @@ const SearchBoard: React.FC<SearchBoardProps> = ({
 
   const prevQueryResultRef = useRef<QueryResult | undefined>(queryResult);
   const prevSelectedUserListRef = useRef<SelectedUser[]>(selectedUserList);
+  const didMountRef = useRef<boolean>(false);
 
-  useUpdateEffect({ queryResult, selectedUserList }, (next) => {
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      prevQueryResultRef.current = queryResult;
+      prevSelectedUserListRef.current = selectedUserList;
+      return;
+    }
+
     const prevQueryResult = prevQueryResultRef.current;
     const prevSelectedUserList = prevSelectedUserListRef.current;
 
-    if (!equal(prevQueryResult, next.queryResult)) {
+    if (prevQueryResult !== queryResult && !equal(prevQueryResult, queryResult)) {
       const prevWasEmpty = Object.keys(prevQueryResult ?? {}).length === 0;
       setToBeSubmit((current) =>
         prevWasEmpty
-          ? initialToBeSubmit(next.queryResult, next.selectedUserList)
-          : retainVisibleToBeSubmit(current, next.queryResult, next.selectedUserList)
+          ? initialToBeSubmit(queryResult, selectedUserList)
+          : retainVisibleToBeSubmit(current, queryResult, selectedUserList)
       );
     } else if (
-      next.queryResult !== undefined &&
-      !equal(prevSelectedUserList, next.selectedUserList)
+      prevSelectedUserList !== selectedUserList &&
+      queryResult !== undefined &&
+      !equal(prevSelectedUserList, selectedUserList)
     ) {
       // Drop rows the user filter just hid, and keep warehouse choices for rows still shown.
       setToBeSubmit((current) =>
-        retainVisibleToBeSubmit(current, next.queryResult, next.selectedUserList)
+        retainVisibleToBeSubmit(current, queryResult, selectedUserList)
       );
     }
 
-    prevQueryResultRef.current = next.queryResult;
-    prevSelectedUserListRef.current = next.selectedUserList;
-  });
+    prevQueryResultRef.current = queryResult;
+    prevSelectedUserListRef.current = selectedUserList;
+  }, [queryResult, selectedUserList]);
 
   const handleToBeSubmitChange = useCallback(
     (date: string, checked: boolean, id: number): void => {
