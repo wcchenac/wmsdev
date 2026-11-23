@@ -60,8 +60,13 @@ const InformationModal: React.FC<InformationModalProps> = ({
   }, [propStockInfo]);
 
   const handleEditMode = useCallback(() => {
-    setEditMode((prev) => !prev);
-  }, []);
+    setEditMode((prev) => {
+      if (prev) {
+        setStockInfo(stateInitial(propStockInfo));
+      }
+      return !prev;
+    });
+  }, [propStockInfo]);
 
   const handleInfoChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

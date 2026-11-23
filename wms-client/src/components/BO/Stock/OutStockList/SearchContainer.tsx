@@ -1,8 +1,6 @@
-import React, { PureComponent } from "react";
+import React, { useMemo, useCallback } from "react";
 import SearchInfo, { OutStockInfo } from "./SearchInfo";
 import HeaderCheckBox from "./HeaderCheckBox";
-
-import equal from "fast-deep-equal";
 
 interface ToBeSubmitItem {
   selected: boolean;
@@ -29,33 +27,6 @@ interface SearchContainerProps {
   initialize: () => void;
 }
 
-interface SearchContainerState {
-  outStockListFiltered: OutStockInfo[];
-  toBeSubmit: ToBeSubmitMap;
-  headerCheckBoxChecked: boolean;
-}
-
-function initialState(outStockListFiltered: OutStockInfo[] | undefined): SearchContainerState {
-  if (outStockListFiltered === undefined) {
-    return {
-      outStockListFiltered: [],
-      toBeSubmit: {},
-      headerCheckBoxChecked: false
-    };
-  } else {
-    const waitSelectList = outStockListFiltered.filter(
-      outStockRequest => outStockRequest.handled === false
-    );
-    const toBeSubmit = initialSelectList(waitSelectList);
-
-    return {
-      outStockListFiltered: outStockListFiltered,
-      toBeSubmit: toBeSubmit,
-      headerCheckBoxChecked: defaultCheckedAlgorithm(toBeSubmit)
-    };
-  }
-}
-
 function selectionForVisibleRows(
   waitSelectList: OutStockInfo[],
   source: ToBeSubmitMap | undefined
@@ -72,170 +43,129 @@ function selectionForVisibleRows(
   return selectList;
 }
 
-function initialSelectList(waitSelectList: OutStockInfo[]): ToBeSubmitMap {
-  return selectionForVisibleRows(waitSelectList, undefined);
-}
-
-function defaultCheckedAlgorithm(selectList: ToBeSubmitMap | undefined): boolean {
-  if (selectList === undefined) {
-    return false;
-  }
-
+function defaultCheckedAlgorithm(selectList: ToBeSubmitMap): boolean {
   const keyArray = Object.keys(selectList);
-
   if (keyArray.length === 0) {
     return false;
   }
-
-  let checked = true;
-
-  for (let i = 0; i < keyArray.length; i += 1) {
-    if (!selectList[keyArray[i]].selected) {
-      checked = false;
-      break;
-    }
-  }
-
-  return checked;
+  return keyArray.every((key) => selectList[key].selected);
 }
 
-class SearchContainer extends PureComponent<SearchContainerProps, SearchContainerState> {
-  constructor(props: SearchContainerProps) {
-    super(props);
-    this.state = initialState(this.props.outStockListFiltered);
-    this.onHeaderCheckBoxChange = this.onHeaderCheckBoxChange.bind(this);
-    this.onInfoCheckBoxChange = this.onInfoCheckBoxChange.bind(this);
-    this.onInfoWHChange = this.onInfoWHChange.bind(this);
-  }
-
-  static getDerivedStateFromProps(
-    nextProps: SearchContainerProps,
-    prevState: SearchContainerState
-  ): Partial<SearchContainerState> | null {
-    if (nextProps.outStockListFiltered === undefined) {
-      return null;
+const SearchContainer: React.FC<SearchContainerProps> = React.memo(function SearchContainer({
+  index,
+  active,
+  date,
+  outStockListFiltered,
+  toBeSubmit: propToBeSubmit,
+  allSelectMethod,
+  handleToBeSubmitChange,
+  handleToBeSubmitWHChange,
+  handleDeleteClick,
+  downloadFile,
+  handleModalShow,
+  initialize,
+}) {
+  const toBeSubmit = useMemo(() => {
+    if (!outStockListFiltered) {
+      return {};
     }
-
-    const waitSelectList = nextProps.outStockListFiltered.filter(
-      outStockRequest => outStockRequest.handled === false
+    const waitSelectList = outStockListFiltered.filter(
+      (outStockRequest) => outStockRequest.handled === false
     );
-    const listChanged = !equal(
-      prevState.outStockListFiltered,
-      nextProps.outStockListFiltered
-    );
+    return selectionForVisibleRows(waitSelectList, propToBeSubmit);
+  }, [outStockListFiltered, propToBeSubmit]);
 
-    // Project the parent's selection onto the rows still on screen, so a user
-    // filter cannot leave a hidden row selected or reuse another row's warehouse.
-    if (nextProps.toBeSubmit === undefined) {
-      if (!listChanged) {
-        return null;
-      }
-      const toBeSubmit = selectionForVisibleRows(waitSelectList, undefined);
-      return {
-        outStockListFiltered: nextProps.outStockListFiltered,
-        toBeSubmit: toBeSubmit,
-        headerCheckBoxChecked: defaultCheckedAlgorithm(toBeSubmit)
-      };
-    }
+  const headerCheckBoxChecked = useMemo(
+    () => defaultCheckedAlgorithm(toBeSubmit),
+    [toBeSubmit]
+  );
 
-    const toBeSubmit = selectionForVisibleRows(waitSelectList, nextProps.toBeSubmit);
-    if (!listChanged && equal(prevState.toBeSubmit, toBeSubmit)) {
-      return null;
-    }
+  const onHeaderCheckBoxChange = useCallback(
+    (checked: boolean) => {
+      allSelectMethod(date, !checked);
+    },
+    [allSelectMethod, date]
+  );
 
-    return {
-      outStockListFiltered: nextProps.outStockListFiltered,
-      toBeSubmit: toBeSubmit,
-      headerCheckBoxChecked: defaultCheckedAlgorithm(toBeSubmit)
-    };
-  }
+  const onInfoCheckBoxChange = useCallback(
+    (checked: boolean, id: number) => {
+      handleToBeSubmitChange(date, checked, id);
+    },
+    [handleToBeSubmitChange, date]
+  );
 
-  onHeaderCheckBoxChange(checked: boolean): void {
-    if (checked) {
-      this.props.allSelectMethod(this.props.date, false);
-    } else {
-      this.props.allSelectMethod(this.props.date, true);
-    }
-  }
+  const onInfoWHChange = useCallback(
+    (value: string, id: number) => {
+      handleToBeSubmitWHChange(date, value, id);
+    },
+    [handleToBeSubmitWHChange, date]
+  );
 
-  onInfoCheckBoxChange(checked: boolean, id: number): void {
-    this.props.handleToBeSubmitChange(this.props.date, checked, id);
-  }
-
-  onInfoWHChange(value: string, id: number): void {
-    this.props.handleToBeSubmitWHChange(this.props.date, value, id);
-  }
-
-  render(): React.ReactNode {
-    const { outStockListFiltered, index, date, active } = this.props;
-    const { toBeSubmit, headerCheckBoxChecked } = this.state;
-
-    return (
-      <React.Fragment>
-        <div
-          className={
-            (active ?? index === 0) ? "tab-pane fade show active" : "tab-pane fade"
-          }
-          id={"nav-" + date}
-          role="tabpanel"
-          aria-labelledby={"nav-tab-" + date}
-        >
-          <div className="table-responsive table-wrapper-scroll-y my-custom-scrollbar">
-            <table className="table table-hover table-actions-center text-nowrap">
-              <thead className="table-dark">
-                <tr>
-                  <th>
-                    <HeaderCheckBox
-                      checked={headerCheckBoxChecked}
-                      onHeaderCheckBoxChange={this.onHeaderCheckBoxChange}
-                    />
-                  </th>
-                  <th>
-                    <div className="ps-2">貨號</div>
-                  </th>
-                  <th>
-                    <div className="ps-2">型態</div>
-                  </th>
-                  <th>
-                    <div className="ps-2">數量</div>
-                  </th>
-                  <th>
-                    <div className="ps-2">單位</div>
-                  </th>
-                  <th>
-                    <div className="ps-1">出庫原因</div>
-                  </th>
-                  <th>開單人員</th>
-                  <th>倉別</th>
-                  <th>
-                    <span className="visually-hidden">操作</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {outStockListFiltered.map((object) => (
-                  <SearchInfo
-                    key={object.id}
-                    searchInfo={object}
-                    whName={object.handled ? "" : toBeSubmit[object.id]?.whName ?? ""}
-                    checked={
-                      object.handled ? false : toBeSubmit[object.id]?.selected ?? false
-                    }
-                    onInfoCheckBoxChange={this.onInfoCheckBoxChange}
-                    onInfoWHChange={this.onInfoWHChange}
-                    handleDeleteClick={this.props.handleDeleteClick}
-                    handleModalShow={this.props.handleModalShow}
-                    downloadFile={this.props.downloadFile}
-                    initialize={this.props.initialize}
+  return (
+    <React.Fragment>
+      <div
+        className={
+          (active ?? index === 0) ? "tab-pane fade show active" : "tab-pane fade"
+        }
+        id={"nav-" + date}
+        role="tabpanel"
+        aria-labelledby={"nav-tab-" + date}
+      >
+        <div className="table-responsive table-wrapper-scroll-y my-custom-scrollbar">
+          <table className="table table-hover table-actions-center text-nowrap">
+            <thead className="table-dark">
+              <tr>
+                <th>
+                  <HeaderCheckBox
+                    checked={headerCheckBoxChecked}
+                    onHeaderCheckBoxChange={onHeaderCheckBoxChange}
                   />
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </th>
+                <th>
+                  <div className="ps-2">貨號</div>
+                </th>
+                <th>
+                  <div className="ps-2">型態</div>
+                </th>
+                <th>
+                  <div className="ps-2">數量</div>
+                </th>
+                <th>
+                  <div className="ps-2">單位</div>
+                </th>
+                <th>
+                  <div className="ps-1">出庫原因</div>
+                </th>
+                <th>開單人員</th>
+                <th>倉別</th>
+                <th>
+                  <span className="visually-hidden">操作</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {(outStockListFiltered ?? []).map((object) => (
+                <SearchInfo
+                  key={object.id}
+                  searchInfo={object}
+                  whName={object.handled ? "" : toBeSubmit[object.id]?.whName ?? ""}
+                  checked={
+                    object.handled ? false : toBeSubmit[object.id]?.selected ?? false
+                  }
+                  onInfoCheckBoxChange={onInfoCheckBoxChange}
+                  onInfoWHChange={onInfoWHChange}
+                  handleDeleteClick={handleDeleteClick}
+                  handleModalShow={handleModalShow}
+                  downloadFile={downloadFile}
+                  initialize={initialize}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
-      </React.Fragment>
-    );
-  }
-}
+      </div>
+    </React.Fragment>
+  );
+});
 
 export default SearchContainer;

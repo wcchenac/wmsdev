@@ -1,12 +1,16 @@
-import React, { createRef } from 'react';
-import { act, fireEvent, render, screen, RenderResult } from '@testing-library/react';
+import React from 'react';
+import { fireEvent, render, screen, RenderResult } from '@testing-library/react';
 import SearchBoard from '../../../../../components/BO/Stock/OutStockList/SearchBoard';
 import { OutStockInfo } from '../../../../../components/BO/Stock/OutStockList/SearchInfo';
 
 interface MockSearchContainerProps {
   index: number;
   date: string;
-  outStockListFiltered?: unknown[];
+  outStockListFiltered?: Array<{ id: number; handled: boolean }>;
+  toBeSubmit?: Record<string, { selected: boolean; whName: string }>;
+  allSelectMethod: (date: string, selected: boolean) => void;
+  handleToBeSubmitChange: (date: string, checked: boolean, id: number) => void;
+  handleToBeSubmitWHChange: (date: string, value: string, id: number) => void;
 }
 
 type BoardProps = React.ComponentProps<typeof SearchBoard>;
@@ -18,7 +22,7 @@ type SearchBoardProps = Omit<BoardProps, 'queryResult'> & { queryResult: QueryRe
 const queryResultFixture = (value: Record<string, Partial<OutStockInfo>[]>): QueryResult =>
   value as QueryResult;
 
-// Mock SearchContainer
+// Mock SearchContainer with minimal controls so tests drive warehouse/selection state via UI events
 vi.mock('../../../../../components/BO/Stock/OutStockList/SearchContainer', () => ({ default: (() => {
   return function MockSearchContainer(props: MockSearchContainerProps): React.JSX.Element {
     return (
@@ -31,15 +35,37 @@ vi.mock('../../../../../components/BO/Stock/OutStockList/SearchContainer', () =>
         <span data-testid={`item-count-${props.index}`}>
           {props.outStockListFiltered?.length || 0} items
         </span>
+        <button
+          type="button"
+          onClick={() => props.allSelectMethod(props.date, false)}
+        >
+          unselect-all-{props.date}
+        </button>
+        {(props.outStockListFiltered ?? []).filter((r) => !r.handled).map((row) => (
+          <div key={row.id}>
+            <select
+              aria-label={`wh-${props.date}-${row.id}`}
+              value={props.toBeSubmit?.[row.id]?.whName ?? ''}
+              onChange={(e) => props.handleToBeSubmitWHChange(props.date, e.target.value, row.id)}
+            >
+              <option value="">請選擇...</option>
+              <option value="內倉">內倉</option>
+              <option value="外倉">外倉</option>
+            </select>
+            <input
+              type="checkbox"
+              aria-label={`select-${props.date}-${row.id}`}
+              checked={props.toBeSubmit?.[row.id]?.selected ?? false}
+              onChange={(e) =>
+                props.handleToBeSubmitChange(props.date, !e.target.checked, row.id)
+              }
+            />
+          </div>
+        ))}
       </div>
     );
   };
 })() }));
-
-// Mock DeepCopy
-vi.mock('../../../../../utilities/DeepCopy', () => ({
-  copy: vi.fn((obj: unknown) => JSON.parse(JSON.stringify(obj)))
-}));
 
 describe('SearchBoard', () => {
   const defaultProps: BoardProps = {
@@ -134,8 +160,8 @@ describe('SearchBoard', () => {
         ]
       };
       renderSearchBoard(propsWithFilteredUser);
-      // SearchContainer should receive filtered list
-      expect(screen.getByTestId('search-container-0')).toBeInTheDocument();
+      expect(screen.getByTestId('item-count-0')).toHaveTextContent('2 items');
+      expect(screen.getByTestId('item-count-1')).toHaveTextContent('0 items');
     });
 
     test('shows empty when no users selected', () => {
@@ -147,12 +173,12 @@ describe('SearchBoard', () => {
         ]
       };
       renderSearchBoard(propsNoUsers);
-      // Should still render but with empty filtered lists
-      expect(screen.getByTestId('search-container-0')).toBeInTheDocument();
+      expect(screen.getByTestId('item-count-0')).toHaveTextContent('0 items');
+      expect(screen.getByTestId('item-count-1')).toHaveTextContent('0 items');
     });
   });
 
-  describe('componentDidUpdate', () => {
+  describe('updates', () => {
     test('updates toBeSubmit when queryResult changes', () => {
       const { rerender } = renderSearchBoard();
 
@@ -197,98 +223,46 @@ describe('SearchBoard', () => {
   });
 
   describe('warehouse change', () => {
-    test('changing whName does not mutate the previous toBeSubmit state', () => {
-      const queryResult = defaultProps.queryResult;
-      if (queryResult === undefined) {
-        throw new Error('queryResult is required');
-      }
+    test('changing whName updates that row without affecting other rows', () => {
+      renderSearchBoard();
 
-      const ref = createRef<SearchBoard>();
-      render(<SearchBoard ref={ref} {...defaultProps} queryResult={queryResult} />);
-      const board = ref.current;
-      if (board === null) {
-        throw new Error('SearchBoard did not mount');
-      }
+      const wh1 = screen.getByLabelText<HTMLSelectElement>('wh-2024-01-01-1');
+      const wh3 = screen.getByLabelText<HTMLSelectElement>('wh-2024-01-02-3');
+      expect(wh1.value).toBe('');
+      expect(wh3.value).toBe('');
 
-      act(() => {
-        board.setState({
-          toBeSubmit: board.initialToBeSubmit(queryResult, defaultProps.selectedUserList)
-        });
-      });
+      fireEvent.change(wh1, { target: { value: '內倉' } });
 
-      const before = board.state.toBeSubmit;
-      expect(before['2024-01-01'][1].whName).toBe('');
-
-      act(() => {
-        board.handleToBeSubmitWHChange('2024-01-01', '內倉', 1);
-      });
-
-      expect(before['2024-01-01'][1].whName).toBe('');
-      expect(before['2024-01-01'][1]).toEqual({ selected: true, whName: '' });
-      expect(board.state.toBeSubmit).not.toBe(before);
-      expect(board.state.toBeSubmit['2024-01-01']).not.toBe(before['2024-01-01']);
-      expect(board.state.toBeSubmit['2024-01-01'][1].whName).toBe('內倉');
-      expect(board.state.toBeSubmit['2024-01-01'][1].selected).toBe(true);
+      expect(wh1.value).toBe('內倉');
+      expect(wh3.value).toBe('');
     });
   });
 
   describe('multi-date warehouse validation', () => {
     test('an empty warehouse on an earlier date keeps save disabled', () => {
-      const ref = createRef<SearchBoard>();
-      render(<SearchBoard ref={ref} {...defaultProps} />);
-      const board = ref.current;
-      if (board === null) {
-        throw new Error('SearchBoard did not mount');
-      }
+      renderSearchBoard();
 
-      act(() => {
-        board.setState({
-          toBeSubmit: {
-            '2024-01-01': { 1: { selected: true, whName: '' } },
-            '2024-01-02': { 3: { selected: true, whName: '內倉' } },
-          },
-        });
-      });
+      fireEvent.change(screen.getByLabelText('wh-2024-01-02-3'), { target: { value: '內倉' } });
 
       expect(screen.getByRole('button', { name: '儲存' })).toBeDisabled();
     });
 
     test('save is enabled when every selected row has a warehouse', () => {
-      const ref = createRef<SearchBoard>();
-      render(<SearchBoard ref={ref} {...defaultProps} />);
-      const board = ref.current;
-      if (board === null) {
-        throw new Error('SearchBoard did not mount');
-      }
+      renderSearchBoard();
 
-      act(() => {
-        board.setState({
-          toBeSubmit: {
-            '2024-01-01': { 1: { selected: true, whName: '外倉' } },
-            '2024-01-02': { 3: { selected: true, whName: '內倉' } },
-          },
-        });
-      });
+      fireEvent.change(screen.getByLabelText('wh-2024-01-01-1'), { target: { value: '外倉' } });
+      fireEvent.change(screen.getByLabelText('wh-2024-01-02-3'), { target: { value: '內倉' } });
 
       expect(screen.getByRole('button', { name: '儲存' })).toBeEnabled();
     });
 
     test('save stays disabled when nothing is selected', () => {
-      const ref = createRef<SearchBoard>();
-      render(<SearchBoard ref={ref} {...defaultProps} />);
-      const board = ref.current;
-      if (board === null) {
-        throw new Error('SearchBoard did not mount');
-      }
+      renderSearchBoard();
 
-      act(() => {
-        board.setState({
-          toBeSubmit: {
-            '2024-01-01': { 1: { selected: false, whName: '內倉' } },
-            '2024-01-02': { 3: { selected: false, whName: '外倉' } },
-          },
-        });
-      });
+      fireEvent.change(screen.getByLabelText('wh-2024-01-01-1'), { target: { value: '內倉' } });
+      fireEvent.change(screen.getByLabelText('wh-2024-01-02-3'), { target: { value: '外倉' } });
+      fireEvent.click(screen.getByRole('button', { name: 'unselect-all-2024-01-01' }));
+      fireEvent.click(screen.getByRole('button', { name: 'unselect-all-2024-01-02' }));
 
       expect(screen.getByRole('button', { name: '儲存' })).toBeDisabled();
     });
@@ -296,30 +270,14 @@ describe('SearchBoard', () => {
 
   describe('hidden rows', () => {
     test('a hidden row with an empty warehouse is not submitted', () => {
-      const ref = createRef<SearchBoard>();
-      render(
-        <SearchBoard
-          ref={ref}
-          {...defaultProps}
-          selectedUserList={[
-            { user: 'user1', selected: true, index: 0 },
-            { user: 'user2', selected: false, index: 1 },
-          ]}
-        />
-      );
-      const board = ref.current;
-      if (board === null) {
-        throw new Error('SearchBoard did not mount');
-      }
-
-      act(() => {
-        board.setState({
-          toBeSubmit: {
-            '2024-01-01': { 1: { selected: true, whName: '內倉' } },
-            '2024-01-02': { 3: { selected: true, whName: '' } },
-          },
-        });
+      renderSearchBoard({
+        selectedUserList: [
+          { user: 'user1', selected: true, index: 0 },
+          { user: 'user2', selected: false, index: 1 },
+        ],
       });
+
+      fireEvent.change(screen.getByLabelText('wh-2024-01-01-1'), { target: { value: '內倉' } });
 
       const submit = screen.getByRole('button', { name: '儲存' });
       expect(submit).toBeEnabled();
@@ -331,30 +289,12 @@ describe('SearchBoard', () => {
     });
 
     test('changing the user filter drops hidden rows before save', () => {
-      const queryResult = defaultProps.queryResult;
-      if (queryResult === undefined) {
-        throw new Error('queryResult is required');
-      }
+      const { rerender } = renderSearchBoard();
 
-      const ref = createRef<SearchBoard>();
-      const { rerender } = render(<SearchBoard ref={ref} {...defaultProps} />);
-      const board = ref.current;
-      if (board === null) {
-        throw new Error('SearchBoard did not mount');
-      }
-
-      act(() => {
-        board.setState({
-          toBeSubmit: board.initialToBeSubmit(queryResult, defaultProps.selectedUserList),
-        });
-      });
-      act(() => {
-        board.handleToBeSubmitWHChange('2024-01-01', '內倉', 1);
-      });
+      fireEvent.change(screen.getByLabelText('wh-2024-01-01-1'), { target: { value: '內倉' } });
 
       rerender(
         <SearchBoard
-          ref={ref}
           {...defaultProps}
           selectedUserList={[
             { user: 'user1', selected: true, index: 0 },
@@ -363,7 +303,7 @@ describe('SearchBoard', () => {
         />
       );
 
-      expect(board.state.toBeSubmit['2024-01-02']?.[3]).toBeUndefined();
+      expect(screen.queryByLabelText('wh-2024-01-02-3')).not.toBeInTheDocument();
       const submit = screen.getByRole('button', { name: '儲存' });
       expect(submit).toBeEnabled();
       fireEvent.click(submit);
@@ -373,34 +313,22 @@ describe('SearchBoard', () => {
     });
 
     test('updating non-empty queryResult preserves unsaved warehouse selections for existing rows', () => {
-      const ref = createRef<SearchBoard>();
-      const { rerender } = render(<SearchBoard ref={ref} {...defaultProps} />);
-      const board = ref.current;
-      if (board === null) {
-        throw new Error('SearchBoard did not mount');
-      }
+      const { rerender } = renderSearchBoard();
 
-      act(() => {
-        board.setState({
-          toBeSubmit: board.initialToBeSubmit(defaultProps.queryResult!, defaultProps.selectedUserList),
-        });
-      });
-      act(() => {
-        board.handleToBeSubmitWHChange('2024-01-01', '內倉', 1);
-      });
+      fireEvent.change(screen.getByLabelText('wh-2024-01-01-1'), { target: { value: '內倉' } });
 
       const updatedQueryResult = queryResultFixture({
-        ...defaultProps.queryResult!,
+        ...defaultProps.queryResult,
         '2024-01-02': [
-          ...(defaultProps.queryResult!['2024-01-02'] ?? []),
+          ...(defaultProps.queryResult['2024-01-02'] ?? []),
           { id: 99, productNo: 'PROD099', createdBy: 'user1', handled: false, outStockType: 1 },
         ],
       });
 
-      rerender(<SearchBoard ref={ref} {...defaultProps} queryResult={updatedQueryResult} />);
+      rerender(<SearchBoard {...defaultProps} queryResult={updatedQueryResult} />);
 
-      expect(board.state.toBeSubmit['2024-01-01']?.[1]?.whName).toBe('內倉');
-      expect(board.state.toBeSubmit['2024-01-02']?.[99]?.selected).toBe(true);
+      expect(screen.getByLabelText<HTMLSelectElement>('wh-2024-01-01-1').value).toBe('內倉');
+      expect(screen.getByLabelText<HTMLInputElement>('select-2024-01-02-99').checked).toBe(true);
     });
   });
 });

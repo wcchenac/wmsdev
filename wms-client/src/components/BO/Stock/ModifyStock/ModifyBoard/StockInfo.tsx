@@ -145,14 +145,16 @@ const StockInfo: React.FC<StockInfoProps> = ({
         >
           {"\u8a73\u7d30\u8cc7\u6599"}
         </button>
-        <InformationModal
-          show={infoShow}
-          onHide={() => setInfoShow(false)}
-          index={index}
-          typeValidation={typeValidation}
-          stockInfo={stockInfo}
-          handleStockInfoUpdate={handleStockInfoUpdate}
-        />
+        {infoShow ? (
+          <InformationModal
+            show
+            onHide={() => setInfoShow(false)}
+            index={index}
+            typeValidation={typeValidation}
+            stockInfo={stockInfo}
+            handleStockInfoUpdate={handleStockInfoUpdate}
+          />
+        ) : null}
         {btnContent}
       </td>
     </tr>

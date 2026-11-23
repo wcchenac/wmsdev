@@ -608,4 +608,50 @@ describe('ModifyBoard', () => {
       );
     });
   });
+
+  test('InformationModal resets unsaved edits when cancelling edit mode', async () => {
+    const readyState: StoreState = {
+      stockInfo: {
+        stockInfoes: {
+          information: { productNo: 'PROD-001' },
+          prevProduct: null,
+          nextProduct: null,
+          result: [
+            {
+              id: 502,
+              color: 2,
+              defect: 'GA',
+              record: 'R-OLD',
+              remark: 'OLD-REMARK',
+              stockIdentifier: { id: 302, productNo: 'PROD-001', lotNo: 'LOT-2', type: '板卷', waitToShrink: false },
+            },
+          ],
+          productList: [{ type: '板卷', quantity: 10, unit: '碼' }],
+        },
+      },
+    };
+    mockGetStockInfoes.mockResolvedValue({ status: 200 });
+
+    const { rerender } = renderWithRedux(<ModifyBoard />, { initialState });
+    fireEvent.change(screen.getByPlaceholderText('請輸入貨號進行搜尋...'), {
+      target: { value: 'PROD-001', name: 'productNo' },
+    });
+    fireEvent.click(screen.getByText('查詢'));
+    rerender(
+      <Provider store={mockStore(readyState)}>
+        <ModifyBoard />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '詳細資料' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: '編輯' }));
+
+    const remarkInput = dialog.querySelector<HTMLInputElement>('input[name="remark"]')!;
+    fireEvent.change(remarkInput, { target: { name: 'remark', value: 'UNSAVED-REMARK' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: '取消' }));
+
+    fireEvent.click(within(dialog).getByRole('button', { name: '編輯' }));
+    expect(dialog.querySelector<HTMLInputElement>('input[name="remark"]')!.value).toBe('OLD-REMARK');
+  });
 });
