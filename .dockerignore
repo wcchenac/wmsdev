@@ -8,3 +8,6 @@ wmstool/target
 **/.env
 **/.env.local
 **/.env.*.local
+# Local env files bake REACT_APP_API_BASE_URL into the build; the container sets the API URL at runtime.
+**/.env.production
+**/.env.development
