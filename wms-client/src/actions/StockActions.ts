@@ -31,217 +31,85 @@ import {
   UpdateStockInfoRequest,
 } from "../types";
 
-export const getInStockOrder =
-  (inStockOrderNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      const res = await API.get(
-        `/api/stock/queryOrder/inStock/${encodeURIComponent(inStockOrderNo)}`
-      );
+async function runWithDispatchError(
+  dispatch: AppDispatch,
+  errorType: string,
+  fallbackMessage: string,
+  run: () => Promise<AxiosResponse>
+): Promise<AxiosResponse> {
+  try {
+    return await run();
+  } catch (err) {
+    const error = err as { response?: { data?: unknown } };
+    dispatch({
+      type: errorType,
+      payload: error.response?.data || { message: fallbackMessage },
+    });
+    throw err;
+  }
+}
 
-      dispatch({
-        type: GET_Order,
-        payload: res.data,
+function createOrderQueryAction(orderKind: string, fallbackMessage: string) {
+  return (orderNo: string) =>
+    (dispatch: AppDispatch): Promise<AxiosResponse> =>
+      runWithDispatchError(dispatch, GET_Errors, fallbackMessage, async () => {
+        const res = await API.get(
+          `/api/stock/queryOrder/${orderKind}/${encodeURIComponent(orderNo)}`
+        );
+        dispatch({ type: GET_Order, payload: res.data });
+        return res;
       });
+}
 
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得入庫單" },
-      });
-      throw err;
-    }
-  };
+export const getInStockOrder = createOrderQueryAction("inStock", "無法取得入庫單");
 
-export const getAssembleOrder =
-  (assembleOrderNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      const res = await API.get(
-        `/api/stock/queryOrder/assemble/${encodeURIComponent(assembleOrderNo)}`
-      );
+export const getAssembleOrder = createOrderQueryAction("assemble", "無法取得組裝單");
 
-      dispatch({
-        type: GET_Order,
-        payload: res.data,
-      });
+export const getCustomerReturnOrder = createOrderQueryAction("customerReturn", "無法取得客退單");
 
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得組裝單" },
-      });
-      throw err;
-    }
-  };
+export const getStoreReturnOrder = createOrderQueryAction("storeReturn", "無法取得門市退貨單");
 
-export const getCustomerReturnOrder =
-  (returnOrderNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      const res = await API.get(
-        `/api/stock/queryOrder/customerReturn/${encodeURIComponent(returnOrderNo)}`
-      );
-
-      dispatch({
-        type: GET_Order,
-        payload: res.data,
-      });
-
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得客退單" },
-      });
-      throw err;
-    }
-  };
-
-export const getStoreReturnOrder =
-  (returnOrderNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      const res = await API.get(
-        `/api/stock/queryOrder/storeReturn/${encodeURIComponent(returnOrderNo)}`
-      );
-
-      dispatch({
-        type: GET_Order,
-        payload: res.data,
-      });
-
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得門市退貨單" },
-      });
-      throw err;
-    }
-  };
-
-export const getOutStockToStoreOrder =
-  (outStockOrderNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      const res = await API.get(
-        `/api/stock/queryOrder/outStockToStore/${encodeURIComponent(outStockOrderNo)}`
-      );
-
-      dispatch({
-        type: GET_Order,
-        payload: res.data,
-      });
-
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得出貨至門市單" },
-      });
-      throw err;
-    }
-  };
+export const getOutStockToStoreOrder = createOrderQueryAction("outStockToStore", "無法取得出貨至門市單");
 
 export const getStockInfoesBasic =
   (productNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得庫存基本資訊", async () => {
       const res = await API.get(
         `/api/stock/queryStock/query/2/${encodeURIComponent(productNo)}`
       );
-
-      dispatch({
-        type: GET_StockInfoes,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_StockInfoes, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得庫存基本資訊" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const getStockInfoes =
   (productNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得庫存詳細資訊", async () => {
       const res = await API.get(
         `/api/stock/queryStock/query/1/${encodeURIComponent(productNo)}`
       );
-
-      dispatch({
-        type: GET_StockInfoes,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_StockInfoes, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得庫存詳細資訊" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const getShrinkList =
   () =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得減肥清單", async () => {
       const res = await API.get("/api/stock/queryStock/shrinkList");
-
-      dispatch({
-        type: GET_ShrinkList,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_ShrinkList, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得減肥清單" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const stockIdentifierIsShiped =
   (shipRequest: ShipRequest) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "出貨操作失敗", async () => {
       const res = await API.patch("/api/stock/shipStock", shipRequest);
-
-      dispatch({
-        type: SHIP_Stock,
-        payload: shipRequest.stockIdentifierId,
-      });
-
+      dispatch({ type: SHIP_Stock, payload: shipRequest.stockIdentifierId });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "出貨操作失敗" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const stockIdentifiersAreShiped =
   (productNo: string, shipRequests: ShipRequest[]) =>
@@ -266,20 +134,12 @@ export const stockIdentifiersAreShiped =
 
 export const stockIdentifierIsNotShiped =
   (stockIdentifierId: number) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      return await API.patch(
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "取消出貨操作失敗", () =>
+      API.patch(
         `/api/stock/shipStock/rollback/${encodeURIComponent(stockIdentifierId)}`
-      );
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "取消出貨操作失敗" },
-      });
-      throw err;
-    }
-  };
+      )
+    );
 
 export const stockIdentifierWaitToShrinkIsTrue =
   (stockIdentifierId: number) =>
@@ -306,81 +166,39 @@ export const stockIdentifierWaitToShrinkIsTrue =
 
 export const stockIdentifierWaitToShrinkIsFalse =
   (stockIdentifierId: number) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "取消待減肥失敗", async () => {
       const res = await API.patch(
         `/api/stock/waitToShrink/rollback/${encodeURIComponent(stockIdentifierId)}`
       );
-
-      dispatch({
-        type: CANCEL_SHRINK,
-        payload: stockIdentifierId,
-      });
-
+      dispatch({ type: CANCEL_SHRINK, payload: stockIdentifierId });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "取消待減肥失敗" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const batchCreateStockInfoes =
   (inStockRequests: InStockRequest[]) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      return await API.post("/api/stock/inStocks", inStockRequests);
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: CREATE_Errors,
-        payload: error.response?.data || { message: "批次入庫失敗" },
-      });
-      throw err;
-    }
-  };
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, CREATE_Errors, "批次入庫失敗", () =>
+      API.post("/api/stock/inStocks", inStockRequests)
+    );
 
 export const batchCreateStockInfoesForShrink =
   (shrinkStockRequest: ShrinkStockRequest) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      return await API.post("/api/stock/shrinkStock", shrinkStockRequest);
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: SHRINK_Errors,
-        payload: error.response?.data || { message: "減肥入庫失敗" },
-      });
-      throw err;
-    }
-  };
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, SHRINK_Errors, "減肥入庫失敗", () =>
+      API.post("/api/stock/shrinkStock", shrinkStockRequest)
+    );
 
 export const getInStockRollbackList =
   (orderType: string, orderNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得入庫回朔列表", async () => {
       const res = await API.get(
         `/api/stock/queryStock/inStockRollback?orderType=${encodeURIComponent(orderType)}&orderNo=${encodeURIComponent(orderNo)}`
       );
-
-      dispatch({
-        type: GET_InStockRollbackList,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_InStockRollbackList, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得入庫回朔列表" },
-      });
-      throw err;
-    }
-  };
+    });
 
 /**
  * Puts a failed rollback in state.errors, like the other actions. When the rollback went
@@ -429,27 +247,14 @@ export const inStockRollback =
 
 export const getShrinkRollbackList =
   (productNo: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得減肥回朔列表", async () => {
       const res = await API.get(
         `/api/stock/queryStock/shrinkRollback/${encodeURIComponent(productNo)}`
       );
-
-      dispatch({
-        type: GET_ShrinkRollbackList,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_ShrinkRollbackList, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得減肥回朔列表" },
-      });
-      throw err;
-    }
-  };
+    });
 
 /**
  * Rolls back a roll's shrink, then queries the product's list again — also when the rollback
@@ -503,122 +308,55 @@ export const updateStockInfo =
 
 export const createOutStockRequest =
   (outStockRequest: OutStockRequestCreate) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      return await API.post("/api/stock/outStock", outStockRequest);
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "建立出庫申請失敗" },
-      });
-      throw err;
-    }
-  };
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "建立出庫申請失敗", () =>
+      API.post("/api/stock/outStock", outStockRequest)
+    );
 
 export const deleteOutStockRequest =
   (outStockRequestId: number) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      const res = await API.patch(
-        `/api/stock/outStock/rollback/${encodeURIComponent(outStockRequestId)}`
-      );
-
-      return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "刪除出庫申請失敗" },
-      });
-      throw err;
-    }
-  };
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "刪除出庫申請失敗", () =>
+      API.patch(`/api/stock/outStock/rollback/${encodeURIComponent(outStockRequestId)}`)
+    );
 
 export const getWaitHandleList =
   () =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得待處理列表", async () => {
       const res = await API.get("/api/stock/outStock/waitHandleList/basic");
-
-      dispatch({
-        type: GET_OutStockRequests,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_OutStockRequests, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得待處理列表" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const getWaitHandleListWithInterval =
   (startDate: string, endDate: string) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得區間待處理列表", async () => {
       const res = await API.get(
         `/api/stock/outStock/waitHandleList/interval?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
       );
-
-      dispatch({
-        type: GET_OutStockRequests,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_OutStockRequests, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得區間待處理列表" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const updateOutStockRequests =
   (outStockUpdateRequest: OutStockUpdateRequest) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
-      return await API.patch("/api/stock/outStock/update", outStockUpdateRequest);
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "更新出庫申請失敗" },
-      });
-      throw err;
-    }
-  };
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "更新出庫申請失敗", () =>
+      API.patch("/api/stock/outStock/update", outStockUpdateRequest)
+    );
 
 export const getProductHistory =
   (request: ProductHistoryRequest) =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得商品歷史紀錄", async () => {
       const res = await API.get(
         `/api/stock/queryStock/history/${encodeURIComponent(request.productNo)}?startDate=${encodeURIComponent(request.startDate)}&endDate=${encodeURIComponent(request.endDate)}`
       );
-
-      dispatch({
-        type: GET_ProductHistory,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_ProductHistory, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得商品歷史紀錄" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const missionTrigger = async (
   periodType: string,
@@ -631,25 +369,12 @@ export const missionTrigger = async (
 
 export const getAllCategory =
   () =>
-  async (dispatch: AppDispatch): Promise<AxiosResponse> => {
-    try {
+  (dispatch: AppDispatch): Promise<AxiosResponse> =>
+    runWithDispatchError(dispatch, GET_Errors, "無法取得類別列表", async () => {
       const res = await API.get("/api/stock/queryStock/categoryList");
-
-      dispatch({
-        type: GET_Categories,
-        payload: res.data,
-      });
-
+      dispatch({ type: GET_Categories, payload: res.data });
       return res;
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得類別列表" },
-      });
-      throw err;
-    }
-  };
+    });
 
 export const findCategoryDetails =
   (category: string) =>
@@ -659,16 +384,9 @@ export const findCategoryDetails =
     });
 
     try {
-      return await API.get(
-        `/api/stock/queryStock/category/${encodeURIComponent(category)}`
+      return await runWithDispatchError(dispatch, GET_Errors, "無法取得類別詳細資訊", () =>
+        API.get(`/api/stock/queryStock/category/${encodeURIComponent(category)}`)
       );
-    } catch (err) {
-      const error = err as { response?: { data?: unknown } };
-      dispatch({
-        type: GET_Errors,
-        payload: error.response?.data || { message: "無法取得類別詳細資訊" },
-      });
-      throw err;
     } finally {
       dispatch({
         type: CREATE_FILE,
