@@ -1,12 +1,13 @@
 async (page) => {
   const LABEL = 'after';
-  const DIR = '/Users/wcchenac/wmsdev/.playwright-mcp/' + LABEL + '/';
-  const BASE = 'http://localhost:3100';
-  const API = 'http://192.168.8.127:8080';
+  const DIR = (globalThis.__WMS_SHOT_DIR__ || '/Users/wcchenac/wmsdev/.playwright-mcp/' + LABEL + '/');
+  const BASE = globalThis.__WMS_BASE__ || 'http://localhost:3100';
+  const API = globalThis.__WMS_API__ || 'http://localhost:8080';
   const tok = async (id, pw) => (await (await page.request.post(API + '/api/user/login', { data: { employeeId: id, password: pw } })).json()).accessToken;
   await page.setViewportSize({ width: 1440, height: 900 });
-  const shots = []; const fails = []; const errors = [];
+  const shots = []; const fails = []; const errors = []; const consoleErrors = [];
   page.on('pageerror', e => errors.push(e.message.slice(0, 150)));
+  page.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text().split('\n')[0].slice(0, 150)); });
   const settle = async () => { await page.waitForLoadState('networkidle').catch(() => {}); await page.waitForTimeout(500); await page.evaluate(() => document.fonts && document.fonts.ready); };
   const shot = async (name) => { await settle(); await page.screenshot({ path: DIR + name + '.png', fullPage: true, animations: 'disabled', caret: 'hide' }); shots.push(name); };
   const step = async (name, fn) => { try { await fn(); await shot(name); } catch (e) { fails.push(name + ': ' + e.message.split('\n')[0].slice(0, 120)); } };
@@ -26,6 +27,12 @@ async (page) => {
   await step('13-instock-step2-checked', async () => { const cb = page.locator('main input[type=checkbox]'); const n = await cb.count(); for (let k = 0; k < Math.min(n, 3); k++) await cb.nth(k).check({ force: true }); });
   await step('14-instock-step3', async () => { await page.locator('main').getByRole('button', { name: '下一步' }).first().click({ timeout: 5000 }); await page.waitForTimeout(600); });
   await step('15-instock-step3-tab2', async () => { await page.locator('main .nav-tabs .nav-link').nth(1).click({ timeout: 5000 }); await page.waitForTimeout(600); });
+  await step('16-nav-instock-open', async () => { await go('/'); await page.locator('nav').getByRole('button', { name: '入庫作業' }).click(); await page.waitForTimeout(500); });
+  await step('17-nav-modify-open', async () => { await page.locator('nav').getByRole('button', { name: '庫存異動作業' }).click(); await page.waitForTimeout(500); });
+  await step('17b-assemble-empty', async () => go('/stock/1/2'));
+  await step('17c-assemble-step1', async () => { const i = page.locator('input[name=orderNo]'); await i.fill('AS2026001'); await i.press('Enter'); await page.waitForTimeout(1200); });
+  await step('17d-assemble-step2', async () => { await clickText('Step 2 - 選擇入庫貨號'); const cb = page.locator('main input[type=checkbox]'); const n = await cb.count(); for (let k = 0; k < Math.min(n, 3); k++) await cb.nth(k).check({ force: true }); });
+  await step('17e-assemble-step3', async () => { await page.locator('main').getByRole('button', { name: '下一步' }).first().click({ timeout: 5000 }); await page.waitForTimeout(600); });
   await step('18a-customer-empty', async () => go('/stock/1/3'));
   await step('18b-customer-step1', async () => { const i = page.locator('input[name=orderNo]'); await i.fill('CR2026001'); await i.press('Enter'); await page.waitForTimeout(1200); });
   await step('18c-customer-step2', async () => { await clickText('Step 2 - 選擇入庫貨號'); const cb = page.locator('main input[type=checkbox]'); const n = await cb.count(); for (let k = 0; k < Math.min(n, 3); k++) await cb.nth(k).check({ force: true }); });
@@ -34,8 +41,6 @@ async (page) => {
   await step('19b-store-step1', async () => { const i = page.locator('input[name=orderNo]'); await i.fill('SR2026001'); await i.press('Enter'); await page.waitForTimeout(1200); });
   await step('19c-store-step2', async () => { await clickText('Step 2 - 選擇入庫貨號'); const cb = page.locator('main input[type=checkbox]'); const n = await cb.count(); for (let k = 0; k < Math.min(n, 3); k++) await cb.nth(k).check({ force: true }); });
   await step('19d-store-step3', async () => { await page.locator('main').getByRole('button', { name: '下一步' }).first().click({ timeout: 5000 }); await page.waitForTimeout(600); });
-  await step('16-nav-instock-open', async () => { await go('/'); await page.locator('nav').getByRole('button', { name: '入庫作業' }).click(); await page.waitForTimeout(500); });
-  await step('17-nav-modify-open', async () => { await page.locator('nav').getByRole('button', { name: '庫存異動作業' }).click(); await page.waitForTimeout(500); });
   await step('20-query-stock', async () => { await go('/stock/2/2'); await queryProduct('CF1001'); });
   await step('21-outstock-order', async () => { await go('/stock/2/3'); const i = page.locator('input[name=orderNo]'); await i.fill('OS2026001'); await i.press('Enter'); await page.waitForTimeout(1000); });
   await step('30-modify', async () => { await go('/stock/3/1'); await queryProduct('CF1001'); });
@@ -52,6 +57,7 @@ async (page) => {
   await closeModal();
   await step('40-shrink-list', async () => go('/stock/3/2'));
   await step('41-shrink-selected', async () => { const cb = page.locator('main input[type=checkbox]'); if (await cb.count()) { await cb.first().check({ force: true }); await page.waitForTimeout(600); } });
+  await step('42-shrink-request', async () => { await page.locator('main').getByRole('button', { name: '板卷異動' }).first().click({ timeout: 5000 }); await page.waitForTimeout(800); });
   await step('50-pull-list', async () => go('/stock/4'));
   await step('51-pull-period-modal', async () => { await page.getByRole('button', { name: /時間區間查詢/ }).first().click(); await page.waitForTimeout(600); });
   await closeModal();
@@ -65,8 +71,15 @@ async (page) => {
   await step('75-admin-shrink-rollback', async () => { await go('/admin'); await clickText('減肥回朔'); await queryProduct('CF1001'); });
   await step('76-admin-user-edit-modal', async () => { await go('/admin'); await clickText('使用者管理'); await page.getByRole('button', { name: '讀取員工清單' }).click(); await page.waitForTimeout(1000); await page.locator('.MuiDataGrid-row button').first().click(); await page.waitForTimeout(600); });
   await closeModal();
+  await step('77-admin-schedule', async () => { await go('/admin'); await clickText('任務排程'); });
   await step('90-files', async () => go('/files'));
   await step('91-files-category-modal', async () => { await page.locator('main').getByRole('button', { name: '選擇分類' }).click({ timeout: 5000 }); await page.waitForTimeout(700); });
   await closeModal();
-  return JSON.stringify({ label: LABEL, shots: shots.length, fails, errors: [...new Set(errors)] }, null, 1);
+
+  const store = await tok('store', 'store123');
+  await as(store);
+  await step('20b-query-store', async () => { await go('/stock/2/1'); await queryProduct('CF1001'); });
+  await step('20c-query-empty', async () => { await go('/stock/2/1'); await queryProduct('CF1003'); });
+
+  return JSON.stringify({ label: LABEL, shots: shots.length, fails, errors: [...new Set(errors)], consoleErrors: [...new Set(consoleErrors)] }, null, 1);
 }
