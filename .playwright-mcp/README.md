@@ -13,6 +13,21 @@ argument. The MCP only reads script files under `/Users/wcchenac/wmsdev`, so the
 | `compare.js` | Writes `compare/<name>.png`: BEFORE crop stacked over AFTER crop. Edit `ITEMS` (name + crop box). |
 | `storybook-check.js` | Opens every story from Storybook's `index.json` (`:6006`) and reports failed renders or `play` assertions. |
 
+### Focused layout / RWD diagnostic scripts
+
+| File | What it checks |
+|---|---|
+| `table-squeeze-survey.js` | Measures table cell wrapping/squeezing across 12 table views at `1440/1200/992/700px`. |
+| `navbar-rwd-shots.js` | Checks navbar height, wrapping, overflow, and mobile toggler menu for `admin`/`operator` (`375`–`1440px`). |
+| `sticky-header-shots.js` | Verifies sticky header behavior on scroll (`1440/700px`) and mobile menu scrollability (`375x480px`). |
+| `scroll-padding-shots.js` | Checks `#main-content`, focused search input, and row `scrollIntoView` top clearance below sticky header. |
+| `modal-margin-shots.js` | Measures `.modal-dialog` scroll overflow and left/right margins (`EditModal`, `InformationModal`) at `1440/700/375px`. |
+| `overlay-shots.js` | Captures `LoadingOverlay` states while API requests hang via `page.route`. |
+| `pull-handled-shots.js` | Tests `/stock/4` handled rows with normal and long PDF filenames (`1440/1200/992/700px`). |
+| `qty-error-shots.js` | Verifies `.invalid-feedback` wrapping in `/stock/1/1` Step 3 and `/stock/3/2` shrink request tables. |
+| `query-remark-align-shots.js` | Measures row height and cell baseline alignment on `/stock/2/2` (`CF1001`/`HW9001`) with a 255-char `remark`. |
+| `remark-layouts-shots.js` | Verifies row height and `出庫` button bounds on `/stock/3/1` (`CF1001`/`HW9001`) with a 255-char `remark`. |
+
 ## Run
 
 1. Start the mock API (`:8080`) and Vite (`:3100`, calling the mock API):
