@@ -104,10 +104,10 @@ const UserRegister: React.FC = () => {
               <Card title="註冊新員工">
                 <form onSubmit={handleSubmit}>
                   <div className="mb-3 row">
-                    <label htmlFor="employeeId" className="col-4 col-form-label">
+                    <label htmlFor="employeeId" className="col-12 col-sm-4 col-form-label">
                       員工編號
                     </label>
-                    <div className="col-8">
+                    <div className="col-12 col-sm-8">
                       <input
                         type="text"
                         id="employeeId"
@@ -120,10 +120,10 @@ const UserRegister: React.FC = () => {
                     </div>
                   </div>
                   <div className="mb-3 row">
-                    <label htmlFor="fullName" className="col-4 col-form-label">
+                    <label htmlFor="fullName" className="col-12 col-sm-4 col-form-label">
                       姓名
                     </label>
-                    <div className="col-8">
+                    <div className="col-12 col-sm-8">
                       <input
                         type="text"
                         id="fullName"
@@ -136,10 +136,10 @@ const UserRegister: React.FC = () => {
                     </div>
                   </div>
                   <div className="mb-3 row">
-                    <label htmlFor="password" className="col-4 col-form-label">
+                    <label htmlFor="password" className="col-12 col-sm-4 col-form-label">
                       密碼
                     </label>
-                    <div className="col-8">
+                    <div className="col-12 col-sm-8">
                       <input
                         type="password"
                         id="password"
@@ -152,10 +152,10 @@ const UserRegister: React.FC = () => {
                     </div>
                   </div>
                   <div className="mb-3 row">
-                    <label htmlFor="role" className="col-4 col-form-label">
+                    <label htmlFor="role" className="col-12 col-sm-4 col-form-label">
                       權限
                     </label>
-                    <div className="col-8">
+                    <div className="col-12 col-sm-8">
                       <select
                         id="role"
                         name="role"
@@ -172,7 +172,7 @@ const UserRegister: React.FC = () => {
                     </div>
                   </div>
                   <div className="row justify-content-center">
-                    <div className="col-6">
+                    <div className="col-12 col-sm-6">
                       <Button
                         type="submit"
                         variant="primary"

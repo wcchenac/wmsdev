@@ -230,7 +230,7 @@ const AdminPlatform: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     height: '60vh',
-                    color: 'var(--color-gray-400)',
+                    color: 'var(--color-gray-600)',
                     padding: 'var(--spacing-4)',
                     textAlign: 'center',
                   }}
@@ -238,18 +238,16 @@ const AdminPlatform: React.FC = () => {
                   <i
                     className="fa fa-hand-pointer-o fa-4x mb-4 d-none d-md-block"
                     aria-hidden="true"
-                    style={{ opacity: 0.5 }}
                   />
                   <i
                     className="fa fa-arrow-up fa-3x mb-3 d-md-none"
                     aria-hidden="true"
-                    style={{ opacity: 0.5 }}
                   />
-                  <h5 style={{ color: 'var(--color-gray-500)', fontWeight: 'var(--font-weight-medium)' }}>
+                  <h5 style={{ color: 'var(--color-gray-700)', fontWeight: 'var(--font-weight-medium)' }}>
                     <span className="d-none d-md-inline">請從左側選單選擇功能</span>
                     <span className="d-md-none">請點擊上方選單選擇功能</span>
                   </h5>
-                  <p style={{ color: 'var(--color-gray-400)', fontSize: 'var(--font-size-sm)' }}>
+                  <p style={{ color: 'var(--color-gray-600)', fontSize: 'var(--font-size-sm)' }}>
                     選擇一個管理功能開始操作
                   </p>
                 </div>

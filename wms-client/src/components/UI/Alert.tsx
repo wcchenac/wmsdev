@@ -171,8 +171,8 @@ const Alert: React.FC<AlertProps> = ({
             transition: "var(--transition-fast)",
             flexShrink: 0
           }}
-          onMouseEnter={(e) => ((e.target as HTMLButtonElement).style.opacity = "1")}
-          onMouseLeave={(e) => ((e.target as HTMLButtonElement).style.opacity = "0.7")}
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.7"; }}
         >
           <CloseIcon style={{ fontSize: "1.2rem" }} />
         </button>

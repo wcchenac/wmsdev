@@ -142,7 +142,7 @@ const ShowProductInformation: React.FC<ShowProductInformationProps> = ({
               >
                 {equal(productInfo.picture, "無資料") ||
                 !productInfo.picture ? (
-                  <div style={{ textAlign: 'center', color: 'var(--color-gray-400)' }}>
+                  <div style={{ textAlign: 'center', color: 'var(--color-gray-700)' }}>
                     <i className="fa fa-image fa-3x mb-2" aria-hidden="true" />
                     <p style={{ marginBottom: 0, fontSize: 'var(--font-size-sm)' }}>無圖片</p>
                   </div>

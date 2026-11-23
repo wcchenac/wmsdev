@@ -50,4 +50,12 @@ describe('ConfirmDialog keyboard', () => {
 
     expect(onConfirm).not.toHaveBeenCalled();
   });
+
+  test('uses localized Chinese default labels when title/button text props are omitted', () => {
+    render(<ConfirmDialog show onHide={vi.fn()} onConfirm={vi.fn()} />);
+
+    expect(screen.getByText('確認操作')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '確認' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '取消' })).toBeInTheDocument();
+  });
 });

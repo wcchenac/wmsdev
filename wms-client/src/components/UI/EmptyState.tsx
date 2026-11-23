@@ -70,7 +70,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         justifyContent: "center",
         textAlign: "center",
         padding: compact ? "var(--spacing-6) var(--spacing-4)" : "var(--spacing-12) var(--spacing-4)",
-        color: "var(--color-gray-500)"
+        color: "var(--color-gray-600)"
       }}
     >
       <div
@@ -78,8 +78,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         style={{
           fontSize: compact ? "2.5rem" : "4rem",
           marginBottom: compact ? "var(--spacing-2)" : "var(--spacing-4)",
-          opacity: 0.5,
-          color: "var(--color-gray-400)"
+          color: "var(--color-gray-600)"
         }}
       >
         {IconComponent}
@@ -101,7 +100,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
           className="empty-state-description"
           style={{
             fontSize: "var(--font-size-base)",
-            color: "var(--color-gray-500)",
+            color: "var(--color-gray-600)",
             marginBottom: action ? "var(--spacing-4)" : 0,
             maxWidth: "400px",
             margin: action ? "var(--spacing-2) 0 var(--spacing-4)" : "var(--spacing-2) 0 0"

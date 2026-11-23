@@ -132,16 +132,14 @@ const QueryProductInformation: React.FC<QueryProductInformationProps> = ({
                     transform: "translateY(-50%)",
                     zIndex: 10,
                     padding: "var(--spacing-1)",
-                    color: "var(--color-gray-400)",
+                    color: "var(--color-gray-600)",
                     transition: "var(--transition-fast)",
                   }}
                   onMouseEnter={(e) =>
-                    ((e.target as HTMLElement).style.color =
-                      "var(--color-gray-600)")
+                    (e.currentTarget.style.color = "var(--color-gray-800)")
                   }
                   onMouseLeave={(e) =>
-                    ((e.target as HTMLElement).style.color =
-                      "var(--color-gray-400)")
+                    (e.currentTarget.style.color = "var(--color-gray-600)")
                   }
                 >
                   <ClearIcon style={{ fontSize: "1.2rem" }} />

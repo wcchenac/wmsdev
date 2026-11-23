@@ -11,10 +11,10 @@
      ======================================== */
 
   /* Primary Colors */
-  --color-primary: #007bff;
-  --color-primary-dark: #0056b3;
+  --color-primary: #0066cc;
+  --color-primary-dark: #004c99;
   --color-primary-light: #e3f2fd;
-  --color-primary-hover: #0069d9;
+  --color-primary-hover: #0056b3;
 
   /* Secondary Colors */
   --color-secondary: #6c757d;
@@ -22,8 +22,8 @@
   --color-secondary-light: #f8f9fa;
 
   /* Semantic Colors */
-  --color-success: #28a745;
-  --color-success-dark: #1e7e34;
+  --color-success: #1e7e34;
+  --color-success-dark: #155d27;
   --color-success-light: #d4edda;
 
   --color-info: #17a2b8;

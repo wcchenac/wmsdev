@@ -1,4 +1,4 @@
-import React, { ReactNode, MouseEvent, KeyboardEvent } from "react";
+import React, { ReactNode, MouseEvent } from "react";
 
 /**
  * IconButton variant types
@@ -15,7 +15,7 @@ export type IconButtonSize = "sm" | "md" | "lg";
  */
 export interface IconButtonProps {
   icon: ReactNode;
-  onClick?: (e: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLButtonElement>) => void;
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
   label: string;
   variant?: IconButtonVariant;
   size?: IconButtonSize;
@@ -116,26 +116,19 @@ const IconButton: React.FC<IconButtonProps> = ({
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      if (!disabled && !loading && onClick) {
-        onClick(e);
-      }
-    }
-  };
-
   return (
     <button
       type="button"
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
       disabled={disabled || loading}
       aria-label={label}
       aria-busy={loading}
       title={tooltip || label}
       className={`icon-button ${className || ""}`}
       style={{
+        "--icon-btn-color": config.color,
+        "--icon-btn-hover-color": config.hoverColor,
+        "--icon-btn-hover-bg": config.hoverBg,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
@@ -150,27 +143,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         transition: "var(--transition-fast)",
         opacity: disabled ? 0.6 : 1,
         outline: "none"
-      }}
-      onMouseEnter={(e) => {
-        if (!disabled && !loading) {
-          e.currentTarget.style.backgroundColor = config.hoverBg;
-          e.currentTarget.style.color = config.hoverColor;
-          e.currentTarget.style.transform = "scale(1.1)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "transparent";
-        e.currentTarget.style.color = disabled ? "var(--color-gray-400)" : config.color;
-        e.currentTarget.style.transform = "scale(1)";
-      }}
-      onFocus={(e) => {
-        if (!disabled && !loading) {
-          e.currentTarget.style.boxShadow = `0 0 0 2px ${config.hoverBg}`;
-        }
-      }}
-      onBlur={(e) => {
-        e.currentTarget.style.boxShadow = "none";
-      }}
+      } as React.CSSProperties}
     >
       {loading ? (
         <span
