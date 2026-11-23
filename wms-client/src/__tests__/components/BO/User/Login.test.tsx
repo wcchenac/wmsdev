@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
+import { act, render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Routes, Route } from 'react-router';
 import { createMockStore, TestMockStore } from '../../../helpers/mockStore';
@@ -123,7 +123,7 @@ describe('Login', () => {
   });
 
   describe('form submission', () => {
-    test('calls login action with credentials on submit', () => {
+    test('calls login action with credentials on submit', async () => {
       renderLogin();
 
       const employeeIdInput = screen.getByPlaceholderText('請輸入員工編號');
@@ -132,7 +132,9 @@ describe('Login', () => {
 
       fireEvent.change(employeeIdInput, { target: { value: 'EMP001', name: 'employeeId' } });
       fireEvent.change(passwordInput, { target: { value: 'password123', name: 'password' } });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       expect(mockLogin).toHaveBeenCalledWith({
         employeeId: 'EMP001',
@@ -140,23 +142,27 @@ describe('Login', () => {
       });
     });
 
-    test('prevents default form submission', () => {
+    test('prevents default form submission', async () => {
       renderLogin();
 
       const form = screen.getByRole('button', { name: '登入' }).closest('form') as HTMLFormElement;
 
       // Simulate form submit
-      fireEvent.submit(form);
+      await act(async () => {
+        fireEvent.submit(form);
+      });
 
       // The login action should still be called
       expect(mockLogin).toHaveBeenCalled();
     });
 
-    test('submits with empty fields when not filled', () => {
+    test('submits with empty fields when not filled', async () => {
       renderLogin();
 
       const submitButton = screen.getByRole('button', { name: '登入' });
-      fireEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       expect(mockLogin).toHaveBeenCalledWith({
         employeeId: '',

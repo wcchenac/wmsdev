@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, RenderResult } from '@testing-library/react';
+import { act, render, screen, fireEvent, RenderResult } from '@testing-library/react';
 import ConfirmModal from '../../../../../components/BO/Stock/OutStockList/ConfirmModal';
 import type { OutStockInfo } from '../../../../../components/BO/Stock/OutStockList/SearchInfo';
 
@@ -71,11 +71,13 @@ describe('ConfirmModal', () => {
       expect(screen.getByText(/取消非當天出貨後，無法再以當天日期出貨/)).toBeInTheDocument();
     });
 
-    test('calls cancelShip on submit', () => {
+    test('calls cancelShip on submit', async () => {
       renderConfirmModal({
         searchInfo: { ...defaultProps.searchInfo, outStockType: 0, stockIdentifierId: 123 }
       });
-      fireEvent.click(screen.getByRole('button', { name: '確認取消' }));
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: '確認取消' }));
+      });
       expect(defaultProps.cancelShip).toHaveBeenCalledWith(123);
     });
   });
@@ -89,11 +91,13 @@ describe('ConfirmModal', () => {
       expect(screen.getByText('是否刪除此筆記錄？')).toBeInTheDocument();
     });
 
-    test('calls deleteOutStock on submit', () => {
+    test('calls deleteOutStock on submit', async () => {
       renderConfirmModal({
         searchInfo: { ...defaultProps.searchInfo, outStockType: 2, id: 456 }
       });
-      fireEvent.click(screen.getByRole('button', { name: '確認刪除' }));
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: '確認刪除' }));
+      });
       expect(defaultProps.deleteOutStock).toHaveBeenCalledWith(456);
     });
   });

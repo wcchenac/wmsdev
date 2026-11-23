@@ -113,13 +113,13 @@ export const OperatorRouteDeniedForSales: Story = {
   play: landsOn(TO_HOME),
 };
 
-export const FileRouteAllowedForSales: Story = {
+export const HistoryRouteAllowedForSales: Story = {
   args: { authority: RoleOption["業務"] },
   render: () => <AccessRoutes level="M2" />,
   play: landsOn(ALLOWED),
 };
 
-export const FileRouteDeniedForStore: Story = {
+export const HistoryRouteDeniedForStore: Story = {
   args: { authority: RoleOption["一般人員/門市"] },
   render: () => <AccessRoutes level="M2" />,
   play: landsOn(TO_HOME),

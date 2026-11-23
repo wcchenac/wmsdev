@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ChangeEvent } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { toast } from 'react-toastify';
 import { inStockByImportFile, setWHByImportFile } from '../../../../../actions/FileActions';
 import InStockByImportFile from '../../../../../components/BO/User/AdminPlatform/InStockByImportFile';
@@ -145,12 +145,14 @@ describe.each([
     expect(upload).not.toHaveBeenCalled();
   });
 
-  test('accepts an .xlsx the browser types as octet-stream and posts that file', () => {
+  test('accepts an .xlsx the browser types as octet-stream and posts that file', async () => {
     render(<Page />);
     selectFiles(fileInput(), [xlsx('stock.xlsx', 'application/octet-stream')]);
 
     expect(screen.getByText('stock.xlsx')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '上傳' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '上傳' }));
+    });
 
     expect(upload).toHaveBeenCalledTimes(1);
     expect(otherUpload).not.toHaveBeenCalled();

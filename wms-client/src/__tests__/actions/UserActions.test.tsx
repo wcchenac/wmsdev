@@ -1,4 +1,4 @@
-import type { Mock, Mocked, MockedFunction } from 'vitest';
+import type { Mocked, MockedFunction } from 'vitest';
 import { createMockStore } from '../helpers/mockStore';
 import * as actions from '../../actions/UserActions';
 import * as types from '../../types';
@@ -18,13 +18,6 @@ const mockedJwtDecode = jwtDecode as MockedFunction<typeof jwtDecode>;
 
 const mockStore = createMockStore;
 
-interface LocalStorageMock {
-  getItem: Mock;
-  setItem: Mock;
-  removeItem: Mock;
-  clear: Mock;
-}
-
 interface DecodedUser {
   employeeId: string;
   fullname: string;
@@ -32,21 +25,12 @@ interface DecodedUser {
   exp: number;
 }
 
-// Create localStorage mock
-const localStorageMock: LocalStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn()
+const localStorageMock = {
+  getItem: vi.mocked(window.localStorage.getItem),
+  setItem: vi.mocked(window.localStorage.setItem),
+  removeItem: vi.mocked(window.localStorage.removeItem),
+  clear: vi.mocked(window.localStorage.clear)
 };
-
-// Setup localStorage mock before all tests
-beforeAll(() => {
-  Object.defineProperty(window, 'localStorage', {
-    value: localStorageMock,
-    writable: true
-  });
-});
 
 describe('UserActions', () => {
   let store: ReturnType<typeof mockStore>;
@@ -61,9 +45,6 @@ describe('UserActions', () => {
   beforeEach(() => {
     store = mockStore({});
     vi.clearAllMocks();
-    localStorageMock.getItem.mockClear();
-    localStorageMock.setItem.mockClear();
-    localStorageMock.removeItem.mockClear();
   });
 
   describe('registerUser', () => {

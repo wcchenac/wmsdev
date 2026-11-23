@@ -55,28 +55,9 @@ globalThis.MutationObserver = class {
   }
 } as unknown as typeof MutationObserver;
 
-// Suppress expected React warnings in tests (remove for debugging)
-const originalError = console.error;
-beforeAll(() => {
-  console.error = (...args: unknown[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
-        args[0].includes('Warning: An update to') ||
-        args[0].includes('act(...)'))
-    ) {
-      return;
-    }
-    originalError.call(console, ...args);
-  };
-});
-
-afterAll(() => {
-  console.error = originalError;
-});
-
-// Reset mocks between tests
+// Reset mocks and restore real timers between tests
 afterEach(() => {
+  vi.useRealTimers();
   vi.clearAllMocks();
   localStorageMock.getItem.mockReset();
   localStorageMock.setItem.mockReset();

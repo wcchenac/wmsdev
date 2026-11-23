@@ -1,4 +1,4 @@
-import type { Mock, Mocked, MockedFunction } from 'vitest';
+import type { Mocked, MockedFunction } from 'vitest';
 import localStorageValidate from '../../utilities/LocalStorageValidate';
 import setJWTToken from '../../utilities/SetJWTToken';
 import store from '../../store';
@@ -11,13 +11,6 @@ interface DecodedJWT {
   fullname: string;
   role: { authority: string };
   exp: number;
-}
-
-interface LocalStorageMock {
-  getItem: Mock;
-  setItem: Mock;
-  removeItem: Mock;
-  clear: Mock;
 }
 
 // Mock dependencies
@@ -54,24 +47,15 @@ describe('LocalStorageValidate - localStorageValidate function', () => {
     exp: Math.floor(Date.now() / 1000) - 3600 // 1 hour ago (expired)
   };
 
-  // Create a proper mock for localStorage
-  const localStorageMock: LocalStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn()
+  const localStorageMock = {
+    getItem: vi.mocked(window.localStorage.getItem),
+    setItem: vi.mocked(window.localStorage.setItem),
+    removeItem: vi.mocked(window.localStorage.removeItem),
+    clear: vi.mocked(window.localStorage.clear)
   };
-
-  beforeAll(() => {
-    Object.defineProperty(window, 'localStorage', {
-      value: localStorageMock,
-      writable: true
-    });
-  });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorageMock.getItem.mockReset();
     window.location.href = '';
   });
 

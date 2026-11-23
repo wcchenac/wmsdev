@@ -237,10 +237,9 @@ describe('QueryBoard', () => {
       const form = screen.getByTestId('query-form');
 
       fireEvent.change(input, { target: { value: 'PROD001', name: 'productNo' } });
-      fireEvent.submit(form);
-
-      // Use flushPromises pattern instead of waitFor
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await act(async () => {
+        fireEvent.submit(form);
+      });
 
       expect(mockGetStockInfoesBasic).toHaveBeenCalledWith('PROD001');
     });
@@ -335,8 +334,9 @@ describe('QueryBoard', () => {
       fireEvent.change(screen.getByTestId('product-no-input'), {
         target: { value: 'PROD001', name: 'productNo' }
       });
-      fireEvent.submit(screen.getByTestId('query-form'));
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await act(async () => {
+        fireEvent.submit(screen.getByTestId('query-form'));
+      });
 
       // Create new store with updated data
       const updatedState: StoreState = {
