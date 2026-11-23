@@ -9,33 +9,38 @@ declare global {
     }
 }
 
+type RuntimeConfig = { apiBaseUrl?: string };
+type BuildTimeEnv = { VITE_API_BASE_URL?: string; REACT_APP_API_BASE_URL?: string };
+
+const SAME_ORIGIN = '/';
+
 /**
  * Resolve the API origin used by axios.
  *
  * Order:
  * 1. window.__WMS_CONFIG__.apiBaseUrl, written to public/config.js at container
- *    start (docker/frontend/40-runtime-config.sh)
+ *    start (docker/frontend/40-runtime-config.sh). When it is a string it always
+ *    wins: an empty string means "same origin" (nginx proxies /api) and must not
+ *    fall through to a URL baked in at build time.
  * 2. VITE_API_BASE_URL or REACT_APP_API_BASE_URL baked in at build time
- *    (.env.development / .env.production)
+ *    (.env.development / .env.production), used only when apiBaseUrl is not set.
  * 3. "/" so requests stay on this origin and a reverse proxy (nginx) can forward /api
  */
-const resolveApiBaseUrl = (): string => {
-    const runtimeBase =
-        typeof window !== 'undefined' && typeof window.__WMS_CONFIG__?.apiBaseUrl === 'string'
-            ? window.__WMS_CONFIG__.apiBaseUrl.trim()
-            : '';
-
-    if (runtimeBase) {
-        return runtimeBase;
+export const resolveApiBaseUrl = (
+    runtimeConfig: RuntimeConfig | undefined = typeof window !== 'undefined'
+        ? window.__WMS_CONFIG__
+        : undefined,
+    env: BuildTimeEnv = import.meta.env,
+): string => {
+    const runtimeBase = runtimeConfig?.apiBaseUrl;
+    if (typeof runtimeBase === 'string') {
+        return runtimeBase.trim() || SAME_ORIGIN;
     }
 
-    const buildTimeBase =
-        import.meta.env.VITE_API_BASE_URL || import.meta.env.REACT_APP_API_BASE_URL;
-    if (buildTimeBase) {
-        return buildTimeBase;
-    }
-
-    return '/';
+    const buildTimeBase = [env.VITE_API_BASE_URL, env.REACT_APP_API_BASE_URL]
+        .map((value) => value?.trim())
+        .find(Boolean);
+    return buildTimeBase || SAME_ORIGIN;
 };
 
 const API: AxiosInstance = axios.create({
