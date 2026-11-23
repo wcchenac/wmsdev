@@ -99,7 +99,7 @@ const Button: React.FC<ButtonProps> = ({
     if (loading) {
       return (
         <>
-          <span className="visually-hidden">Loading...</span>
+          <span className="visually-hidden">載入中...</span>
           <span style={{ visibility: "hidden" }}>{children}</span>
         </>
       );

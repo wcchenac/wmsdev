@@ -107,7 +107,7 @@ const Card: React.FC<CardProps> = ({
               <p
                 className="card-subtitle mb-0 mt-1"
                 style={{
-                  color: "var(--color-gray-500)",
+                  color: "var(--color-gray-600)",
                   fontSize: "var(--font-size-sm)"
                 }}
               >

@@ -91,7 +91,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               <p
                 style={{
                   fontSize: "var(--font-size-base)",
-                  color: "var(--color-gray-500)",
+                  color: "var(--color-gray-600)",
                   margin: "var(--spacing-1) 0 0 0"
                 }}
               >

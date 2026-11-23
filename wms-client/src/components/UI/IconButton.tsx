@@ -137,8 +137,6 @@ const IconButton: React.FC<IconButtonProps> = ({
         minHeight: sizeConfig.minHeight,
         border: "none",
         borderRadius: "var(--border-radius-base)",
-        backgroundColor: "transparent",
-        color: disabled ? "var(--color-gray-400)" : config.color,
         cursor: disabled || loading ? "not-allowed" : "pointer",
         transition: "var(--transition-fast)",
         opacity: disabled ? 0.6 : 1,

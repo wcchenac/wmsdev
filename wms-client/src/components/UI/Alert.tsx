@@ -160,7 +160,7 @@ const Alert: React.FC<AlertProps> = ({
         <button
           type="button"
           onClick={handleDismiss}
-          aria-label="Close message"
+          aria-label="關閉訊息"
           style={{
             background: "none",
             border: "none",

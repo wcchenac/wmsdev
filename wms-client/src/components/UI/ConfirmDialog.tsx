@@ -201,7 +201,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   role="status"
                   aria-hidden="true"
                 />
-                <span>Processing</span>
+                <span>處理中...</span>
               </>
             ) : (
               confirmText

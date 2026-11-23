@@ -151,7 +151,7 @@ const FormField: React.FC<FormFieldProps> = ({
           style={{
             marginTop: "var(--spacing-1)",
             fontSize: "var(--font-size-sm)",
-            color: "var(--color-gray-500)"
+            color: "var(--color-gray-600)"
           }}
         >
           {helperText}

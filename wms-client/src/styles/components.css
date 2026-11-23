@@ -654,6 +654,15 @@ thead.table-light th {
   box-shadow: var(--shadow-focus);
 }
 
+.icon-button {
+  background-color: transparent;
+  color: var(--icon-btn-color);
+}
+
+.icon-button:disabled {
+  color: var(--color-gray-400);
+}
+
 .icon-button:not(:disabled):hover {
   background-color: var(--icon-btn-hover-bg);
   color: var(--icon-btn-hover-color);

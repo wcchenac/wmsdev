@@ -187,7 +187,7 @@
   --input-border-color-focus: var(--color-primary);
   --input-bg: var(--color-white);
   --input-bg-disabled: var(--color-gray-100);
-  --input-placeholder-color: var(--color-gray-500);
+  --input-placeholder-color: var(--color-gray-600);
 
   /* Buttons */
   --btn-padding-x-sm: var(--spacing-3);
