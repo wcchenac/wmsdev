@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import { ToastContainer } from "react-toastify";
@@ -6,22 +6,24 @@ import Header from "./components/Layout/Header";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 import { Provider } from "react-redux";
 import store from "./store";
-import NormalStockBoard from "./components/BO/Stock/InStock/NormalStockBoard";
-import AssembleStockBoard from "./components/BO/Stock/InStock/AssembleStockBoard";
-import CustomerReturnBoard from "./components/BO/Stock/InStock/CustomerReturnBoard";
-import StoreReturnBoard from "./components/BO/Stock/InStock/StoreReturnBoard";
-import ModifyBoard from "./components/BO/Stock/ModifyStock/ModifyBoard/ModifyBoard";
-import ShrinkBoard from "./components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkBoard";
-import OutStockRequestList from "./components/BO/Stock/OutStockList/OutStockRequestList";
-import QueryBoard from "./components/BO/Stock/QueryStock/QueryBoard";
-import QueryBoardDetail from "./components/BO/Stock/QueryStock/QueryBoard_Detail";
-import QueryOutStockToStore from "./components/BO/Stock/QueryStock/QueryOutStockToStore";
-import FileCenter from "./components/BO/File/FileCenter";
-import StockHistoryBoard from "./components/BO/Stock/StockHistory/StockHistoryBoard";
-import Login from "./components/BO/User/Login";
-import AdminPlatform from "./components/BO/User/AdminPlatform/AdminPlatform";
 import ProtectedRoute from "./components/Others/securities/ProtectedRoute";
 import HomeRedirect from "./components/Others/securities/HomeRedirect";
+import { Spinner } from "./components/Others/Spinner";
+
+const NormalStockBoard = lazy(() => import("./components/BO/Stock/InStock/NormalStockBoard"));
+const AssembleStockBoard = lazy(() => import("./components/BO/Stock/InStock/AssembleStockBoard"));
+const CustomerReturnBoard = lazy(() => import("./components/BO/Stock/InStock/CustomerReturnBoard"));
+const StoreReturnBoard = lazy(() => import("./components/BO/Stock/InStock/StoreReturnBoard"));
+const ModifyBoard = lazy(() => import("./components/BO/Stock/ModifyStock/ModifyBoard/ModifyBoard"));
+const ShrinkBoard = lazy(() => import("./components/BO/Stock/ModifyStock/ShrinkBoard/ShrinkBoard"));
+const OutStockRequestList = lazy(() => import("./components/BO/Stock/OutStockList/OutStockRequestList"));
+const QueryBoard = lazy(() => import("./components/BO/Stock/QueryStock/QueryBoard"));
+const QueryBoardDetail = lazy(() => import("./components/BO/Stock/QueryStock/QueryBoard_Detail"));
+const QueryOutStockToStore = lazy(() => import("./components/BO/Stock/QueryStock/QueryOutStockToStore"));
+const FileCenter = lazy(() => import("./components/BO/File/FileCenter"));
+const StockHistoryBoard = lazy(() => import("./components/BO/Stock/StockHistory/StockHistoryBoard"));
+const Login = lazy(() => import("./components/BO/User/Login"));
+const AdminPlatform = lazy(() => import("./components/BO/User/AdminPlatform/AdminPlatform"));
 
 function App() {
   return (
@@ -30,7 +32,8 @@ function App() {
         <div className="App">
           <Header />
           <main id="main-content" role="main" aria-label="主要內容區域">
-            <Routes>
+            <Suspense fallback={<div className="py-5"><Spinner size="medium" message="載入頁面中..." /></div>}>
+              <Routes>
               <Route path="/" element={<HomeRedirect />} />
               <Route path="/login" element={<Login />} />
               <Route
@@ -139,6 +142,7 @@ function App() {
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </Suspense>
           </main>
           <ToastContainer
             position="top-right"

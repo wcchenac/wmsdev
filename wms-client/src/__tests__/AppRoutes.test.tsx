@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { useLocation } from 'react-router';
 import store from '../store';
 import App from '../App';
@@ -37,11 +37,14 @@ const signIn = (authority?: string) => {
   });
 };
 
-const renderAt = async (path: string) => {
+const renderAt = async (path: string, expectedPath?: string) => {
   startAt = path; // read by the BrowserRouter stand-in when it renders
-  await act(async () => {
-    render(<App />);
-  });
+  render(<App />);
+  if (expectedPath) {
+    await waitFor(() => {
+      expect(screen.getByTestId('path').textContent).toBe(expectedPath);
+    });
+  }
   return screen.getByTestId('path').textContent;
 };
 
@@ -51,7 +54,7 @@ beforeEach(() => {
 
 describe('"/"', () => {
   test('signed out: goes to /login', async () => {
-    expect(await renderAt('/')).toBe('/login');
+    expect(await renderAt('/', '/login')).toBe('/login');
   });
 
   test.each([
@@ -61,7 +64,7 @@ describe('"/"', () => {
     ['ROLE_Sales', '/stock/2/2'],
   ])('%s: goes to its first menu page %s', async (role, page) => {
     signIn(role);
-    expect(await renderAt('/')).toBe(page);
+    expect(await renderAt('/', page)).toBe(page);
   });
 
   test('signed in without a role: stays and says so instead of bouncing to /login', async () => {
@@ -73,18 +76,18 @@ describe('"/"', () => {
 
 describe('unknown paths', () => {
   test('signed out: go to /login', async () => {
-    expect(await renderAt('/no-such-page')).toBe('/login');
+    expect(await renderAt('/no-such-page', '/login')).toBe('/login');
   });
 
   test('signed in: go to the role\'s first menu page', async () => {
     signIn('ROLE_Sales');
-    expect(await renderAt('/logout')).toBe('/stock/2/2');
+    expect(await renderAt('/logout', '/stock/2/2')).toBe('/stock/2/2');
   });
 });
 
 test('a page the role may not open sends it to its own first page', async () => {
   signIn('ROLE_Sales');
-  expect(await renderAt('/admin')).toBe('/stock/2/2');
+  expect(await renderAt('/admin', '/stock/2/2')).toBe('/stock/2/2');
 });
 
 test('an expired token in Redux state redirects to /login on route transition', async () => {
@@ -98,6 +101,6 @@ test('an expired token in Redux state redirects to /login on route transition', 
     },
   });
 
-  expect(await renderAt('/admin')).toBe('/login');
+  expect(await renderAt('/admin', '/login')).toBe('/login');
   expect(store.getState().user.validToken).toBe(false);
 });
