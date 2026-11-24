@@ -120,7 +120,7 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
           批量出庫
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body style={isLoading ? { pointerEvents: "none", opacity: 0.7 } : undefined}>
         <div className="row g-0">
           <div className="col-5">
             <ShipModalBody

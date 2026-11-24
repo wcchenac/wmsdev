@@ -11,6 +11,7 @@ interface DatePeriodSelectModalProps {
   btnSize?: ButtonSize;
   btnTitle: string;
   fileType: string;
+  disabled?: boolean;
   handleStartDateSelection: (date: Date | null) => void;
   handleEndDateSelection: (date: Date | null) => void;
   handleDateSelectionModeClick: (startDate?: Date, endDate?: Date) => void;
@@ -64,6 +65,7 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
   btnSize,
   btnTitle,
   fileType,
+  disabled = false,
   handleStartDateSelection,
   handleEndDateSelection,
   handleDateSelectionModeClick,
@@ -101,6 +103,7 @@ const DatePeriodSelectModal: React.FC<DatePeriodSelectModalProps> = ({
         type="button"
         className={getClassNameString(btnSize)}
         onClick={handleOpen}
+        disabled={disabled}
       >
         {btnTitle}
       </button>

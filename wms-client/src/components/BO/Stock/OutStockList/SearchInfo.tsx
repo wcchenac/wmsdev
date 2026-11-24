@@ -19,6 +19,7 @@ export interface OutStockInfo {
 }
 
 interface SearchInfoProps {
+  isLoading?: boolean;
   searchInfo: OutStockInfo;
   checked: boolean;
   whName: string;
@@ -161,6 +162,7 @@ class SearchInfo extends Component<SearchInfoProps> {
                 type="button"
                 className="btn btn-sm"
                 onClick={this.onDownloadClick}
+                disabled={this.props.isLoading}
                 aria-label={`下載 ${downloadName}`}
                 title={downloadName}
                 style={{
@@ -192,12 +194,12 @@ class SearchInfo extends Component<SearchInfoProps> {
               </button>
             </ActionButtonGroup>
           ) : (
-            <select
-              className="form-select form-select-sm"
-              name="whName"
-              value={this.props.whName}
-              onChange={this.onChange}
-              disabled={handled}
+              <select
+                className="form-select form-select-sm"
+                name="whName"
+                value={this.props.whName}
+                onChange={this.onChange}
+                disabled={handled || this.props.isLoading}
               aria-label="選擇倉別"
               style={{
                 borderRadius: "var(--border-radius-base)",
@@ -219,6 +221,7 @@ class SearchInfo extends Component<SearchInfoProps> {
               <IconButton
                 icon={<DeleteIcon />}
                 onClick={this.onDeleteClick}
+                disabled={this.props.isLoading}
                 label={handled ? "刪除此筆記錄" : "取消出貨"}
                 tooltip={handled ? "刪除此筆記錄" : "取消出貨"}
                 variant="danger"

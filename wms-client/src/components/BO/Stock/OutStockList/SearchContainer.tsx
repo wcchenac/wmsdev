@@ -12,6 +12,7 @@ interface ToBeSubmitMap {
 }
 
 interface SearchContainerProps {
+  isLoading?: boolean;
   index: number;
   /** Whether this date's tab pane is shown. Defaults to showing the first pane (index 0). */
   active?: boolean;
@@ -52,6 +53,7 @@ function defaultCheckedAlgorithm(selectList: ToBeSubmitMap): boolean {
 }
 
 const SearchContainer: React.FC<SearchContainerProps> = React.memo(function SearchContainer({
+  isLoading = false,
   index,
   active,
   date,
@@ -147,6 +149,7 @@ const SearchContainer: React.FC<SearchContainerProps> = React.memo(function Sear
               {(outStockListFiltered ?? []).map((object) => (
                 <SearchInfo
                   key={object.id}
+                  isLoading={isLoading}
                   searchInfo={object}
                   whName={object.handled ? "" : toBeSubmit[object.id]?.whName ?? ""}
                   checked={

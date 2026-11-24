@@ -189,6 +189,7 @@ function StockHistoryBoard(): React.ReactElement {
               productNo={productNo}
               onChange={handleProductNoChange}
               onSubmit={handleQuerySubmit}
+              isLoading={isLoading}
             />
           </div>
           <div className="col-md-auto">

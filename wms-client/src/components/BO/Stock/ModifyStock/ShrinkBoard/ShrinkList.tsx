@@ -49,6 +49,7 @@ const ShrinkList: React.FC<ShrinkListProps> = memo(({
                 >
                     <div style={{ height: '80vh' }}>
                         <ShrinkInfoContainer
+                            isLoading={isLoading}
                             shrinkList={shrinkList}
                             onModifyClick={onModifyClick}
                             onCancelShrinkClick={onCancelShrinkClick}

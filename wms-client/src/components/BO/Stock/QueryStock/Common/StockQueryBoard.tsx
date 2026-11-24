@@ -190,6 +190,7 @@ const StockQueryBoard: React.FC<StockQueryBoardProps> = ({ isBasic, fetchStockIn
                     handleFutureProductQuery={handleFutureProductQuery}
                     prevProduct={prevProduct}
                     nextProduct={nextProduct}
+                    isLoading={isLoading}
                   />
                 </div>
               </div>

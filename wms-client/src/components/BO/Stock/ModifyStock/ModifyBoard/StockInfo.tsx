@@ -13,9 +13,9 @@ interface StockInfoProps {
   index: number;
   isLoading?: boolean;
   typeValidation: boolean;
-  handleShip: (shipRequest: ShipRequest) => void;
-  handleShrink: (id: number) => void;
-  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => void;
+  handleShip: (shipRequest: ShipRequest) => Promise<boolean> | void;
+  handleShrink: (id: number) => Promise<boolean> | void;
+  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => Promise<boolean> | void;
 }
 
 // ============================================
@@ -36,15 +36,17 @@ const StockInfo: React.FC<StockInfoProps> = ({
 
   const { stockIdentifier } = stockInfo;
 
-  const onShipClick = useCallback(() => {
+  const onShipClick = useCallback(async () => {
     const shipRequest: ShipRequest = {
       stockIdentifierId: stockInfo.stockIdentifier?.id as number,
       reason: outStockReason
     };
 
-    setModalShow(false);
-    setOutStockReason("");
-    handleShip(shipRequest);
+    const ok = await Promise.resolve(handleShip(shipRequest));
+    if (ok !== false) {
+      setModalShow(false);
+      setOutStockReason("");
+    }
   }, [stockInfo.stockIdentifier?.id, outStockReason, handleShip]);
 
   const onCancleShipClick = useCallback(() => {

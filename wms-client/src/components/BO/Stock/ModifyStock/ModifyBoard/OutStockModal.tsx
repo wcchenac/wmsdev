@@ -28,7 +28,6 @@ interface OutStockRequestState {
 
 interface InitialState {
   assignMode: boolean;
-  isSubmitting: boolean;
   outStockRequest: OutStockRequestState;
 }
 
@@ -52,7 +51,6 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
   const createInitialState = useCallback((): InitialState => {
     return {
       assignMode: false,
-      isSubmitting: false,
       outStockRequest: {
         productNo: productNo,
         type: StockIdentifierType.roll,
@@ -138,9 +136,11 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
   }, [assignMode, outStockRequest, handleOutStockRequestCreate, runLocked]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLFormElement>) => {
-    if (e.key === "Enter" && !isSubmittingRef.current && !isSubmitting && checkFormAlgorithm(outStockRequest)) {
+    if (e.key === "Enter") {
       e.preventDefault();
-      handleSubmit();
+      if (!isSubmittingRef.current && !isSubmitting && checkFormAlgorithm(outStockRequest)) {
+        handleSubmit();
+      }
     }
   }, [isSubmittingRef, isSubmitting, checkFormAlgorithm, outStockRequest, handleSubmit]);
 
@@ -192,7 +192,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
       </Modal.Header>
       <Modal.Body id="outstock-modal-description">
         <div className="container">
-          <Form onKeyDown={handleKeyDown}>
+          <Form onSubmit={(e) => e.preventDefault()} onKeyDown={handleKeyDown}>
             <Form.Group as={Row} className="mb-3">
               <Form.Label
                 column
@@ -409,6 +409,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
                   placeholder="請輸入出庫原因"
                   value={outStockRequest.reason}
                   onChange={handleRequestChange}
+                  disabled={isSubmitting}
                   aria-required="true"
                   autoComplete="off"
                 />

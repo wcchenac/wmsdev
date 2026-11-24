@@ -51,8 +51,12 @@ const OutStockRequestList: React.FC = () => {
 
   const apiCallRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isIntervalModeRef = useRef<boolean>(false);
+  const queryRequestIdRef = useRef(0);
 
-  const acceptListResponse = useCallback((response: { status: number }) => {
+  const acceptListResponse = useCallback((response: { status: number }, requestId?: number) => {
+    if (requestId !== undefined && requestId !== queryRequestIdRef.current) {
+      return;
+    }
     if (response.status === 200) {
       setIsQueryLoading(false);
       setListResponseId((current) => current + 1);
@@ -60,11 +64,14 @@ const OutStockRequestList: React.FC = () => {
   }, []);
 
   const loadingWaitHandleList = useCallback(() => {
+    const requestId = ++queryRequestIdRef.current;
     setIsQueryLoading(true);
     dispatch(getWaitHandleList()).then(response => {
-      acceptListResponse(response);
+      acceptListResponse(response, requestId);
     }).catch((error) => {
-      setIsQueryLoading(false);
+      if (requestId === queryRequestIdRef.current) {
+        setIsQueryLoading(false);
+      }
       notifyRequestFailed(error);
     });
   }, [dispatch, acceptListResponse]);
@@ -154,11 +161,14 @@ const OutStockRequestList: React.FC = () => {
       const endDateStr = formatLocalDateTime(nextEnd ? dayOfEnd(nextEnd) : endDate);
 
       isIntervalModeRef.current = true;
+      const requestId = ++queryRequestIdRef.current;
       setIsQueryLoading(true);
       dispatch(getWaitHandleListWithInterval(startDateStr, endDateStr)).then(response => {
-        acceptListResponse(response);
+        acceptListResponse(response, requestId);
       }).catch((error) => {
-        setIsQueryLoading(false);
+        if (requestId === queryRequestIdRef.current) {
+          setIsQueryLoading(false);
+        }
         notifyRequestFailed(error);
       });
     },
@@ -293,6 +303,7 @@ const OutStockRequestList: React.FC = () => {
               type="button"
               className="btn btn-outline-secondary btn-sm"
               onClick={getInitialState}
+              disabled={isLoading}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -314,6 +325,7 @@ const OutStockRequestList: React.FC = () => {
               handleEndDateSelection={handleEndDateSelection}
               handleDateSelectionModeClick={handleDateSelectionModeClick}
               dayRange={dayIntervalRange}
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -358,6 +370,7 @@ const OutStockRequestList: React.FC = () => {
           <LoadingOverlay active={isLoading} spinner={<Spinner />}>
             <div style={{ height: "65vh" }}>
               <SearchBoard
+                isLoading={isLoading}
                 queryResult={queryResult}
                 selectedUserList={selectedUserList}
                 handleSubmitClick={handleSubmitClick}

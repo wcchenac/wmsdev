@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
@@ -18,7 +18,10 @@ const ShrinkBoard: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const shrinkListFromStore = useSelector((state: RootState) => state.stockInfo);
 
-    const { isLocked: isLoading, runLocked } = useSubmitLock();
+    const [isListLoading, setIsListLoading] = useState<boolean>(false);
+    const listQueryInFlightRef = useRef<boolean>(false);
+    const { isLocked: isMutating, runLocked } = useSubmitLock();
+    const isLoading = isListLoading || isMutating;
     const [shrinkList, setShrinkList] = useState<StockInfo[]>([]);
     const [stockInfo, setStockInfo] = useState<StockInfo>({});
     const [typeExchange, setTypeExchange] = useState<boolean>(false);
@@ -60,27 +63,37 @@ const ShrinkBoard: React.FC = () => {
     }, []);
 
     const queryShrinkList = useCallback((): void => {
-        void runLocked(() =>
-            dispatch(getShrinkList()).catch((error) => {
+        if (listQueryInFlightRef.current) {
+            return;
+        }
+        listQueryInFlightRef.current = true;
+        setIsListLoading(true);
+        dispatch(getShrinkList())
+            .catch((error) => {
               notifyRequestFailed(error);
             })
-        );
-    }, [dispatch, runLocked]);
+            .finally(() => {
+              listQueryInFlightRef.current = false;
+              setIsListLoading(false);
+            });
+    }, [dispatch]);
 
     const handleModifyRequestSubmit = useCallback(
-        (shrinkStockRequest: ShrinkStockRequest): void => {
-            void runLocked(() =>
+        (shrinkStockRequest: ShrinkStockRequest): Promise<boolean> =>
+            runLocked(() =>
                 dispatch(batchCreateStockInfoesForShrink(shrinkStockRequest))
                     .then((res: { status: number }) => {
                         if (res.status === 200) {
                             initialComponent();
+                            return true;
                         }
+                        return false;
                     })
                     .catch((error) => {
                         notifyRequestFailed(error);
+                        return false;
                     })
-            );
-        },
+            ).then((res) => Boolean(res)),
         [dispatch, runLocked, initialComponent]
     );
 

@@ -97,11 +97,11 @@ const InStockBoard: React.FC<InStockBoardProps> = ({
   }, []);
 
   const handlePrevStep = useCallback(() => {
-    setKey((prevKey) => prevKey - 1);
+    setKey((prevKey) => (prevKey > 1 ? prevKey - 1 : prevKey));
   }, []);
 
   const handleNextStep = useCallback(() => {
-    setKey((prevKey) => prevKey + 1);
+    setKey((prevKey) => (prevKey < 3 ? prevKey + 1 : prevKey));
   }, []);
 
   const handleOrderNo = useCallback((e: ChangeEvent<HTMLInputElement>) => {

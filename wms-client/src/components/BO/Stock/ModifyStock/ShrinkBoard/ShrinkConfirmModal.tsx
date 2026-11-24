@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { InfoLengthCalculation } from './ModifyRequestBoard';
 
@@ -7,7 +7,7 @@ interface ShrinkConfirmModalProps {
     isLoading?: boolean;
     unit?: string;
     handleModalClose: () => void;
-    handleSubmitClick: (infoLengthCalculation: InfoLengthCalculation) => void;
+    handleSubmitClick: (infoLengthCalculation: InfoLengthCalculation) => Promise<unknown> | void;
     infoLengthCalculation: InfoLengthCalculation;
 }
 
@@ -19,9 +19,27 @@ const ShrinkConfirmModal: React.FC<ShrinkConfirmModalProps> = ({
     handleSubmitClick,
     infoLengthCalculation
 }) => {
+    const clickedRef = useRef(false);
+    const isLoadingRef = useRef(isLoading);
+    isLoadingRef.current = isLoading;
+
+    useEffect(() => {
+        if (!show || !isLoading) {
+            clickedRef.current = false;
+        }
+    }, [show, isLoading]);
+
     const onSubmitClick = useCallback(() => {
-        handleSubmitClick(infoLengthCalculation);
-    }, [handleSubmitClick, infoLengthCalculation]);
+        if (isLoading || clickedRef.current) {
+            return;
+        }
+        clickedRef.current = true;
+        Promise.resolve(handleSubmitClick(infoLengthCalculation)).finally(() => {
+            if (!isLoadingRef.current) {
+                clickedRef.current = false;
+            }
+        });
+    }, [isLoading, handleSubmitClick, infoLengthCalculation]);
 
     const modalContent = (): React.ReactNode => {
         if (infoLengthCalculation.adjustment === 0) {

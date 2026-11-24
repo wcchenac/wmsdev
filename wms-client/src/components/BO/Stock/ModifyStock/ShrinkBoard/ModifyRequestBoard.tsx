@@ -51,7 +51,7 @@ interface ModifyRequestBoardProps {
     hardwareModify: boolean;
     isLoading?: boolean;
     handleGoBack: () => void;
-    handleModifyRequestSubmit: (request: ShrinkStockRequest) => void;
+    handleModifyRequestSubmit: (request: ShrinkStockRequest) => Promise<boolean> | void;
 }
 
 const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
@@ -195,7 +195,7 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
         });
     }, []);
 
-    const handleSubmitClick = useCallback((infoLengthCalc: InfoLengthCalculation): void => {
+    const handleSubmitClick = useCallback(async (infoLengthCalc: InfoLengthCalculation): Promise<void> => {
         // The backend takes the selected defects as one "GA/GB" string per row.
         const inStockRequests: ShrinkStockInStockRequest[] = copy(newStockInfoes).map((row) => ({
             ...row,
@@ -210,8 +210,10 @@ const ModifyRequestBoard: React.FC<ModifyRequestBoardProps> = ({
             shrinkType: infoLengthCalc.shrinkType,
         };
 
-        handleModifyRequestSubmit(shrinkStockRequest);
-        handleModalClose();
+        const ok = await Promise.resolve(handleModifyRequestSubmit(shrinkStockRequest));
+        if (ok !== false) {
+            handleModalClose();
+        }
     }, [newStockInfoes, oldStockInfo, handleModifyRequestSubmit, handleModalClose]);
 
     const handleRowNumChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {

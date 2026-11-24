@@ -29,7 +29,7 @@ interface InformationModalProps {
   index: number;
   typeValidation: boolean;
   stockInfo: StockInfoType;
-  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => void;
+  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => Promise<boolean> | void;
 }
 
 // ============================================
@@ -56,6 +56,8 @@ const InformationModal: React.FC<InformationModalProps> = ({
   const [stockInfo, setStockInfo] = useState<StockInfoWithDefectOptions>(() => stateInitial(propStockInfo));
   const [editMode, setEditMode] = useState<boolean>(false);
   const submittingRef = useRef<boolean>(false);
+  const isLoadingRef = useRef<boolean>(isLoading);
+  isLoadingRef.current = isLoading;
 
   useEffect(() => {
     setStockInfo(stateInitial(propStockInfo));
@@ -63,12 +65,21 @@ const InformationModal: React.FC<InformationModalProps> = ({
     submittingRef.current = false;
   }, [propStockInfo, show]);
 
+  useEffect(() => {
+    if (!isLoading) {
+      submittingRef.current = false;
+    }
+  }, [isLoading]);
+
   const handleEditMode = useCallback(() => {
+    if (isLoading) {
+      return;
+    }
     if (editMode) {
       setStockInfo(stateInitial(propStockInfo));
     }
     setEditMode((prev) => !prev);
-  }, [editMode, propStockInfo]);
+  }, [editMode, isLoading, propStockInfo]);
 
   const handleInfoChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -87,7 +98,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
     });
   }, []);
 
-  const handleUpdateSubmit = useCallback(() => {
+  const handleUpdateSubmit = useCallback(async () => {
     if (isLoading || submittingRef.current) {
       return;
     }
@@ -100,8 +111,16 @@ const InformationModal: React.FC<InformationModalProps> = ({
       remark: stockInfo.remark
     };
 
-    onHide();
-    handleStockInfoUpdate(updateInfoRequest);
+    try {
+      const ok = await Promise.resolve(handleStockInfoUpdate(updateInfoRequest));
+      if (ok !== false) {
+        onHide();
+      }
+    } finally {
+      if (!isLoadingRef.current) {
+        submittingRef.current = false;
+      }
+    }
   }, [isLoading, stockInfo, handleStockInfoUpdate, onHide]);
 
   const renderEditModeOff = (): React.ReactElement => {
@@ -339,6 +358,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
             type="button"
             className="btn btn-sm btn-outline-light ms-auto"
             onClick={handleEditMode}
+            disabled={isLoading}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -356,6 +376,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
           className="btn-close btn-close-white ms-2"
           aria-label="Close"
           onClick={onHide}
+          disabled={isLoading}
         />
       </div>
       {editMode ? renderEditModeOn() : renderEditModeOff()}

@@ -5,12 +5,14 @@ import { StockInfo } from '../../../../../types';
 type ModifyType = 'typeExchange' | 'sameTypeModify' | 'hardwareModify';
 
 interface ShrinkInfoProps {
+    isLoading?: boolean;
     stockInfo: StockInfo;
     onModifyClick: (type: ModifyType, info: StockInfo) => void;
     onCancelShrinkClick: (stockIdentifierId: number) => void;
 }
 
 const ShrinkInfo: React.FC<ShrinkInfoProps> = ({
+    isLoading = false,
     stockInfo,
     onModifyClick,
     onCancelShrinkClick
@@ -19,17 +21,20 @@ const ShrinkInfo: React.FC<ShrinkInfoProps> = ({
 
     const handleModifyClick = useCallback(
         (e: React.MouseEvent<HTMLButtonElement>) => {
-            const value = (e.target as HTMLButtonElement).value as ModifyType;
+            if (isLoading) {
+                return;
+            }
+            const value = e.currentTarget.value as ModifyType;
             onModifyClick(value, stockInfo);
         },
-        [onModifyClick, stockInfo],
+        [isLoading, onModifyClick, stockInfo],
     );
 
     const handleCancelShrinkClick = useCallback(() => {
-        if (stockIdentifier?.id) {
+        if (!isLoading && stockIdentifier?.id) {
             onCancelShrinkClick(stockIdentifier.id);
         }
-    }, [onCancelShrinkClick, stockIdentifier?.id]);
+    }, [isLoading, onCancelShrinkClick, stockIdentifier?.id]);
 
     const renderActionButtons = (type: string | undefined): React.ReactNode => {
         if (type === StockIdentifierType.roll) {
@@ -41,6 +46,7 @@ const ShrinkInfo: React.FC<ShrinkInfoProps> = ({
                             className="btn btn-primary"
                             value="typeExchange"
                             onClick={handleModifyClick}
+                            disabled={isLoading}
                         >
                             板卷異動
                         </button>
@@ -51,6 +57,7 @@ const ShrinkInfo: React.FC<ShrinkInfoProps> = ({
                             className="btn btn-primary"
                             value="sameTypeModify"
                             onClick={handleModifyClick}
+                            disabled={isLoading}
                         >
                             整支異動
                         </button>
@@ -67,6 +74,7 @@ const ShrinkInfo: React.FC<ShrinkInfoProps> = ({
                             className="btn btn-primary"
                             value="typeExchange"
                             onClick={handleModifyClick}
+                            disabled={isLoading}
                         >
                             板卷異動
                         </button>
@@ -84,6 +92,7 @@ const ShrinkInfo: React.FC<ShrinkInfoProps> = ({
                             className="btn btn-primary"
                             value="hardwareModify"
                             onClick={handleModifyClick}
+                            disabled={isLoading}
                         >
                             雜項異動
                         </button>
@@ -114,6 +123,7 @@ const ShrinkInfo: React.FC<ShrinkInfoProps> = ({
                         type="button"
                         className="btn btn-primary"
                         onClick={handleCancelShrinkClick}
+                        disabled={isLoading}
                     >
                         {text}
                     </button>

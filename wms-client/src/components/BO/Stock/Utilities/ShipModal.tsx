@@ -10,7 +10,7 @@ interface ShipModalProps {
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onReansonButtonChange: (e: MouseEvent<HTMLButtonElement>) => void;
   onCancleShipClick: (e: MouseEvent<HTMLButtonElement>) => void;
-  onShipClick: (e: MouseEvent<HTMLButtonElement>) => void;
+  onShipClick: (e: MouseEvent<HTMLButtonElement>) => Promise<unknown> | void;
 }
 
 const ShipModal: React.FC<ShipModalProps> = ({
@@ -24,6 +24,8 @@ const ShipModal: React.FC<ShipModalProps> = ({
   onShipClick,
 }) => {
   const clickedRef = useRef(false);
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
 
   useEffect(() => {
     if (!show || !isLoading) {
@@ -37,7 +39,11 @@ const ShipModal: React.FC<ShipModalProps> = ({
         return;
       }
       clickedRef.current = true;
-      onShipClick(e);
+      Promise.resolve(onShipClick(e)).finally(() => {
+        if (!isLoadingRef.current) {
+          clickedRef.current = false;
+        }
+      });
     },
     [isLoading, onShipClick]
   );

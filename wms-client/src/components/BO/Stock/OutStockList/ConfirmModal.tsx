@@ -30,6 +30,7 @@ interface ConfirmModalState {
 
 class ConfirmModal extends Component<ConfirmModalProps, ConfirmModalState> {
   private isSubmittingSync = false;
+  private isMountedFlag = false;
 
   constructor(props: ConfirmModalProps) {
     super(props);
@@ -38,6 +39,14 @@ class ConfirmModal extends Component<ConfirmModalProps, ConfirmModalState> {
     };
     this.onSubmitClick = this.onSubmitClick.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
+  }
+
+  componentDidMount(): void {
+    this.isMountedFlag = true;
+  }
+
+  componentWillUnmount(): void {
+    this.isMountedFlag = false;
   }
 
   getModalConfig(): ModalConfig {
@@ -102,12 +111,21 @@ class ConfirmModal extends Component<ConfirmModalProps, ConfirmModalState> {
       }
     } finally {
       this.isSubmittingSync = false;
-      this.setState({ isSubmitting: false });
+      if (this.isMountedFlag) {
+        this.setState({ isSubmitting: false });
+      }
     }
   }
 
   handleKeyDown(e: KeyboardEvent<HTMLDivElement>): void {
-    if (e.key === "Enter" && !this.isSubmittingSync && !this.state.isSubmitting) {
+    if (e.key !== "Enter") {
+      return;
+    }
+    if (e.target instanceof HTMLButtonElement) {
+      return;
+    }
+    e.preventDefault();
+    if (!this.isSubmittingSync && !this.state.isSubmitting) {
       this.onSubmitClick();
     }
   }
@@ -120,7 +138,7 @@ class ConfirmModal extends Component<ConfirmModalProps, ConfirmModalState> {
       <Modal
         centered
         show={this.props.show}
-        onHide={this.props.handleModalClose}
+        onHide={isSubmitting ? undefined : this.props.handleModalClose}
         aria-labelledby="confirm-modal-title"
         aria-describedby="confirm-modal-description"
         backdrop="static"

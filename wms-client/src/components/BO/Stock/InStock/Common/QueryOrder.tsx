@@ -34,6 +34,7 @@ const QueryOrder: React.FC<QueryOrderProps> = ({
               className={classnames("form-control", {
                 "is-invalid": isOrderValid === false,
               })}
+              disabled={isLoading}
               onChange={handleOrderNo}
             />
             {isOrderValid === false && (

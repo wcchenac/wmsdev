@@ -23,6 +23,7 @@ interface QueryResult {
 }
 
 interface SearchBoardProps {
+  isLoading?: boolean;
   queryResult: QueryResult;
   selectedUserList: SelectedUser[];
   handleSubmitClick: (request: OutStockUpdateRequest) => void;
@@ -107,6 +108,7 @@ function retainVisibleToBeSubmit(
 }
 
 const SearchBoard: React.FC<SearchBoardProps> = ({
+  isLoading = false,
   queryResult,
   selectedUserList,
   handleSubmitClick,
@@ -279,7 +281,7 @@ const SearchBoard: React.FC<SearchBoardProps> = ({
         <div className="col-md-auto">
           <button
             className="btn btn-primary me-2"
-            disabled={isSubmitDisabled}
+            disabled={isLoading || isSubmitDisabled}
             onClick={onSubmitClick}
           >
             儲存
@@ -317,6 +319,7 @@ const SearchBoard: React.FC<SearchBoardProps> = ({
           return (
             <SearchContainer
               key={date}
+              isLoading={isLoading}
               index={index}
               active={date === currentDate}
               date={date}

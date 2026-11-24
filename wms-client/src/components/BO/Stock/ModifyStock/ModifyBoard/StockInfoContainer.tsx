@@ -10,9 +10,9 @@ interface StockInfoContainerProps {
   isLoading?: boolean;
   typeValidation: boolean;
   stockInfoes: StockInfoType[];
-  handleShip: (shipRequest: ShipRequest) => void;
-  handleShrink: (id: number) => void;
-  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => void;
+  handleShip: (shipRequest: ShipRequest) => Promise<boolean> | void;
+  handleShrink: (id: number) => Promise<boolean> | void;
+  handleStockInfoUpdate: (updateInfoRequest: UpdateStockInfoRequest) => Promise<boolean> | void;
 }
 
 // ============================================

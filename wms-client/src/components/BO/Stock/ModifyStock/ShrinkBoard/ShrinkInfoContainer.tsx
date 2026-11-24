@@ -6,12 +6,14 @@ import { StockInfo } from '../../../../../types';
 type ModifyType = 'typeExchange' | 'sameTypeModify' | 'hardwareModify';
 
 interface ShrinkInfoContainerProps {
+    isLoading?: boolean;
     shrinkList: StockInfo[];
     onModifyClick: (type: ModifyType, info: StockInfo) => void;
     onCancelShrinkClick: (stockIdentifierId: number) => void;
 }
 
 const ShrinkInfoContainer: React.FC<ShrinkInfoContainerProps> = ({
+    isLoading = false,
     shrinkList,
     onModifyClick,
     onCancelShrinkClick
@@ -70,6 +72,7 @@ const ShrinkInfoContainer: React.FC<ShrinkInfoContainerProps> = ({
                     {shrinkList.map((stockInfo, index) => (
                         <ShrinkInfo
                             key={index}
+                            isLoading={isLoading}
                             stockInfo={stockInfo}
                             onModifyClick={onModifyClick}
                             onCancelShrinkClick={onCancelShrinkClick}

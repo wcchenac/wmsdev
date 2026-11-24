@@ -68,6 +68,7 @@ const QueryOutStockToStore: React.FC = () => {
             handleOrderNo={handleOrderNo}
             handleQueryOrderSubmit={handleQueryOrderSubmit}
             isOrderValid={isOrderValid}
+            isLoading={isLoading}
           />
         </div>
         <hr />

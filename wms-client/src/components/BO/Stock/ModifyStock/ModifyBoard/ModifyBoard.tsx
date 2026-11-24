@@ -104,18 +104,18 @@ const ModifyBoard: React.FC = () => {
   const onSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      void runLocked(() => {
-        setQueriedProductNo(productNo);
-        return dispatch(getStockInfoes(productNo))
+      void runLocked(() =>
+        dispatch(getStockInfoes(productNo))
           .then((response) => {
             if (response.status === 200) {
+              setQueriedProductNo(productNo);
               setIsQuery(true);
             }
           })
           .catch((error) => {
             notifyRequestFailed(error);
-          });
-      });
+          })
+      );
     },
     [dispatch, productNo, runLocked]
   );
@@ -124,19 +124,19 @@ const ModifyBoard: React.FC = () => {
     (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       const select = e.currentTarget.value;
-      void runLocked(() => {
-        setProductNo(select);
-        setQueriedProductNo(select);
-        return dispatch(getStockInfoes(select))
+      void runLocked(() =>
+        dispatch(getStockInfoes(select))
           .then((response) => {
             if (response.status === 200) {
+              setProductNo(select);
+              setQueriedProductNo(select);
               setIsQuery(true);
             }
           })
           .catch((error) => {
             notifyRequestFailed(error);
-          });
-      });
+          })
+      );
     },
     [dispatch, runLocked]
   );
@@ -158,26 +158,23 @@ const ModifyBoard: React.FC = () => {
   );
 
   const handleShip = useCallback(
-    (shipRequest: ShipRequest) => {
-      void runLocked(() =>
+    (shipRequest: ShipRequest): Promise<boolean> =>
+      runLocked(() =>
         dispatch(stockIdentifierIsShiped(shipRequest))
-          .then((response) => {
-            if (response.status === 200) {
-              setModalShow_BatchShip(false);
-            }
-          })
+          .then((response) => response.status === 200)
           .catch((error) => {
             notifyRequestFailed(error);
+            return false;
           })
-      );
-    },
+      ).then((res) => Boolean(res)),
     [dispatch, runLocked]
   );
 
   const handleShipList = useCallback(
     (shipRequests: ShipRequest[]) => {
+      const targetProductNo = queriedProductNo || productInfo.productNo || productNo;
       void runLocked(() =>
-        dispatch(stockIdentifiersAreShiped(productNo, shipRequests))
+        dispatch(stockIdentifiersAreShiped(targetProductNo, shipRequests))
           .then(() => {
             setModalShow_BatchShip(false);
           })
@@ -189,28 +186,36 @@ const ModifyBoard: React.FC = () => {
           })
       );
     },
-    [dispatch, productNo, runLocked]
+    [dispatch, queriedProductNo, productInfo.productNo, productNo, runLocked]
   );
 
   const handleShrink = useCallback(
-    (id: number) => {
-      void runLocked(() =>
-        dispatch(stockIdentifierWaitToShrinkIsTrue(id)).catch((error) => {
-          notifyRequestFailed(error);
-        })
-      );
-    },
+    (id: number): Promise<boolean> =>
+      runLocked(() =>
+        dispatch(stockIdentifierWaitToShrinkIsTrue(id))
+          .then((response) => response.status === 200)
+          .catch((error) => {
+            notifyRequestFailed(error);
+            return false;
+          })
+      ).then((res) => Boolean(res)),
     [dispatch, runLocked]
   );
 
   const handleStockInfoUpdate = useCallback(
-    (updateInfoRequest: UpdateStockInfoRequest) => {
-      void runLocked(() =>
-        dispatch(updateStockInfo(updateInfoRequest)).catch((error) => {
-          notifyRequestFailed(error);
-        })
-      );
-    },
+    (updateInfoRequest: UpdateStockInfoRequest): Promise<boolean> =>
+      runLocked(() =>
+        dispatch(updateStockInfo(updateInfoRequest))
+          .then((response) => response.status === 200)
+          .catch((error) => {
+            if (isRefreshFailure(error)) {
+              notifyRequestFailed(error);
+              return true;
+            }
+            notifyRequestFailed(error);
+            return false;
+          })
+      ).then((res) => Boolean(res)),
     [dispatch, runLocked]
   );
 
