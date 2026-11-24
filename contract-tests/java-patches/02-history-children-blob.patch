@@ -1,0 +1,20 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/models/History.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/models/History.java
+@@ -1,5 +1,6 @@
+ package com.wmstool.wmstool.models;
+ 
++import javax.persistence.Column;
+ import javax.persistence.Entity;
+ import javax.persistence.GeneratedValue;
+ import javax.persistence.GenerationType;
+@@ -14,6 +15,10 @@
+ 
+ 	private Long currentIdentifierId;
+ 
++	// Java-serialized Long[]: 106 + 14n bytes. Hibernate's default TINYBLOB (255) ends at
++	// 10 children; BLOB holds about 4,600. hbm2ddl=update does not change an existing
++	// column: existing databases need ALTER TABLE history MODIFY childrenIdentifierId BLOB.
++	@Column(columnDefinition = "blob")
+ 	private Long[] childrenIdentifierId = new Long[0];
+ 
+ 	private Long rootIdentifierId;

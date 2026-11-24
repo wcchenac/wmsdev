@@ -1,0 +1,32 @@
+{
+  "blank_product_no": {
+    "body": {
+      "inStockRequests[0].productNo": "貨號不可空白"
+    },
+    "status": 400
+  },
+  "blank_quantity": {
+    "body": {
+      "inStockRequests[0].quantity": "長度不可空白"
+    },
+    "status": 400
+  },
+  "db": {
+    "stockidentifier": [],
+    "stockinfo": []
+  },
+  "not_a_list": {
+    "body": null,
+    "status": 400
+  },
+  "sales_forbidden": {
+    "body": {
+      "error": "Forbidden",
+      "message": "Forbidden",
+      "path": "/api/stock/inStocks",
+      "status": 403,
+      "timestamp": "<timestamp>"
+    },
+    "status": 403
+  }
+}

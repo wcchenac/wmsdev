@@ -1,0 +1,88 @@
+{
+  "db": {
+    "product": [
+      {
+        "cName": null,
+        "category": "未分類",
+        "createdAt": "<datetime:datetime>",
+        "id": 1,
+        "isAlert": false,
+        "isBypass": false,
+        "productNo": "CF1001",
+        "quantity": "100.00",
+        "safeQuantity": null,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": "<datetime:datetime>",
+        "whType": null
+      }
+    ],
+    "stockidentifier": [
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 1,
+        "inStockType": "進貨單",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "50",
+        "serialNo": 1,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      },
+      {
+        "adjustment": null,
+        "createdAt": "<datetime:datetime>",
+        "createdBy": "倉管乙",
+        "eliminateDate": null,
+        "eliminateReason": null,
+        "eliminateType": null,
+        "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+        "id": 2,
+        "inStockType": "進貨單",
+        "isExist": true,
+        "isOutStock": false,
+        "lotNo": "L01",
+        "outStockAt": null,
+        "productNo": "CF1001",
+        "quantity": "50",
+        "serialNo": 2,
+        "type": "整支",
+        "unit": "碼",
+        "updatedAt": null,
+        "updatedBy": null,
+        "waitToShrink": false
+      }
+    ],
+    "stockidentifierbacklog": [
+      {
+        "id": 1,
+        "lotNo": "L01",
+        "productNo": "CF1001",
+        "quantity": "50",
+        "serialNo": 3,
+        "type": "整支",
+        "unit": "碼"
+      }
+    ]
+  },
+  "first": {
+    "body": null,
+    "status": 200
+  },
+  "second": {
+    "body": null,
+    "status": 200
+  }
+}

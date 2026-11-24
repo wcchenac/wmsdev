@@ -1,0 +1,35 @@
+[project]
+name = "wmstool-py"
+version = "0.1.0"
+description = "Python (FastAPI) rewrite of the wmstool warehouse backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn==0.34.2",
+    "SQLAlchemy==2.0.40",
+    "PyMySQL==1.1.2",
+    "cryptography==44.0.3",  # PyMySQL needs it for MySQL 8 caching_sha2_password
+    "alembic==1.15.2",
+    "pydantic-settings==2.9.1",
+    "PyJWT==2.10.1",
+    "bcrypt==4.3.0",
+    "openpyxl==3.1.5",
+    "python-multipart==0.0.20",
+    "pymssql==2.3.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.4.2", "httpx==0.28.1", "xlrd==2.0.2", "xlwt==1.3.0"]
+# python -m app.template_check: reads the legacy .xls templates at cutover
+tools = ["xlrd==2.0.2"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"

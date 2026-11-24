@@ -1,0 +1,51 @@
+{
+  "alg_none": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  },
+  "deleted_user": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  },
+  "expired": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  },
+  "lowercase_bearer": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  },
+  "no_space": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  },
+  "other_key": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  },
+  "unimplemented_path_no_token": {
+    "body": {
+      "password": "無效的密碼",
+      "username": "無效的員工編號"
+    },
+    "status": 401
+  }
+}

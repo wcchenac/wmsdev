@@ -1,0 +1,37 @@
+# Run the contract tests against the Python rewrite instead of the Java jar:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.python.yml up -d --wait --build
+#
+# The schema comes from wmstool-py's Alembic baseline instead of Hibernate.
+services:
+  backend:
+    image: wmstool-py:contract
+    build:
+      context: ../wmstool-py
+    command: !reset null
+    working_dir: /app
+    # The image runs as uid 1000. This mount must be writable by that uid and by
+    # the host user that seeds templates (chmod -R a+rwX runtime/files).
+    volumes: !override
+      - ./runtime/files:/data/files
+    environment:
+      TZ: Asia/Taipei
+      EXCEL_DIR: /data/files/excels
+      PICTURE_DIR: /data/files/pictures
+      WMS_DATABASE_URL: mysql+pymysql://wms:wms@mysql:3306/wms?charset=utf8mb4
+      ERP_DATABASE_URL: mssql+pymssql://sa:Contract-Test-1@erp:1433/PILOT0010
+      # Same test-only value as jwt.jwtSecret in config/application.properties.
+      JWT_SECRET: Y29udHJhY3QtdGVzdC1vbmx5LWp3dC1zZWNyZXQtZm9yLXdtc3Rvb2wtaHM1MTItbmVlZHMtNjQtYnl0ZXMtLS0tLQ==
+    healthcheck:
+      # python:3.12-slim has no curl. Any HTTP answer from the login route means the app is up.
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import urllib.request, urllib.error
+          req = urllib.request.Request("http://127.0.0.1:8080/api/user/login", data=b"{}", headers={"Content-Type": "application/json"})
+          try:
+              urllib.request.urlopen(req, timeout=2)
+          except urllib.error.HTTPError:
+              pass

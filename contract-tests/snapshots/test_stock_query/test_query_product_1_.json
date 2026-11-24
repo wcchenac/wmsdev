@@ -1,0 +1,269 @@
+{
+  "CF1001": {
+    "body": {
+      "information": {
+        "addType": "可追加",
+        "cCCCODE": "5208.11",
+        "cCost": "85",
+        "cName": "精梳棉布",
+        "descrip": "40支精梳",
+        "eNAME": "Combed Cotton",
+        "eSPEC": "58in",
+        "packDesc": "整支約50碼",
+        "picture": "CF1001.jpg",
+        "prodDesc": "棉布系列",
+        "productNo": "CF1001",
+        "spec": "58吋",
+        "supp": "S001",
+        "suppName": "大華紡織",
+        "userField1": "夏季"
+      },
+      "nextProduct": "CF1002",
+      "prevProduct": null,
+      "productList": [
+        {
+          "alert": false,
+          "bypass": false,
+          "cName": null,
+          "category": "未分類",
+          "productNo": "CF1001",
+          "quantity": "12",
+          "safeQuantity": null,
+          "type": "板卷",
+          "unit": "碼",
+          "whType": null
+        },
+        {
+          "alert": false,
+          "bypass": false,
+          "cName": null,
+          "category": "未分類",
+          "productNo": "CF1001",
+          "quantity": "98.50",
+          "safeQuantity": null,
+          "type": "整支",
+          "unit": "碼",
+          "whType": null
+        }
+      ],
+      "result": [
+        {
+          "color": 3,
+          "defect": "",
+          "id": 1,
+          "record": "",
+          "remark": "A區",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 1,
+            "inStockType": "進貨單",
+            "lotNo": "L01",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "50",
+            "serialNo": 1,
+            "type": "整支",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        },
+        {
+          "color": 3,
+          "defect": "污",
+          "id": 2,
+          "record": "",
+          "remark": "A區",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 2,
+            "inStockType": "進貨單",
+            "lotNo": "L01",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "48.5",
+            "serialNo": 1,
+            "type": "整支",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        },
+        {
+          "color": 0,
+          "defect": "",
+          "id": 3,
+          "record": "邊破",
+          "remark": "",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 3,
+            "inStockType": "進貨單",
+            "lotNo": "L02",
+            "outStock": false,
+            "productNo": "CF1001",
+            "quantity": "12",
+            "serialNo": 1,
+            "type": "板卷",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      ]
+    },
+    "status": 200
+  },
+  "CF1003": {
+    "body": {
+      "information": {
+        "addType": "無貨",
+        "cCCCODE": "6004.10",
+        "cCost": "210",
+        "cName": "彈性針織",
+        "descrip": "四面彈",
+        "eNAME": "Stretch Knit",
+        "eSPEC": "60in",
+        "packDesc": "每卷約25公斤",
+        "picture": "無資料",
+        "prodDesc": "針織系列",
+        "productNo": "CF1003",
+        "spec": "60吋",
+        "supp": "S001",
+        "suppName": "大華紡織",
+        "userField1": "運動"
+      },
+      "nextProduct": null,
+      "prevProduct": "CF1002",
+      "productList": [
+        {
+          "alert": false,
+          "bypass": false,
+          "cName": null,
+          "category": "未分類",
+          "productNo": "CF1003",
+          "quantity": "25",
+          "safeQuantity": null,
+          "type": "板卷",
+          "unit": "公斤",
+          "whType": null
+        }
+      ],
+      "result": [
+        {
+          "color": 0,
+          "defect": "",
+          "id": 5,
+          "record": "",
+          "remark": "",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 5,
+            "inStockType": "進貨單",
+            "lotNo": "L11",
+            "outStock": false,
+            "productNo": "CF1003",
+            "quantity": "25",
+            "serialNo": 1,
+            "type": "板卷",
+            "unit": "公斤",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      ]
+    },
+    "status": 200
+  },
+  "cf1002": {
+    "body": {
+      "information": {
+        "addType": "不可追加",
+        "cCCCODE": "5309.11",
+        "cCost": "120",
+        "cName": "亞麻胚布",
+        "descrip": "胚布未染",
+        "eNAME": "Linen Greige",
+        "eSPEC": "56in",
+        "packDesc": "整支約40碼",
+        "picture": "無資料",
+        "prodDesc": "麻布系列",
+        "productNo": "CF1002",
+        "spec": "56吋",
+        "supp": "S002",
+        "suppName": "永信織造",
+        "userField1": "無資料"
+      },
+      "nextProduct": "CF1003",
+      "prevProduct": "CF1001",
+      "productList": [
+        {
+          "alert": false,
+          "bypass": false,
+          "cName": null,
+          "category": "未分類",
+          "productNo": "CF1002",
+          "quantity": "40",
+          "safeQuantity": null,
+          "type": "整支",
+          "unit": "碼",
+          "whType": null
+        }
+      ],
+      "result": [
+        {
+          "color": 0,
+          "defect": "",
+          "id": 4,
+          "record": "",
+          "remark": "",
+          "shrinkAt": null,
+          "stockIdentifier": {
+            "adjustment": null,
+            "eliminateDate": null,
+            "eliminateReason": null,
+            "eliminateType": null,
+            "exist": true,
+            "firstInStockAt": "<TODAY:yyyy-MM-dd>",
+            "id": 4,
+            "inStockType": "進貨單",
+            "lotNo": "L07",
+            "outStock": false,
+            "productNo": "CF1002",
+            "quantity": "40",
+            "serialNo": 1,
+            "type": "整支",
+            "unit": "碼",
+            "waitToShrink": false
+          },
+          "storedAt": null
+        }
+      ]
+    },
+    "status": 200
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "assemble/AS2026110001": {
+    "body": {
+      "currentStatus": {
+        "CF1002": {
+          "整支": {
+            "quantity": "38.00",
+            "unit": "碼"
+          },
+          "板卷": {
+            "quantity": "6.00",
+            "unit": "碼"
+          }
+        }
+      },
+      "waitHandleStatus": {
+        "CF1002": {
+          "整支": {
+            "quantity": "38.00",
+            "unit": "碼"
+          },
+          "板卷": {
+            "quantity": "6.00",
+            "unit": "碼"
+          }
+        }
+      }
+    },
+    "status": 200
+  },
+  "customerReturn/CR2026110001": {
+    "body": {
+      "currentStatus": {
+        "CF1001": {
+          "板卷": {
+            "quantity": "8.00",
+            "unit": "碼"
+          }
+        }
+      },
+      "waitHandleStatus": {
+        "CF1001": {
+          "板卷": {
+            "quantity": "8.00",
+            "unit": "碼"
+          }
+        }
+      }
+    },
+    "status": 200
+  },
+  "inStock/IN2026110001": {
+    "body": {
+      "currentStatus": {
+        "CF1001": {
+          "整支": {
+            "quantity": "100.00",
+            "unit": "碼"
+          },
+          "板卷": {
+            "quantity": "12.00",
+            "unit": "碼"
+          }
+        },
+        "CF1002": {
+          "整支": {
+            "quantity": "40.00",
+            "unit": "碼"
+          }
+        }
+      },
+      "waitHandleStatus": {
+        "CF1001": {
+          "整支": {
+            "quantity": "100.00",
+            "unit": "碼"
+          },
+          "板卷": {
+            "quantity": "12.00",
+            "unit": "碼"
+          }
+        },
+        "CF1002": {
+          "整支": {
+            "quantity": "40.00",
+            "unit": "碼"
+          }
+        }
+      }
+    },
+    "status": 200
+  },
+  "inStock/IN2026110002": {
+    "body": {
+      "currentStatus": {
+        "CF1003": {
+          "板卷": {
+            "quantity": "25.00",
+            "unit": "公斤"
+          }
+        }
+      },
+      "waitHandleStatus": {
+        "CF1003": {
+          "板卷": {
+            "quantity": "25.00",
+            "unit": "公斤"
+          }
+        }
+      }
+    },
+    "status": 200
+  },
+  "outStockToStore/OS2026110001": {
+    "body": [
+      {
+        "addType": null,
+        "cCCCODE": "5208.11",
+        "cCost": null,
+        "cName": "精梳棉布",
+        "descrip": null,
+        "eNAME": null,
+        "eSPEC": null,
+        "packDesc": "整支約50碼",
+        "picture": null,
+        "prodDesc": null,
+        "productNo": "CF1001",
+        "spec": "58吋",
+        "supp": null,
+        "suppName": null,
+        "userField1": null
+      },
+      {
+        "addType": null,
+        "cCCCODE": "6004.10",
+        "cCost": null,
+        "cName": "彈性針織",
+        "descrip": null,
+        "eNAME": null,
+        "eSPEC": null,
+        "packDesc": "每卷約25公斤",
+        "picture": null,
+        "prodDesc": null,
+        "productNo": "CF1003",
+        "spec": "60吋",
+        "supp": null,
+        "suppName": null,
+        "userField1": null
+      }
+    ],
+    "status": 200
+  },
+  "storeReturn/SR2026110001": {
+    "body": {
+      "currentStatus": {
+        "CF1003": {
+          "板卷": {
+            "quantity": "3.25",
+            "unit": "公斤"
+          }
+        }
+      },
+      "waitHandleStatus": {
+        "CF1003": {
+          "板卷": {
+            "quantity": "3.25",
+            "unit": "公斤"
+          }
+        }
+      }
+    },
+    "status": 200
+  },
+  "unknown_order": {
+    "body": {
+      "currentStatus": {},
+      "waitHandleStatus": {}
+    },
+    "status": 200
+  },
+  "unknown_type": {
+    "body": null,
+    "status": 400
+  }
+}

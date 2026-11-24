@@ -1,0 +1,12 @@
+{
+  "by_root_id": {
+    "body": {
+      "error": "Internal Server Error",
+      "message": "<server error>",
+      "path": "/api/stock/queryStock/history/1",
+      "status": 500,
+      "timestamp": "<timestamp>"
+    },
+    "status": 500
+  }
+}

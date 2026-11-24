@@ -1,0 +1,31 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/utilities/OutStockRequestExcelHelper.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/utilities/OutStockRequestExcelHelper.java
+@@ -51,6 +51,8 @@
+ 				+ fileNameNoDir;
+ 		File f = new File(fileFullName);
+ 
++		// A pull list of the same second already exists: keep it, the new rows are
++		// appended after its rows instead of replacing them
+ 		if (!f.exists()) {
+ 			f.getParentFile().mkdirs();
+ 			try {
+@@ -58,14 +60,14 @@
+ 			} catch (IOException e) {
+ 				e.printStackTrace();
+ 			}
++
++			// Output template content to certain file
++			FileOutputStream fos = new FileOutputStream(f);
++			workbook.write(fos);
++			fos.close();
+ 		}
+ 
+-		// Output template content to certain file
+-		FileOutputStream fos = new FileOutputStream(f);
+-		workbook.write(fos);
+-
+ 		workbook.close();
+-		fos.close();
+ 
+ 		return fileNameNoDir;
+ 	}

@@ -1,0 +1,26 @@
+--- a/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/CompareStockFunction.java
++++ b/wmstool/src/main/java/com/wmstool/wmstool/services/stockService/subFunctions/CompareStockFunction.java
+@@ -43,7 +43,6 @@
+ 	 */
+ 	public void stockFullyComparison() throws IOException {
+ 		LocalDate now = LocalDate.now();
+-		String fileName = fullStockComparisonExcelHelper.createNewFile(now);
+ 
+ 		// Get all product quantity from 1st db
+ 		List<Product> firstDBResList = productRepository.findAll();
+@@ -181,11 +180,10 @@
+ 			}));
+ 		}
+ 
+-		try {
+-			fullStockComparisonExcelHelper.outputComparisonResult(compareResult, now, fileName);
+-		} catch (Exception e) {
+-			e.printStackTrace();
+-		}
++		// Only now, with the comparison done, replace today's report; a failure while
++		// writing it reaches the controller (400) instead of being swallowed
++		String fileName = fullStockComparisonExcelHelper.createNewFile(now);
++		fullStockComparisonExcelHelper.outputComparisonResult(compareResult, now, fileName);
+ 	}
+ 
+ 	/**
