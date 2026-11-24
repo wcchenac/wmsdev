@@ -80,6 +80,7 @@ const ShipModal: React.FC<ShipModalProps> = ({
       </Modal.Header>
       <Modal.Body>
         <ShipModalBody
+          disabled={isLoading}
           outStockReason={outStockReason}
           onChange={onChange}
           onReansonButtonChange={onReansonButtonChange}

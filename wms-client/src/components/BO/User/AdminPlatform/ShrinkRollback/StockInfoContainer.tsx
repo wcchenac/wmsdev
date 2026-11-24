@@ -43,7 +43,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
             <StockInfo
               isLoading={isLoading}
               object={object}
-              key={index}
+              key={object.stockInfo.stockIdentifier?.id ?? index}
               handleShrinkRollback={handleShrinkRollback}
             />
           ))}

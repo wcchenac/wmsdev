@@ -232,16 +232,37 @@ describe('API concurrent write deduplication', () => {
     const fdB = new FormData();
     fdB.append('blob', new Blob(['longer-payload']));
 
+    const buf1 = new Uint8Array([1, 2, 3, 4]);
+    const buf2 = new Uint8Array([1, 2, 3, 9]);
+
     await Promise.all([
       API.patch('/api/stock/shipStock', { stockIdentifierId: 1, reason: '中壢' }),
       API.patch('/api/stock/shipStock', { stockIdentifierId: 2, reason: '中壢' }),
       API.post('/api/file/import/inStockFile', fdA),
       API.post('/api/file/import/inStockFile', fdB),
+      API.putForm('/api/stock/buf', buf1),
+      API.patchForm('/api/stock/buf', buf2),
       API.get('/api/stock/queryStock/query/1/CF1001'),
       API.get('/api/stock/queryStock/query/1/CF1001'),
     ]);
 
-    expect(adapter).toHaveBeenCalledTimes(6);
+    expect(adapter).toHaveBeenCalledTimes(8);
+  });
+
+  test('rejects asynchronously rather than throwing synchronously when key serialization fails', async () => {
+    const adapter = vi.fn();
+    API.defaults.adapter = adapter as unknown as typeof API.defaults.adapter;
+
+    const badConfig: Record<string, unknown> = { method: 'post' };
+    Object.defineProperty(badConfig, 'url', {
+      enumerable: true,
+      get() {
+        throw new Error('unreadable url getter');
+      },
+    });
+
+    await expect(API.request(badConfig)).rejects.toThrow('unreadable url getter');
+    expect(adapter).not.toHaveBeenCalled();
   });
 
   test('releases the lock if the in-flight write fails', async () => {
@@ -268,9 +289,16 @@ describe('API concurrent write deduplication', () => {
 describe('requestDedup helpers', () => {
   test('normalizes URL slashes, query parameters, object key order, DAG references, and special types', () => {
     expect(
-      buildWriteRequestKey({ method: 'post', baseURL: 'http://localhost:8080/', url: 'api/stock/test?b=2&a=1', data: { b: 2, a: 1 } })
+      buildWriteRequestKey({ method: 'post', baseURL: 'http://localhost:8080/', url: 'api/stock/test?b=2&a=1#frag', data: { b: 2, a: 1 } })
     ).toBe(
-      buildWriteRequestKey({ method: 'POST', baseURL: 'http://localhost:8080', url: '/api/stock/test?a=1&b=2', data: { a: 1, b: 2 } })
+      buildWriteRequestKey({ method: 'POST', baseURL: 'http://localhost:8080', url: '/api/stock/test', params: { a: '1', b: 2 }, data: { a: 1, b: 2 } })
+    );
+
+    // Same-length ArrayBuffers / TypedArrays with different bytes produce distinct keys
+    expect(
+      buildWriteRequestKey({ method: 'post', url: '/api/bin', data: new Uint8Array([1, 2, 3, 4]).buffer })
+    ).not.toBe(
+      buildWriteRequestKey({ method: 'post', url: '/api/bin', data: new Uint8Array([1, 2, 3, 5]).buffer })
     );
 
     const shared = { x: 1 };

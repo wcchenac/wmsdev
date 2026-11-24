@@ -43,6 +43,15 @@ function safeOwnKeys(obj: object): string[] {
   }
 }
 
+function hashBytes(bytes: Uint8Array): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < bytes.length; i += 1) {
+    hash ^= bytes[i];
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16);
+}
+
 function stableSerialize(value: unknown, ancestors = new WeakSet<object>()): string {
   if (value === undefined) return 'undefined';
   if (typeof value === 'bigint') return `BigInt(${value.toString()})`;
@@ -57,10 +66,11 @@ function stableSerialize(value: unknown, ancestors = new WeakSet<object>()): str
     return serializeBlobLike(value);
   }
   if (value instanceof ArrayBuffer) {
-    return `ArrayBuffer(${value.byteLength})`;
+    return `ArrayBuffer(${value.byteLength}:${hashBytes(new Uint8Array(value))})`;
   }
   if (ArrayBuffer.isView(value)) {
-    return `${value.constructor?.name ?? 'ArrayBufferView'}(${value.byteLength})`;
+    const viewBytes = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    return `${value.constructor?.name ?? 'ArrayBufferView'}(${value.byteLength}:${hashBytes(viewBytes)})`;
   }
   if (typeof FormData !== 'undefined' && value instanceof FormData) {
     const entries: string[] = [];
@@ -123,15 +133,49 @@ function stableSerialize(value: unknown, ancestors = new WeakSet<object>()): str
   }
 }
 
+function collectQueryPairs(source: unknown): string[] | null {
+  if (source === undefined || source === null) {
+    return [];
+  }
+  if (typeof URLSearchParams !== 'undefined' && source instanceof URLSearchParams) {
+    return Array.from(source.entries()).map(
+      ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+    );
+  }
+  if (
+    typeof source === 'object' &&
+    !Array.isArray(source) &&
+    !(source instanceof Date) &&
+    !(source instanceof RegExp) &&
+    !(source instanceof Map) &&
+    !(source instanceof Set)
+  ) {
+    const pairs: string[] = [];
+    const obj = source as Record<string, unknown>;
+    for (const key of safeOwnKeys(obj)) {
+      const val = obj[key];
+      if (val === undefined || val === null) {
+        continue;
+      }
+      if (typeof val === 'object') {
+        return null;
+      }
+      pairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(val))}`);
+    }
+    return pairs;
+  }
+  return null;
+}
+
 function normalizeUrlAndQuery(
   baseURL: string | undefined,
   rawUrl: string | undefined,
   params: unknown
 ): { normalizedUrl: string; queryKey: string } {
-  const urlStr = rawUrl ?? '';
-  const qIndex = urlStr.indexOf('?');
-  const pathPart = qIndex === -1 ? urlStr : urlStr.slice(0, qIndex);
-  const inlineQuery = qIndex === -1 ? '' : urlStr.slice(qIndex + 1);
+  const withoutHash = (rawUrl ?? '').split('#', 1)[0];
+  const qIndex = withoutHash.indexOf('?');
+  const pathPart = qIndex === -1 ? withoutHash : withoutHash.slice(0, qIndex);
+  const inlineQuery = qIndex === -1 ? '' : withoutHash.slice(qIndex + 1);
 
   let normalizedUrl: string;
   if (/^(?:[a-z][a-z\d+\-.]*:)?\/\//i.test(pathPart)) {
@@ -146,15 +190,21 @@ function normalizeUrlAndQuery(
     }
   }
 
-  const inlineParams = inlineQuery
-    ? Array.from(new URLSearchParams(inlineQuery).entries())
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .sort()
-        .join('&')
-    : '';
+  const inlinePairs = inlineQuery
+    ? Array.from(new URLSearchParams(inlineQuery).entries()).map(
+        ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
+      )
+    : [];
 
+  const flatParamPairs = collectQueryPairs(params);
+  if (flatParamPairs !== null) {
+    const merged = [...inlinePairs, ...flatParamPairs].sort().join('&');
+    return { normalizedUrl, queryKey: merged };
+  }
+
+  inlinePairs.sort();
   const extraParams = params !== undefined ? stableSerialize(params) : '';
-  const queryKey = [inlineParams, extraParams].filter(Boolean).join('&');
+  const queryKey = [inlinePairs.join('&'), extraParams].filter(Boolean).join('&');
   return { normalizedUrl, queryKey };
 }
 

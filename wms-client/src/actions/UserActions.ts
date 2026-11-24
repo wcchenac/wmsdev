@@ -98,6 +98,7 @@ export const login =
 
       return res;
     } catch (err) {
+      // login() communicates errors via GET_Errors state rather than rejecting callers.
       if (isDuplicateRequest(err)) {
         return;
       }

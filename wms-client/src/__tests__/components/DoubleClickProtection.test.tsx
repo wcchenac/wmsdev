@@ -441,6 +441,29 @@ describe('Single-user double-click protection across screens', () => {
     expect(infoDialog).toBeInTheDocument();
     expect(infoDialog.querySelector<HTMLInputElement>('input[name="remark"]')!.value).toBe('KEEP-ME');
     expect(infoConfirm).toBeEnabled();
+    fireEvent.click(within(infoDialog).getByRole('button', { name: '取消編輯' }));
+    fireEvent.click(within(infoDialog).getByRole('button', { name: 'Close' }));
+
+    // Row 減肥 and BatchShipModal block double clicks
+    const shrinkBtn = screen.getByRole('button', { name: '減肥' });
+    fireEvent.click(shrinkBtn);
+    fireEvent.click(shrinkBtn);
+    expect(API.patch).toHaveBeenCalledTimes(3);
+    await act(async () => {
+      rejectPatch(new Error('500'));
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '批量出庫' }));
+    const batchDialog = await screen.findByRole('dialog');
+    fireEvent.click(within(batchDialog).getByRole('checkbox', { name: /Select row/i }));
+    fireEvent.click(within(batchDialog).getByRole('button', { name: '中壢' }));
+    const batchSave = within(batchDialog).getByRole('button', { name: '儲存選取項目' });
+    fireEvent.click(batchSave);
+    fireEvent.click(batchSave);
+    expect(API.patch).toHaveBeenCalledTimes(4);
+    await act(async () => {
+      rejectPatch(new Error('500'));
+    });
   });
 
   test('OutStockModal blocks synchronous double clicks and Enter reload', async () => {
@@ -460,13 +483,20 @@ describe('Single-user double-click protection across screens', () => {
       />
     );
     const dialog = screen.getByRole('dialog');
+    const form = dialog.querySelector('form')!;
+    // Empty reason + Enter must be prevented and not submit
+    expect(fireEvent.keyDown(form, { key: 'Enter', code: 'Enter' })).toBe(false);
+    expect(handleCreate).not.toHaveBeenCalled();
+
     fireEvent.change(dialog.querySelector('input[name=outStockReason]')!, {
       target: { value: '中壢', name: 'outStockReason' },
     });
     const btn = within(dialog).getByRole('button', { name: '儲存至明細' });
     fireEvent.click(btn);
     fireEvent.click(btn);
+    fireEvent.keyDown(form, { key: 'Enter', code: 'Enter' });
     expect(handleCreate).toHaveBeenCalledTimes(1);
+    expect(dialog.querySelector('input[name=outStockReason]')).toBeDisabled();
 
     await act(async () => {
       resolveSubmit();
@@ -555,16 +585,26 @@ describe('Single-user double-click protection across screens', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
-  test('UserManagement keeps EditModal open on failure and disables controls while loading', async () => {
-    vi.mocked(API.get).mockResolvedValue({
-      status: 200,
-      data: [{ employeeId: 'E001', fullName: '王小明', role: '業務' }],
-    });
+  test('UserManagement keeps EditModal open on failure and blocks double delete & list load', async () => {
+    let resolveGet!: (val: { status: number; data: unknown }) => void;
+    vi.mocked(API.get).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveGet = resolve;
+        })
+    );
     let rejectPatch!: (err: Error) => void;
     vi.mocked(API.patch).mockImplementation(
       () =>
         new Promise((_resolve, reject) => {
           rejectPatch = reject;
+        })
+    );
+    let resolveDelete!: (val: { status: number; data: unknown }) => void;
+    vi.mocked(API.delete).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveDelete = resolve;
         })
     );
 
@@ -573,8 +613,16 @@ describe('Single-user double-click protection across screens', () => {
         <UserManagement />
       </Provider>
     );
+    const loadBtn = screen.getByRole('button', { name: '讀取員工清單' });
+    fireEvent.click(loadBtn);
+    fireEvent.click(loadBtn);
+    expect(API.get).toHaveBeenCalledTimes(1);
+    expect(loadBtn).toBeDisabled();
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '讀取員工清單' }));
+      resolveGet({
+        status: 200,
+        data: [{ employeeId: 'E001', fullName: '王小明', role: '業務' }],
+      });
     });
 
     fireEvent.click(within(screen.getByTestId('row-E001')).getByRole('button', { name: '編輯' }));
@@ -597,6 +645,19 @@ describe('Single-user double-click protection across screens', () => {
     expect(dialog).toBeInTheDocument();
     expect(dialog.querySelector<HTMLInputElement>('input[name="newPassword"]')!.value).toBe('secret123');
     expect(within(dialog).getByRole('button', { name: '儲存' })).toBeEnabled();
+    fireEvent.click(within(dialog).getByRole('button', { name: '取消' }));
+
+    // ConfirmDialog double delete
+    fireEvent.click(within(screen.getByTestId('row-E001')).getByRole('button', { name: '刪除' }));
+    const delDialog = screen.getByRole('dialog');
+    const delBtn = within(delDialog).getByRole('button', { name: '刪除' });
+    fireEvent.click(delBtn);
+    fireEvent.click(delBtn);
+    expect(API.delete).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      resolveDelete({ status: 200, data: '' });
+    });
+    expect(loadBtn).toBeEnabled();
   });
 
   test('InStockRollback and ShrinkRollback lock RollbackModal and block double submits', async () => {
@@ -695,7 +756,7 @@ describe('Single-user double-click protection across screens', () => {
     view2.unmount();
   });
 
-  test('OutStockRequestList disables reset/save buttons while mutating and Login ignores double submits & DuplicateRequestError', async () => {
+  test('OutStockRequestList disables reset/save, refreshes after cancelShip/update, and Login ignores double submits & DuplicateRequestError', async () => {
     const today = new Date().toJSON().slice(0, 10);
     vi.mocked(API.get).mockResolvedValue({
       status: 200,
@@ -705,7 +766,7 @@ describe('Single-user double-click protection across screens', () => {
           [today]: [
             {
               id: 11, productNo: 'CF1001', lotNo: 'L1', type: '整支', quantity: 5, unit: '碼',
-              reason: '中壢', outStockType: 2, stockIdentifierId: 3, fileName: '', handled: false, deleted: false,
+              reason: '中壢', outStockType: 0, stockIdentifierId: 3, fileName: '', handled: false, deleted: false,
               requestFrom: '中壢', createdBy: '林倉管',
             },
           ],
@@ -738,6 +799,22 @@ describe('Single-user double-click protection across screens', () => {
     await act(async () => {
       resolvePatch({ status: 200, data: {} });
     });
+    await act(async () => {});
+    expect(API.get).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('button', { name: /頁面初始化/ })).toBeEnabled();
+
+    // Cancel-ship ConfirmModal (outStockType: 0) double click + post-mutation refresh
+    fireEvent.click(screen.getByRole('button', { name: '取消出貨' }));
+    const cancelShipDialog = await screen.findByRole('dialog');
+    const confirmCancelShip = within(cancelShipDialog).getByRole('button', { name: '確認取消' });
+    fireEvent.click(confirmCancelShip);
+    fireEvent.click(confirmCancelShip);
+    expect(API.patch).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      resolvePatch({ status: 200, data: {} });
+    });
+    await act(async () => {});
+    expect(API.get).toHaveBeenCalledTimes(3);
     listView.unmount();
 
     // Login double submit & DuplicateRequestError suppression

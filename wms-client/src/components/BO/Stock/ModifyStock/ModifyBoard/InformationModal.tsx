@@ -242,6 +242,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                     className="form-select"
                     name="color"
                     value={stockInfo.color}
+                    disabled={isLoading}
                     onChange={handleInfoChange}
                   >
                     {ColorOptions.map((color, idx) => (
@@ -260,6 +261,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                     components={animatedComponents}
                     value={stockInfo.defect}
                     isMulti
+                    isDisabled={isLoading}
                     name="defect"
                     options={[...DefectOptions]}
                     onChange={handleDefectChange}
@@ -277,6 +279,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                 placeholder="註解"
                 name="remark"
                 value={stockInfo.remark || ""}
+                disabled={isLoading}
                 onChange={handleInfoChange}
               />
             </div>
@@ -290,6 +293,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
                 placeholder="記錄"
                 name="record"
                 value={stockInfo.record || ""}
+                disabled={isLoading}
                 onChange={handleInfoChange}
               />
             </div>

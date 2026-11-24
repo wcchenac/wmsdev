@@ -52,6 +52,8 @@ const InStockRollback: React.FC = () => {
   const handleOrderQuerySubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      // Empty inputs are gated by the disabled submit button; allowing direct form submit lets
+      // request-failure handling treat empty queries consistently.
       void runLocked(() =>
         dispatch(getInStockRollbackList(orderType, orderNo))
           .then((response: { status: number }) => {

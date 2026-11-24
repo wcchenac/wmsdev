@@ -2,12 +2,14 @@ import React, { ChangeEvent, MouseEvent } from "react";
 import { StoreList, OutStockOtherReason } from "../../../../enums/Enums";
 
 interface ShipModalBodyProps {
+  disabled?: boolean;
   outStockReason: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onReansonButtonChange: (e: MouseEvent<HTMLButtonElement>) => void;
 }
 
 const ShipModalBody: React.FC<ShipModalBodyProps> = ({
+  disabled = false,
   outStockReason,
   onChange,
   onReansonButtonChange,
@@ -25,6 +27,7 @@ const ShipModalBody: React.FC<ShipModalBodyProps> = ({
             placeholder="請輸入出庫原因"
             className="form-control"
             value={outStockReason}
+            disabled={disabled}
             onChange={onChange}
           />
         </div>
@@ -37,6 +40,7 @@ const ShipModalBody: React.FC<ShipModalBodyProps> = ({
               className="btn btn-outline-info me-1 mb-1"
               key={index}
               value={store}
+              disabled={disabled}
               onClick={onReansonButtonChange}
             >
               {store}
@@ -49,6 +53,7 @@ const ShipModalBody: React.FC<ShipModalBodyProps> = ({
           <button
             className="btn btn-secondary"
             value=""
+            disabled={disabled}
             onClick={onReansonButtonChange}
           >
             重置
@@ -61,6 +66,7 @@ const ShipModalBody: React.FC<ShipModalBodyProps> = ({
               className="btn btn-outline-info me-1 mb-1"
               key={index}
               value={reason}
+              disabled={disabled}
               onClick={onReansonButtonChange}
             >
               {reason}

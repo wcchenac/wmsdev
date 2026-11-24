@@ -120,17 +120,18 @@ const BatchShipModal: React.FC<BatchShipModalProps> = ({
           批量出庫
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body style={isLoading ? { pointerEvents: "none", opacity: 0.7 } : undefined}>
+      <Modal.Body>
         <div className="row g-0">
           <div className="col-5">
             <ShipModalBody
+              disabled={isLoading}
               outStockReason={outStockReason}
               onChange={onChange}
               onReansonButtonChange={handleReasonButton}
             />
           </div>
           <div className="col-7">
-            <div style={{ height: 400, width: "100%" }}>
+            <div style={{ height: 400, width: "100%", ...(isLoading ? { pointerEvents: "none", opacity: 0.7 } : undefined) }}>
               <DataGrid
                 rows={rows}
                 columns={columns}

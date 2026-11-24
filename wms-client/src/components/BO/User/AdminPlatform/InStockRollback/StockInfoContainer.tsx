@@ -33,12 +33,12 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
           </tr>
         </thead>
         <tbody>
-          {Object.keys(result).map((productNo, index) => (
+          {Object.keys(result).map((productNo) => (
             <StockInfo
               isLoading={isLoading}
               productNo={productNo}
               list={result[productNo]}
-              key={index}
+              key={productNo}
               handleInStockRollback={handleInStockRollback}
             />
           ))}
