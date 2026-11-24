@@ -1,7 +1,8 @@
-import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { toast } from 'react-toastify';
 import store from '../store';
 import { SET_Current_User } from '../types';
+import { DuplicateRequestError, buildWriteRequestKey } from './requestDedup';
 
 declare global {
     interface Window {
@@ -59,7 +60,7 @@ const LOGIN_URL = '/api/user/login';
 /** Set once the session-expired message is up and /login is on its way. */
 let redirectingToLogin = false;
 
-// Response interceptor for error handling
+// Response interceptor for error handling (kept at handlers[0] for session-expiry handling)
 API.interceptors.response.use(
     (response: AxiosResponse) => response,
     (error: AxiosError) => {
@@ -90,5 +91,76 @@ API.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+const inFlightWrites = new Set<string>();
+
+function runDeduplicatedWrite<R>(
+    config: AxiosRequestConfig,
+    execute: () => Promise<R>
+): Promise<R> {
+    const key = buildWriteRequestKey({
+        baseURL: API.defaults.baseURL,
+        ...config,
+    });
+    if (key === null) {
+        return execute();
+    }
+    if (inFlightWrites.has(key)) {
+        return Promise.reject(new DuplicateRequestError());
+    }
+    inFlightWrites.add(key);
+    let promise: Promise<R>;
+    try {
+        promise = execute();
+    } catch (err) {
+        inFlightWrites.delete(key);
+        return Promise.reject(err);
+    }
+    return Promise.resolve(promise).finally(() => {
+        inFlightWrites.delete(key);
+    });
+}
+
+// Wrap write-capable Axios shorthands directly (axios.create binds each method to its internal context)
+// so concurrent identical mutations are blocked synchronously and always released on settlement.
+const baseRequest = API.request.bind(API);
+API.request = (function deduplicatedRequest<T = unknown, R = AxiosResponse<T>, D = unknown>(
+    config: AxiosRequestConfig<D>
+) {
+    return runDeduplicatedWrite(config, () => baseRequest<T, R, D>(config));
+}) as typeof API.request;
+
+const wrapDataWrite = (
+    method: 'post' | 'put' | 'patch',
+    key: 'post' | 'put' | 'patch' | 'postForm' | 'putForm' | 'patchForm'
+) => {
+    const baseFn = API[key].bind(API);
+    API[key] = (function <T = unknown, R = AxiosResponse<T>, D = unknown>(
+        url: string,
+        data?: D,
+        config?: AxiosRequestConfig<D>
+    ) {
+        return runDeduplicatedWrite({ ...config, method, url, data }, () =>
+            baseFn<T, R, D>(url, data, config)
+        );
+    }) as typeof API[typeof key];
+};
+
+wrapDataWrite('post', 'post');
+wrapDataWrite('put', 'put');
+wrapDataWrite('patch', 'patch');
+wrapDataWrite('post', 'postForm');
+wrapDataWrite('put', 'putForm');
+wrapDataWrite('patch', 'patchForm');
+
+const baseDelete = API.delete.bind(API);
+API.delete = (function <T = unknown, R = AxiosResponse<T>, D = unknown>(
+    url: string,
+    config?: AxiosRequestConfig<D>
+) {
+    return runDeduplicatedWrite({ ...config, method: 'delete', url }, () =>
+        baseDelete<T, R, D>(url, config)
+    );
+}) as typeof API.delete;
 
 export default API;

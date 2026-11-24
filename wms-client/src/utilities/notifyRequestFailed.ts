@@ -1,4 +1,5 @@
 import { toast } from "react-toastify";
+import { isDuplicateRequest } from "./requestDedup";
 
 export const REQUEST_FAILED_MESSAGE = "操作失敗，請稍後再試";
 
@@ -80,8 +81,9 @@ export function isSessionExpired(error: unknown): boolean {
  * REQUEST_FAILED_MESSAGE.
  */
 export function notifyRequestFailed(error: unknown): void {
-  // API.ts already tells the user the session expired and sends them to /login.
-  if (isSessionExpired(error)) {
+  // API.ts already tells the user the session expired and sends them to /login,
+  // and silently blocks concurrent duplicate write submissions.
+  if (isSessionExpired(error) || isDuplicateRequest(error)) {
     return;
   }
   if (typeof error === "object" && error !== null) {

@@ -1,5 +1,6 @@
 import { toast } from 'react-toastify';
 import { REQUEST_FAILED_MESSAGE, isRefreshFailure, markRefreshFailure, notifyRequestFailed, responseStatus } from '../../utilities/notifyRequestFailed';
+import { DuplicateRequestError } from '../../utilities/requestDedup';
 
 // The backend's own message is shown only for a 4xx answer that has a non-empty message the
 // app wrote (a request the user can correct). Server errors, Spring's default error bodies
@@ -44,6 +45,11 @@ describe('notifyRequestFailed', () => {
 
   test('a 401 shows nothing here (API.ts shows the session-expired message)', () => {
     notifyRequestFailed(failure(401, { message: 'Unauthorized' }));
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  test('a duplicate in-flight request suppresses the failure toast', () => {
+    notifyRequestFailed(new DuplicateRequestError());
     expect(toast.error).not.toHaveBeenCalled();
   });
 

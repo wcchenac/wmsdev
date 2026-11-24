@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios";
 import API from "../utilities/API";
 import { mutateThenRefresh } from "../utilities/mutateThenRefresh";
+import { isDuplicateRequest } from "../utilities/requestDedup";
 import { RollbackError, rollbackThenQueryList } from "../utilities/rollbackRequest";
 import {
   GET_Order,
@@ -40,6 +41,9 @@ async function runWithDispatchError(
   try {
     return await run();
   } catch (err) {
+    if (isDuplicateRequest(err)) {
+      throw err;
+    }
     const error = err as { response?: { data?: unknown } };
     dispatch({
       type: errorType,
@@ -205,6 +209,9 @@ export const getInStockRollbackList =
  * through and only the list query after it failed, it stores that instead of a failure.
  */
 const dispatchRollbackError = (dispatch: AppDispatch, err: unknown, fallbackMessage: string): void => {
+  if (isDuplicateRequest(err)) {
+    return;
+  }
   if (err instanceof RollbackError && err.rolledBack) {
     dispatch({ type: GET_Errors, payload: { message: err.message } });
     return;

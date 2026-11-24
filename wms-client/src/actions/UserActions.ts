@@ -3,6 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import API from "../utilities/API";
 import SetJWTToken from "../utilities/SetJWTToken";
 import { mutateThenRefresh } from "../utilities/mutateThenRefresh";
+import { isDuplicateRequest } from "../utilities/requestDedup";
 import {
   SET_Current_User,
   GET_UserList,
@@ -32,10 +33,12 @@ export const registerUser =
     try {
       return await API.post("/api/user/adminManagement/user/register", newUser);
     } catch (err) {
-      dispatch({
-        type: GET_Errors,
-        payload: { message: "註冊失敗" },
-      });
+      if (!isDuplicateRequest(err)) {
+        dispatch({
+          type: GET_Errors,
+          payload: { message: "註冊失敗" },
+        });
+      }
       throw err;
     }
   };
@@ -95,6 +98,9 @@ export const login =
 
       return res;
     } catch (err) {
+      if (isDuplicateRequest(err)) {
+        return;
+      }
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -127,6 +133,9 @@ export const getUserList =
 
       return res;
     } catch (err) {
+      if (isDuplicateRequest(err)) {
+        throw err;
+      }
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,
@@ -151,6 +160,9 @@ export const deleteUser =
 
       return res;
     } catch (err) {
+      if (isDuplicateRequest(err)) {
+        throw err;
+      }
       const error = err as { response?: { data?: unknown } };
       dispatch({
         type: GET_Errors,

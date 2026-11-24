@@ -1,5 +1,6 @@
 import { AppDispatch, GET_Errors, UPDATE_Errors } from "../types";
 import { markRefreshFailure } from "./notifyRequestFailed";
+import { isDuplicateRequest } from "./requestDedup";
 
 interface MutateThenRefreshOptions<M, R> {
   dispatch: AppDispatch;
@@ -28,6 +29,9 @@ export async function mutateThenRefresh<M, R>({
   try {
     mutateResult = await mutate();
   } catch (err) {
+    if (isDuplicateRequest(err)) {
+      throw err;
+    }
     const error = err as { response?: { data?: unknown } };
     dispatch({
       type: errorType,

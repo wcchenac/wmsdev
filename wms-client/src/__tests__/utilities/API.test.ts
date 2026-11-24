@@ -1,6 +1,7 @@
 import { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
 import { toast } from 'react-toastify';
 import API, { SESSION_EXPIRED_MESSAGE, SESSION_EXPIRED_REDIRECT_DELAY_MS } from '../../utilities/API';
+import { DuplicateRequestError, isDuplicateRequest } from '../../utilities/requestDedup';
 import store from '../../store';
 import { SET_Current_User } from '../../types';
 
@@ -139,5 +140,94 @@ describe('API 401 handling', () => {
     expect(toast.error).not.toHaveBeenCalled();
     vi.runAllTimers();
     expect(window.location.href).toBe('');
+  });
+});
+
+describe('API concurrent write deduplication', () => {
+  const originalAdapter = API.defaults.adapter;
+
+  afterEach(() => {
+    API.defaults.adapter = originalAdapter;
+  });
+
+  test('blocks identical in-flight POST/PATCH/PUT/DELETE requests and releases after settlement', async () => {
+    let resolveFirst!: (res: { status: number; data: unknown; statusText: string; headers: Record<string, string>; config: InternalAxiosRequestConfig }) => void;
+    const adapter = vi.fn(
+      (config: InternalAxiosRequestConfig) =>
+        new Promise<{ status: number; data: unknown; statusText: string; headers: Record<string, string>; config: InternalAxiosRequestConfig }>(
+          (resolve) => {
+            resolveFirst = resolve;
+          }
+        )
+    );
+    API.defaults.adapter = adapter as unknown as typeof API.defaults.adapter;
+
+    const first = API.post('/api/stock/inStocks', [{ productNo: 'CF1001', quantity: 10 }]);
+    const duplicate = API.post('/api/stock/inStocks', [{ productNo: 'CF1001', quantity: 10 }]);
+
+    await expect(duplicate).rejects.toBeInstanceOf(DuplicateRequestError);
+    expect(adapter).toHaveBeenCalledTimes(1);
+
+    resolveFirst({
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: { headers: new AxiosHeaders() } as InternalAxiosRequestConfig,
+      data: { ok: true },
+    });
+    await expect(first).resolves.toMatchObject({ status: 200 });
+
+    // Once the first request settles, a subsequent identical submission is allowed again.
+    const next = API.post('/api/stock/inStocks', [{ productNo: 'CF1001', quantity: 10 }]);
+    expect(adapter).toHaveBeenCalledTimes(2);
+    resolveFirst({
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: { headers: new AxiosHeaders() } as InternalAxiosRequestConfig,
+      data: { ok: true },
+    });
+    await expect(next).resolves.toMatchObject({ status: 200 });
+  });
+
+  test('allows concurrent writes with different payloads and concurrent GETs', async () => {
+    const adapter = vi.fn(async (config: InternalAxiosRequestConfig) => ({
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config,
+      data: {},
+    }));
+    API.defaults.adapter = adapter as unknown as typeof API.defaults.adapter;
+
+    await Promise.all([
+      API.patch('/api/stock/shipStock', { stockIdentifierId: 1, reason: '中壢' }),
+      API.patch('/api/stock/shipStock', { stockIdentifierId: 2, reason: '中壢' }),
+      API.get('/api/stock/queryStock/query/1/CF1001'),
+      API.get('/api/stock/queryStock/query/1/CF1001'),
+    ]);
+
+    expect(adapter).toHaveBeenCalledTimes(4);
+  });
+
+  test('releases the lock if the in-flight write fails', async () => {
+    const adapter = vi
+      .fn()
+      .mockRejectedValueOnce(httpError(500, '/api/user/delete'))
+      .mockResolvedValueOnce({
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: { headers: new AxiosHeaders() } as InternalAxiosRequestConfig,
+        data: {},
+      });
+    API.defaults.adapter = adapter as unknown as typeof API.defaults.adapter;
+
+    await expect(API.delete('/api/user/adminManagement/user/delete?employeeId=E001')).rejects.toThrow();
+    await expect(API.delete('/api/user/adminManagement/user/delete?employeeId=E001')).resolves.toMatchObject({
+      status: 200,
+    });
+    expect(adapter).toHaveBeenCalledTimes(2);
+    expect(isDuplicateRequest(new DuplicateRequestError())).toBe(true);
   });
 });
