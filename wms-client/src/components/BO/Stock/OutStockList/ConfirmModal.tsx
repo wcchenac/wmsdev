@@ -29,6 +29,8 @@ interface ConfirmModalState {
 }
 
 class ConfirmModal extends Component<ConfirmModalProps, ConfirmModalState> {
+  private isSubmittingSync = false;
+
   constructor(props: ConfirmModalProps) {
     super(props);
     this.state = {
@@ -79,8 +81,12 @@ class ConfirmModal extends Component<ConfirmModalProps, ConfirmModalState> {
   }
 
   async onSubmitClick(): Promise<void> {
+    if (this.isSubmittingSync || this.state.isSubmitting) {
+      return;
+    }
     const { outStockType } = this.props.searchInfo;
 
+    this.isSubmittingSync = true;
     this.setState({ isSubmitting: true });
 
     try {
@@ -95,12 +101,13 @@ class ConfirmModal extends Component<ConfirmModalProps, ConfirmModalState> {
           break;
       }
     } finally {
+      this.isSubmittingSync = false;
       this.setState({ isSubmitting: false });
     }
   }
 
   handleKeyDown(e: KeyboardEvent<HTMLDivElement>): void {
-    if (e.key === "Enter" && !this.state.isSubmitting) {
+    if (e.key === "Enter" && !this.isSubmittingSync && !this.state.isSubmitting) {
       this.onSubmitClick();
     }
   }

@@ -64,10 +64,12 @@ const ShrinkConfirmModal: React.FC<ShrinkConfirmModalProps> = ({
         <Modal
             centered
             show={show}
-            onHide={handleModalClose}
+            onHide={isLoading ? undefined : handleModalClose}
+            backdrop={isLoading ? 'static' : true}
+            keyboard={!isLoading}
         >
             <Modal.Header
-                closeButton
+                closeButton={!isLoading}
                 style={{
                     background: "linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-dark, #e0a800) 100%)",
                     color: "var(--color-gray-900)",
@@ -96,8 +98,8 @@ const ShrinkConfirmModal: React.FC<ShrinkConfirmModalProps> = ({
                 >
                     取消
                 </Button>
-                <Button variant="primary" onClick={onSubmitClick} disabled={isLoading}>
-                    送出
+                <Button variant="primary" onClick={onSubmitClick} disabled={isLoading} aria-busy={isLoading}>
+                    {isLoading ? '處理中...' : '送出'}
                 </Button>
             </Modal.Footer>
         </Modal>

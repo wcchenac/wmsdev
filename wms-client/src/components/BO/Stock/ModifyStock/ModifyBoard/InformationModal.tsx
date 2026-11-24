@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, ChangeEvent } from "react";
+import React, { useState, useEffect, useCallback, useRef, ChangeEvent } from "react";
 import { Modal } from "react-bootstrap";
 import Select, { MultiValue } from "react-select";
 import makeAnimated from "react-select/animated";
@@ -24,6 +24,7 @@ interface StockInfoWithDefectOptions extends Omit<StockInfoType, 'defect'> {
 
 interface InformationModalProps {
   show: boolean;
+  isLoading?: boolean;
   onHide: () => void;
   index: number;
   typeValidation: boolean;
@@ -45,6 +46,7 @@ const stateInitial = (stockInfo: StockInfoType): StockInfoWithDefectOptions => {
 // ============================================
 const InformationModal: React.FC<InformationModalProps> = ({
   show,
+  isLoading = false,
   onHide,
   index,
   typeValidation,
@@ -53,11 +55,13 @@ const InformationModal: React.FC<InformationModalProps> = ({
 }) => {
   const [stockInfo, setStockInfo] = useState<StockInfoWithDefectOptions>(() => stateInitial(propStockInfo));
   const [editMode, setEditMode] = useState<boolean>(false);
+  const submittingRef = useRef<boolean>(false);
 
   useEffect(() => {
     setStockInfo(stateInitial(propStockInfo));
     setEditMode(false);
-  }, [propStockInfo]);
+    submittingRef.current = false;
+  }, [propStockInfo, show]);
 
   const handleEditMode = useCallback(() => {
     if (editMode) {
@@ -84,6 +88,10 @@ const InformationModal: React.FC<InformationModalProps> = ({
   }, []);
 
   const handleUpdateSubmit = useCallback(() => {
+    if (isLoading || submittingRef.current) {
+      return;
+    }
+    submittingRef.current = true;
     const updateInfoRequest: UpdateStockInfoRequest = {
       id: stockInfo.id,
       color: stockInfo.color,
@@ -94,7 +102,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
 
     onHide();
     handleStockInfoUpdate(updateInfoRequest);
-  }, [stockInfo, handleStockInfoUpdate, onHide]);
+  }, [isLoading, stockInfo, handleStockInfoUpdate, onHide]);
 
   const renderEditModeOff = (): React.ReactElement => {
     const { stockIdentifier } = propStockInfo;
@@ -273,6 +281,7 @@ const InformationModal: React.FC<InformationModalProps> = ({
             type="button"
             className="btn btn-secondary"
             onClick={handleEditMode}
+            disabled={isLoading}
           >
             {"\u53d6\u6d88"}
           </button>
@@ -280,6 +289,8 @@ const InformationModal: React.FC<InformationModalProps> = ({
             type="button"
             className="btn btn-primary"
             onClick={handleUpdateSubmit}
+            disabled={isLoading}
+            aria-busy={isLoading}
           >
             {"\u78ba\u8a8d"}
           </button>
@@ -291,7 +302,9 @@ const InformationModal: React.FC<InformationModalProps> = ({
   return (
     <Modal
       show={show}
-      onHide={onHide}
+      onHide={isLoading ? undefined : onHide}
+      backdrop={isLoading ? "static" : true}
+      keyboard={!isLoading}
       centered
       scrollable
       // The modal used to be rendered inside a table cell and inherited

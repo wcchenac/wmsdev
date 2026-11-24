@@ -1,7 +1,8 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
+import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 import {
     getShrinkList,
     stockIdentifierWaitToShrinkIsFalse,
@@ -17,9 +18,7 @@ const ShrinkBoard: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const shrinkListFromStore = useSelector((state: RootState) => state.stockInfo);
 
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [waitCreateResp, setWaitCreateResp] = useState<boolean>(false);
-    const isSubmittingRef = useRef<boolean>(false);
+    const { isLocked: isLoading, runLocked } = useSubmitLock();
     const [shrinkList, setShrinkList] = useState<StockInfo[]>([]);
     const [stockInfo, setStockInfo] = useState<StockInfo>({});
     const [typeExchange, setTypeExchange] = useState<boolean>(false);
@@ -35,8 +34,6 @@ const ShrinkBoard: React.FC = () => {
     });
 
     const initialComponent = useCallback((): void => {
-        setIsLoading(false);
-        setWaitCreateResp(false);
         setShrinkList([]);
         setStockInfo({});
         setTypeExchange(false);
@@ -63,20 +60,16 @@ const ShrinkBoard: React.FC = () => {
     }, []);
 
     const queryShrinkList = useCallback((): void => {
-        setIsLoading(true);
-        dispatch(getShrinkList()).catch((error) => {
-          notifyRequestFailed(error);
-        }).finally(() => {
-          setIsLoading(false);
-        });
-    }, [dispatch]);
+        void runLocked(() =>
+            dispatch(getShrinkList()).catch((error) => {
+              notifyRequestFailed(error);
+            })
+        );
+    }, [dispatch, runLocked]);
 
     const handleModifyRequestSubmit = useCallback(
         (shrinkStockRequest: ShrinkStockRequest): void => {
-            if (!waitCreateResp && !isSubmittingRef.current) {
-                isSubmittingRef.current = true;
-                setIsLoading(true);
-                setWaitCreateResp(true);
+            void runLocked(() =>
                 dispatch(batchCreateStockInfoesForShrink(shrinkStockRequest))
                     .then((res: { status: number }) => {
                         if (res.status === 200) {
@@ -86,26 +79,20 @@ const ShrinkBoard: React.FC = () => {
                     .catch((error) => {
                         notifyRequestFailed(error);
                     })
-                    .finally(() => {
-                        isSubmittingRef.current = false;
-                        setIsLoading(false);
-                        setWaitCreateResp(false);
-                    });
-            }
+            );
         },
-        [dispatch, waitCreateResp, initialComponent]
+        [dispatch, runLocked, initialComponent]
     );
 
     const onCancelShrinkClick = useCallback(
         (stockIdentifierId: number): void => {
-            setIsLoading(true);
-            dispatch(stockIdentifierWaitToShrinkIsFalse(stockIdentifierId)).catch((error) => {
-              notifyRequestFailed(error);
-            }).finally(() => {
-              setIsLoading(false);
-            });
+            void runLocked(() =>
+                dispatch(stockIdentifierWaitToShrinkIsFalse(stockIdentifierId)).catch((error) => {
+                  notifyRequestFailed(error);
+                })
+            );
         },
-        [dispatch]
+        [dispatch, runLocked]
     );
 
     return typeExchange || sameTypeModify || hardwareModify ? (

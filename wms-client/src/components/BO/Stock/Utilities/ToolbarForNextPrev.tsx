@@ -5,12 +5,14 @@ interface ToolbarForNextPrevProps {
   prevProduct: string | null;
   nextProduct: string | null;
   handleFutureProductQuery: (e: MouseEvent<HTMLButtonElement>) => void;
+  isLoading?: boolean;
 }
 
 const ToolbarForNextPrev: React.FC<ToolbarForNextPrevProps> = ({
   prevProduct,
   nextProduct,
   handleFutureProductQuery,
+  isLoading = false,
 }) => {
   return (
     <div
@@ -24,7 +26,7 @@ const ToolbarForNextPrev: React.FC<ToolbarForNextPrevProps> = ({
         variant="outline-secondary"
         value={prevProduct || ""}
         onClick={handleFutureProductQuery}
-        disabled={prevProduct === null || prevProduct === ""}
+        disabled={isLoading || prevProduct === null || prevProduct === ""}
         style={{
           display: "inline-flex",
           alignItems: "center",
@@ -42,7 +44,7 @@ const ToolbarForNextPrev: React.FC<ToolbarForNextPrevProps> = ({
         variant="outline-secondary"
         value={nextProduct || ""}
         onClick={handleFutureProductQuery}
-        disabled={nextProduct === null || nextProduct === ""}
+        disabled={isLoading || nextProduct === null || nextProduct === ""}
         style={{
           display: "inline-flex",
           alignItems: "center",

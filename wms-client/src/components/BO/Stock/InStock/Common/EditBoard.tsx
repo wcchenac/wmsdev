@@ -113,7 +113,9 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
                     aria-selected={object.index === currentTab}
                     onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                       e.preventDefault();
-                      setActiveTabIndex(object.index);
+                      if (!isLoading) {
+                        setActiveTabIndex(object.index);
+                      }
                     }}
                   >
                     {object.productNo}
@@ -164,7 +166,7 @@ const EditBoard: React.FC<EditBoardProps> = memo(function EditBoard(props: EditB
           type="button"
           className="btn btn-primary"
           onClick={handlePrevStep}
-          disabled={filterSubmittedList.length !== 0}
+          disabled={isLoading || filterSubmittedList.length !== 0}
         >
           上一步
         </button>

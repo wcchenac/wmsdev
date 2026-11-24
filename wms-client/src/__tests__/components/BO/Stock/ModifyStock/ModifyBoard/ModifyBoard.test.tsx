@@ -457,6 +457,7 @@ describe('ModifyBoard', () => {
     const reasonInput = within(dialog1).getByRole('textbox') as HTMLInputElement;
     fireEvent.change(reasonInput, { target: { name: 'outStockReason', value: '中壢' } });
     fireEvent.click(within(dialog1).getByRole('button', { name: '確認' }));
+    await act(async () => {});
 
     rerender(
       <Provider store={mockStore(oneRowState)}>

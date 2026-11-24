@@ -14,6 +14,7 @@ import {
 } from "../../Utilities/ValidateQueryOrderResponse";
 import { isEmpty } from "../../../../../utilities/IsEmpty";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
+import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../../Others/Spinner";
 import { RootState, AppDispatch, InStockRequest } from "../../../../../types";
@@ -63,7 +64,7 @@ const InStockBoard: React.FC<InStockBoardProps> = ({
   const dispatch = useDispatch<AppDispatch>();
   const queryOrderResult = useSelector((state: RootState) => state.stockInfo);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, isLockedRef, runLocked } = useSubmitLock();
   const [orderNo, setOrderNo] = useState<string>("");
   const [isOrderValid, setIsOrderValid] = useState<boolean | undefined>(undefined);
   const [key, setKey] = useState<number>(1);
@@ -89,7 +90,6 @@ const InStockBoard: React.FC<InStockBoardProps> = ({
   );
 
   const getInitialize = useCallback(() => {
-    setIsLoading(false);
     setIsOrderValid(undefined);
     setKey(1);
     setWaitHandleStatus({});
@@ -112,19 +112,13 @@ const InStockBoard: React.FC<InStockBoardProps> = ({
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
-      setIsLoading(true);
-      dispatch(fetchOrder(orderNo))
-        .then((response) => {
-          if (response.status === 200) {
-            setIsLoading(false);
-          }
-        })
-        .catch((error) => {
-          setIsLoading(false);
+      void runLocked(() =>
+        dispatch(fetchOrder(orderNo)).catch((error) => {
           notifyRequestFailed(error);
-        });
+        })
+      );
     },
-    [dispatch, fetchOrder, orderNo]
+    [dispatch, fetchOrder, orderNo, runLocked]
   );
 
   const handleCheckBoxSelected = useCallback(
@@ -158,29 +152,28 @@ const InStockBoard: React.FC<InStockBoardProps> = ({
     (e: MouseEvent<HTMLButtonElement>, index: number, inStockRequests: InStockRequest[]) => {
       e.preventDefault();
 
-      setIsLoading(true);
-      dispatch(batchCreateStockInfoes(inStockRequests))
-        .then((res) => {
-          if (res.status === 200) {
-            setSelectedProductNoList((prevList) => {
-              const copyList = [...prevList];
-              copyList[index] = {
-                ...copyList[index],
-                isSubmitted: true,
-              };
-              return copyList;
-            });
-          }
-          // Only the submitted product is marked; the order is not re-queried, since that would
-          // rebuild the Step 2 list and bring back products the user left unticked.
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          setIsLoading(false);
-          notifyRequestFailed(error);
-        });
+      void runLocked(() =>
+        dispatch(batchCreateStockInfoes(inStockRequests))
+          .then((res) => {
+            if (res.status === 200) {
+              setSelectedProductNoList((prevList) => {
+                const copyList = [...prevList];
+                copyList[index] = {
+                  ...copyList[index],
+                  isSubmitted: true,
+                };
+                return copyList;
+              });
+            }
+            // Only the submitted product is marked; the order is not re-queried, since that would
+            // rebuild the Step 2 list and bring back products the user left unticked.
+          })
+          .catch((error) => {
+            notifyRequestFailed(error);
+          })
+      );
     },
-    [dispatch]
+    [dispatch, runLocked]
   );
 
   // Only react to an order that arrives while this page is mounted, not one another page
@@ -218,7 +211,7 @@ const InStockBoard: React.FC<InStockBoardProps> = ({
           id="left-tabs"
           activeKey={key}
           onSelect={(k) => {
-            if (k !== null) {
+            if (k !== null && !isLockedRef.current) {
               setKey(Number(k));
             }
           }}
@@ -297,6 +290,7 @@ const InStockBoard: React.FC<InStockBoardProps> = ({
                       handleOrderNo={handleOrderNo}
                       handleQueryOrderSubmit={handleQueryOrderSubmit}
                       isOrderValid={isOrderValid}
+                      isLoading={isLoading}
                     />
                   </div>
                 </LoadingOverlay>

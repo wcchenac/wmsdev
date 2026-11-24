@@ -11,6 +11,7 @@ import { StockInfo as StockInfoType, ShipRequest, UpdateStockInfoRequest } from 
 interface StockInfoProps {
   stockInfo: StockInfoType;
   index: number;
+  isLoading?: boolean;
   typeValidation: boolean;
   handleShip: (shipRequest: ShipRequest) => void;
   handleShrink: (id: number) => void;
@@ -23,6 +24,7 @@ interface StockInfoProps {
 const StockInfo: React.FC<StockInfoProps> = ({
   stockInfo,
   index,
+  isLoading = false,
   typeValidation,
   handleShip,
   handleShrink,
@@ -80,6 +82,7 @@ const StockInfo: React.FC<StockInfoProps> = ({
             variant="primary"
             className="me-2"
             onClick={onShrinkClick}
+            disabled={isLoading}
           >
             {typeVal ? "\u5206\u88dd" : "\u6e1b\u80a5"}
           </Button>
@@ -87,12 +90,14 @@ const StockInfo: React.FC<StockInfoProps> = ({
             variant="primary"
             className="me-2"
             onClick={handleModalShow}
+            disabled={isLoading}
           >
             {"\u51fa\u5eab"}
           </Button>
           {modalShow ? (
             <ShipModal
               show
+              isLoading={isLoading}
               outStockReason={outStockReason}
               onChange={onChange}
               onReansonButtonChange={handleReasonButton}
@@ -142,12 +147,14 @@ const StockInfo: React.FC<StockInfoProps> = ({
           type="button"
           className="btn btn-primary me-2"
           onClick={() => setInfoShow(true)}
+          disabled={isLoading}
         >
           {"\u8a73\u7d30\u8cc7\u6599"}
         </button>
         {infoShow ? (
           <InformationModal
             show
+            isLoading={isLoading}
             onHide={() => setInfoShow(false)}
             index={index}
             typeValidation={typeValidation}

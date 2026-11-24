@@ -7,6 +7,7 @@ import { StockInfo as StockInfoType, ShipRequest, UpdateStockInfoRequest } from 
 // ============================================
 
 interface StockInfoContainerProps {
+  isLoading?: boolean;
   typeValidation: boolean;
   stockInfoes: StockInfoType[];
   handleShip: (shipRequest: ShipRequest) => void;
@@ -18,6 +19,7 @@ interface StockInfoContainerProps {
 // Component
 // ============================================
 const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
+  isLoading = false,
   typeValidation,
   stockInfoes,
   handleShip,
@@ -96,6 +98,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
             <StockInfo
               key={stockInfo.stockIdentifier?.id ?? index}
               index={index}
+              isLoading={isLoading}
               typeValidation={typeValidation}
               stockInfo={stockInfo}
               handleShip={handleShip}

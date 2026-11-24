@@ -7,6 +7,7 @@ interface QueryOrderProps {
   handleQueryOrderSubmit: (e: FormEvent<HTMLFormElement>) => void;
   isOrderValid: boolean | undefined;
   handleOrderNo: (e: ChangeEvent<HTMLInputElement>) => void;
+  isLoading?: boolean;
 }
 
 const QueryOrder: React.FC<QueryOrderProps> = ({
@@ -15,6 +16,7 @@ const QueryOrder: React.FC<QueryOrderProps> = ({
   handleQueryOrderSubmit,
   isOrderValid,
   handleOrderNo,
+  isLoading = false,
 }) => {
   return (
     <div className="col-md-12">
@@ -41,7 +43,12 @@ const QueryOrder: React.FC<QueryOrderProps> = ({
             )}
           </div>
           <div className="col-md-auto">
-            <button type="submit" className="btn btn-primary">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isLoading}
+              aria-busy={isLoading}
+            >
               查詢
             </button>
           </div>

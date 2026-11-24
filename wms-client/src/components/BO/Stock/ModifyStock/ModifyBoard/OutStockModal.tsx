@@ -5,6 +5,7 @@ import Switch from "@mui/material/Switch";
 import { StockIdentifierType } from "../../../../../enums/Enums";
 import { copy } from "../../../../../utilities/DeepCopy";
 import { updateStockInfoCopy } from "../../Utilities/StockInfoHelperMethods";
+import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 
 // ============================================
 // Type Definitions
@@ -69,13 +70,12 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
   }, [productNo]);
 
   const [assignMode, setAssignMode] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const { isLocked: isSubmitting, isLockedRef: isSubmittingRef, runLocked } = useSubmitLock();
   const [outStockRequest, setOutStockRequest] = useState<OutStockRequestState>(() => createInitialState().outStockRequest);
 
   useEffect(() => {
     const initialState = createInitialState();
     setAssignMode(initialState.assignMode);
-    setIsSubmitting(initialState.isSubmitting);
     setOutStockRequest(initialState.outStockRequest);
   }, [productNo, createInitialState]);
 
@@ -124,11 +124,6 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
   }, [assignMode]);
 
   const handleSubmit = useCallback(() => {
-    if (isSubmitting) {
-      return;
-    }
-    setIsSubmitting(true);
-
     const newOutStockRequest: OutStockRequestCreate = {
       productNo: outStockRequest.productNo,
       type: outStockRequest.type,
@@ -139,17 +134,15 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
         : outStockRequest.quantity
     };
 
-    Promise.resolve(handleOutStockRequestCreate(newOutStockRequest)).finally(() => {
-      setIsSubmitting(false);
-    });
-  }, [assignMode, isSubmitting, outStockRequest, handleOutStockRequestCreate]);
+    void runLocked(() => handleOutStockRequestCreate(newOutStockRequest));
+  }, [assignMode, outStockRequest, handleOutStockRequestCreate, runLocked]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLFormElement>) => {
-    if (e.key === "Enter" && !isSubmitting && checkFormAlgorithm(outStockRequest)) {
+    if (e.key === "Enter" && !isSubmittingRef.current && !isSubmitting && checkFormAlgorithm(outStockRequest)) {
       e.preventDefault();
       handleSubmit();
     }
-  }, [isSubmitting, checkFormAlgorithm, outStockRequest, handleSubmit]);
+  }, [isSubmittingRef, isSubmitting, checkFormAlgorithm, outStockRequest, handleSubmit]);
 
   const { errors } = outStockRequest;
   const rangeError =
@@ -168,14 +161,14 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
     <Modal
       centered
       show={show}
-      onHide={handleModalClose}
+      onHide={isSubmitting ? undefined : handleModalClose}
       aria-labelledby="outstock-modal-title"
       aria-describedby="outstock-modal-description"
       backdrop="static"
-      keyboard={true}
+      keyboard={!isSubmitting}
     >
       <Modal.Header
-        closeButton
+        closeButton={!isSubmitting}
         style={{
           background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)",
           color: "var(--color-white)",
@@ -440,6 +433,7 @@ const OutStockModal: React.FC<OutStockModalProps> = ({
         <Button
           variant="secondary"
           onClick={handleModalClose}
+          disabled={isSubmitting}
           style={{
             fontWeight: "var(--font-weight-medium)"
           }}

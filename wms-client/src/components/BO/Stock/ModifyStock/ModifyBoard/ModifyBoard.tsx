@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, FormEvent, MouseEvent } from "re
 import { useSelector, useDispatch } from "react-redux";
 import { isRefreshFailure, notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
+import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 import {
   getStockInfoes,
   stockIdentifierIsShiped,
@@ -60,7 +61,7 @@ const ModifyBoard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const queryResult = useSelector((state: RootState) => state.stockInfo);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, runLocked } = useSubmitLock();
   const [isQuery, setIsQuery] = useState<boolean>(false);
   const [modalShow_BatchShip, setModalShow_BatchShip] = useState<boolean>(false);
   const [modalShow_OutStock, setModalShow_OutStock] = useState<boolean>(false);
@@ -103,117 +104,114 @@ const ModifyBoard: React.FC = () => {
   const onSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      setIsLoading(true);
-      setQueriedProductNo(productNo);
-      dispatch(getStockInfoes(productNo)).then((response) => {
-        if (response.status === 200) {
-          setIsQuery(true);
-        }
-      }).catch((error) => {
-        notifyRequestFailed(error);
-      }).finally(() => {
-        setIsLoading(false);
+      void runLocked(() => {
+        setQueriedProductNo(productNo);
+        return dispatch(getStockInfoes(productNo))
+          .then((response) => {
+            if (response.status === 200) {
+              setIsQuery(true);
+            }
+          })
+          .catch((error) => {
+            notifyRequestFailed(error);
+          });
       });
     },
-    [dispatch, productNo]
+    [dispatch, productNo, runLocked]
   );
 
   const handleFutureProductQuery = useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       const select = e.currentTarget.value;
-      setIsLoading(true);
-      setProductNo(select);
-      setQueriedProductNo(select);
-      dispatch(getStockInfoes(select)).then((response) => {
-        if (response.status === 200) {
-          setIsQuery(true);
-        }
-      }).catch((error) => {
-        notifyRequestFailed(error);
-      }).finally(() => {
-        setIsLoading(false);
+      void runLocked(() => {
+        setProductNo(select);
+        setQueriedProductNo(select);
+        return dispatch(getStockInfoes(select))
+          .then((response) => {
+            if (response.status === 200) {
+              setIsQuery(true);
+            }
+          })
+          .catch((error) => {
+            notifyRequestFailed(error);
+          });
       });
     },
-    [dispatch]
+    [dispatch, runLocked]
   );
 
   const handleOutStockRequestCreate = useCallback(
-    (outStockRequest: OutStockRequestCreate): Promise<void> => {
-      setIsLoading(true);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return dispatch(createOutStockRequest(outStockRequest)).then((response) => {
-        if (response.status === 200) {
-          setModalShow_OutStock(false);
-        }
-      }).catch((error) => {
-        notifyRequestFailed(error);
-      }).finally(() => {
-        setIsLoading(false);
-      });
-    },
-    [dispatch]
+    (outStockRequest: OutStockRequestCreate): Promise<void> =>
+      runLocked(() =>
+        dispatch(createOutStockRequest(outStockRequest))
+          .then((response) => {
+            if (response.status === 200) {
+              setModalShow_OutStock(false);
+            }
+          })
+          .catch((error) => {
+            notifyRequestFailed(error);
+          })
+      ).then(() => undefined),
+    [dispatch, runLocked]
   );
 
   const handleShip = useCallback(
     (shipRequest: ShipRequest) => {
-      setIsLoading(true);
-      dispatch(stockIdentifierIsShiped(shipRequest)).then((response) => {
-        if (response.status === 200) {
-          setModalShow_BatchShip(false);
-        }
-      }).catch((error) => {
-        notifyRequestFailed(error);
-      }).finally(() => {
-        setIsLoading(false);
-      });
+      void runLocked(() =>
+        dispatch(stockIdentifierIsShiped(shipRequest))
+          .then((response) => {
+            if (response.status === 200) {
+              setModalShow_BatchShip(false);
+            }
+          })
+          .catch((error) => {
+            notifyRequestFailed(error);
+          })
+      );
     },
-    [dispatch]
+    [dispatch, runLocked]
   );
 
   const handleShipList = useCallback(
     (shipRequests: ShipRequest[]) => {
-      setIsLoading(true);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dispatch(stockIdentifiersAreShiped(productNo, shipRequests)).then(
-        () => {
-          setModalShow_BatchShip(false);
-        }
-      ).catch((error) => {
-        if (isRefreshFailure(error)) {
-          setModalShow_BatchShip(false);
-        }
-        notifyRequestFailed(error);
-      }).finally(() => {
-        setIsLoading(false);
-      });
+      void runLocked(() =>
+        dispatch(stockIdentifiersAreShiped(productNo, shipRequests))
+          .then(() => {
+            setModalShow_BatchShip(false);
+          })
+          .catch((error) => {
+            if (isRefreshFailure(error)) {
+              setModalShow_BatchShip(false);
+            }
+            notifyRequestFailed(error);
+          })
+      );
     },
-    [dispatch, productNo]
+    [dispatch, productNo, runLocked]
   );
 
   const handleShrink = useCallback(
     (id: number) => {
-      setIsLoading(true);
-      dispatch(stockIdentifierWaitToShrinkIsTrue(id)).catch((error) => {
-        notifyRequestFailed(error);
-      }).finally(() => {
-        setIsLoading(false);
-      });
+      void runLocked(() =>
+        dispatch(stockIdentifierWaitToShrinkIsTrue(id)).catch((error) => {
+          notifyRequestFailed(error);
+        })
+      );
     },
-    [dispatch]
+    [dispatch, runLocked]
   );
 
   const handleStockInfoUpdate = useCallback(
     (updateInfoRequest: UpdateStockInfoRequest) => {
-      setIsLoading(true);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      dispatch(updateStockInfo(updateInfoRequest)).catch((error) => {
-        notifyRequestFailed(error);
-      }).finally(() => {
-        setIsLoading(false);
-      });
+      void runLocked(() =>
+        dispatch(updateStockInfo(updateInfoRequest)).catch((error) => {
+          notifyRequestFailed(error);
+        })
+      );
     },
-    [dispatch]
+    [dispatch, runLocked]
   );
 
   const handleModalClose_BatchShip = useCallback(() => {
@@ -277,7 +275,7 @@ const ModifyBoard: React.FC = () => {
             <Button
               variant="info"
               size="sm"
-              disabled={shippableIdentifiers.length === 0}
+              disabled={isLoading || shippableIdentifiers.length === 0}
               onClick={handleModalShow_BatchShip}
             >
               {"\u6279\u91cf\u51fa\u5eab"}
@@ -295,6 +293,7 @@ const ModifyBoard: React.FC = () => {
           ) : null}
         </div>
         <StockInfoContainer
+          isLoading={isLoading}
           typeValidation={typeValidation}
           stockInfoes={stockInfoes}
           handleShip={handleShip}
@@ -314,6 +313,7 @@ const ModifyBoard: React.FC = () => {
               productNo={productNo}
               onSubmit={onSubmit}
               onChange={onChange}
+              isLoading={isLoading}
             />
           </div>
         </div>
@@ -334,7 +334,7 @@ const ModifyBoard: React.FC = () => {
                 <div className="col-md-auto me-auto">
                   <Button
                     variant="primary"
-                    disabled={outStockRequestValidate}
+                    disabled={isLoading || outStockRequestValidate}
                     onClick={handleModalShow_OutStock}
                   >
                     {"\u62c9\u8ca8\u8981\u6c42"}
@@ -353,6 +353,7 @@ const ModifyBoard: React.FC = () => {
                     handleFutureProductQuery={handleFutureProductQuery}
                     prevProduct={prevProduct}
                     nextProduct={nextProduct}
+                    isLoading={isLoading}
                   />
                 </div>
               </div>

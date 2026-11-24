@@ -16,6 +16,7 @@ import { copy } from "../../../../utilities/DeepCopy";
 import DatePeriodSelectModal from "../Utilities/DatePeriodSelectModal";
 import { dayOfStart, dayOfEnd, formatLocalDateTime } from "../Utilities/DateUtils";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
+import { useSubmitLock } from "../../../../utilities/useSubmitLock";
 import { Spinner } from "../../../Others/Spinner";
 import ConfirmModal from "./ConfirmModal";
 import { RootState, AppDispatch, SelectedUser, OutStockUpdateRequest } from "../../../../types";
@@ -33,7 +34,9 @@ const OutStockRequestList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const queryResultFromStore = useSelector((state: RootState) => state.outStockRequests);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isQueryLoading, setIsQueryLoading] = useState<boolean>(false);
+  const { isLocked: isMutating, runLocked } = useSubmitLock();
+  const isLoading = isQueryLoading || isMutating;
   const [modalShow, setModalShow] = useState<boolean>(false);
   const [queryResult, setQueryResult] = useState<QueryResult>({});
   const [, setUserList] = useState<string[]>([]);
@@ -51,24 +54,24 @@ const OutStockRequestList: React.FC = () => {
 
   const acceptListResponse = useCallback((response: { status: number }) => {
     if (response.status === 200) {
-      setIsLoading(false);
+      setIsQueryLoading(false);
       setListResponseId((current) => current + 1);
     }
   }, []);
 
   const loadingWaitHandleList = useCallback(() => {
-    setIsLoading(true);
+    setIsQueryLoading(true);
     dispatch(getWaitHandleList()).then(response => {
       acceptListResponse(response);
     }).catch((error) => {
-      setIsLoading(false);
+      setIsQueryLoading(false);
       notifyRequestFailed(error);
     });
   }, [dispatch, acceptListResponse]);
 
   const getInitialState = useCallback(() => {
     isIntervalModeRef.current = false;
-    setIsLoading(false);
+    setIsQueryLoading(false);
     setModalShow(false);
     setQueryResult({});
     setUserList([]);
@@ -151,11 +154,11 @@ const OutStockRequestList: React.FC = () => {
       const endDateStr = formatLocalDateTime(nextEnd ? dayOfEnd(nextEnd) : endDate);
 
       isIntervalModeRef.current = true;
-      setIsLoading(true);
+      setIsQueryLoading(true);
       dispatch(getWaitHandleListWithInterval(startDateStr, endDateStr)).then(response => {
         acceptListResponse(response);
       }).catch((error) => {
-        setIsLoading(false);
+        setIsQueryLoading(false);
         notifyRequestFailed(error);
       });
     },
@@ -163,16 +166,16 @@ const OutStockRequestList: React.FC = () => {
   );
 
   const handleSubmitClick = useCallback((outStockUpdateRequest: OutStockUpdateRequest) => {
-    setIsLoading(true);
-    dispatch(updateOutStockRequests(outStockUpdateRequest)).then(res => {
-      if (res.status === 200) {
-        getInitialState();
-      }
-    }).catch((error) => {
-      setIsLoading(false);
-      notifyRequestFailed(error);
-    });
-  }, [dispatch, getInitialState]);
+    void runLocked(() =>
+      dispatch(updateOutStockRequests(outStockUpdateRequest)).then(res => {
+        if (res.status === 200) {
+          getInitialState();
+        }
+      }).catch((error) => {
+        notifyRequestFailed(error);
+      })
+    );
+  }, [dispatch, getInitialState, runLocked]);
 
   const handleUserSelectAll = useCallback(() => {
     const listCopy = copy(selectedUserList) as SelectedUser[];
@@ -201,29 +204,27 @@ const OutStockRequestList: React.FC = () => {
     setHandlingInfo(info);
   }, []);
 
-  const handleRollBackShipStatus = useCallback((id: number): Promise<void> => {
-    setIsLoading(true);
-    return dispatch(stockIdentifierIsNotShiped(id)).then(res => {
-      if (res.status === 200) {
-        getInitialState();
-      }
-    }).catch((error) => {
-      setIsLoading(false);
-      notifyRequestFailed(error);
-    });
-  }, [dispatch, getInitialState]);
+  const handleRollBackShipStatus = useCallback((id: number): Promise<void> =>
+    runLocked(() =>
+      dispatch(stockIdentifierIsNotShiped(id)).then(res => {
+        if (res.status === 200) {
+          getInitialState();
+        }
+      }).catch((error) => {
+        notifyRequestFailed(error);
+      })
+    ).then(() => undefined), [dispatch, getInitialState, runLocked]);
 
-  const handleDeleteOutStockRequest = useCallback((id: number): Promise<void> => {
-    setIsLoading(true);
-    return dispatch(deleteOutStockRequest(id)).then(res => {
-      if (res.status === 200) {
-        getInitialState();
-      }
-    }).catch((error) => {
-      setIsLoading(false);
-      notifyRequestFailed(error);
-    });
-  }, [dispatch, getInitialState]);
+  const handleDeleteOutStockRequest = useCallback((id: number): Promise<void> =>
+    runLocked(() =>
+      dispatch(deleteOutStockRequest(id)).then(res => {
+        if (res.status === 200) {
+          getInitialState();
+        }
+      }).catch((error) => {
+        notifyRequestFailed(error);
+      })
+    ).then(() => undefined), [dispatch, getInitialState, runLocked]);
 
   const handleDownloadClick = useCallback((e: { target: { name: string; value: string } }) => {
     downloadFile(e.target.name, e.target.value);

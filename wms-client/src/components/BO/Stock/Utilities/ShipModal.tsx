@@ -1,9 +1,10 @@
-import React, { ChangeEvent, MouseEvent } from "react";
+import React, { ChangeEvent, MouseEvent, useCallback, useEffect, useRef } from "react";
 import { Modal, Button } from "react-bootstrap";
 import ShipModalBody from "./ShipModalBody";
 
 interface ShipModalProps {
   show: boolean;
+  isLoading?: boolean;
   handleModalClose: () => void;
   outStockReason: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -14,6 +15,7 @@ interface ShipModalProps {
 
 const ShipModal: React.FC<ShipModalProps> = ({
   show,
+  isLoading = false,
   handleModalClose,
   outStockReason,
   onChange,
@@ -21,10 +23,35 @@ const ShipModal: React.FC<ShipModalProps> = ({
   onCancleShipClick,
   onShipClick,
 }) => {
+  const clickedRef = useRef(false);
+
+  useEffect(() => {
+    if (!show || !isLoading) {
+      clickedRef.current = false;
+    }
+  }, [show, isLoading]);
+
+  const handleConfirmClick = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      if (isLoading || clickedRef.current) {
+        return;
+      }
+      clickedRef.current = true;
+      onShipClick(e);
+    },
+    [isLoading, onShipClick]
+  );
+
   return (
-    <Modal centered show={show} onHide={handleModalClose}>
+    <Modal
+      centered
+      show={show}
+      onHide={isLoading ? undefined : handleModalClose}
+      backdrop={isLoading ? "static" : true}
+      keyboard={!isLoading}
+    >
       <Modal.Header
-        closeButton
+        closeButton={!isLoading}
         style={{
           background: "linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark, #1e7e34) 100%)",
           color: "var(--color-white)",
@@ -53,13 +80,14 @@ const ShipModal: React.FC<ShipModalProps> = ({
         />
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onCancleShipClick} value="">
+        <Button variant="secondary" onClick={onCancleShipClick} value="" disabled={isLoading}>
           取消
         </Button>
         <Button
           variant="primary"
-          onClick={onShipClick}
-          disabled={!outStockReason}
+          onClick={handleConfirmClick}
+          disabled={isLoading || !outStockReason}
+          aria-busy={isLoading}
         >
           確認
         </Button>
