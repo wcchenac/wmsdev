@@ -55,10 +55,12 @@ const UserRegister: React.FC = () => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
+    const { employeeId, fullName, password, role } = state;
+    if (!employeeId || !fullName || !password || !role) {
+      return;
+    }
 
     void runLocked(() => {
-      const { employeeId, fullName, password, role } = state;
-
       const registration = {
         employeeId,
         fullName,

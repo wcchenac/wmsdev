@@ -91,8 +91,8 @@ const FileCenter: React.FC = () => {
   }, []);
 
   const handleDownloadClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    const target = e.target as HTMLButtonElement;
-    downloadFile(target.name, target.value);
+    const target = e.currentTarget;
+    void downloadFile(target.name, target.value);
   }, []);
 
   const handleQueryCategoryDetailList = useCallback(() => {
@@ -124,6 +124,7 @@ const FileCenter: React.FC = () => {
             <div className="row">
               <div className="col-12 col-md-6 mb-4">
                 <FileContainer
+                  isLoading={isLoading}
                   filenames={filenames.allocation}
                   containerTitle={allocationTitle}
                   fileType={allocationFileType}
@@ -136,6 +137,7 @@ const FileCenter: React.FC = () => {
               </div>
               <div className="col-12 col-md-6 mb-4">
                 <FileContainer
+                  isLoading={isLoading}
                   filenames={filenames.adjustment}
                   containerTitle={adjustmentTitle}
                   fileType={adjustmentFileType}
@@ -152,6 +154,7 @@ const FileCenter: React.FC = () => {
             <div className="row">
               <div className="col-12 col-md-6 mb-4">
                 <FileContainer
+                  isLoading={isLoading}
                   filenames={filenames.dailyComparison}
                   containerTitle={dailyComparisonTitle}
                   fileType={dailyComparisonFileType}
@@ -168,6 +171,7 @@ const FileCenter: React.FC = () => {
             <div className="row">
               <div className="col-12 col-md-6 mb-4">
                 <FileContainerForCategory
+                  isLoading={isLoading}
                   queryCategoryDetailList={handleQueryCategoryDetailList}
                   createCategoryDetailFilename={createCategoryDetailFilename}
                   fileType={categoryDetailFileType}

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, ChangeEvent, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
-import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
+import { notifyRollbackFailed, RollbackError } from "../../../../../utilities/rollbackRequest";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
 import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 import {
@@ -69,13 +69,16 @@ const InStockRollback: React.FC = () => {
   );
 
   const handleInStockRollback = useCallback(
-    (idList: number[]) => {
-      void runLocked(() =>
+    (idList: number[]): Promise<boolean> =>
+      runLocked(() =>
         // The action queries the list again whatever the outcome; a failure says what happened.
         dispatch(inStockRollback(idList, queriedOrder.orderType, queriedOrder.orderNo))
-          .catch(notifyRollbackFailed)
-      );
-    },
+          .then(() => true)
+          .catch((error) => {
+            notifyRollbackFailed(error);
+            return error instanceof RollbackError && error.rolledBack;
+          })
+      ).then((res) => Boolean(res)),
     [dispatch, queriedOrder, runLocked]
   );
 
@@ -118,6 +121,7 @@ const InStockRollback: React.FC = () => {
               className="form-select"
               name="orderType"
               value={orderType}
+              disabled={isLoading}
               onChange={handleOrderChange}
             >
               {Object.keys(OrderType).map((type, index) => (
@@ -138,7 +142,7 @@ const InStockRollback: React.FC = () => {
               name="orderNo"
               placeholder="請輸入單號"
               value={orderNo}
-              disabled={orderType === ""}
+              disabled={isLoading || orderType === ""}
               onChange={handleOrderChange}
             />
           </div>

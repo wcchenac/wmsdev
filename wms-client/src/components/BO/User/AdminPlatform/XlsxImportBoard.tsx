@@ -64,6 +64,7 @@ const XlsxImportBoard: React.FC<XlsxImportBoardProps> = ({ uploadFiles }) => {
                   name="files"
                   accept=".xlsx"
                   multiple
+                  disabled={isLoading}
                   onChange={onChangeHandler}
                 />
                 {selectedFile && selectedFile.length > 0 ? (

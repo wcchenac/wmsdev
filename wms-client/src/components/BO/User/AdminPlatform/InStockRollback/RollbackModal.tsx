@@ -12,7 +12,7 @@ interface RollbackModalProps {
   show: boolean;
   isLoading?: boolean;
   handleModalClose: () => void;
-  handleSubmitClick: (idList: number[]) => void;
+  handleSubmitClick: (idList: number[]) => Promise<unknown> | void;
   list: StockInfo[];
 }
 
@@ -24,6 +24,8 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
   list
 }) => {
   const clickedRef = useRef(false);
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
 
   useEffect(() => {
     if (!show || !isLoading) {
@@ -46,7 +48,11 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
       return;
     }
     clickedRef.current = true;
-    handleSubmitClick(idList);
+    Promise.resolve(handleSubmitClick(idList)).finally(() => {
+      if (!isLoadingRef.current) {
+        clickedRef.current = false;
+      }
+    });
   }, [isLoading, handleSubmitClick, idList]);
 
   return (

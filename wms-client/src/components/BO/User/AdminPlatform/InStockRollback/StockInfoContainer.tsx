@@ -5,7 +5,7 @@ import { InStockRollbackResult } from "../../../../../types";
 interface StockInfoContainerProps {
   isLoading?: boolean;
   result: InStockRollbackResult;
-  handleInStockRollback: (idList: number[]) => void;
+  handleInStockRollback: (idList: number[]) => Promise<boolean> | void;
 }
 
 const StockInfoContainer: React.FC<StockInfoContainerProps> = ({

@@ -54,22 +54,22 @@ const UserManagement: React.FC = () => {
     setSelectedData({});
   }, []);
 
-  const handleUpdateSubmit = useCallback((updateUserRequest: UpdateUserRequest): void => {
-    void runLocked(() => {
-      setModalShow(false);
-      return dispatch(updateUser(updateUserRequest))
+  const handleUpdateSubmit = useCallback((updateUserRequest: UpdateUserRequest): Promise<void> =>
+    runLocked(() =>
+      dispatch(updateUser(updateUserRequest))
         .then(() => {
+          setModalShow(false);
           setSelectedData({});
           toast.success("已更新員工資料");
         })
         .catch((error) => {
           if (isRefreshFailure(error)) {
+            setModalShow(false);
             setSelectedData({});
           }
           notifyRequestFailed(error);
-        });
-    });
-  }, [dispatch, runLocked]);
+        })
+    ).then(() => undefined), [dispatch, runLocked]);
 
   const handleDeleteSubmit = useCallback((employeeId: string): void => {
     void runLocked(() =>
@@ -107,6 +107,7 @@ const UserManagement: React.FC = () => {
           <IconButton
             size="small"
             onClick={() => handleEditClick(params.row)}
+            disabled={isLoading}
             aria-label="編輯"
           >
             <EditIcon fontSize="small" />
@@ -114,6 +115,7 @@ const UserManagement: React.FC = () => {
           <IconButton
             size="small"
             onClick={() => setDeleteTarget(params.row)}
+            disabled={isLoading}
             aria-label="刪除"
             color="error"
           >
@@ -155,6 +157,7 @@ const UserManagement: React.FC = () => {
               {modalShow && (
                 <EditModal
                   show
+                  isLoading={isLoading}
                   userInfo={selectedData}
                   handleModalClose={handleModalClose}
                   handleUpdateSubmit={handleUpdateSubmit}
@@ -168,6 +171,7 @@ const UserManagement: React.FC = () => {
         show={deleteTarget !== null}
         onHide={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
+        loading={isLoading}
         variant="danger"
         title="刪除員工"
         message={`確定要刪除員工 ${deleteTarget?.employeeId ?? ""}（${deleteTarget?.fullName ?? ""}）嗎？刪除後無法復原。`}

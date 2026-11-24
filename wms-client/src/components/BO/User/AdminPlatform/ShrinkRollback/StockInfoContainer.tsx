@@ -5,7 +5,7 @@ import { ShrinkRollbackObject } from "../../../../../types";
 interface StockInfoContainerProps {
   isLoading?: boolean;
   result: ShrinkRollbackObject[];
-  handleShrinkRollback: (stockIdentifierId: number) => void;
+  handleShrinkRollback: (stockIdentifierId: number) => Promise<boolean> | void;
 }
 
 const StockInfoContainer: React.FC<StockInfoContainerProps> = ({

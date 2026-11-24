@@ -11,7 +11,7 @@ import StockInfoContainer from "./StockInfoContainer";
 import { Alert } from "../../../../UI";
 import { RootState, AppDispatch, ShrinkRollbackObject } from "../../../../../types";
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
-import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
+import { notifyRollbackFailed, RollbackError } from "../../../../../utilities/rollbackRequest";
 import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 
 const ShrinkRollback: React.FC = () => {
@@ -50,13 +50,16 @@ const ShrinkRollback: React.FC = () => {
     );
   }, [dispatch, productNo, runLocked]);
 
-  const handleShrinkRollback = useCallback((stockIdentifierId: number): void => {
-    void runLocked(() =>
+  const handleShrinkRollback = useCallback((stockIdentifierId: number): Promise<boolean> =>
+    runLocked(() =>
       // The action queries the list again whatever the outcome; a failure says what happened.
       dispatch(shrinkRollback(stockIdentifierId, queriedProductNo))
-        .catch(notifyRollbackFailed)
-    );
-  }, [dispatch, queriedProductNo, runLocked]);
+        .then(() => true)
+        .catch((error) => {
+          notifyRollbackFailed(error);
+          return error instanceof RollbackError && error.rolledBack;
+        })
+    ).then((res) => Boolean(res)), [dispatch, queriedProductNo, runLocked]);
 
   const renderContent = (): React.ReactNode => {
     if (!isQuery) {

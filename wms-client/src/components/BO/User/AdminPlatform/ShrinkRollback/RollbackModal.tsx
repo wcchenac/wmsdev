@@ -12,7 +12,7 @@ interface RollbackModalProps {
   show: boolean;
   isLoading?: boolean;
   handleModalClose: () => void;
-  handleSubmitClick: () => void;
+  handleSubmitClick: () => Promise<unknown> | void;
   object: ShrinkRollbackObject;
 }
 
@@ -24,6 +24,8 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
   object
 }) => {
   const clickedRef = useRef(false);
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
 
   useEffect(() => {
     if (!show || !isLoading) {
@@ -36,7 +38,11 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
       return;
     }
     clickedRef.current = true;
-    handleSubmitClick();
+    Promise.resolve(handleSubmitClick()).finally(() => {
+      if (!isLoadingRef.current) {
+        clickedRef.current = false;
+      }
+    });
   }, [isLoading, handleSubmitClick]);
 
   const isRollbackDisabled = useMemo(() => {

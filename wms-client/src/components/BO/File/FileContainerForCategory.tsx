@@ -7,6 +7,7 @@ import { SelectOption } from "../../../types";
 const NotFoundMessage = "File Not Found";
 
 interface FileContainerForCategoryProps {
+  isLoading?: boolean;
   categoryList: SelectOption[];
   fileType: string;
   filenames: string[];
@@ -16,6 +17,7 @@ interface FileContainerForCategoryProps {
 }
 
 const FileContainerForCategory: React.FC<FileContainerForCategoryProps> = ({
+  isLoading = false,
   categoryList,
   fileType,
   filenames,
@@ -64,6 +66,7 @@ const FileContainerForCategory: React.FC<FileContainerForCategoryProps> = ({
             <button
               type="button"
               className="btn btn-sm btn-info"
+              disabled={isLoading}
               onClick={() => setShow(true)}
             >
               選擇分類

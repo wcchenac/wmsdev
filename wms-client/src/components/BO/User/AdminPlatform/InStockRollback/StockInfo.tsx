@@ -8,7 +8,7 @@ interface StockInfoProps {
   isLoading?: boolean;
   productNo: string;
   list: StockInfoType[];
-  handleInStockRollback: (idList: number[]) => void;
+  handleInStockRollback: (idList: number[]) => Promise<boolean> | void;
 }
 
 const StockInfo: React.FC<StockInfoProps> = ({
@@ -27,9 +27,11 @@ const StockInfo: React.FC<StockInfoProps> = ({
     setModalShow(false);
   }, []);
 
-  const handleSubmitClick = useCallback((idList: number[]) => {
-    setModalShow(false);
-    handleInStockRollback(idList);
+  const handleSubmitClick = useCallback(async (idList: number[]) => {
+    const ok = await Promise.resolve(handleInStockRollback(idList));
+    if (ok !== false) {
+      setModalShow(false);
+    }
   }, [handleInStockRollback]);
 
   const content = useMemo(() => {

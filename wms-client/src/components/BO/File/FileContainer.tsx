@@ -5,6 +5,7 @@ import { dayOfStart, dayOfEnd, formatLocalDateTime } from "../Stock/Utilities/Da
 const NotFoundMessage = "File Not Found";
 
 interface FileContainerProps {
+  isLoading?: boolean;
   containerTitle: string;
   fileType: string;
   filenames: string[];
@@ -18,6 +19,7 @@ interface FileContainerProps {
 }
 
 const FileContainer: React.FC<FileContainerProps> = ({
+  isLoading = false,
   containerTitle,
   fileType,
   filenames,
@@ -75,6 +77,7 @@ const FileContainer: React.FC<FileContainerProps> = ({
             <button
               type="button"
               className="btn btn-sm btn-info"
+              disabled={isLoading}
               onClick={onCurrentClick}
             >
               檔案查詢
@@ -85,6 +88,7 @@ const FileContainer: React.FC<FileContainerProps> = ({
               btnTitle={"特定日期區間查詢"}
               fileType={fileType}
               btnSize={"sm"}
+              disabled={isLoading}
               startDate={startDate}
               endDate={endDate}
               handleStartDateSelection={handleStartDateSelection}

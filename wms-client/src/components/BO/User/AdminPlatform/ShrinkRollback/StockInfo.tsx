@@ -6,7 +6,7 @@ import { ShrinkRollbackObject } from "../../../../../types";
 interface StockInfoProps {
   isLoading?: boolean;
   object: ShrinkRollbackObject;
-  handleShrinkRollback: (stockIdentifierId: number) => void;
+  handleShrinkRollback: (stockIdentifierId: number) => Promise<boolean> | void;
 }
 
 const StockInfo: React.FC<StockInfoProps> = ({
@@ -24,11 +24,15 @@ const StockInfo: React.FC<StockInfoProps> = ({
     setModalShow(false);
   }, []);
 
-  const handleSubmitClick = useCallback(() => {
-    setModalShow(false);
+  const handleSubmitClick = useCallback(async () => {
     const id = object.stockInfo.stockIdentifier?.id;
     if (id !== undefined && id !== null) {
-      handleShrinkRollback(id);
+      const ok = await Promise.resolve(handleShrinkRollback(id));
+      if (ok !== false) {
+        setModalShow(false);
+      }
+    } else {
+      setModalShow(false);
     }
   }, [handleShrinkRollback, object.stockInfo.stockIdentifier?.id]);
 

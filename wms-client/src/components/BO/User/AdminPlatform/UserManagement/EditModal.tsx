@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ChangeEvent } from "react";
+import React, { useState, useCallback, useEffect, useRef, ChangeEvent } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { copy } from "../../../../../utilities/DeepCopy";
 import { RoleOption, RoleOptionKey } from "../../../../../enums/Enums";
@@ -6,8 +6,9 @@ import { UpdateUserRequest, User } from "../../../../../types";
 
 interface EditModalProps {
   show: boolean;
+  isLoading?: boolean;
   handleModalClose: () => void;
-  handleUpdateSubmit: (updateUserRequest: UpdateUserRequest) => void;
+  handleUpdateSubmit: (updateUserRequest: UpdateUserRequest) => Promise<unknown> | void;
   userInfo: User;
 }
 
@@ -23,6 +24,7 @@ interface UserInfoState {
 
 const EditModal: React.FC<EditModalProps> = ({
   show,
+  isLoading = false,
   handleModalClose,
   handleUpdateSubmit,
   userInfo: propsUserInfo
@@ -42,10 +44,22 @@ const EditModal: React.FC<EditModalProps> = ({
 
   const [editMode, setEditMode] = useState<boolean>(false);
   const [userInfo, setUserInfo] = useState<UserInfoState>(() => roleTranslate(propsUserInfo));
+  const submittingRef = useRef<boolean>(false);
+  const isLoadingRef = useRef<boolean>(isLoading);
+  isLoadingRef.current = isLoading;
+
+  useEffect(() => {
+    if (!show || !isLoading) {
+      submittingRef.current = false;
+    }
+  }, [show, isLoading]);
 
   const handleEditMode = useCallback((): void => {
+    if (isLoading) {
+      return;
+    }
     setEditMode(prev => !prev);
-  }, []);
+  }, [isLoading]);
 
   const handleInfoChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
@@ -73,9 +87,10 @@ const EditModal: React.FC<EditModalProps> = ({
   const canSave = Boolean(userInfo.role);
 
   const handleUpdateSubmitClick = useCallback((): void => {
-    if (!userInfo.role) {
+    if (isLoading || submittingRef.current || !userInfo.role) {
       return;
     }
+    submittingRef.current = true;
     // The backend re-hashes the password whenever newPassword is not null, so a field that
     // was typed in and then cleared (or only spaces) is left out instead of setting "".
     const newPassword = userInfo.newPassword?.trim() ? userInfo.newPassword : undefined;
@@ -86,8 +101,12 @@ const EditModal: React.FC<EditModalProps> = ({
       role: userInfo.role
     };
 
-    handleUpdateSubmit(updateInfoRequest);
-  }, [userInfo, handleUpdateSubmit]);
+    Promise.resolve(handleUpdateSubmit(updateInfoRequest)).finally(() => {
+      if (!isLoadingRef.current) {
+        submittingRef.current = false;
+      }
+    });
+  }, [isLoading, userInfo, handleUpdateSubmit]);
 
   const renderEditModeOff = (): React.ReactNode => {
     // Handle both string and object formats for role display
@@ -135,6 +154,7 @@ const EditModal: React.FC<EditModalProps> = ({
               placeholder="新密碼"
               name="newPassword"
               value={userInfo.newPassword ?? ""}
+              disabled={isLoading}
               onChange={handleInfoChange}
             />
           </div>
@@ -146,6 +166,7 @@ const EditModal: React.FC<EditModalProps> = ({
               name="role"
               className="form-select"
               value={userInfo.role ?? ""}
+              disabled={isLoading}
               onChange={handleInfoChange}
             >
               {Object.entries(RoleOption).map(([title, value]) => (
@@ -164,9 +185,11 @@ const EditModal: React.FC<EditModalProps> = ({
     <Modal
       centered
       show={show}
-      onHide={handleModalClose}
+      onHide={isLoading ? undefined : handleModalClose}
+      backdrop={isLoading ? "static" : true}
+      keyboard={!isLoading}
     >
-      <Modal.Header closeButton>
+      <Modal.Header closeButton={!isLoading}>
         <Modal.Title>
           <div className="row">
             <div className="col-md-auto me-auto">
@@ -178,6 +201,7 @@ const EditModal: React.FC<EditModalProps> = ({
                 className="border-0 bg-transparent p-0 text-reset"
                 aria-label="編輯"
                 aria-pressed={editMode}
+                disabled={isLoading}
                 onClick={handleEditMode}
               >
                 <i className="fa fa-pencil" aria-hidden="true"></i>
@@ -191,11 +215,16 @@ const EditModal: React.FC<EditModalProps> = ({
       </Modal.Body>
       {editMode ? (
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleModalClose}>
+          <Button variant="secondary" onClick={handleModalClose} disabled={isLoading}>
             取消
           </Button>
-          <Button variant="primary" onClick={handleUpdateSubmitClick} disabled={!canSave}>
-            儲存
+          <Button
+            variant="primary"
+            onClick={handleUpdateSubmitClick}
+            disabled={isLoading || !canSave}
+            aria-busy={isLoading}
+          >
+            {isLoading ? "儲存中..." : "儲存"}
           </Button>
         </Modal.Footer>
       ) : null}
