@@ -2,6 +2,7 @@ import { applyMiddleware, createStore } from 'redux';
 import { thunk } from 'redux-thunk';
 import rootReducer from '../../reducers';
 import API from '../../utilities/API';
+import { DuplicateRequestError } from '../../utilities/requestDedup';
 import { getInStockRollbackList, getShrinkRollbackList, inStockRollback, shrinkRollback } from '../../actions/StockActions';
 import * as rollbackRequest from '../../utilities/rollbackRequest';
 import {
@@ -162,6 +163,16 @@ describe.each(cases)('%s', (_name, rollback, listUrl, sliceKey, freshList) => {
 
     await expect(run()).rejects.toBe(expired);
     expect(API.get).not.toHaveBeenCalled();
+  });
+
+  test('does not wrap DuplicateRequestError into RollbackError or re-query', async () => {
+    const dup = new DuplicateRequestError();
+    vi.mocked(API.patch).mockRejectedValue(dup);
+    const store = makeStore();
+
+    await expect(run(store)).rejects.toBe(dup);
+    expect(API.get).not.toHaveBeenCalled();
+    expect(store.getState().errors.errors).toBeNull();
   });
 });
 

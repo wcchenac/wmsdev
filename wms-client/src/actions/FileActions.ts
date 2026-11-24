@@ -63,10 +63,17 @@ async function unwrapBlobError(error: unknown): Promise<unknown> {
   }
 }
 
+const inFlightDownloads = new Set<string>();
+
 export const downloadFile = async (
   fileCategory: string,
   filename: string
 ): Promise<void> => {
+  const downloadKey = `${fileCategory}\0${filename}`;
+  if (inFlightDownloads.has(downloadKey)) {
+    return;
+  }
+  inFlightDownloads.add(downloadKey);
   try {
     const response = await API.get(
       `api/file/download/${encodeURIComponent(fileCategory)}/${encodeURIComponent(filename)}`,
@@ -97,6 +104,8 @@ export const downloadFile = async (
     // 401 is toasted and redirected by the interceptor in API.ts.
     const resolvedError = await unwrapBlobError(error);
     notifyRequestFailed(resolvedError);
+  } finally {
+    inFlightDownloads.delete(downloadKey);
   }
 };
 

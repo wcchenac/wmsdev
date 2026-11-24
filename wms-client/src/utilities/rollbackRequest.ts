@@ -1,5 +1,6 @@
 import { toast } from "react-toastify";
 import { isSessionExpired, notifyRequestFailed, responseStatus } from "./notifyRequestFailed";
+import { isDuplicateRequest } from "./requestDedup";
 
 // The backend rolls back all or nothing. When any id in the request is gone, or the roll was
 // never shrunk, it answers 400 with no body and changes nothing, so the message has to come
@@ -52,7 +53,7 @@ export async function rollbackThenQueryList<T>(
     await rollback();
     rolledBack = true;
   } catch (error) {
-    if (isSessionExpired(error)) throw error;
+    if (isSessionExpired(error) || isDuplicateRequest(error)) throw error;
     rollbackError = error;
   }
 
@@ -60,7 +61,7 @@ export async function rollbackThenQueryList<T>(
   try {
     list = await queryList();
   } catch (listError) {
-    if (isSessionExpired(listError)) throw listError;
+    if (isSessionExpired(listError) || isDuplicateRequest(listError)) throw listError;
     if (rolledBack) throw new RollbackError(ROLLBACK_DONE_NOT_REFRESHED_MESSAGE, listError, true);
     throw new RollbackError(
       isRejected(rollbackError) ? ROLLBACK_REJECTED_NOT_REFRESHED_MESSAGE : ROLLBACK_UNCONFIRMED_NOT_REFRESHED_MESSAGE,

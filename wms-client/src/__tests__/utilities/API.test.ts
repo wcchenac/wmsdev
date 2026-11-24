@@ -1,9 +1,13 @@
 import { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
 import { toast } from 'react-toastify';
 import API, { SESSION_EXPIRED_MESSAGE, SESSION_EXPIRED_REDIRECT_DELAY_MS } from '../../utilities/API';
-import { DuplicateRequestError, isDuplicateRequest } from '../../utilities/requestDedup';
 import store from '../../store';
 import { SET_Current_User } from '../../types';
+import {
+  DuplicateRequestError,
+  buildWriteRequestKey,
+  isDuplicateRequest,
+} from '../../utilities/requestDedup';
 
 // A 401 in the middle of a session means the JWT expired. The user is told why before the page
 // moves to /login, instead of being reloaded there with no explanation.
@@ -29,21 +33,21 @@ const httpError = (status: number, url = '/api/stock/query') => {
 const getItem = vi.mocked(window.localStorage.getItem);
 const removeItem = vi.mocked(window.localStorage.removeItem);
 
-beforeEach(() => {
-  vi.useFakeTimers();
-  window.location.href = '';
-  vi.mocked(toast.error).mockReset();
-  API.defaults.headers.common.Authorization = 'Bearer old-token';
-});
-
-afterEach(() => {
-  // Let a scheduled redirect run so the next test starts with none pending.
-  vi.runAllTimers();
-  vi.useRealTimers();
-  delete API.defaults.headers.common.Authorization;
-});
-
 describe('API 401 handling', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    window.location.href = '';
+    vi.mocked(toast.error).mockReset();
+    API.defaults.headers.common.Authorization = 'Bearer old-token';
+  });
+
+  afterEach(() => {
+    // Let a scheduled redirect run so the next test starts with none pending.
+    vi.runAllTimers();
+    vi.useRealTimers();
+    delete API.defaults.headers.common.Authorization;
+  });
+
   test('with a stored token: clears it, shows the message, then goes to /login', async () => {
     getItem.mockReturnValue('Bearer old-token');
     const error = httpError(401);
@@ -150,47 +154,70 @@ describe('API concurrent write deduplication', () => {
     API.defaults.adapter = originalAdapter;
   });
 
-  test('blocks identical in-flight POST/PATCH/PUT/DELETE requests and releases after settlement', async () => {
-    let resolveFirst!: (res: { status: number; data: unknown; statusText: string; headers: Record<string, string>; config: InternalAxiosRequestConfig }) => void;
+  test('blocks identical in-flight POST/PATCH/PUT/DELETE/request calls and releases after settlement', async () => {
+    const resolvers: Array<() => void> = [];
     const adapter = vi.fn(
       (config: InternalAxiosRequestConfig) =>
         new Promise<{ status: number; data: unknown; statusText: string; headers: Record<string, string>; config: InternalAxiosRequestConfig }>(
           (resolve) => {
-            resolveFirst = resolve;
+            resolvers.push(() =>
+              resolve({ status: 200, statusText: 'OK', headers: {}, config, data: { ok: true } })
+            );
           }
         )
     );
     API.defaults.adapter = adapter as unknown as typeof API.defaults.adapter;
 
     const first = API.post('/api/stock/inStocks', [{ productNo: 'CF1001', quantity: 10 }]);
-    const duplicate = API.post('/api/stock/inStocks', [{ productNo: 'CF1001', quantity: 10 }]);
+    try {
+      const duplicate = API.post('/api/stock/inStocks', [{ productNo: 'CF1001', quantity: 10 }]);
+      await expect(duplicate).rejects.toBeInstanceOf(DuplicateRequestError);
+      expect(adapter).toHaveBeenCalledTimes(1);
+    } finally {
+      resolvers.shift()?.();
+      await expect(first).resolves.toMatchObject({ status: 200 });
+    }
 
-    await expect(duplicate).rejects.toBeInstanceOf(DuplicateRequestError);
-    expect(adapter).toHaveBeenCalledTimes(1);
+    // Exercise PUT, 2-arg API.request(url, config), callable API(config), and postForm.
+    const putReq = API.put('/api/stock/item', { id: 1 });
+    try {
+      await expect(API.put('/api/stock/item', { id: 1 })).rejects.toBeInstanceOf(DuplicateRequestError);
+      expect(adapter).toHaveBeenCalledTimes(2);
+    } finally {
+      resolvers.shift()?.();
+      await expect(putReq).resolves.toMatchObject({ status: 200 });
+    }
 
-    resolveFirst({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: { headers: new AxiosHeaders() } as InternalAxiosRequestConfig,
-      data: { ok: true },
-    });
-    await expect(first).resolves.toMatchObject({ status: 200 });
+    const reqTwoArg = (
+      API.request as unknown as (u: string, c: Record<string, unknown>) => Promise<unknown>
+    )('/api/stock/item', { method: 'patch', data: { id: 2 } });
+    try {
+      await expect(API({ method: 'patch', url: '/api/stock/item', data: { id: 2 } })).rejects.toBeInstanceOf(
+        DuplicateRequestError
+      );
+      expect(adapter).toHaveBeenCalledTimes(3);
+    } finally {
+      resolvers.shift()?.();
+      await expect(reqTwoArg).resolves.toMatchObject({ status: 200 });
+    }
 
-    // Once the first request settles, a subsequent identical submission is allowed again.
-    const next = API.post('/api/stock/inStocks', [{ productNo: 'CF1001', quantity: 10 }]);
-    expect(adapter).toHaveBeenCalledTimes(2);
-    resolveFirst({
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: { headers: new AxiosHeaders() } as InternalAxiosRequestConfig,
-      data: { ok: true },
-    });
-    await expect(next).resolves.toMatchObject({ status: 200 });
+    const fd1 = new FormData();
+    fd1.append('files', new File(['a'], 'in.xlsx', { type: 'application/vnd.ms-excel', lastModified: 100 }));
+    const fdDup = new FormData();
+    fdDup.append('files', new File(['a'], 'in.xlsx', { type: 'application/vnd.ms-excel', lastModified: 100 }));
+    const formReq = API.postForm('api/file/import/inStockFile', fd1);
+    try {
+      await expect(API.post('/api/file/import/inStockFile', fdDup)).rejects.toBeInstanceOf(
+        DuplicateRequestError
+      );
+      expect(adapter).toHaveBeenCalledTimes(4);
+    } finally {
+      resolvers.shift()?.();
+      await expect(formReq).resolves.toMatchObject({ status: 200 });
+    }
   });
 
-  test('allows concurrent writes with different payloads and concurrent GETs', async () => {
+  test('allows concurrent writes with different payloads, blobs, and concurrent GETs', async () => {
     const adapter = vi.fn(async (config: InternalAxiosRequestConfig) => ({
       status: 200,
       statusText: 'OK',
@@ -200,14 +227,21 @@ describe('API concurrent write deduplication', () => {
     }));
     API.defaults.adapter = adapter as unknown as typeof API.defaults.adapter;
 
+    const fdA = new FormData();
+    fdA.append('blob', new Blob(['short']));
+    const fdB = new FormData();
+    fdB.append('blob', new Blob(['longer-payload']));
+
     await Promise.all([
       API.patch('/api/stock/shipStock', { stockIdentifierId: 1, reason: '中壢' }),
       API.patch('/api/stock/shipStock', { stockIdentifierId: 2, reason: '中壢' }),
+      API.post('/api/file/import/inStockFile', fdA),
+      API.post('/api/file/import/inStockFile', fdB),
       API.get('/api/stock/queryStock/query/1/CF1001'),
       API.get('/api/stock/queryStock/query/1/CF1001'),
     ]);
 
-    expect(adapter).toHaveBeenCalledTimes(4);
+    expect(adapter).toHaveBeenCalledTimes(6);
   });
 
   test('releases the lock if the in-flight write fails', async () => {
@@ -228,6 +262,36 @@ describe('API concurrent write deduplication', () => {
       status: 200,
     });
     expect(adapter).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('requestDedup helpers', () => {
+  test('normalizes URL slashes, query parameters, object key order, DAG references, and special types', () => {
+    expect(
+      buildWriteRequestKey({ method: 'post', baseURL: 'http://localhost:8080/', url: 'api/stock/test?b=2&a=1', data: { b: 2, a: 1 } })
+    ).toBe(
+      buildWriteRequestKey({ method: 'POST', baseURL: 'http://localhost:8080', url: '/api/stock/test?a=1&b=2', data: { a: 1, b: 2 } })
+    );
+
+    const shared = { x: 1 };
+    expect(
+      buildWriteRequestKey({ method: 'patch', url: '/api/test', data: { p: shared, q: shared } })
+    ).toBe(
+      buildWriteRequestKey({ method: 'patch', url: '/api/test', data: { p: { x: 1 }, q: { x: 1 } } })
+    );
+
+    // BigInt, invalid Date, protocol-relative URL never throw
+    expect(
+      buildWriteRequestKey({ method: 'post', url: '//cdn.example/api', data: { id: 10n, d: new Date(Number.NaN) } })
+    ).toContain('BigInt(10)');
+
+    // GET returns null; defaultMethod overrides when omitted
+    expect(buildWriteRequestKey({ url: '/api/test' })).toBeNull();
+    expect(buildWriteRequestKey({ url: '/api/test' }, 'post')).toContain('POST /api/test');
+
     expect(isDuplicateRequest(new DuplicateRequestError())).toBe(true);
+    expect(isDuplicateRequest({ isDuplicateRequest: true })).toBe(true);
+    expect(isDuplicateRequest(new Error('other'))).toBe(false);
+    expect(isDuplicateRequest(null)).toBe(false);
   });
 });

@@ -98,10 +98,18 @@ function runDeduplicatedWrite<R>(
     config: AxiosRequestConfig,
     execute: () => Promise<R>
 ): Promise<R> {
-    const key = buildWriteRequestKey({
-        baseURL: API.defaults.baseURL,
-        ...config,
-    });
+    let key: string | null;
+    try {
+        key = buildWriteRequestKey(
+            {
+                baseURL: API.defaults.baseURL,
+                ...config,
+            },
+            API.defaults.method
+        );
+    } catch (err) {
+        return Promise.reject(err);
+    }
     if (key === null) {
         return execute();
     }
@@ -125,9 +133,16 @@ function runDeduplicatedWrite<R>(
 // so concurrent identical mutations are blocked synchronously and always released on settlement.
 const baseRequest = API.request.bind(API);
 API.request = (function deduplicatedRequest<T = unknown, R = AxiosResponse<T>, D = unknown>(
-    config: AxiosRequestConfig<D>
+    configOrUrl: AxiosRequestConfig<D> | string,
+    maybeConfig?: AxiosRequestConfig<D>
 ) {
-    return runDeduplicatedWrite(config, () => baseRequest<T, R, D>(config));
+    const resolvedConfig: AxiosRequestConfig<D> =
+        typeof configOrUrl === 'string'
+            ? { ...maybeConfig, url: configOrUrl }
+            : (configOrUrl ?? {});
+    return runDeduplicatedWrite(resolvedConfig, () =>
+        baseRequest<T, R, D>(resolvedConfig)
+    );
 }) as typeof API.request;
 
 const wrapDataWrite = (
@@ -163,4 +178,16 @@ API.delete = (function <T = unknown, R = AxiosResponse<T>, D = unknown>(
     );
 }) as typeof API.delete;
 
-export default API;
+type RequestExecutor = <T = unknown, R = AxiosResponse<T>, D = unknown>(
+    configOrUrl: AxiosRequestConfig<D> | string,
+    maybeConfig?: AxiosRequestConfig<D>
+) => Promise<R>;
+
+// Also intercept callable invocations like API({ method: 'post', url, data }) or API(url, config).
+const deduplicatedAPI = new Proxy(API, {
+    apply(_target, _thisArg, argArray: [AxiosRequestConfig | string, AxiosRequestConfig?]) {
+        return (API.request as unknown as RequestExecutor)(argArray[0], argArray[1]);
+    },
+});
+
+export default deduplicatedAPI;

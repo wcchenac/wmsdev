@@ -43,6 +43,9 @@ export async function mutateThenRefresh<M, R>({
   try {
     return await refresh(mutateResult);
   } catch (err) {
+    if (isDuplicateRequest(err)) {
+      throw err;
+    }
     markRefreshFailure(err, refreshErrorMessage);
     dispatch({
       type: errorType,

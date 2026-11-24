@@ -48,8 +48,12 @@ describe('notifyRequestFailed', () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
-  test('a duplicate in-flight request suppresses the failure toast', () => {
+  test('a duplicate in-flight request suppresses the failure toast (class, duck-typed, or marked)', () => {
     notifyRequestFailed(new DuplicateRequestError());
+    notifyRequestFailed({ isDuplicateRequest: true });
+    const markedDuplicate = new DuplicateRequestError();
+    markRefreshFailure(markedDuplicate, '不應顯示');
+    notifyRequestFailed(markedDuplicate);
     expect(toast.error).not.toHaveBeenCalled();
   });
 
