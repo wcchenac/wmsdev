@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
 import { useUpdateEffect } from "../../../../../utilities/useUpdateEffect";
+import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 import {
   getInStockRollbackList,
   inStockRollback
@@ -16,7 +17,7 @@ import { Alert } from "../../../../UI";
 import { RootState, InStockRollbackResult, AppDispatch } from "../../../../../types";
 
 const InStockRollback: React.FC = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, runLocked } = useSubmitLock();
   const [isQuery, setIsQuery] = useState<boolean>(false);
   const [orderNo, setOrderNo] = useState<string>("");
   const [orderType, setOrderType] = useState<string>("");
@@ -51,34 +52,31 @@ const InStockRollback: React.FC = () => {
   const handleOrderQuerySubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      setIsLoading(true);
-
-      dispatch(getInStockRollbackList(orderType, orderNo)).then((response: { status: number }) => {
-        if (response.status === 200) {
-          setIsQuery(true);
-          setQueriedOrder({ orderType, orderNo });
-        }
-      }).catch((error) => {
-        notifyRequestFailed(error);
-      }).finally(() => {
-        setIsLoading(false);
-      });
+      void runLocked(() =>
+        dispatch(getInStockRollbackList(orderType, orderNo))
+          .then((response: { status: number }) => {
+            if (response.status === 200) {
+              setIsQuery(true);
+              setQueriedOrder({ orderType, orderNo });
+            }
+          })
+          .catch((error) => {
+            notifyRequestFailed(error);
+          })
+      );
     },
-    [dispatch, orderType, orderNo]
+    [dispatch, orderType, orderNo, runLocked]
   );
 
   const handleInStockRollback = useCallback(
     (idList: number[]) => {
-      setIsLoading(true);
-
-      // The action queries the list again whatever the outcome; a failure says what happened.
-      dispatch(inStockRollback(idList, queriedOrder.orderType, queriedOrder.orderNo))
-        .catch(notifyRollbackFailed)
-        .finally(() => {
-          setIsLoading(false);
-        });
+      void runLocked(() =>
+        // The action queries the list again whatever the outcome; a failure says what happened.
+        dispatch(inStockRollback(idList, queriedOrder.orderType, queriedOrder.orderNo))
+          .catch(notifyRollbackFailed)
+      );
     },
-    [dispatch, queriedOrder]
+    [dispatch, queriedOrder, runLocked]
   );
 
   const contentAlgorithm = (): React.ReactNode => {
@@ -98,6 +96,7 @@ const InStockRollback: React.FC = () => {
       } else {
         return (
           <StockInfoContainer
+            isLoading={isLoading}
             result={result}
             handleInStockRollback={handleInStockRollback}
           />
@@ -147,7 +146,7 @@ const InStockRollback: React.FC = () => {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={orderType === "" || orderNo === ""}
+              disabled={isLoading || orderType === "" || orderNo === ""}
             >
               查詢
             </button>

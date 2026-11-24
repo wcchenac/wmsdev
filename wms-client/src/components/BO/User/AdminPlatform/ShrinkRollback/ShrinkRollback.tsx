@@ -12,13 +12,14 @@ import { Alert } from "../../../../UI";
 import { RootState, AppDispatch, ShrinkRollbackObject } from "../../../../../types";
 import { notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
 import { notifyRollbackFailed } from "../../../../../utilities/rollbackRequest";
+import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 
 const ShrinkRollback: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const rawList = useSelector((state: RootState) => state.stockInfo.shrinkRollbackList);
   const result = Array.isArray(rawList) ? (rawList as ShrinkRollbackObject[]) : [];
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, runLocked } = useSubmitLock();
   const [isQuery, setIsQuery] = useState<boolean>(false);
   const [productNo, setProductNo] = useState<string>("");
   /**
@@ -35,31 +36,27 @@ const ShrinkRollback: React.FC = () => {
 
   const handleQuerySubmit = useCallback((e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    setIsLoading(true);
-    dispatch(getShrinkRollbackList(productNo))
-      .then((response: { status: number }) => {
-        if (response.status === 200) {
-          setIsQuery(true);
-          setQueriedProductNo(productNo);
-        }
-      })
-      .catch((error: unknown) => {
-        notifyRequestFailed(error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [dispatch, productNo]);
+    void runLocked(() =>
+      dispatch(getShrinkRollbackList(productNo))
+        .then((response: { status: number }) => {
+          if (response.status === 200) {
+            setIsQuery(true);
+            setQueriedProductNo(productNo);
+          }
+        })
+        .catch((error: unknown) => {
+          notifyRequestFailed(error);
+        })
+    );
+  }, [dispatch, productNo, runLocked]);
 
   const handleShrinkRollback = useCallback((stockIdentifierId: number): void => {
-    setIsLoading(true);
-    // The action queries the list again whatever the outcome; a failure says what happened.
-    dispatch(shrinkRollback(stockIdentifierId, queriedProductNo))
-      .catch(notifyRollbackFailed)
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [dispatch, queriedProductNo]);
+    void runLocked(() =>
+      // The action queries the list again whatever the outcome; a failure says what happened.
+      dispatch(shrinkRollback(stockIdentifierId, queriedProductNo))
+        .catch(notifyRollbackFailed)
+    );
+  }, [dispatch, queriedProductNo, runLocked]);
 
   const renderContent = (): React.ReactNode => {
     if (!isQuery) {
@@ -78,6 +75,7 @@ const ShrinkRollback: React.FC = () => {
     }
     return (
       <StockInfoContainer
+        isLoading={isLoading}
         result={result}
         handleShrinkRollback={handleShrinkRollback}
       />

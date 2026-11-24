@@ -1,28 +1,27 @@
-import React, { useState, useCallback, MouseEvent } from "react";
+import React, { useCallback, MouseEvent } from "react";
 import { missionTrigger } from "../../../../actions/StockActions";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
 import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
+import { useSubmitLock } from "../../../../utilities/useSubmitLock";
 
 const ScheduleMission: React.FC = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, runLocked } = useSubmitLock();
 
   const handleMissionTrigger = useCallback((e: MouseEvent<HTMLButtonElement>): void => {
-    if (isLoading) {
-      return;
-    }
-    const arr = e.currentTarget.name.split("-");
+    const [periodType, fn] = e.currentTarget.name.split("-");
 
-    setIsLoading(true);
-    missionTrigger(arr[0], arr[1]).then(() => {
-      toast.success("Misson Complete");
-    }).catch((error) => {
-      notifyRequestFailed(error);
-    }).finally(() => {
-      setIsLoading(false);
-    });
-  }, [isLoading]);
+    void runLocked(() =>
+      missionTrigger(periodType, fn)
+        .then(() => {
+          toast.success("Misson Complete");
+        })
+        .catch((error) => {
+          notifyRequestFailed(error);
+        })
+    );
+  }, [runLocked]);
 
   return (
     <div className="container">

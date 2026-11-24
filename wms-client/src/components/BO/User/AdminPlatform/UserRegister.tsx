@@ -6,11 +6,11 @@ import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
 import { toast } from "react-toastify";
 import { notifyRequestFailed } from "../../../../utilities/notifyRequestFailed";
+import { useSubmitLock } from "../../../../utilities/useSubmitLock";
 import { AppDispatch } from "../../../../types";
 import { Card, Button } from "../../../UI";
 
 interface UserRegisterState {
-  isLoading: boolean;
   employeeId: string;
   fullName: string;
   password: string;
@@ -38,7 +38,6 @@ function registerRejectedMessage(error: unknown): string | undefined {
 }
 
 const initialState: UserRegisterState = {
-  isLoading: false,
   employeeId: "",
   fullName: "",
   password: "",
@@ -47,6 +46,7 @@ const initialState: UserRegisterState = {
 
 const UserRegister: React.FC = () => {
   const [state, setState] = useState<UserRegisterState>(initialState);
+  const { isLocked: isLoading, runLocked } = useSubmitLock();
   const dispatch = useDispatch<AppDispatch>();
 
   const userKeyInChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
@@ -55,49 +55,45 @@ const UserRegister: React.FC = () => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    if (state.isLoading) {
-      return;
-    }
 
-    const { employeeId, fullName, password, role } = state;
+    void runLocked(() => {
+      const { employeeId, fullName, password, role } = state;
 
-    const registration = {
-      employeeId,
-      fullName,
-      password,
-      role,
-      username: employeeId,
-      confirmPassword: password
-    };
+      const registration = {
+        employeeId,
+        fullName,
+        password,
+        role,
+        username: employeeId,
+        confirmPassword: password
+      };
 
-    setState((prev) => ({ ...prev, isLoading: true }));
-
-    dispatch(registerUser(registration))
-      .then(() => {
-        setState(initialState);
-        toast.success("新增使用者成功");
-      })
-      .catch((error) => {
-        setState((prev) => ({ ...prev, isLoading: false }));
-        // A taken employee ID or an unknown role is named so the admin can fix it; anything
-        // else (and the 401 left to API.ts) gets the usual handling.
-        const rejectedMessage = registerRejectedMessage(error);
-        if (rejectedMessage) {
-          toast.error(rejectedMessage);
-        } else {
-          notifyRequestFailed(error);
-        }
-      });
+      return dispatch(registerUser(registration))
+        .then(() => {
+          setState(initialState);
+          toast.success("新增使用者成功");
+        })
+        .catch((error) => {
+          // A taken employee ID or an unknown role is named so the admin can fix it; anything
+          // else (and the 401 left to API.ts) gets the usual handling.
+          const rejectedMessage = registerRejectedMessage(error);
+          if (rejectedMessage) {
+            toast.error(rejectedMessage);
+          } else {
+            notifyRequestFailed(error);
+          }
+        });
+    });
   };
 
   const submissionValidate = (): boolean => {
-    const { isLoading, employeeId, fullName, password, role } = state;
+    const { employeeId, fullName, password, role } = state;
     return isLoading || !(employeeId !== "" && fullName !== "" && password !== "" && role !== "");
   };
 
   return (
     <div className="container">
-      <LoadingOverlay active={state.isLoading} spinner={<Spinner />}>
+      <LoadingOverlay active={isLoading} spinner={<Spinner />}>
         <div style={{ height: "80vh" }}>
           <div className="row justify-content-center">
             <div className="col-12 col-sm-10 col-md-6 col-lg-5">

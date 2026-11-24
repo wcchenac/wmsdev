@@ -5,12 +5,14 @@ import { StockInfo as StockInfoType } from "../../../../../types";
 import { round10 } from "../../../../../utilities/DecimalAdjust";
 
 interface StockInfoProps {
+  isLoading?: boolean;
   productNo: string;
   list: StockInfoType[];
   handleInStockRollback: (idList: number[]) => void;
 }
 
 const StockInfo: React.FC<StockInfoProps> = ({
+  isLoading = false,
   productNo,
   list,
   handleInStockRollback
@@ -50,11 +52,12 @@ const StockInfo: React.FC<StockInfoProps> = ({
       <td>{content.totalQuantity + content.unit}</td>
       <td>{list.length}</td>
       <td>
-        <Button variant="primary" onClick={handleModalShow}>
+        <Button variant="primary" onClick={handleModalShow} disabled={isLoading}>
           詳細資料
         </Button>
         {modalShow ? (
           <RollbackModal
+            isLoading={isLoading}
             list={list}
             show
             handleModalClose={handleModalClose}

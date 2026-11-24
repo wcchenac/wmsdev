@@ -3,11 +3,13 @@ import StockInfo from "./StockInfo";
 import { ShrinkRollbackObject } from "../../../../../types";
 
 interface StockInfoContainerProps {
+  isLoading?: boolean;
   result: ShrinkRollbackObject[];
   handleShrinkRollback: (stockIdentifierId: number) => void;
 }
 
 const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
+  isLoading = false,
   result,
   handleShrinkRollback
 }) => {
@@ -39,6 +41,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
         <tbody>
           {result.map((object, index) => (
             <StockInfo
+              isLoading={isLoading}
               object={object}
               key={index}
               handleShrinkRollback={handleShrinkRollback}

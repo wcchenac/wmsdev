@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect, FormEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed, isSessionExpired } from "../../../../utilities/notifyRequestFailed";
+import { isDuplicateRequest } from "../../../../utilities/requestDedup";
+import { useSubmitLock } from "../../../../utilities/useSubmitLock";
 import Select, { SingleValue } from "react-select";
 import makeAnimated from "react-select/animated";
 import {
@@ -18,7 +20,7 @@ import { Card, Button } from "../../../UI";
 const animatedComponents = makeAnimated();
 
 const StockCategory: React.FC = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, runLocked } = useSubmitLock();
   const [selectedCategory, setSelectedCategory] = useState<SelectOption | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
@@ -38,19 +40,18 @@ const StockCategory: React.FC = () => {
 
     const category = selectedCategory.value;
 
-    setIsLoading(true);
-    dispatch(findCategoryDetails(selectedCategory.value))
-      .then(() => {
-        toast.success(category + "分類本建立成功");
-        setIsLoading(false);
-      })
-      .catch((error) => {
-        if (!isSessionExpired(error)) {
-          toast.error(category + "分類本建立失敗");
-        }
-        setIsLoading(false);
-      });
-  }, [dispatch, selectedCategory]);
+    void runLocked(() =>
+      dispatch(findCategoryDetails(category))
+        .then(() => {
+          toast.success(category + "分類本建立成功");
+        })
+        .catch((error) => {
+          if (!isSessionExpired(error) && !isDuplicateRequest(error)) {
+            toast.error(category + "分類本建立失敗");
+          }
+        })
+    );
+  }, [dispatch, selectedCategory, runLocked]);
 
   const rawCategories: unknown = categoryList.categories;
   const options = Array.isArray(rawCategories) ? rawCategories.filter(isSelectOption) : [];
@@ -79,6 +80,8 @@ const StockCategory: React.FC = () => {
                     type="button"
                     variant="success"
                     block
+                    disabled={isLoading}
+                    loading={isLoading}
                     onClick={handleSubmit}
                   >
                     送出

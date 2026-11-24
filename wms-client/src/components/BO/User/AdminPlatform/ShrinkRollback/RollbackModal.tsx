@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { ShrinkRollbackObject, DefectOption } from "../../../../../types";
 
@@ -10,6 +10,7 @@ const formatDefect = (defect: string | DefectOption[] | undefined): string => {
 
 interface RollbackModalProps {
   show: boolean;
+  isLoading?: boolean;
   handleModalClose: () => void;
   handleSubmitClick: () => void;
   object: ShrinkRollbackObject;
@@ -17,10 +18,27 @@ interface RollbackModalProps {
 
 const RollbackModal: React.FC<RollbackModalProps> = ({
   show,
+  isLoading = false,
   handleModalClose,
   handleSubmitClick,
   object
 }) => {
+  const clickedRef = useRef(false);
+
+  useEffect(() => {
+    if (!show || !isLoading) {
+      clickedRef.current = false;
+    }
+  }, [show, isLoading]);
+
+  const onConfirmClick = useCallback(() => {
+    if (isLoading || clickedRef.current) {
+      return;
+    }
+    clickedRef.current = true;
+    handleSubmitClick();
+  }, [isLoading, handleSubmitClick]);
+
   const isRollbackDisabled = useMemo(() => {
     return object.nodes.some(
       (node) => node.stockInfo.stockIdentifier?.exist === false
@@ -31,11 +49,13 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
     <Modal
       centered
       show={show}
-      onHide={handleModalClose}
+      onHide={isLoading ? undefined : handleModalClose}
+      backdrop={isLoading ? "static" : true}
+      keyboard={!isLoading}
       size="xl"
     >
       <Modal.Header
-        closeButton
+        closeButton={!isLoading}
         style={{
           background: "linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-dark, #e0a800) 100%)",
           color: "var(--color-gray-900)",
@@ -112,13 +132,14 @@ const RollbackModal: React.FC<RollbackModalProps> = ({
         </table>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleModalClose}>
+        <Button variant="secondary" onClick={handleModalClose} disabled={isLoading}>
           取消
         </Button>
         <Button
           variant="primary"
-          disabled={isRollbackDisabled}
-          onClick={handleSubmitClick}
+          disabled={isLoading || isRollbackDisabled}
+          aria-busy={isLoading}
+          onClick={onConfirmClick}
         >
           確認
         </Button>

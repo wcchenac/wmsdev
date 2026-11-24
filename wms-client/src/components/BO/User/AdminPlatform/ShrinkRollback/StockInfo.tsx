@@ -4,11 +4,16 @@ import RollbackModal from "./RollbackModal";
 import { ShrinkRollbackObject } from "../../../../../types";
 
 interface StockInfoProps {
+  isLoading?: boolean;
   object: ShrinkRollbackObject;
   handleShrinkRollback: (stockIdentifierId: number) => void;
 }
 
-const StockInfo: React.FC<StockInfoProps> = ({ object, handleShrinkRollback }) => {
+const StockInfo: React.FC<StockInfoProps> = ({
+  isLoading = false,
+  object,
+  handleShrinkRollback
+}) => {
   const [modalShow, setModalShow] = useState<boolean>(false);
 
   const handleModalShow = useCallback(() => {
@@ -38,11 +43,12 @@ const StockInfo: React.FC<StockInfoProps> = ({ object, handleShrinkRollback }) =
       </td>
       <td>{object.stockInfo.stockIdentifier?.eliminateDate}</td>
       <td>
-        <Button variant="primary" onClick={handleModalShow}>
+        <Button variant="primary" onClick={handleModalShow} disabled={isLoading}>
           詳細資料
         </Button>
         {modalShow ? (
           <RollbackModal
+            isLoading={isLoading}
             object={object}
             show
             handleModalClose={handleModalClose}

@@ -1,6 +1,8 @@
 import React, { useState, useCallback, ChangeEvent } from "react";
 import { toast } from "react-toastify";
 import { isSessionExpired } from "../../../../utilities/notifyRequestFailed";
+import { isDuplicateRequest } from "../../../../utilities/requestDedup";
+import { useSubmitLock } from "../../../../utilities/useSubmitLock";
 import { acceptXlsxSelection } from "./xlsxImport";
 import LoadingOverlay from "@achmadk/react-loading-overlay";
 import { Spinner } from "../../../Others/Spinner";
@@ -13,7 +15,7 @@ export interface XlsxImportBoardProps {
  * Shared Excel (.xlsx) batch upload board used by InStockByImportFile and SetWarehouse.
  */
 const XlsxImportBoard: React.FC<XlsxImportBoardProps> = ({ uploadFiles }) => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, runLocked } = useSubmitLock();
   const [selectedFile, setSelectedFile] = useState<File[] | null>(null);
 
   const onChangeHandler = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
@@ -25,7 +27,7 @@ const XlsxImportBoard: React.FC<XlsxImportBoardProps> = ({ uploadFiles }) => {
   }, []);
 
   const onClickHandler = useCallback((): void => {
-    if (isLoading || !selectedFile || selectedFile.length === 0) {
+    if (!selectedFile || selectedFile.length === 0) {
       return;
     }
 
@@ -34,19 +36,18 @@ const XlsxImportBoard: React.FC<XlsxImportBoardProps> = ({ uploadFiles }) => {
       data.append("files", selectedFile[i]);
     }
 
-    setIsLoading(true);
-    uploadFiles(data)
-      .then(() => {
-        setIsLoading(false);
-        toast.success("upload success");
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        if (!isSessionExpired(error)) {
-          toast.error("upload fail");
-        }
-      });
-  }, [isLoading, selectedFile, uploadFiles]);
+    void runLocked(() =>
+      uploadFiles(data)
+        .then(() => {
+          toast.success("upload success");
+        })
+        .catch((error) => {
+          if (!isSessionExpired(error) && !isDuplicateRequest(error)) {
+            toast.error("upload fail");
+          }
+        })
+    );
+  }, [selectedFile, uploadFiles, runLocked]);
 
   const uploadDisabled = isLoading || !selectedFile || selectedFile.length === 0;
 

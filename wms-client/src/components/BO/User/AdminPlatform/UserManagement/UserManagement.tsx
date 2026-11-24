@@ -16,6 +16,7 @@ import IconButton from "@mui/material/IconButton";
 import { RootState } from "../../../../../store";
 import { AppDispatch, UpdateUserRequest, User } from "../../../../../types";
 import { isRefreshFailure, notifyRequestFailed } from "../../../../../utilities/notifyRequestFailed";
+import { useSubmitLock } from "../../../../../utilities/useSubmitLock";
 import { toast } from "react-toastify";
 
 interface UserRow extends User {
@@ -23,7 +24,7 @@ interface UserRow extends User {
 }
 
 const UserManagement: React.FC = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, isLockedRef, runLocked } = useSubmitLock();
   const [isQuery, setIsQuery] = useState<boolean>(false);
   const [modalShow, setModalShow] = useState<boolean>(false);
   const [selectedData, setSelectedData] = useState<User>({});
@@ -34,16 +35,14 @@ const UserManagement: React.FC = () => {
   const queryResult = useSelector((state: RootState) => state.user.users);
 
   const handleQueryUser = useCallback((): void => {
-    setIsLoading(true);
-    dispatch(getUserList())
-      .then(() => {
-        setIsQuery(true);
-      })
-      .catch(notifyRequestFailed)
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [dispatch]);
+    void runLocked(() =>
+      dispatch(getUserList())
+        .then(() => {
+          setIsQuery(true);
+        })
+        .catch(notifyRequestFailed)
+    );
+  }, [dispatch, runLocked]);
 
   const handleEditClick = useCallback((data: User): void => {
     setModalShow(true);
@@ -56,44 +55,43 @@ const UserManagement: React.FC = () => {
   }, []);
 
   const handleUpdateSubmit = useCallback((updateUserRequest: UpdateUserRequest): void => {
-    setIsLoading(true);
-    setModalShow(false);
-    dispatch(updateUser(updateUserRequest))
-      .then(() => {
-        setSelectedData({});
-        toast.success("已更新員工資料");
-      })
-      .catch((error) => {
-        if (isRefreshFailure(error)) {
+    void runLocked(() => {
+      setModalShow(false);
+      return dispatch(updateUser(updateUserRequest))
+        .then(() => {
           setSelectedData({});
-        }
-        notifyRequestFailed(error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [dispatch]);
+          toast.success("已更新員工資料");
+        })
+        .catch((error) => {
+          if (isRefreshFailure(error)) {
+            setSelectedData({});
+          }
+          notifyRequestFailed(error);
+        });
+    });
+  }, [dispatch, runLocked]);
 
   const handleDeleteSubmit = useCallback((employeeId: string): void => {
-    setIsLoading(true);
-    dispatch(deleteUser(employeeId))
-      .then(() => {
-        toast.success(`已刪除員工 ${employeeId}`);
-      })
-      .catch(notifyRequestFailed)
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [dispatch]);
+    void runLocked(() =>
+      dispatch(deleteUser(employeeId))
+        .then(() => {
+          toast.success(`已刪除員工 ${employeeId}`);
+        })
+        .catch(notifyRequestFailed)
+    );
+  }, [dispatch, runLocked]);
 
   // Deleting cannot be undone, so the delete icon only asks; the dialog's confirm deletes.
   const handleDeleteConfirm = useCallback((): void => {
+    if (isLockedRef.current) {
+      return;
+    }
     const employeeId = deleteTarget?.employeeId;
     setDeleteTarget(null);
     if (employeeId) {
       handleDeleteSubmit(employeeId);
     }
-  }, [deleteTarget, handleDeleteSubmit]);
+  }, [deleteTarget, handleDeleteSubmit, isLockedRef]);
 
   const columns: GridColDef[] = [
     { field: "employeeId", headerName: "員工編號", flex: 1 },
@@ -136,6 +134,7 @@ const UserManagement: React.FC = () => {
       <button
         className="btn btn-sm btn-primary"
         onClick={handleQueryUser}
+        disabled={isLoading}
       >
         讀取員工清單
       </button>

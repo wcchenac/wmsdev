@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, MouseEvent } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { notifyRequestFailed } from "../../../utilities/notifyRequestFailed";
+import { useSubmitLock } from "../../../utilities/useSubmitLock";
 import { isSelectOption } from "../../../utilities/selectOption";
 import FileContainer from "./FileContainer";
 import FileContainerForCategory from "./FileContainerForCategory";
@@ -25,7 +26,7 @@ interface FilenamesState {
 }
 
 const FileCenter: React.FC = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { isLocked: isLoading, runLocked } = useSubmitLock();
   const [filenames, setFilenames] = useState<FilenamesState>({
     adjustment: [],
     allocation: [],
@@ -43,40 +44,36 @@ const FileCenter: React.FC = () => {
   );
 
   const handleFileCategoryCurrentQuery = useCallback((fileCategory: string) => {
-    setIsLoading(true);
-    queryFileCategoryTodayFile(fileCategory)
-      .then((res) => {
-        if (res.status === 200) {
-          setFilenames((prev) => ({
-            ...prev,
-            [fileCategory as FileCategoryKey]: [res.data]
-          }));
-        }
-      })
-      .catch(notifyRequestFailed)
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
-
-  const handleFileCategoryPeriodQuery = useCallback(
-    (fileCategory: string, startDate: string, endDate: string) => {
-      setIsLoading(true);
-      queryFileCategoryIntervalFiles(fileCategory, startDate, endDate)
+    void runLocked(() =>
+      queryFileCategoryTodayFile(fileCategory)
         .then((res) => {
           if (res.status === 200) {
             setFilenames((prev) => ({
               ...prev,
-              [fileCategory as FileCategoryKey]: res.data
+              [fileCategory as FileCategoryKey]: [res.data]
             }));
           }
         })
         .catch(notifyRequestFailed)
-        .finally(() => {
-          setIsLoading(false);
-        });
+    );
+  }, [runLocked]);
+
+  const handleFileCategoryPeriodQuery = useCallback(
+    (fileCategory: string, startDate: string, endDate: string) => {
+      void runLocked(() =>
+        queryFileCategoryIntervalFiles(fileCategory, startDate, endDate)
+          .then((res) => {
+            if (res.status === 200) {
+              setFilenames((prev) => ({
+                ...prev,
+                [fileCategory as FileCategoryKey]: res.data
+              }));
+            }
+          })
+          .catch(notifyRequestFailed)
+      );
     },
-    []
+    [runLocked]
   );
 
   const createCategoryDetailFilename = useCallback((selectedOptions: string[]) => {

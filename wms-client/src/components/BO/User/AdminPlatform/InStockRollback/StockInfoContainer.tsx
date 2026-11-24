@@ -3,11 +3,13 @@ import StockInfo from "./StockInfo";
 import { InStockRollbackResult } from "../../../../../types";
 
 interface StockInfoContainerProps {
+  isLoading?: boolean;
   result: InStockRollbackResult;
   handleInStockRollback: (idList: number[]) => void;
 }
 
 const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
+  isLoading = false,
   result,
   handleInStockRollback
 }) => {
@@ -33,6 +35,7 @@ const StockInfoContainer: React.FC<StockInfoContainerProps> = ({
         <tbody>
           {Object.keys(result).map((productNo, index) => (
             <StockInfo
+              isLoading={isLoading}
               productNo={productNo}
               list={result[productNo]}
               key={index}

@@ -6,6 +6,7 @@ import { login, logout } from "../../../actions/UserActions";
 import { RootState } from "../../../store";
 import { AppDispatch } from "../../../types";
 import { useUpdateEffect } from "../../../utilities/useUpdateEffect";
+import { useSubmitLock } from "../../../utilities/useSubmitLock";
 import { isSessionValid } from "../../Others/securities/ProtectedRoute";
 
 interface LoginErrors {
@@ -38,7 +39,7 @@ const Login: React.FC = () => {
   const [employeeId, setEmployeeId] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [errors, setErrors] = useState<LoginErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const { isLocked: isSubmitting, runLocked } = useSubmitLock();
   const [touched, setTouched] = useState<TouchedFields>({
     employeeId: false,
     password: false
@@ -88,19 +89,18 @@ const Login: React.FC = () => {
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
 
-    // Mark all fields as touched
-    setTouched({ employeeId: true, password: true });
-    setIsSubmitting(true);
+    void runLocked(() => {
+      // Mark all fields as touched
+      setTouched({ employeeId: true, password: true });
 
-    const loginRequest = {
-      employeeId,
-      password
-    };
+      const loginRequest = {
+        employeeId,
+        password
+      };
 
-    // The button comes back when the request settles, not when the stored error changes:
-    // the same error twice in a row leaves the store unchanged.
-    dispatch(login(loginRequest)).finally(() => {
-      setIsSubmitting(false);
+      // The button comes back when the request settles, not when the stored error changes:
+      // the same error twice in a row leaves the store unchanged.
+      return dispatch(login(loginRequest));
     });
   };
 
